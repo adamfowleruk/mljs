@@ -8,10 +8,10 @@ Design principles
  - Be fully event oriented (for non blocking IO), unlike other DB's NodeJS modules
  
 Targets for V 0.1 (Dec 2012) in descending order of importance
- - abstract authentication (digest and basic)
+ - abstract authentication (digest and basic) (Basic DONE on HTTP)
  - support creation of database and rest api on the fly
- - sensible to/from json settings
- - provide document save, fetch, update
+ - sensible to/from json settings (Default on &format=json on server)
+ - provide document save, get, update (DONE)
  - provide access to document properties fragment
  - basic searching (aka search:search), with facets
  - heavily document ALL quick start examples, with task orientated alternatives, and link back to REST docs on website

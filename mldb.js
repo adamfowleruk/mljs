@@ -5,7 +5,7 @@ var basic = require("./lib/basic-wrapper"),
 // DEFAULTS
 
 var defaultdboptions = {
-  hostname: "localhost", port: 9090, adminport: 8002, ssl: false, auth: "basic", username: "admin",password: "admin", database: "mldbtest", searchoptions: {}, fastthreads: 10, fastparts: 100
+  hostname: "localhost", port: 9090, adminport: 8002, ssl: false, auth: "digest", username: "admin",password: "admin", database: "mldbtest", searchoptions: {}, fastthreads: 10, fastparts: 100
 }; // TODO change auth to digest once digest wrapper is working, automatically figure out port when creating new rest server
 
 // INSTANCE CODE
@@ -75,8 +75,14 @@ m.prototype.get = function(docuri,callback_opt) {
       console.log("GET Data: " + data);
     });
     var complete = function() { 
-      console.log("GET req: CLOSE");
-      (callback_opt || noop)({body: body, statusCode: res.statusCode, doc: JSON.parse(body) }); // TODO probably pass res straight through, appending body data
+      console.log("GET req: complete");
+      // check response code is in the 200s
+      if (res.statusCode.toString().substring(0,1) == ("4")) {
+        console.log("GET error: " + body);
+        (callback_opt || noop)({statusCode: res.statusCode,error: body,inError: true});
+      } else {
+        (callback_opt || noop)({body: body, statusCode: res.statusCode, doc: JSON.parse(body) ,inError: false}); // TODO probably pass res straight through, appending body data
+      }
     };
     res.on('end', function() {
       console.log("GET Body: " + body);
@@ -84,7 +90,8 @@ m.prototype.get = function(docuri,callback_opt) {
     });
     res.on('close', complete);
     res.on("error", function() {
-      // TODO
+      console.log("GET error: " + res.headers.response);
+      (callback_opt || noop)({statusCode: res.statusCode,error: body,inError: true});
     });
     
     //complete();
@@ -131,14 +138,13 @@ m.prototype.save = function(json,docuri_opt,props_opt,callback_opt) {
     var complete = function() { 
       console.log("SAVE req: complete");
       
-      (callback_opt || noop)({body: body, statusCode: res.statusCode}); // TODO probably pass res straight through, appending body data
+      (callback_opt || noop)({body: body, statusCode: res.statusCode,inError: false}); // TODO probably pass res straight through, appending body data
     }
     
     res.on('close', complete);
-    res.on("201",complete);
-    res.on("204",complete);
     res.on("error", function() {
-      // TODO
+      console.log("SAVE error: " + res.headers.response);
+      (callback_opt || noop)({statusCode: res.statusCode,error: body,inError: true});
     });
     
     complete();
@@ -179,7 +185,7 @@ m.prototype.delete = function(docuri,callback_opt) {
     var complete =  function() { 
       console.log("DELETE req: CLOSE");
       
-      (callback_opt || noop)({body: body, statusCode: res.statusCode}); // TODO probably pass res straight through, appending body data
+      (callback_opt || noop)({body: body, statusCode: res.statusCode,inError: false}); // TODO probably pass res straight through, appending body data
     };
     res.on('end', function() {
       console.log("DELETE Body: " + body);
@@ -187,7 +193,8 @@ m.prototype.delete = function(docuri,callback_opt) {
     });
     res.on('close',complete);
     res.on("error", function() {
-      // TODO
+      console.log("DELETE error: " + res.headers.response);
+      (callback_opt || noop)({statusCode: res.statusCode,error: body,inError: true});
     });
     
   }).end();
