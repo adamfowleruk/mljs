@@ -1,6 +1,16 @@
 var basic = require("./lib/basic-wrapper"),
     digest = require("./lib/digest-wrapper"),
-    noop = require("./lib/noop");
+    noop = require("./lib/noop"),
+    winston = require('winston');
+
+     var logger = new (winston.Logger)({
+       transports: [
+         new winston.transports.Console()
+       ],
+       exceptionHandlers: [
+         new winston.transports.Console()
+       ]
+     });
 
 // DEFAULTS
 
@@ -68,29 +78,29 @@ m.prototype.get = function(docuri,callback_opt) {
   };
   var httpreq = this.dboptions.wrapper.request(options, function(res) {
     var body = "";
-    console.log("GET Got response: " + res.statusCode);
+    logger.debug("GET Got response: " + res.statusCode);
     
     res.on('data', function(data) {
       body += data;
-      console.log("GET Data: " + data);
+      logger.debug("GET Data: " + data);
     });
     var complete = function() { 
-      console.log("GET req: complete");
+      logger.debug("GET req: complete");
       // check response code is in the 200s
       if (res.statusCode.toString().substring(0,1) == ("4")) {
-        console.log("GET error: " + body);
+        logger.debug("GET error: " + body);
         (callback_opt || noop)({statusCode: res.statusCode,error: body,inError: true});
       } else {
         (callback_opt || noop)({body: body, statusCode: res.statusCode, doc: JSON.parse(body) ,inError: false}); // TODO probably pass res straight through, appending body data
       }
     };
     res.on('end', function() {
-      console.log("GET Body: " + body);
+      logger.debug("GET Body: " + body);
       complete();
     });
     res.on('close', complete);
     res.on("error", function() {
-      console.log("GET error: " + res.headers.response);
+      logger.debug("GET error: " + res.headers.response);
       (callback_opt || noop)({statusCode: res.statusCode,error: body,inError: true});
     });
     
@@ -107,6 +117,11 @@ m.prototype.save = function(json,docuri_opt,props_opt,callback_opt) {
   if (undefined == callback_opt && undefined == props_opt && typeof(docuri_opt)=="function") {
     callback_opt = docuri_opt;
     docuri_opt = undefined;
+  } else {
+    if (undefined == callback_opt && undefined != props_opt) {
+      callback_opt = props_opt;
+      props_opt = undefined;
+    }
   }
   
   var body = "";
@@ -126,24 +141,24 @@ m.prototype.save = function(json,docuri_opt,props_opt,callback_opt) {
   };
   var httpreq = this.dboptions.wrapper.request(options, function(res) {
     var body = "";
-    console.log("SAVE Got response: " + res.statusCode);
+    logger.debug("SAVE Got response: " + res.statusCode);
     
     res.on('data', function(data) {
       body += data;
-      console.log("SAVE Data: " + data);
+      logger.debug("SAVE Data: " + data);
     });
     res.on('end', function() {
-      console.log("SAVE Body: " + body);
+      logger.debug("SAVE Body: " + body);
     });
     var complete = function() { 
-      console.log("SAVE req: complete");
+      logger.debug("SAVE req: complete");
       
       (callback_opt || noop)({body: body, statusCode: res.statusCode,inError: false}); // TODO probably pass res straight through, appending body data
-    }
+    };
     
     res.on('close', complete);
     res.on("error", function() {
-      console.log("SAVE error: " + res.headers.response);
+      logger.debug("SAVE error: " + res.headers.response);
       (callback_opt || noop)({statusCode: res.statusCode,error: body,inError: true});
     });
     
@@ -176,24 +191,24 @@ m.prototype.delete = function(docuri,callback_opt) {
   };
   var httpreq = this.dboptions.wrapper.request(options, function(res) {
     var body = "";
-    console.log("Got response: " + res.statusCode);
+    logger.debug("Got response: " + res.statusCode);
     
     res.on('data', function(data) {
       body += data;
-      console.log("DELETE Data: " + data);
+      logger.debug("DELETE Data: " + data);
     });
     var complete =  function() { 
-      console.log("DELETE req: CLOSE");
+      logger.debug("DELETE req: CLOSE");
       
       (callback_opt || noop)({body: body, statusCode: res.statusCode,inError: false}); // TODO probably pass res straight through, appending body data
     };
     res.on('end', function() {
-      console.log("DELETE Body: " + body);
+      logger.debug("DELETE Body: " + body);
       complete();
     });
     res.on('close',complete);
     res.on("error", function() {
-      console.log("DELETE error: " + res.headers.response);
+      logger.debug("DELETE error: " + res.headers.response);
       (callback_opt || noop)({statusCode: res.statusCode,error: body,inError: true});
     });
     
