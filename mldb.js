@@ -50,6 +50,15 @@ m.prototype.exists = function(callback_opt) {
 };
 
 m.prototype.__doreq = function(reqname,options,content,callback_opt) {
+  if (undefined == options.hostname) {
+    options.hostname = this.dboptions.hostname;
+  }
+  if (undefined == options.port) {
+    options.port = this.dboptions.port;
+  }
+  if (undefined == options.headers) {
+    options.headers = {};
+  }
   
   var httpreq = this.dboptions.wrapper.request(options, function(res) {
     var body = "";
@@ -128,13 +137,9 @@ m.prototype.destroy = function(callback_opt) {
  * TODO convert uri in to URL safe string
  */
 m.prototype.get = function(docuri,callback_opt) {
-  var body = "";
-  
   var options = {
-    hostname: this.dboptions.hostname,
-    port: this.dboptions.port,
     path: '/v1/documents?uri=' + docuri + "&format=json",
-    method: 'GET', headers: {}
+    method: 'GET'
   };
   
   /*
@@ -191,8 +196,6 @@ m.prototype.save = function(json,docuri_opt,props_opt,callback_opt) {
   }
   
   
-  var body = "";
-  
   var url = "/v1/documents?uri=" + docuri_opt + "&format=json";
   if (props_opt) {
     if (props_opt.collection) {
@@ -201,10 +204,8 @@ m.prototype.save = function(json,docuri_opt,props_opt,callback_opt) {
   }
   
   var options = {
-    hostname: this.dboptions.hostname,
-    port: this.dboptions.port,
     path: url,
-    method: 'PUT', headers: {}
+    method: 'PUT'
   };
   
   /*
@@ -254,13 +255,9 @@ m.prototype.merge = function(json,docuri,callback_opt) {
  * Deleted the specified document
  */ 
 m.prototype.delete = function(docuri,callback_opt) {
-  var body = "";
-  
   var options = {
-    hostname: this.dboptions.hostname,
-    port: this.dboptions.port,
     path: '/v1/documents?uri=' + docuri,
-    method: 'DELETE', headers: {}
+    method: 'DELETE'
   };
   
   /*

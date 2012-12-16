@@ -9,7 +9,7 @@ Design principles
  
 Targets for V 0.1 (Dec 2012) in descending order of importance
  - DONE abstract authentication (digest and basic) 
- - support creation of database and rest api on the fly
+ - TESTING support creation of database and rest api on the fly
  - N/A sensible to/from json settings (Default on &format=json on server)
  - DONE provide document save, get, update
  - provide access to document properties fragment
@@ -24,3 +24,16 @@ Targets for V 0.1 (Dec 2012) in descending order of importance
  - allow upload and use of XSLT for result transform
 
 For more information [See the wiki.](/adamfowleruk/mldb/wiki)
+
+Targets for 0.2 (Jan 2012)
+ - Support SSL
+ - SSL with Basic
+ - SSL with Digest
+ - Basic + Digest non SSL
+ - SSL Basic + Digest
+ - no auth (default user)
+ - SSL no auth (default user)
+ 
+Targets for 0.3 (Feb 2012)
+ - Lazy loading on search results (E.g. when requesting page 2 result 3 (result 13), make http request for re-search transparent)
+ - Easy geospatial search
