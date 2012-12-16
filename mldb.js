@@ -49,10 +49,70 @@ m.prototype.exists = function(callback_opt) {
   
 };
 
+m.prototype.__doreq = function(reqname,options,content,callback_opt) {
+  
+  var httpreq = this.dboptions.wrapper.request(options, function(res) {
+    var body = "";
+    logger.debug(reqname + "Got response: " + res.statusCode);
+    
+    res.on('data', function(data) {
+      body += data;
+      logger.debug(reqname + " Data: " + data);
+    });
+    var complete =  function() { 
+      logger.debug(reqname + " req: CLOSE");
+      if (res.statusCode.toString().substring(0,1) == ("4")) {
+        logger.debug("GET error: " + body);
+        (callback_opt || noop)({statusCode: res.statusCode,error: body,inError: true});
+      } else {
+        var jsonResult = {body: body, statusCode: res.statusCode,inError: false};
+        if (options.method == "GET" && undefined != body && ""!=body) {
+          jsonResult.doc = JSON.parse(body);
+        }
+        (callback_opt || noop)(jsonResult); // TODO probably pass res straight through, appending body data
+      }
+    };
+    res.on('end', function() {
+      logger.debug(reqname + " Body: " + body);
+      complete();
+    });
+    res.on('close',complete);
+    res.on("error", function() {
+      logger.debug(reqname + " error: " + res.headers.response);
+      (callback_opt || noop)({statusCode: res.statusCode,error: body,inError: true});
+    });
+    
+    if (options.method == "PUT") {
+      complete();
+    }
+    
+  });
+  if (undefined != content && null != content) {
+    httpreq.write(JSON.stringify(content));
+  }
+  httpreq.end();
+};
+
 /**
  * Creates the database and rest server if it does not already exist
  */
 m.prototype.create = function(callback_opt) {
+  /*
+  curl -v --anyauth --user admin:admin -X POST \
+      -d'{"rest-api":{"name":"mldbtest-rest-9090","database": "mldbtest","modules-database": "mldbtest-modules","port": "9090"}}' \
+      -H "Content-type: application/json" \
+      http://localhost:8002/v1/rest-apis
+  */
+  
+  var options = {
+    hostname: this.dboptions.hostname,
+    port: this.dboptions.adminport,
+    path: '/v1/rest-apis',
+    method: 'POST', headers: {}
+  };
+  var json = {"rest-api": {"name": this.dboptions.database + "-rest-" + this.dboptions.port, "database": this.dboptions.database, "modules-database":this.dboptions.database + "-modules", port: this.dboptions.port}};
+  
+  this.__doreq("CREATE",options,json,callback_opt);
   
 };
 
@@ -76,6 +136,8 @@ m.prototype.get = function(docuri,callback_opt) {
     path: '/v1/documents?uri=' + docuri + "&format=json",
     method: 'GET', headers: {}
   };
+  
+  /*
   var httpreq = this.dboptions.wrapper.request(options, function(res) {
     var body = "";
     logger.debug("GET Got response: " + res.statusCode);
@@ -107,6 +169,10 @@ m.prototype.get = function(docuri,callback_opt) {
     //complete();
   });
   httpreq.end();
+  */
+  
+  
+  this.__doreq("GET",options,null,callback_opt);
 };
 
 /**
@@ -124,6 +190,7 @@ m.prototype.save = function(json,docuri_opt,props_opt,callback_opt) {
     }
   }
   
+  
   var body = "";
   
   var url = "/v1/documents?uri=" + docuri_opt + "&format=json";
@@ -139,6 +206,8 @@ m.prototype.save = function(json,docuri_opt,props_opt,callback_opt) {
     path: url,
     method: 'PUT', headers: {}
   };
+  
+  /*
   var httpreq = this.dboptions.wrapper.request(options, function(res) {
     var body = "";
     logger.debug("SAVE Got response: " + res.statusCode);
@@ -167,6 +236,10 @@ m.prototype.save = function(json,docuri_opt,props_opt,callback_opt) {
   });
   httpreq.write(JSON.stringify(json));
   httpreq.end();
+  */
+  
+  
+  this.__doreq("SAVE",options,json,callback_opt);
 };
 
 /**
@@ -189,6 +262,8 @@ m.prototype.delete = function(docuri,callback_opt) {
     path: '/v1/documents?uri=' + docuri,
     method: 'DELETE', headers: {}
   };
+  
+  /*
   var httpreq = this.dboptions.wrapper.request(options, function(res) {
     var body = "";
     logger.debug("Got response: " + res.statusCode);
@@ -213,6 +288,9 @@ m.prototype.delete = function(docuri,callback_opt) {
     });
     
   }).end();
+  */
+  
+  this.__doreq("DELETE",options,null,callback_opt);
 };
 m.prototype.remove = m.prototype.delete; // Convenience method for people with bad memories like me
 
