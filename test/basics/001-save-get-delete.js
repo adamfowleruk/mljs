@@ -6,15 +6,16 @@ var mldb = require("../../mldb"),
 
      var logger = new (winston.Logger)({
        transports: [
-         new winston.transports.Console()
+          new winston.transports.File({ filename: '../test-logs.log' })
        ],
        exceptionHandlers: [
-         new winston.transports.Console()
+          new winston.transports.File({ filename: '../test-logs.log' })
        ]
      });
 
 tests.basics = function(callback) {
   var db = new mldb(); // default options
+  db.setLogger(logger);
   
   logger.debug("****** Creating doc");
   db.save({from: "test", to: "all", body: "wibble"},"/messages/1", {collection: "messages"},function(result) {

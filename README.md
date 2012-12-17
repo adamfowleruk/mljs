@@ -26,7 +26,7 @@ Targets for V 0.2 (Dec 2012) in descending order of importance
 
 For more information [See the wiki.](/adamfowleruk/mldb/wiki)
 
-Targets for 0.3 (Jan 2012)
+Targets for 0.4 (Feb 2012)
  - Support SSL
  - SSL with Basic
  - SSL with Digest
@@ -35,6 +35,8 @@ Targets for 0.3 (Jan 2012)
  - no auth (default user)
  - SSL no auth (default user)
  
-Targets for 0.4 (Feb 2012)
+Targets for 0.6 (Apr 2012)
  - Lazy loading on search results (E.g. when requesting page 2 result 3 (result 13), make http request for re-search transparent)
  - Easy geospatial search
+ 
+Targets for 0.8 (Jun 2012)

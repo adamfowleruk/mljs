@@ -29,7 +29,13 @@ var m = function() {
 
 m.prototype.configure = function(dboptions) {
   self = this;
-  this.dboptions = (dboptions || defaultdboptions)
+  if (undefined == this.logger) {
+    this.logger = logger;
+  }
+  this.dboptions = defaultdboptions;
+  if (undefined != dboptions) {
+    this.dboptions = defaultdboptions.concat(dboptions);
+  }
   if (this.dboptions.auth == "basic") {
     this.dboptions.wrapper = new basic(); 
   } else if (this.dboptions.auth == "digest") {
@@ -37,7 +43,15 @@ m.prototype.configure = function(dboptions) {
   } else {
     // TODO handle no auth (default user)
   }  
-  this.dboptions.wrapper.configure(this.dboptions.username,this.dboptions.password);
+  this.dboptions.wrapper.configure(this.dboptions.username,this.dboptions.password,this.logger);
+};
+
+m.prototype.setLogger = function(newlogger) {
+  //logger = newlogger;
+  this.logger = newlogger;
+  if (this.dboptions.wrapper != undefined) {
+    this.dboptions.wrapper.logger = newlogger;
+  }
 };
 
 module.exports = function() {return new m()};
@@ -45,11 +59,22 @@ module.exports = function() {return new m()};
 /**
  * Does this database exist?
  */
-m.prototype.exists = function(callback_opt) {
-  
+m.prototype.exists = function(callback) {
+  var options = {
+    hostname: this.dboptions.hostname,
+    port: this.dboptions.adminport,
+    path: "/v1/rest-apis?database=" + encodeURI(this.dboptions.database) + "&format=json",
+    method: "GET"
+  };
+  var self = this;
+  this.__doreq("EXISTS",options,null,function(result) {
+    self.logger.debug("Returned rest api info: " + JSON.stringify(result.doc));
+    callback(self.dboptions.database == result.doc["rest-apis"][0].database);
+  });
 };
 
 m.prototype.__doreq = function(reqname,options,content,callback_opt) {
+  this.logger.debug("__doreq: reqname: " + reqname + ", method: " + options.method + ", uri: " + options.path );
   if (undefined == options.hostname) {
     options.hostname = this.dboptions.hostname;
   }
@@ -59,19 +84,21 @@ m.prototype.__doreq = function(reqname,options,content,callback_opt) {
   if (undefined == options.headers) {
     options.headers = {};
   }
+  var self= this;
   
   var httpreq = this.dboptions.wrapper.request(options, function(res) {
     var body = "";
-    logger.debug(reqname + "Got response: " + res.statusCode);
+    self.logger.debug(reqname + " Got response: " + res.statusCode);
+    self.logger.debug("Method: " + options.method);
     
     res.on('data', function(data) {
       body += data;
-      logger.debug(reqname + " Data: " + data);
+      self.logger.debug(reqname + " Data: " + data);
     });
     var complete =  function() { 
-      logger.debug(reqname + " req: CLOSE");
+      self.logger.debug(reqname + " complete()");
       if (res.statusCode.toString().substring(0,1) == ("4")) {
-        logger.debug("GET error: " + body);
+        self.logger.debug(reqname + " error: " + body);
         (callback_opt || noop)({statusCode: res.statusCode,error: body,inError: true});
       } else {
         var jsonResult = {body: body, statusCode: res.statusCode,inError: false};
@@ -82,16 +109,17 @@ m.prototype.__doreq = function(reqname,options,content,callback_opt) {
       }
     };
     res.on('end', function() {
-      logger.debug(reqname + " Body: " + body);
+      self.logger.debug(reqname + " Body: " + body);
       complete();
     });
     res.on('close',complete);
     res.on("error", function() {
-      logger.debug(reqname + " error: " + res.headers.response);
+      self.logger.debug(reqname + " error: " + res.headers.response);
       (callback_opt || noop)({statusCode: res.statusCode,error: body,inError: true});
     });
     
-    if (options.method == "PUT") {
+    self.logger.debug("Method: " + options.method);
+    if (options.method == "PUT" || options.method == "DELETE") {
       complete();
     }
     
@@ -128,13 +156,32 @@ m.prototype.create = function(callback_opt) {
  * Destroys the database and rest api instance
  */
 m.prototype.destroy = function(callback_opt) {
-  var options = {
+  
+  // don't assume the dbname is the same as the rest api name - look it up
+  
+  var getoptions = {
     hostname: this.dboptions.hostname,
     port: this.dboptions.adminport,
-    path: '/v1/rest-apis/' + this.dboptions.database + "?include=content,modules",
-    method: 'DELETE', headers: {}
+    path: "/v1/rest-apis?database=" + encodeURI(this.dboptions.database) + "&format=json",
+    method: "GET"
   };
-  this.__doreq("DESTROY",options,null,callback_opt);
+  var self = this;
+  this.__doreq("DESTROY-EXISTS",getoptions,null,function(result) {
+    self.logger.debug("Returned rest api info: " + JSON.stringify(result.doc));
+    
+    var restapi = result.doc["rest-apis"][0].name;
+    
+    var options = {
+      hostname: self.dboptions.hostname,
+      port: self.dboptions.adminport,
+      path: '/v1/rest-apis/' + restapi + "?include=" + encodeURI("content,modules"),
+      method: 'DELETE', headers: {}
+    };
+    self.__doreq("DESTROY",options,null,callback_opt);
+    
+    
+  });
+  
 };
 
 /**
@@ -152,29 +199,29 @@ m.prototype.get = function(docuri,callback_opt) {
   /*
   var httpreq = this.dboptions.wrapper.request(options, function(res) {
     var body = "";
-    logger.debug("GET Got response: " + res.statusCode);
+    this.logger.debug("GET Got response: " + res.statusCode);
     
     res.on('data', function(data) {
       body += data;
-      logger.debug("GET Data: " + data);
+      this.logger.debug("GET Data: " + data);
     });
     var complete = function() { 
-      logger.debug("GET req: complete");
+      this.logger.debug("GET req: complete");
       // check response code is in the 200s
       if (res.statusCode.toString().substring(0,1) == ("4")) {
-        logger.debug("GET error: " + body);
+        this.logger.debug("GET error: " + body);
         (callback_opt || noop)({statusCode: res.statusCode,error: body,inError: true});
       } else {
         (callback_opt || noop)({body: body, statusCode: res.statusCode, doc: JSON.parse(body) ,inError: false}); // TODO probably pass res straight through, appending body data
       }
     };
     res.on('end', function() {
-      logger.debug("GET Body: " + body);
+      this.logger.debug("GET Body: " + body);
       complete();
     });
     res.on('close', complete);
     res.on("error", function() {
-      logger.debug("GET error: " + res.headers.response);
+      this.logger.debug("GET error: " + res.headers.response);
       (callback_opt || noop)({statusCode: res.statusCode,error: body,inError: true});
     });
     
@@ -222,24 +269,24 @@ m.prototype.save = function(json,docuri_opt,props_opt,callback_opt) {
   /*
   var httpreq = this.dboptions.wrapper.request(options, function(res) {
     var body = "";
-    logger.debug("SAVE Got response: " + res.statusCode);
+    this.logger.debug("SAVE Got response: " + res.statusCode);
     
     res.on('data', function(data) {
       body += data;
-      logger.debug("SAVE Data: " + data);
+      this.logger.debug("SAVE Data: " + data);
     });
     res.on('end', function() {
-      logger.debug("SAVE Body: " + body);
+      this.logger.debug("SAVE Body: " + body);
     });
     var complete = function() { 
-      logger.debug("SAVE req: complete");
+      this.logger.debug("SAVE req: complete");
       
       (callback_opt || noop)({body: body, statusCode: res.statusCode,inError: false}); // TODO probably pass res straight through, appending body data
     };
     
     res.on('close', complete);
     res.on("error", function() {
-      logger.debug("SAVE error: " + res.headers.response);
+      this.logger.debug("SAVE error: " + res.headers.response);
       (callback_opt || noop)({statusCode: res.statusCode,error: body,inError: true});
     });
     
@@ -285,24 +332,24 @@ m.prototype.delete = function(docuri,callback_opt) {
   /*
   var httpreq = this.dboptions.wrapper.request(options, function(res) {
     var body = "";
-    logger.debug("Got response: " + res.statusCode);
+    this.logger.debug("Got response: " + res.statusCode);
     
     res.on('data', function(data) {
       body += data;
-      logger.debug("DELETE Data: " + data);
+      this.logger.debug("DELETE Data: " + data);
     });
     var complete =  function() { 
-      logger.debug("DELETE req: CLOSE");
+      this.logger.debug("DELETE req: CLOSE");
       
       (callback_opt || noop)({body: body, statusCode: res.statusCode,inError: false}); // TODO probably pass res straight through, appending body data
     };
     res.on('end', function() {
-      logger.debug("DELETE Body: " + body);
+      this.logger.debug("DELETE Body: " + body);
       complete();
     });
     res.on('close',complete);
     res.on("error", function() {
-      logger.debug("DELETE error: " + res.headers.response);
+      this.logger.debug("DELETE error: " + res.headers.response);
       (callback_opt || noop)({statusCode: res.statusCode,error: body,inError: true});
     });
     

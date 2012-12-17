@@ -6,17 +6,18 @@ var mldb = require("../../mldb"),
 
 var logger = new (winston.Logger)({
   transports: [
-    new winston.transports.Console()
+     new winston.transports.File({ filename: '../test-logs.log' })
   ],
   exceptionHandlers: [
-    new winston.transports.Console()
+     new winston.transports.File({ filename: '../test-logs.log' })
   ]
 });
 
 
 tests.equal = function(callback) {
   var db = new mldb(); // default options
-
+  db.setLogger(logger);
+  
   logger.debug("Testing basic json equal");
 
   var json = {first: 1, second: "two", third: 0.2345};
