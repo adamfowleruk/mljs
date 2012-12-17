@@ -135,10 +135,12 @@ m.prototype.destroy = function(callback_opt) {
 /**
  * Fetches a document with the given URI
  * TODO convert uri in to URL safe string
+ * 
+ * https://docs.marklogic.com/REST/GET/v1/documents
  */
 m.prototype.get = function(docuri,callback_opt) {
   var options = {
-    path: '/v1/documents?uri=' + docuri + "&format=json",
+    path: '/v1/documents?uri=' + encodeURI(docuri) + "&format=json",
     method: 'GET'
   };
   
@@ -183,6 +185,8 @@ m.prototype.get = function(docuri,callback_opt) {
 /**
  * Saves new docs with GUID-timestamp, new docs with specified id, or updates doc with specified id
  * NB handle json being an array of multiple docs rather than a single json doc
+ * 
+ * https://docs.marklogic.com/REST/PUT/v1/documents
  */
 m.prototype.save = function(json,docuri_opt,props_opt,callback_opt) {
   if (undefined == callback_opt && undefined == props_opt && typeof(docuri_opt)=="function") {
@@ -196,10 +200,10 @@ m.prototype.save = function(json,docuri_opt,props_opt,callback_opt) {
   }
   
   
-  var url = "/v1/documents?uri=" + docuri_opt + "&format=json";
+  var url = "/v1/documents?uri=" + encodeURI(docuri_opt) + "&format=json";
   if (props_opt) {
     if (props_opt.collection) {
-      url += "&collection=" + props_opt.collection;
+      url += "&collection=" + encodeURI(props_opt.collection);
     }
   }
   
@@ -248,15 +252,21 @@ m.prototype.save = function(json,docuri_opt,props_opt,callback_opt) {
  * NB May not be possible in V6 REST API elegantly - may need to do a full fetch, update, save
  */
 m.prototype.merge = function(json,docuri,callback_opt) {
-  
+  this.get(docuri,function(result) {
+    var merged = result.doc;
+    merged.concat(json);
+    this.save(merged,docuri,callback_opt);
+  });
 };
 
 /**
  * Deleted the specified document
+ * 
+ * https://docs.marklogic.com/REST/DELETE/v1/documents
  */ 
 m.prototype.delete = function(docuri,callback_opt) {
   var options = {
-    path: '/v1/documents?uri=' + docuri,
+    path: '/v1/documents?uri=' + encodeURI(docuri),
     method: 'DELETE'
   };
   
@@ -296,14 +306,40 @@ m.prototype.remove = m.prototype.delete; // Convenience method for people with b
  * No need to wrap in fast(), that is handled by the MarkLogic server
  */
 m.prototype.collect = function(collection,fields_opt,callback_opt) {
-  
+ var options = {
+   path: "/v1/keyvalue?collection=" + encodeURI(collection),
+   method: "GET"
+ };
+ this.__doreq("COLLECT",options,null,callback_opt);
 };
 
 /**
  * Lists all documents in a directory, to the specified depth (default: 1), optionally matching the specified fields
  */
-m.prototype.list = function(directory,depth_opt,fields_opt,callback_opt) {
-  
+m.prototype.list = function(directory,callback_opt) { 
+  var options = {
+    path: "/v1/keyvalue?directory=" + encodeURI(directory),
+    method: "GET"
+  };
+  this.__doreq("LIST",options,null,callback_opt);
+};
+
+/**
+ * https://docs.marklogic.com/REST/GET/v1/keyvalue
+ */
+m.prototype.keyvalue = function(key,value,keytype_opt,callback_opt) {
+  if (undefined == callback_opt && typeof(keytype_opt) === 'function') {
+    callback_opt = keytype_opt;
+    keytype_opt = undefined;
+  }
+  if (undefined == keytype_opt) {
+    keytype_opt = "key"; // also element, attribute for xml searches
+  }
+  var options = {
+    path: "/v1/keyvalue?" + keytype_opt + "=" + encodeURI(key) + "&value=" + encodeURI(value),
+    method: "GET"
+  };
+  this.__doreq("KEYVALUE",options,null,callback_opt);
 };
 
 /**
