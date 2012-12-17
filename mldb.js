@@ -119,17 +119,22 @@ m.prototype.create = function(callback_opt) {
     path: '/v1/rest-apis',
     method: 'POST', headers: {}
   };
-  var json = {"rest-api": {"name": this.dboptions.database + "-rest-" + this.dboptions.port, "database": this.dboptions.database, "modules-database":this.dboptions.database + "-modules", port: this.dboptions.port}};
+  var json = {"rest-api": {"name": this.dboptions.database, "database": this.dboptions.database, "modules-database":this.dboptions.database + "-modules", port: this.dboptions.port}};
   
   this.__doreq("CREATE",options,json,callback_opt);
-  
 };
 
 /**
  * Destroys the database and rest api instance
  */
 m.prototype.destroy = function(callback_opt) {
-  
+  var options = {
+    hostname: this.dboptions.hostname,
+    port: this.dboptions.adminport,
+    path: '/v1/rest-apis/' + this.dboptions.database + "?include=content,modules",
+    method: 'DELETE', headers: {}
+  };
+  this.__doreq("DESTROY",options,null,callback_opt);
 };
 
 /**
@@ -206,6 +211,8 @@ m.prototype.save = function(json,docuri_opt,props_opt,callback_opt) {
       url += "&collection=" + encodeURI(props_opt.collection);
     }
   }
+
+    // TODO make transaction aware
   
   var options = {
     path: url,
@@ -251,7 +258,10 @@ m.prototype.save = function(json,docuri_opt,props_opt,callback_opt) {
  * Updates the document with the specified uri by only modifying the passed in properties.
  * NB May not be possible in V6 REST API elegantly - may need to do a full fetch, update, save
  */
-m.prototype.merge = function(json,docuri,callback_opt) {
+m.prototype.merge = function(json,docuri,callback_opt) { 
+ 
+ // TODO make transaction aware
+ 
   this.get(docuri,function(result) {
     var merged = result.doc;
     merged.concat(json);
@@ -269,6 +279,8 @@ m.prototype.delete = function(docuri,callback_opt) {
     path: '/v1/documents?uri=' + encodeURI(docuri),
     method: 'DELETE'
   };
+
+    // TODO make transaction aware
   
   /*
   var httpreq = this.dboptions.wrapper.request(options, function(res) {
@@ -344,9 +356,106 @@ m.prototype.keyvalue = function(key,value,keytype_opt,callback_opt) {
 
 /**
  * Performs a search:search via REST
+ * http://docs.marklogic.com/REST/GET/v1/search
+ *
+ * See supported search grammar http://docs.marklogic.com/guide/search-dev/search-api#id_41745 
  */ 
-m.prototype.search = function(query_opt,options_opt,callback) {
+m.prototype.search = function(query_opt,options_opt,callback) { 
+  if (callback == undefined && typeof(options_opt) === 'function') {
+    callback = options_opt;
+    options_opt = undefined;
+  }
+  var url = "/v1/search?q=" + encodeURI(query_opt);
+  if (options_opt != undefined) {
+    url += "&options=" + encodeURI(options_opt);
+  }
+
+  // TODO make transaction aware
+    
+  var options = {
+    path: url,
+    method: "GET"
+  };
+  this.__doreq("SEARCH",options,null,callback_opt);
+};
+
+/**
+ * Performs a structured search.
+ * http://docs.marklogic.com/REST/GET/v1/search
+ * 
+ * Uses structured search instead of cts:query style searches. See http://docs.marklogic.com/guide/search-dev/search-api#id_53458
+ */
+m.prototype.structuredSearch = function(query_opt,options_opt,callback) {
+  if (callback == undefined && typeof(options_opt) === 'function') {
+    callback = options_opt;
+    options_opt = undefined;
+  }
+  var url = "/v1/search?structuredQuery=" + encodeURI(query_opt);
+  if (options_opt != undefined) {
+    url += "&options=" + encodeURI(options_opt);
+  }
   
+  // TODO make transaction aware
+  
+  var options = {
+    path: url,
+    method: "GET"
+  };
+  this.__doreq("SEARCH",options,null,callback_opt);
+};
+
+/**
+ * Opens a new transaction. Optionally, specify your own name.
+ * http://docs.marklogic.com/REST/POST/v1/transactions
+ */
+m.prototype.beginTransaction = function(name_opt,callback) {
+  if (undefined == callback && typeof(name_opt)==='function') {
+    callback = name_opt;
+    name_opt = undefined;
+  }
+  
+  // TODO ensure a transaction ID is not currently open
+  
+  // temporary workaround for not having a mechanism to retrieve the Location header
+  if (undefined == name_opt) {
+    name_opt = "client-txn"; // same as server default
+  }
+  var url = "/v1/transactions";
+  if (undefined != name_opt) {
+    url += "?name=" + encodeURI(name_opt);
+    this.__transaction_id = name_opt;
+  }
+  var options = {
+    path: uri,
+    method: "POST"
+  };
+  this.__doreq("BEGINTRANS",options,null,callback_opt); // TODO handle error by removing this.__txid
+};
+
+/**
+ * Commits the open transaction
+ * http://docs.marklogic.com/REST/POST/v1/transactions/*
+ */
+m.prototype.commitTransaction = function(callback) {
+  var options = {
+    path: "/v1/transactions/" + this.__transaction_id + "?result=commit",
+    method: "POST"
+  };
+  this.__transaction_id = undefined;
+  this.__doreq("COMMITTRANS",options,null,callback);
+};
+
+/**
+ * Rolls back the open transaction.
+ * http://docs.marklogic.com/REST/POST/v1/transactions/*
+ */
+m.prototype.rollbackTransaction = function(callback) {
+  var options = {
+    path: "/v1/transactions/" + this.__transaction_id + "?result=rollback",
+    method: "POST"
+  };  
+  this.__transaction_id = undefined;
+  this.__doreq("COMMITTRANS",options,null,callback);
 };
 
 /**
