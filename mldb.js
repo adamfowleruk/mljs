@@ -91,6 +91,8 @@ m.prototype.__doreq = function(reqname,options,content,callback_opt) {
     }*/ // TRYING TO ALWAYS FORCE NEW CONNECTION FOR ADMIN REQUESTS -> gets us past db.exists()->true, but not ECONNRESET
   }
   
+  var completeRan = false; // declared here incase of request error
+  
   var httpreq = wrapper.request(options, function(res) {
     var body = "";
     self.logger.debug("---- START " + reqname);
@@ -98,7 +100,6 @@ m.prototype.__doreq = function(reqname,options,content,callback_opt) {
     self.logger.debug(reqname + " Got response: " + res.statusCode);
     self.logger.debug("Method: " + options.method);
     
-    var completeRan = false;
     
     res.on('data', function(data) {
       body += data;
@@ -130,6 +131,7 @@ m.prototype.__doreq = function(reqname,options,content,callback_opt) {
     });
     res.on("error", function() {
       self.logger.debug(reqname + " ERROR: " + res.statusCode);
+      completeRan = true;
       (callback_opt || noop)({statusCode: res.statusCode,error: body,inError: true});
     });
     
@@ -142,6 +144,7 @@ m.prototype.__doreq = function(reqname,options,content,callback_opt) {
     
   });
   httpreq.on("error",function(e) {
+    completeRan = true;
     (callback_opt || noop)({inError: true,error: e}); 
   });
   if (undefined != content && null != content) {
@@ -428,7 +431,7 @@ m.prototype.collect = function(collection,fields_opt,callback_opt) {
     fields_opt = undefined;
   }
   var options = {
-    path: "/v1/keyvalue?collection=" + encodeURI(collection) + "&format=json",
+    path: "/v1/search?collection=" + encodeURI(collection) + "&format=json&view=results",
     method: "GET"
   };
   this.__doreq("COLLECT",options,null,callback_opt);
@@ -439,7 +442,7 @@ m.prototype.collect = function(collection,fields_opt,callback_opt) {
  */
 m.prototype.list = function(directory,callback_opt) { 
   var options = {
-    path: "/v1/keyvalue?directory=" + encodeURI(directory) + "&format=json",
+    path: "/v1/search?directory=" + encodeURI(directory) + "&format=json&view=results",
     method: "GET"
   };
   this.__doreq("LIST",options,null,callback_opt);
