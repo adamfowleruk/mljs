@@ -12,7 +12,7 @@ var mldb = require("../../mldb"),
           new winston.transports.File({ filename: '../004-create-destroy.log' })
        ]
      });
-
+/*
 tests.createDestroy = function(callback) {
   var db = new mldb(); // default options
   db.setLogger(logger);
@@ -95,5 +95,5 @@ tests.createDestroy = function(callback) {
   tests.createDestroy_ok = function(t) {
     assert.ok(t);
   };
-
+*/
 ensure(__filename, tests, module,process.argv[2]);

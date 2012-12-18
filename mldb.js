@@ -98,21 +98,26 @@ m.prototype.__doreq = function(reqname,options,content,callback_opt) {
     self.logger.debug(reqname + " Got response: " + res.statusCode);
     self.logger.debug("Method: " + options.method);
     
+    var completeRan = false;
+    
     res.on('data', function(data) {
       body += data;
       self.logger.debug(reqname + " Data: " + data);
     });
     var complete =  function() { 
-      self.logger.debug(reqname + " complete()");
-      if (res.statusCode.toString().substring(0,1) == ("4")) {
-        self.logger.debug(reqname + " error: " + body);
-        (callback_opt || noop)({statusCode: res.statusCode,error: body,inError: true});
-      } else {
-        var jsonResult = {body: body, statusCode: res.statusCode,inError: false};
-        if (options.method == "GET" && undefined != body && ""!=body) {
-          jsonResult.doc = JSON.parse(body);
+      if (!completeRan) {
+        completeRan = true; // idiot check - complete can be called from many places and events
+        self.logger.debug(reqname + " complete()");
+        if (res.statusCode.toString().substring(0,1) == ("4")) {
+          self.logger.debug(reqname + " error: " + body);
+          (callback_opt || noop)({statusCode: res.statusCode,error: body,inError: true});
+        } else {
+          var jsonResult = {body: body, statusCode: res.statusCode,inError: false};
+          if (options.method == "GET" && undefined != body && ""!=body) {
+            jsonResult.doc = JSON.parse(body);
+          }
+          (callback_opt || noop)(jsonResult); // TODO probably pass res straight through, appending body data
         }
-        (callback_opt || noop)(jsonResult); // TODO probably pass res straight through, appending body data
       }
     };
     res.on('end', function() {
@@ -418,11 +423,15 @@ m.prototype.remove = m.prototype.delete; // Convenience method for people with b
  * No need to wrap in fast(), that is handled by the MarkLogic server
  */
 m.prototype.collect = function(collection,fields_opt,callback_opt) {
- var options = {
-   path: "/v1/keyvalue?collection=" + encodeURI(collection),
-   method: "GET"
- };
- this.__doreq("COLLECT",options,null,callback_opt);
+  if (callback_opt == undefined && typeof(fields_opt)==='function') {
+    callback_opt = fields_opt;
+    fields_opt = undefined;
+  }
+  var options = {
+    path: "/v1/keyvalue?collection=" + encodeURI(collection) + "&format=json",
+    method: "GET"
+  };
+  this.__doreq("COLLECT",options,null,callback_opt);
 };
 
 /**
@@ -430,7 +439,7 @@ m.prototype.collect = function(collection,fields_opt,callback_opt) {
  */
 m.prototype.list = function(directory,callback_opt) { 
   var options = {
-    path: "/v1/keyvalue?directory=" + encodeURI(directory),
+    path: "/v1/keyvalue?directory=" + encodeURI(directory) + "&format=json",
     method: "GET"
   };
   this.__doreq("LIST",options,null,callback_opt);
@@ -448,7 +457,7 @@ m.prototype.keyvalue = function(key,value,keytype_opt,callback_opt) {
     keytype_opt = "key"; // also element, attribute for xml searches
   }
   var options = {
-    path: "/v1/keyvalue?" + keytype_opt + "=" + encodeURI(key) + "&value=" + encodeURI(value),
+    path: "/v1/keyvalue?" + keytype_opt + "=" + encodeURI(key) + "&value=" + encodeURI(value) + "&format=json",
     method: "GET"
   };
   this.__doreq("KEYVALUE",options,null,callback_opt);
@@ -465,7 +474,7 @@ m.prototype.search = function(query_opt,options_opt,callback) {
     callback = options_opt;
     options_opt = undefined;
   }
-  var url = "/v1/search?q=" + encodeURI(query_opt);
+  var url = "/v1/search?q=" + encodeURI(query_opt) + "&format=json";
   if (options_opt != undefined) {
     url += "&options=" + encodeURI(options_opt);
   }
@@ -490,7 +499,7 @@ m.prototype.structuredSearch = function(query_opt,options_opt,callback) {
     callback = options_opt;
     options_opt = undefined;
   }
-  var url = "/v1/search?structuredQuery=" + encodeURI(query_opt);
+  var url = "/v1/search?structuredQuery=" + encodeURI(query_opt) + "&format=json";
   if (options_opt != undefined) {
     url += "&options=" + encodeURI(options_opt);
   }
