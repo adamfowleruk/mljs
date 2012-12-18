@@ -15,7 +15,7 @@ var basic = require("./lib/basic-wrapper"),
 // DEFAULTS
 
 var defaultdboptions = {
-  hostname: "localhost", port: 9090, adminport: 8002, ssl: false, auth: "digest", username: "admin",password: "admin", database: "mldbtest", searchoptions: {}, fastthreads: 10, fastparts: 100
+  host: "localhost", port: 9090, adminport: 8002, ssl: false, auth: "digest", username: "admin",password: "admin", database: "mldbtest", searchoptions: {}, fastthreads: 10, fastparts: 100
 }; // TODO change auth to digest once digest wrapper is working, automatically figure out port when creating new rest server
 
 // INSTANCE CODE
@@ -36,6 +36,8 @@ m.prototype.configure = function(dboptions) {
   if (undefined != dboptions) {
     this.dboptions = defaultdboptions.concat(dboptions);
   }
+  
+  this.dboptions.wrappers = new Array();
   if (this.dboptions.auth == "basic") {
     this.dboptions.wrapper = new basic(); 
   } else if (this.dboptions.auth == "digest") {
@@ -56,38 +58,43 @@ m.prototype.setLogger = function(newlogger) {
 
 module.exports = function() {return new m()};
 
-/**
- * Does this database exist?
- */
-m.prototype.exists = function(callback) {
-  var options = {
-    hostname: this.dboptions.hostname,
-    port: this.dboptions.adminport,
-    path: "/v1/rest-apis?database=" + encodeURI(this.dboptions.database) + "&format=json",
-    method: "GET"
-  };
-  var self = this;
-  this.__doreq("EXISTS",options,null,function(result) {
-    self.logger.debug("Returned rest api info: " + JSON.stringify(result.doc));
-    callback(self.dboptions.database == result.doc["rest-apis"][0].database);
-  });
-};
-
 m.prototype.__doreq = function(reqname,options,content,callback_opt) {
-  this.logger.debug("__doreq: reqname: " + reqname + ", method: " + options.method + ", uri: " + options.path );
-  if (undefined == options.hostname) {
-    options.hostname = this.dboptions.hostname;
+  this.logger.debug("__doreq: reqname: " + reqname + ", method: " + options.method + ", uri: " + options.path);
+  if (undefined == options.host) {
+    options.host = this.dboptions.host;
   }
   if (undefined == options.port) {
     options.port = this.dboptions.port;
   }
   if (undefined == options.headers) {
     options.headers = {};
+  } else {
+     this.logger.debug(reqname + " headers: " + JSON.stringify(options.headers))
   }
-  var self= this;
+  var self = this;
   
-  var httpreq = this.dboptions.wrapper.request(options, function(res) {
+  var wrapper = this.dboptions.wrapper;
+  
+  // if hostname and port are not this db (ie if admin port), then use new wrapper object (or one previously saved)
+  if (options.host != this.dboptions.host || options.port != this.dboptions.port) {
+    var name = options.host + ":" + options.port;
+    this.logger.debug("WARNING: Not accessing same host as REST API. Accessing: " + name);
+    //if (undefined == this.dboptions.wrappers[name]) {
+      this.logger.debug("Creating new wrapper");
+      var nw = new digest();
+      nw.configure(this.dboptions.username,this.dboptions.password,this.logger);
+      this.dboptions.wrappers[name] = nw;
+      wrapper = nw;
+    /*} else {
+      this.logger.debug("Reusing saved wrapper");
+      wrapper = this.dboptions.wrappers[name];
+    }*/ // TRYING TO ALWAYS FORCE NEW CONNECTION FOR ADMIN REQUESTS -> gets us past db.exists()->true, but not ECONNRESET
+  }
+  
+  var httpreq = wrapper.request(options, function(res) {
     var body = "";
+    self.logger.debug("---- START " + reqname);
+    self.logger.debug(reqname + " In Response");
     self.logger.debug(reqname + " Got response: " + res.statusCode);
     self.logger.debug("Method: " + options.method);
     
@@ -109,12 +116,15 @@ m.prototype.__doreq = function(reqname,options,content,callback_opt) {
       }
     };
     res.on('end', function() {
-      self.logger.debug(reqname + " Body: " + body);
+      self.logger.debug(reqname + " End. Body: " + body);
       complete();
     });
-    res.on('close',complete);
+    res.on('close',function() {
+      self.logger.debug(reqname + " Close");
+      complete();
+    });
     res.on("error", function() {
-      self.logger.debug(reqname + " error: " + res.headers.response);
+      self.logger.debug(reqname + " ERROR: " + res.statusCode);
       (callback_opt || noop)({statusCode: res.statusCode,error: body,inError: true});
     });
     
@@ -122,13 +132,48 @@ m.prototype.__doreq = function(reqname,options,content,callback_opt) {
     if (options.method == "PUT" || options.method == "DELETE") {
       complete();
     }
+    self.logger.debug(reqname + " End Response (sync)");
+    self.logger.debug("---- END " + reqname);
     
+  });
+  httpreq.on("error",function(e) {
+    (callback_opt || noop)({inError: true,error: e}); 
   });
   if (undefined != content && null != content) {
     httpreq.write(JSON.stringify(content));
   }
   httpreq.end();
 };
+
+
+/**
+ * Does this database exist? Returns an object, not boolean, to the callback
+ */
+m.prototype.exists = function(callback) {
+  var options = {
+    host: this.dboptions.host,
+    port: this.dboptions.adminport,
+    path: "/v1/rest-apis?database=" + encodeURI(this.dboptions.database) + "&format=json",
+    method: "GET"
+  };
+  var self = this;
+  this.__doreq("EXISTS",options,null,function(result) {
+    self.logger.debug("EXISTS callback called... " + JSON.stringify(result));
+    if (result.inError) {
+      // if 404 then it's not technically in error
+      self.logger.debug("exists: inError: " + JSON.stringify(result));
+      callback(result);
+    } else {
+      self.logger.debug("Returned rest api info: " + JSON.stringify(result.doc));
+      var ex = !(undefined == result.doc["rest-apis"] || undefined == result.doc["rest-apis"][0] || self.dboptions.database != result.doc["rest-apis"][0].database);
+      // NB can return http 200 with no data to mean that DB does not exist
+      self.logger.debug("exists:? " + ex);
+      callback({inError:false,exists:ex});
+    }
+  });
+};
+m.prototype.test = m.prototype.exists;
+
 
 /**
  * Creates the database and rest server if it does not already exist
@@ -141,13 +186,14 @@ m.prototype.create = function(callback_opt) {
       http://localhost:8002/v1/rest-apis
   */
   
+  var json = {"rest-api": {"name": this.dboptions.database, "database": this.dboptions.database, "modules-database":this.dboptions.database + "-modules", port: this.dboptions.port}};
   var options = {
-    hostname: this.dboptions.hostname,
+    host: this.dboptions.host,
     port: this.dboptions.adminport,
     path: '/v1/rest-apis',
-    method: 'POST', headers: {}
+    method: 'POST',
+    headers: {"Content-Type": "application/json", "Content-Length": JSON.stringify(json).length} // TODO refactor this in to __doreq
   };
-  var json = {"rest-api": {"name": this.dboptions.database, "database": this.dboptions.database, "modules-database":this.dboptions.database + "-modules", port: this.dboptions.port}};
   
   this.__doreq("CREATE",options,json,callback_opt);
 };
@@ -160,7 +206,7 @@ m.prototype.destroy = function(callback_opt) {
   // don't assume the dbname is the same as the rest api name - look it up
   
   var getoptions = {
-    hostname: this.dboptions.hostname,
+    host: this.dboptions.host,
     port: this.dboptions.adminport,
     path: "/v1/rest-apis?database=" + encodeURI(this.dboptions.database) + "&format=json",
     method: "GET"
@@ -169,16 +215,23 @@ m.prototype.destroy = function(callback_opt) {
   this.__doreq("DESTROY-EXISTS",getoptions,null,function(result) {
     self.logger.debug("Returned rest api info: " + JSON.stringify(result.doc));
     
-    var restapi = result.doc["rest-apis"][0].name;
+    var ex = !(undefined == result.doc["rest-apis"] || undefined == result.doc["rest-apis"][0] || self.dboptions.database != result.doc["rest-apis"][0].database);
     
-    var options = {
-      hostname: self.dboptions.hostname,
-      port: self.dboptions.adminport,
-      path: '/v1/rest-apis/' + restapi + "?include=" + encodeURI("content,modules"),
-      method: 'DELETE', headers: {}
-    };
-    self.__doreq("DESTROY",options,null,callback_opt);
-    
+    if (!ex) {
+      // doesn't exist already, so return success
+      self.logger.debug("Rest server for database " + this.dboptions.database + " does not exist already. Returning success.");
+      (callback_opt || noop)({inError: false, statusCode: 200});
+    } else {
+      var restapi = result.doc["rest-apis"][0].name;
+      
+      var options = {
+        host: self.dboptions.host,
+        port: self.dboptions.adminport,
+        path: '/v1/rest-apis/' + encodeURI(restapi) + "?include=" + encodeURI("content"), // TODO figure out how to include ,modules too, and why error is never caught or thrown
+        method: 'DELETE'
+      };
+      self.__doreq("DESTROY",options,null,callback_opt);
+    }
     
   });
   
@@ -505,13 +558,9 @@ m.prototype.rollbackTransaction = function(callback) {
   this.__doreq("COMMITTRANS",options,null,callback);
 };
 
-/**
- * Takes a csv file and adds to the database.
- * fast aware method
- */
-m.prototype.ingestcsv = function(csvdata,docid_opt,callback_opt) {
-  
-};
+
+// DRIVER HELPER FEATURES
+
 
 /**
  * Generic wrapper to wrap any mldb code you wish to execute in parallel. E.g. uploading a mahoosive CSV file. Wrap ingestcsv with this and watch it fly!
@@ -521,3 +570,28 @@ m.prototype.fast = function(callback_opt) {
 };
 
 
+// UTILITY METHODS
+
+
+/**
+ * Takes a csv file and adds to the database.
+ * fast aware method
+ */
+m.prototype.ingestcsv = function(csvdata,docid_opt,callback_opt) {
+  
+};
+
+
+
+// REST API EXTENSIONS
+
+/**
+ * Uses Adam Fowler's (me!) REST API extension for subscribing to geospatial alerts. RESTful HTTP calls are sent with the new information to the specified nodeurl.
+ */
+m.prototype.subscribe = function(nodeurl,lat,lon,radiusmiles,callback_opt) {
+  
+};
+
+m.prototype.unsubscribe = function(nodeurl,callback_opt) {
+  
+};
