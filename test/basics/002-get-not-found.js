@@ -6,10 +6,10 @@ var mldb = require("../../mldb"),
 
  var logger = new (winston.Logger)({
    transports: [
-      new winston.transports.File({ filename: '../002-get-not-found.log' })
+      new winston.transports.File({ filename: 'logs/002-get-not-found.log' })
    ],
    exceptionHandlers: [
-      new winston.transports.File({ filename: '../002-get-not-found.log' })
+      new winston.transports.File({ filename: 'logs/002-get-not-found.log' })
    ]
  });
 

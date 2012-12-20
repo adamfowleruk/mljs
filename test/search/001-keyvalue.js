@@ -6,39 +6,39 @@ var mldb = require("../../mldb"),
 
 var logger = new (winston.Logger)({
   transports: [
-    new winston.transports.File({ filename: '../005-collections.log' })
+    new winston.transports.File({ filename: 'logs/001-key-value.log' })
   ],
   exceptionHandlers: [
-    new winston.transports.File({ filename: '../005-collections.log' })
+    new winston.transports.File({ filename: 'logs/001-key-value.log' })
   ]
 });
 
-tests.collections = function(callback) {
+tests.keyvalue = function(callback) {
   var db = new mldb(); // default options
   db.setLogger(logger);
   
   // add three docs to the collection
-  var col = {collection: "testcol"};
-  var uris = ["/collections/1","/collections/2","/collections/3"];
-  db.save({name:"first"},uris[0],col,function(result) {
+  var col = {collection: "kvcol"};
+  var uris = ["/kv/1","/kv/2","/kv/3"];
+  db.save({name:"first whippet"},uris[0],col,function(result) {
     assert(!result.inError,"Error saving doc 1");
-    db.save({name:"second"},uris[1],col,function(result) {
+    db.save({name:"second squirrel"},uris[1],col,function(result) {
       assert(!result.inError,"Error saving doc 2");
-      db.save({name:"third"},uris[2],col,function(result) {
+      db.save({name:"third wolf"},uris[2],col,function(result) {
         assert(!result.inError,"Error saving doc 3");
         
-        logger.debug("TEST: collections() Third save complete. Results object: " + JSON.stringify(result));
+        logger.debug("TEST: KEYVALUE: Third save complete. Results object: " + JSON.stringify(result));
         // get docs in collection
-        db.collect(col.collection,function(result) {
+        db.keyvalue("name","third wolf",function(result) {
           // ensure there are 3
-          logger.debug("TEST: collections() collect results object: " + JSON.stringify(result));
+          logger.debug("TEST: KEYVALUE results object: " + JSON.stringify(result));
           if (undefined == result.doc) {
             callback(false);
           } else {
-            var isThree = (3==result.doc.total);
-            assert(isThree,"There should only be three documents in " + col.collection);
+            var isOne = (1==result.doc.total);
+            assert(isOne,"There should only be one document with name='third wolf' in " + col.collection);
           
-            if (isThree){
+            if (isOne){
               // now remove docs in collection
               db.delete(uris[0],function(result) {
                 assert(!result.inError,"Error deleting doc 1");
@@ -46,7 +46,7 @@ tests.collections = function(callback) {
                   assert(!result.inError,"Error deleting doc 2");
                   db.delete(uris[2],function(result) {
                     assert(!result.inError,"Error deleting doc 3");
-                    logger.debug("TEST: collections() returning true for success");
+                    logger.debug("TEST: SEARCH returning true for success");
                     callback(true);
                   });
                 });
@@ -59,9 +59,8 @@ tests.collections = function(callback) {
   });
 };
 
-tests.collections_ok = function(t) {
+tests.keyvalue_ok = function(t) {
   assert.ok(t);
 };
 
 ensure(__filename, tests, module,process.argv[2]);
-  

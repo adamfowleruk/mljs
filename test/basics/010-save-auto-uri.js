@@ -6,28 +6,31 @@ var mldb = require("../../mldb"),
 
      var logger = new (winston.Logger)({
        transports: [
-          new winston.transports.File({ filename: 'logs/001-save-get-delete.log' })
+          new winston.transports.File({ filename: 'logs/010-save-auto-uri.log' })
        ],
        exceptionHandlers: [
-          new winston.transports.File({ filename: 'logs/001-save-get-delete.log' })
+          new winston.transports.File({ filename: 'logs/010-save-auto-uri.log' })
        ]
      });
 
-tests.basics = function(callback) {
+tests.uri = function(callback) {
   var db = new mldb(); // default options
   db.setLogger(logger);
   
   logger.debug("****** Creating doc");
-  db.save({from: "test", to: "all", body: "wibble"},"/messages/1", {collection: "messages"},function(result) {
+  db.save({from: "test", to: "all", body: "wibble"}, {collection: "messages"},function(result) {
+    var uri = result.docuri;
+    logger.debug("TEST: Generated docuri: " + uri);
+    
     // now fetch it
     logger.debug("****** Doc created. Fetching doc.");
-    var doc = db.get("/messages/1", function(result) {
+    var doc = db.get(uri, function(result) {
       // now print it
       logger.debug("****** Doc content: " + JSON.stringify(result.doc));
       
       // now delete it
       logger.debug("****** deleting doc");
-      db.delete("/messages/1", function(result) {
+      db.delete(uri, function(result) {
         logger.debug("****** Doc deleted");
         //assert.isNull(result.doc);
         callback(undefined == result.doc);
@@ -36,7 +39,7 @@ tests.basics = function(callback) {
   });
 };
 
-tests.basics_ok = function(t) {
+tests.uri_ok = function(t) {
   assert.ok(t);
 };
 

@@ -1,5 +1,6 @@
 var basic = require("./lib/basic-wrapper"),
     digest = require("./lib/digest-wrapper"),
+    thru = require("./lib/passthrough-wrapper"),
     noop = require("./lib/noop"),
     winston = require('winston');
 
@@ -16,9 +17,19 @@ var basic = require("./lib/basic-wrapper"),
 
 var defaultdboptions = {
   host: "localhost", port: 9090, adminport: 8002, ssl: false, auth: "digest", username: "admin",password: "admin", database: "mldbtest", searchoptions: {}, fastthreads: 10, fastparts: 100
-}; // TODO change auth to digest once digest wrapper is working, automatically figure out port when creating new rest server
+}; // TODO make Documents the default db, automatically figure out port when creating new rest server
+
+
+
+
+
 
 // INSTANCE CODE
+
+
+
+
+
 
 // MLDB DATABASE OBJECT
 
@@ -27,27 +38,43 @@ var m = function() {
   this.configure();
 };
 
+// CONFIG METHODS
+
+/**
+ * Provide configuration information to this database. This is merged with the defaults.
+ */
 m.prototype.configure = function(dboptions) {
   self = this;
   if (undefined == this.logger) {
     this.logger = logger;
   }
+  
+  // TODO abandon transaction if one exists
+  // TODO kill in process http requests
+  
   this.dboptions = defaultdboptions;
   if (undefined != dboptions) {
     this.dboptions = defaultdboptions.concat(dboptions);
   }
   
   this.dboptions.wrappers = new Array();
+  // TODO support curl like 'anyauth' option to determine auth mechanism automatically (via HTTP 401 Authenticate)
   if (this.dboptions.auth == "basic") {
     this.dboptions.wrapper = new basic(); 
   } else if (this.dboptions.auth == "digest") {
     this.dboptions.wrapper = new digest();
-  } else {
-    // TODO handle no auth (default user)
+  } else if (this.dboptions.auth == "none"){
+    // no auth - default user
+    this.dboptions.wrapper = new thru();
+  } else if (this.dboptions.auth == "basicdigest" || this.dboptions.auth == "basic+digest") {
+    // TODO basic+digest authentication
   }  
   this.dboptions.wrapper.configure(this.dboptions.username,this.dboptions.password,this.logger);
 };
 
+/**
+ * Set the logging object to be used by this class and all wrappers. Must provide as a minimum a debug and info method that takes a single string.
+ */
 m.prototype.setLogger = function(newlogger) {
   //logger = newlogger;
   this.logger = newlogger;
@@ -58,6 +85,20 @@ m.prototype.setLogger = function(newlogger) {
 
 module.exports = function() {return new m()};
 
+
+
+
+
+// PRIVATE METHODS
+
+m.prototype.__genid = function() {
+  return "" + /*(new Date()).millis() + "-" +*/ Math.ceil(Math.random()*100000000);
+};
+
+
+/**
+ * Handles management of all HTTP requests passed to the wrappers. Should never be invoked directly.
+ */
 m.prototype.__doreq = function(reqname,options,content,callback_opt) {
   this.logger.debug("__doreq: reqname: " + reqname + ", method: " + options.method + ", uri: " + options.path);
   if (undefined == options.host) {
@@ -154,6 +195,39 @@ m.prototype.__doreq = function(reqname,options,content,callback_opt) {
 };
 
 
+
+
+
+// PASS THROUGH
+
+
+
+
+/**
+ * Function allowing MLDB's underlying REST invocation mechanism to be used for an arbitrary request. 
+ * Useful for future proofing should some new functionality come out, or bug discovered that prevents
+ * your use of a JavaScript Driver API call.
+ * options = {method: "GET|POST|PUT|DELETE", path: "/v1/somepath?key=value&format=json"}
+ * content = undefined for GET, DELETE, json for PUT, whatever as required for POST
+ */
+m.prototype.do = function(options,content,callback_opt) {
+  if (callback_opt == undefined && typeof(content)==='function') {
+    callback_opt = content;
+    content = undefined;
+  }
+  this.__doreq("DO",options,content,callback_opt);
+};
+
+
+
+
+
+
+// DATABASE ADMINISTRATION FUNCTIONS
+
+
+
+
 /**
  * Does this database exist? Returns an object, not boolean, to the callback
  */
@@ -211,86 +285,76 @@ m.prototype.create = function(callback_opt) {
  */
 m.prototype.destroy = function(callback_opt) {
   
-  // don't assume the dbname is the same as the rest api name - look it up
+  // abandon any transaction if it exists
+  if (undefined != this.__transaction_id) {
+    this.rollbackTransaction(function(result) {
+      // no matter what the result, destroy the db
+      dodestroy();
+    });
+  } else {
+    dodestroy();
+  }
   
-  var getoptions = {
-    host: this.dboptions.host,
-    port: this.dboptions.adminport,
-    path: "/v1/rest-apis?database=" + encodeURI(this.dboptions.database) + "&format=json",
-    method: "GET"
-  };
-  var self = this;
-  this.__doreq("DESTROY-EXISTS",getoptions,null,function(result) {
-    self.logger.debug("Returned rest api info: " + JSON.stringify(result.doc));
+  var dodestroy = function() {
+    // don't assume the dbname is the same as the rest api name - look it up
+  
+    var getoptions = {
+      host: this.dboptions.host,
+      port: this.dboptions.adminport,
+      path: "/v1/rest-apis?database=" + encodeURI(this.dboptions.database) + "&format=json",
+      method: "GET"
+    };
+    var self = this;
+    this.__doreq("DESTROY-EXISTS",getoptions,null,function(result) {
+      self.logger.debug("Returned rest api info: " + JSON.stringify(result.doc));
     
-    var ex = !(undefined == result.doc["rest-apis"] || undefined == result.doc["rest-apis"][0] || self.dboptions.database != result.doc["rest-apis"][0].database);
+      var ex = !(undefined == result.doc["rest-apis"] || undefined == result.doc["rest-apis"][0] || self.dboptions.database != result.doc["rest-apis"][0].database);
     
-    if (!ex) {
-      // doesn't exist already, so return success
-      self.logger.debug("Rest server for database " + this.dboptions.database + " does not exist already. Returning success.");
-      (callback_opt || noop)({inError: false, statusCode: 200});
-    } else {
-      var restapi = result.doc["rest-apis"][0].name;
+      if (!ex) {
+        // doesn't exist already, so return success
+        self.logger.debug("Rest server for database " + this.dboptions.database + " does not exist already. Returning success.");
+        (callback_opt || noop)({inError: false, statusCode: 200});
+      } else {
+        var restapi = result.doc["rest-apis"][0].name;
       
-      var options = {
-        host: self.dboptions.host,
-        port: self.dboptions.adminport,
-        path: '/v1/rest-apis/' + encodeURI(restapi) + "?include=" + encodeURI("content"), // TODO figure out how to include ,modules too, and why error is never caught or thrown
-        method: 'DELETE'
-      };
-      self.__doreq("DESTROY",options,null,callback_opt);
-    }
+        var options = {
+          host: self.dboptions.host,
+          port: self.dboptions.adminport,
+          path: '/v1/rest-apis/' + encodeURI(restapi) + "?include=" + encodeURI("content"), // TODO figure out how to include ,modules too, and why error is never caught or thrown
+          method: 'DELETE'
+        };
+        self.__doreq("DESTROY",options,null,callback_opt);
+      }
     
-  });
+    });
+  }
   
 };
 
+
+
+
+
+// DOCUMENT AND SEARCH FUNCTIONS
+
+
+
+
+
 /**
- * Fetches a document with the given URI
- * TODO convert uri in to URL safe string
+ * Fetches a document with the given URI.
  * 
  * https://docs.marklogic.com/REST/GET/v1/documents
  */
 m.prototype.get = function(docuri,callback_opt) {
+  if (undefined == callback_opt && typeof(docuri)==='function') {
+    callback_opt = docuri;
+    docuri = undefined;
+  }
   var options = {
     path: '/v1/documents?uri=' + encodeURI(docuri) + "&format=json",
     method: 'GET'
   };
-  
-  /*
-  var httpreq = this.dboptions.wrapper.request(options, function(res) {
-    var body = "";
-    this.logger.debug("GET Got response: " + res.statusCode);
-    
-    res.on('data', function(data) {
-      body += data;
-      this.logger.debug("GET Data: " + data);
-    });
-    var complete = function() { 
-      this.logger.debug("GET req: complete");
-      // check response code is in the 200s
-      if (res.statusCode.toString().substring(0,1) == ("4")) {
-        this.logger.debug("GET error: " + body);
-        (callback_opt || noop)({statusCode: res.statusCode,error: body,inError: true});
-      } else {
-        (callback_opt || noop)({body: body, statusCode: res.statusCode, doc: JSON.parse(body) ,inError: false}); // TODO probably pass res straight through, appending body data
-      }
-    };
-    res.on('end', function() {
-      this.logger.debug("GET Body: " + body);
-      complete();
-    });
-    res.on('close', complete);
-    res.on("error", function() {
-      this.logger.debug("GET error: " + res.headers.response);
-      (callback_opt || noop)({statusCode: res.statusCode,error: body,inError: true});
-    });
-    
-    //complete();
-  });
-  httpreq.end();
-  */
-  
   
   this.__doreq("GET",options,null,callback_opt);
 };
@@ -298,18 +362,57 @@ m.prototype.get = function(docuri,callback_opt) {
 /**
  * Saves new docs with GUID-timestamp, new docs with specified id, or updates doc with specified id
  * NB handle json being an array of multiple docs rather than a single json doc
- * 
+ * If no docuri is specified, one is generated by using a combination of the time and a large random number.
+ *
  * https://docs.marklogic.com/REST/PUT/v1/documents
  */
 m.prototype.save = function(json,docuri_opt,props_opt,callback_opt) {
-  if (undefined == callback_opt && undefined == props_opt && typeof(docuri_opt)=="function") {
-    callback_opt = docuri_opt;
-    docuri_opt = undefined;
-  } else {
-    if (undefined == callback_opt && undefined != props_opt) {
-      callback_opt = props_opt;
-      props_opt = undefined;
+  if (undefined == callback_opt) {
+    if (undefined != props_opt) {
+      if (typeof(props_opt)==='function') {
+        if (typeof(docuri_opt)==='string') {
+          this.logger.debug("json,docuri,,callback");
+          callback_opt = props_opt;
+          props_opt = undefined;
+        } else {
+          this.logger.debug("json,,props,callback");
+          callback_opt = props_opt;
+          props_opt = docuri_opt;
+          docuri_opt = undefined;
+        }
+      } else {
+        this.logger.debug("json,docuri,props,");
+        // do nothing
+      }
+    } else {
+      if (undefined == docuri_opt) {
+        this.logger.debug("json,,,");
+        // do nothing
+      } else {
+        if(typeof(docuri_opt)=="function") {
+          this.logger.debug("json,,,callback");
+          callback_opt = docuri_opt;
+          docuri_opt = undefined;
+        } else {
+          if (typeof(docuri_opt) === "string") {
+            this.logger.debug("son,docuri,,");
+            // do nothing
+          } else {
+            this.logger.debug("json,,props,");
+            props_opt = docuri_opt;
+            docuri_opt = undefined;
+          }
+        }
+      }
     }
+  } else {
+   this.logger.debug("json,docuri,props,callback");
+    // do nothing
+  }
+  
+  if (undefined == docuri_opt) {
+    // generate docuri and set on response object
+    docuri_opt = this.__genid();
   }
   
   
@@ -319,47 +422,21 @@ m.prototype.save = function(json,docuri_opt,props_opt,callback_opt) {
       url += "&collection=" + encodeURI(props_opt.collection);
     }
   }
-
-    // TODO make transaction aware
+  
+  // make transaction aware
+  if (undefined != this.__transaction_id) {
+    url += "&txid=" + encodeURI(this.__transaction_id);
+  }
   
   var options = {
     path: url,
     method: 'PUT'
   };
   
-  /*
-  var httpreq = this.dboptions.wrapper.request(options, function(res) {
-    var body = "";
-    this.logger.debug("SAVE Got response: " + res.statusCode);
-    
-    res.on('data', function(data) {
-      body += data;
-      this.logger.debug("SAVE Data: " + data);
-    });
-    res.on('end', function() {
-      this.logger.debug("SAVE Body: " + body);
-    });
-    var complete = function() { 
-      this.logger.debug("SAVE req: complete");
-      
-      (callback_opt || noop)({body: body, statusCode: res.statusCode,inError: false}); // TODO probably pass res straight through, appending body data
-    };
-    
-    res.on('close', complete);
-    res.on("error", function() {
-      this.logger.debug("SAVE error: " + res.headers.response);
-      (callback_opt || noop)({statusCode: res.statusCode,error: body,inError: true});
-    });
-    
-    complete();
-    
+  this.__doreq("SAVE",options,json,function(result) {
+    result.docuri = docuri_opt;
+    (callback_opt||noop)(result);
   });
-  httpreq.write(JSON.stringify(json));
-  httpreq.end();
-  */
-  
-  
-  this.__doreq("SAVE",options,json,callback_opt);
 };
 
 /**
@@ -368,54 +445,33 @@ m.prototype.save = function(json,docuri_opt,props_opt,callback_opt) {
  */
 m.prototype.merge = function(json,docuri,callback_opt) { 
  
- // TODO make transaction aware
+ // make transaction aware - automatically done by save
  
   this.get(docuri,function(result) {
     var merged = result.doc;
-    merged.concat(json);
-    this.save(merged,docuri,callback_opt);
+    var res = {};
+    res = res.concat(merged).concat(json); // TODO fix this (concat does not exist), and dboptions.concat in configure()
+    this.save(res,docuri,callback_opt);
   });
 };
 
 /**
- * Deleted the specified document
+ * Deletes the specified document
  * 
  * https://docs.marklogic.com/REST/DELETE/v1/documents
  */ 
-m.prototype.delete = function(docuri,callback_opt) {
+m.prototype.delete = function(docuri,callback_opt) { 
+  var url = '/v1/documents?uri=' + encodeURI(docuri);
+  
+  // make transaction aware
+  if (undefined != this.__transaction_id) {
+    url += "&txid=" + encodeURI(this.__transaction_id);
+  }
+
   var options = {
-    path: '/v1/documents?uri=' + encodeURI(docuri),
+    path: url,
     method: 'DELETE'
   };
-
-    // TODO make transaction aware
-  
-  /*
-  var httpreq = this.dboptions.wrapper.request(options, function(res) {
-    var body = "";
-    this.logger.debug("Got response: " + res.statusCode);
-    
-    res.on('data', function(data) {
-      body += data;
-      this.logger.debug("DELETE Data: " + data);
-    });
-    var complete =  function() { 
-      this.logger.debug("DELETE req: CLOSE");
-      
-      (callback_opt || noop)({body: body, statusCode: res.statusCode,inError: false}); // TODO probably pass res straight through, appending body data
-    };
-    res.on('end', function() {
-      this.logger.debug("DELETE Body: " + body);
-      complete();
-    });
-    res.on('close',complete);
-    res.on("error", function() {
-      this.logger.debug("DELETE error: " + res.headers.response);
-      (callback_opt || noop)({statusCode: res.statusCode,error: body,inError: true});
-    });
-    
-  }).end();
-  */
   
   this.__doreq("DELETE",options,null,callback_opt);
 };
@@ -423,7 +479,7 @@ m.prototype.remove = m.prototype.delete; // Convenience method for people with b
 
 /**
  * Returns all documents in a collection, optionally matching against the specified fields
- * No need to wrap in fast(), that is handled by the MarkLogic server
+ * http://docs.marklogic.com/REST/GET/v1/search
  */
 m.prototype.collect = function(collection,fields_opt,callback_opt) {
   if (callback_opt == undefined && typeof(fields_opt)==='function') {
@@ -439,6 +495,7 @@ m.prototype.collect = function(collection,fields_opt,callback_opt) {
 
 /**
  * Lists all documents in a directory, to the specified depth (default: 1), optionally matching the specified fields
+ * http://docs.marklogic.com/REST/GET/v1/search
  */
 m.prototype.list = function(directory,callback_opt) { 
   var options = {
@@ -449,6 +506,8 @@ m.prototype.list = function(directory,callback_opt) {
 };
 
 /**
+ * Performs a simple key-value search. Of most use to JSON programmers.
+ * 
  * https://docs.marklogic.com/REST/GET/v1/keyvalue
  */
 m.prototype.keyvalue = function(key,value,keytype_opt,callback_opt) {
@@ -459,8 +518,15 @@ m.prototype.keyvalue = function(key,value,keytype_opt,callback_opt) {
   if (undefined == keytype_opt) {
     keytype_opt = "key"; // also element, attribute for xml searches
   }
+  var url = "/v1/keyvalue?" + keytype_opt + "=" + encodeURI(key) + "&value=" + encodeURI(value) + "&format=json";
+  
+  // make transaction aware
+  if (undefined != this.__transaction_id) {
+    url += "&txid=" + encodeURI(this.__transaction_id);
+  }
+  
   var options = {
-    path: "/v1/keyvalue?" + keytype_opt + "=" + encodeURI(key) + "&value=" + encodeURI(value) + "&format=json",
+    path: url,
     method: "GET"
   };
   this.__doreq("KEYVALUE",options,null,callback_opt);
@@ -481,14 +547,17 @@ m.prototype.search = function(query_opt,options_opt,callback) {
   if (options_opt != undefined) {
     url += "&options=" + encodeURI(options_opt);
   }
-
-  // TODO make transaction aware
+  
+  // make transaction aware
+  if (undefined != this.__transaction_id) {
+    url += "&txid=" + encodeURI(this.__transaction_id);
+  }
     
   var options = {
     path: url,
     method: "GET"
   };
-  this.__doreq("SEARCH",options,null,callback_opt);
+  this.__doreq("SEARCH",options,null,callback);
 };
 
 /**
@@ -507,7 +576,10 @@ m.prototype.structuredSearch = function(query_opt,options_opt,callback) {
     url += "&options=" + encodeURI(options_opt);
   }
   
-  // TODO make transaction aware
+  // make transaction aware
+  if (undefined != this.__transaction_id) {
+    url += "&txid=" + encodeURI(this.__transaction_id);
+  }
   
   var options = {
     path: url,
@@ -515,6 +587,19 @@ m.prototype.structuredSearch = function(query_opt,options_opt,callback) {
   };
   this.__doreq("SEARCH",options,null,callback_opt);
 };
+
+
+
+
+
+
+// TRANSACTION MANAGEMENT
+
+
+
+
+
+
 
 /**
  * Opens a new transaction. Optionally, specify your own name.
@@ -526,23 +611,38 @@ m.prototype.beginTransaction = function(name_opt,callback) {
     name_opt = undefined;
   }
   
-  // TODO ensure a transaction ID is not currently open
-  
-  // temporary workaround for not having a mechanism to retrieve the Location header
-  if (undefined == name_opt) {
-    name_opt = "client-txn"; // same as server default
+  // ensure a transaction ID is not currently open
+  if (undefined != this.__transaction_id) {
+    var result = {inError:true,error: "This DB instance has an open transaction. Multiple transactions not supported in this version of MLDB."};
+    (callback||noop)(result);
+  } else {
+    // temporary workaround for not having a mechanism to retrieve the Location header
+    if (undefined == name_opt) {
+      name_opt = "client-txn"; // same as server default
+    }
+    var url = "/v1/transactions";
+    if (undefined != name_opt) { /* always true. Kept for sanity check in case we alter preceding if statement. */
+      url += "?name=" + encodeURI(name_opt);
+      this.__transaction_id = name_opt;
+    }
+    var options = {
+      path: url,
+      method: "POST"
+    };
+    var self = this;
+    this.__doreq("BEGINTRANS",options,null,function(result){
+      // if error, remove txid
+      if (result.inError) {
+        self.__transaction_id = undefined;
+      }
+      result.txid = self.__transaction_id;
+    
+      // call callback
+      (callback||noop)(result);
+    }); 
   }
-  var url = "/v1/transactions";
-  if (undefined != name_opt) {
-    url += "?name=" + encodeURI(name_opt);
-    this.__transaction_id = name_opt;
-  }
-  var options = {
-    path: uri,
-    method: "POST"
-  };
-  this.__doreq("BEGINTRANS",options,null,callback_opt); // TODO handle error by removing this.__txid
 };
+m.prototype.begin = m.prototype.beginTransaction;
 
 /**
  * Commits the open transaction
@@ -556,6 +656,7 @@ m.prototype.commitTransaction = function(callback) {
   this.__transaction_id = undefined;
   this.__doreq("COMMITTRANS",options,null,callback);
 };
+m.prototype.commit = m.prototype.commitTransaction;
 
 /**
  * Rolls back the open transaction.
@@ -569,20 +670,45 @@ m.prototype.rollbackTransaction = function(callback) {
   this.__transaction_id = undefined;
   this.__doreq("COMMITTRANS",options,null,callback);
 };
+m.prototype.rollback = m.prototype.rollbackTransaction;
+
+
+
+
+
 
 
 // DRIVER HELPER FEATURES
 
 
+
+
+
+
+
 /**
  * Generic wrapper to wrap any mldb code you wish to execute in parallel. E.g. uploading a mahoosive CSV file. Wrap ingestcsv with this and watch it fly!
+ * NOTE: By default all E-node (app server requests, like the ones issued by this JavaScript wrapper) are executed in a map-reduce style. That is to say
+ * they are highly parallelised by the server, automatically, if in a clustered environment. This is NOT what the fast function does. The fast function
+ * is intended to wrap utility functionality (like CSV upload) where it may be possible to make throughput gains by runnin items in parallel. This is
+ * akin to ML Content Pump (mlcp)'s -thread_count and -transaction_size ingestion options. See ddefaultboptions for details
  */
 m.prototype.fast = function(callback_opt) {
   
 };
 
 
+
+
+
+
+
 // UTILITY METHODS
+
+
+
+
+
 
 
 /**
@@ -593,9 +719,45 @@ m.prototype.ingestcsv = function(csvdata,docid_opt,callback_opt) {
   
 };
 
+/**
+ * Inserts many JSON documents. FAST aware, TRANSACTION aware.
+ */
+m.prototype.saveAll = function(doc_array,uri_array_opt,callback_opt) {
+  if (callback_opt == undefined && typeof(uri_array_opt)==='function') {
+    callback_opt = uri_array_opt;
+    uri_array_opt = undefined;
+  }
+  if (undefined == uri_array_opt) {
+    uri_array_opt = new Array();
+    for (var i = 0;i < doc_array.length;i++) {
+      uri_array_opt[i] = this.__genid();
+    }
+  }
+  
+  // TODO make fast aware
+  // TODO make transaction aware (auto by using save - need to check for error on return. pass error up for auto rollback)
+  var error = null;
+  for (var i = 0;null == error && i < doc_array.length;i++) {
+    this.save(doc_array[i],uri_array_opt[i],function(result) {
+      if (result.inError()) {
+        error = result;
+      }
+    });
+  }
+  if (null == error) {
+    (callback_opt||noop)({inError: false,docuris: uri_array_opt});
+  } else {
+    (callback_opt||noop)(error);
+  }
+}
 
 
 // REST API EXTENSIONS
+
+
+
+
+
 
 /**
  * Uses Adam Fowler's (me!) REST API extension for subscribing to geospatial alerts. RESTful HTTP calls are sent with the new information to the specified nodeurl.
@@ -604,6 +766,9 @@ m.prototype.subscribe = function(nodeurl,lat,lon,radiusmiles,callback_opt) {
   
 };
 
+/**
+ * Unsubscribe a nodeurl from all geospatial alerts. Uses Adam Fowler's (me!) REST API extension.
+ */
 m.prototype.unsubscribe = function(nodeurl,callback_opt) {
   
 };

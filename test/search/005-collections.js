@@ -6,14 +6,14 @@ var mldb = require("../../mldb"),
 
 var logger = new (winston.Logger)({
   transports: [
-    new winston.transports.File({ filename: '../006-directory.log' })
+    new winston.transports.File({ filename: 'logs/005-collections.log' })
   ],
   exceptionHandlers: [
-    new winston.transports.File({ filename: '../006-directory.log' })
+    new winston.transports.File({ filename: 'logs/005-collections.log' })
   ]
 });
 
-tests.list = function(callback) {
+tests.collections = function(callback) {
   var db = new mldb(); // default options
   db.setLogger(logger);
   
@@ -27,11 +27,11 @@ tests.list = function(callback) {
       db.save({name:"third"},uris[2],col,function(result) {
         assert(!result.inError,"Error saving doc 3");
         
-        logger.debug("TEST: list() Third save complete. Results object: " + JSON.stringify(result));
+        logger.debug("TEST: collections() Third save complete. Results object: " + JSON.stringify(result));
         // get docs in collection
-        db.list("/collections",function(result) {
+        db.collect(col.collection,function(result) {
           // ensure there are 3
-          logger.debug("TEST: list() collect results object: " + JSON.stringify(result));
+          logger.debug("TEST: collections() collect results object: " + JSON.stringify(result));
           if (undefined == result.doc) {
             callback(false);
           } else {
@@ -46,7 +46,7 @@ tests.list = function(callback) {
                   assert(!result.inError,"Error deleting doc 2");
                   db.delete(uris[2],function(result) {
                     assert(!result.inError,"Error deleting doc 3");
-                    logger.debug("TEST: list() returning true for success");
+                    logger.debug("TEST: collections() returning true for success");
                     callback(true);
                   });
                 });
@@ -59,8 +59,9 @@ tests.list = function(callback) {
   });
 };
 
-tests.list_ok = function(t) {
+tests.collections_ok = function(t) {
   assert.ok(t);
 };
 
 ensure(__filename, tests, module,process.argv[2]);
+  
