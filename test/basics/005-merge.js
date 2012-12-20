@@ -29,7 +29,8 @@ tests.merge = function(callback) {
       db.get(uris[0],function(result) {
         assert(!result.inError,"Error getting doc");
         logger.debug("TEST: MERGE: merged doc: " + result.doc);
-        assert(json1.concat(json2) == result.doc);  
+        //assert(json1.concat(json2) == result.doc);  
+        assert((json1.name==result.doc.name && json2.weight == result.doc.weight),"Result should have name and weight: " + JSON.stringify(result.doc))
         db.delete(uris[0],function(result) {
           assert(!result.inError,"Error deleting doc");
           callback(true);

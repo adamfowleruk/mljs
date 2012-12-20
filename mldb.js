@@ -54,7 +54,7 @@ m.prototype.configure = function(dboptions) {
   
   this.dboptions = defaultdboptions;
   if (undefined != dboptions) {
-    this.dboptions = defaultdboptions.concat(dboptions);
+    this.dboptions = this.__merge(defaultdboptions,dboptions);
   }
   
   this.dboptions.wrappers = new Array();
@@ -134,6 +134,9 @@ m.prototype.__doreq = function(reqname,options,content,callback_opt) {
   
   var completeRan = false; // declared here incase of request error
   
+  // add Connection: keep-alive
+  options.headers["Connection"] = "keep-alive";
+  
   var httpreq = wrapper.request(options, function(res) {
     var body = "";
     self.logger.debug("---- START " + reqname);
@@ -154,9 +157,19 @@ m.prototype.__doreq = function(reqname,options,content,callback_opt) {
           self.logger.debug(reqname + " error: " + body);
           (callback_opt || noop)({statusCode: res.statusCode,error: body,inError: true});
         } else {
+          // 2xx or 3xx response (200=OK, 303=Other(content created) )
           var jsonResult = {body: body, statusCode: res.statusCode,inError: false};
           if (options.method == "GET" && undefined != body && ""!=body) {
+            self.logger.debug("Response (Should be JSON): '" + body + "'");
             jsonResult.doc = JSON.parse(body);
+          }
+          if (res.statusCode == 303) {
+            self.logger.debug("303 result headers: " + JSON.stringify(res.headers));
+            var loc = res.headers["location"]; // NB all headers are lower case in the request library
+            if ((options.method == "PUT" || options.method == "POST") && loc != undefined) {
+              // check for Location header - used a fair bit to indicate location of created resource
+              jsonResult.location = loc;
+            }
           }
           (callback_opt || noop)(jsonResult); // TODO probably pass res straight through, appending body data
         }
@@ -444,15 +457,44 @@ m.prototype.save = function(json,docuri_opt,props_opt,callback_opt) {
  * NB May not be possible in V6 REST API elegantly - may need to do a full fetch, update, save
  */
 m.prototype.merge = function(json,docuri,callback_opt) { 
- 
- // make transaction aware - automatically done by save
- 
+  // make transaction aware - automatically done by save
+  var self = this;
   this.get(docuri,function(result) {
     var merged = result.doc;
     var res = {};
-    res = res.concat(merged).concat(json); // TODO fix this (concat does not exist), and dboptions.concat in configure()
-    this.save(res,docuri,callback_opt);
+    res = self.__merge(merged,json);
+    self.logger.debug("Merged JSON: " + JSON.stringify(res));
+    //res = self.__merge(merged,json); // fix dboptions.concat in configure()
+    self.save(res,docuri,callback_opt);
   });
+};
+
+m.prototype.__merge = function(json1,json2) {
+  this.logger.debug("__merge: JSON json1: " + JSON.stringify(json1) + ", json2: " + JSON.stringify(json2));
+  if (undefined == json1 && undefined != json2) {
+    this.logger.debug("JSON1 undefined, returning: " + json2);
+    return json2;
+  } else if (undefined == json2 && undefined != json1) {
+    this.logger.debug("JSON2 undefined, returning: " + json1);
+    return json1;
+  } else if (typeof(json1)==='object' && typeof(json2)==='object') {
+    this.logger.debug("Both 1&2 are JSON objects. json1: " + JSON.stringify(json1) + ", json2: " + JSON.stringify(json2));
+    // can be merged
+    var merged = {};
+    for (var k in json1) {
+      merged[k] = json1[k];
+    }
+    for (var k in json2) {
+      merged[k] = this.__merge(merged[k],json2[k]);
+    }
+    return merged;
+  } else if (undefined == json1 && undefined == json2) {
+    return undefined;
+  } else {
+    this.logger.debug("Both 1&2 are JSON values. json2 (newest): " + json2);
+    // return the second (new) value
+    return json2;
+  }
 };
 
 /**
@@ -623,7 +665,7 @@ m.prototype.beginTransaction = function(name_opt,callback) {
     var url = "/v1/transactions";
     if (undefined != name_opt) { /* always true. Kept for sanity check in case we alter preceding if statement. */
       url += "?name=" + encodeURI(name_opt);
-      this.__transaction_id = name_opt;
+      //this.__transaction_id = name_opt;
     }
     var options = {
       path: url,
@@ -634,7 +676,11 @@ m.prototype.beginTransaction = function(name_opt,callback) {
       // if error, remove txid
       if (result.inError) {
         self.__transaction_id = undefined;
+      } else {
+        self.__transaction_id = result.location.substring(17); // txid is in the Location header after /v1/transactions/
+        self.logger.debug("Created transaction id: " + result.location);
       }
+      
       result.txid = self.__transaction_id;
     
       // call callback
@@ -668,7 +714,7 @@ m.prototype.rollbackTransaction = function(callback) {
     method: "POST"
   };  
   this.__transaction_id = undefined;
-  this.__doreq("COMMITTRANS",options,null,callback);
+  this.__doreq("ABANDONTRANS",options,null,callback);
 };
 m.prototype.rollback = m.prototype.rollbackTransaction;
 

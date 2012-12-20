@@ -23,6 +23,8 @@ tests.commit = function(callback) {
     var txid = result.txid;
     logger.debug("TEST: COMMIT: Transaction ID: " + txid);
     
+    assert(!result.inError,"begin transaction should not be in error: " + JSON.stringify(result));
+    
     // now create doc
     logger.debug("TEST: COMMIT: Creating document within transaction.");
     var uri = "/trans/commit/1";
@@ -49,7 +51,7 @@ tests.commit = function(callback) {
               db.delete(uri, function(result) {
                 logger.debug("TEST: COMMIT: Doc deleted");
                 logger.debug("----------------");
-                callback(undefined == result.doc);
+                callback(false==result.inError);
               });
             } else {
               logger.debug("TEST: COMMIT: ERROR: Retrieved document is not same as that saved");
