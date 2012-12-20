@@ -210,12 +210,12 @@ m.prototype.__doreq = function(reqname,options,content,callback_opt) {
  * options = {method: "GET|POST|PUT|DELETE", path: "/v1/somepath?key=value&format=json"}
  * content = undefined for GET, DELETE, json for PUT, whatever as required for POST
  */
-m.prototype.do = function(options,content,callback_opt) {
-  if (callback_opt == undefined && typeof(content)==='function') {
-    callback_opt = content;
-    content = undefined;
+m.prototype.do = function(options_opt,content_opt,callback_opt) {
+  if (callback_opt == undefined && typeof(content_opt)==='function') {
+    callback_opt = content_opt;
+    content_opt = undefined;
   }
-  this.__doreq("DO",options,content,callback_opt);
+  this.__doreq("DO",options_opt,content_opt,callback_opt);
 };
 
 
