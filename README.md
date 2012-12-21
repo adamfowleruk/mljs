@@ -25,7 +25,7 @@ Targets for V 0.2 (Dec 2012) in descending order of importance
 
 For more information [See the wiki.](/adamfowleruk/mldb/wiki)
 
-Targets for 0.4 (Feb 2012)
+Targets for 0.4 (Feb 2013)
  - STARTED Utility function to save many docs in one go. (TODO: make transaction and fast aware)
  - Support all search options not currently provided
  - Support SSL
@@ -43,18 +43,21 @@ Targets for 0.4 (Feb 2012)
  - Pretty print utility for errors in JSON and XML
  - Samples for XML use, equivalent to some of the existing JSON samples (not exhaustive)
  
-Targets for 0.6 (Apr 2012)
+Targets for 0.6 (Apr 2013)
  - Lazy loading on search results (E.g. when requesting page 2 result 3 (result 13), make http request for re-search transparent)
  - Easy geospatial search
  - Support nested cts:search (if possible)
  
-Targets for 0.8 (Jun 2012)
+Targets for 0.8 (Jun 2013)
  - Execute mldb from within general JavaScript, not just NodeJS (requires many wrappers, refactoring, extra tests)
  - allow binding of JSON to jQuery table (for example)
  - allow binding of XML to jQuery table (for example)
  - basic demonstration sample for graph based on MarkLogic data
  - Provide REST API proxy within NodeJS wrapper
  - Support REST API proxy within general javascript and nodejs javascript code
+
+Targets for 1.0 (Aug 2013)
+ - Support current functionality against MarkLogic V7
 
 Not applicable / dropped / postponed targets
  - N/A sensible to/from json settings (Default on &format=json on server)

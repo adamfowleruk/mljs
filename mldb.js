@@ -765,7 +765,8 @@ m.prototype.rollback = m.prototype.rollbackTransaction;
  * akin to ML Content Pump (mlcp)'s -thread_count and -transaction_size ingestion options. See ddefaultboptions for details
  */
 m.prototype.fast = function(callback_opt) {
-  
+  this.__fast = true;
+  (callback_opt||noop)({inError:false,fast: true});
 };
 
 

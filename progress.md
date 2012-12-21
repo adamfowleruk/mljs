@@ -44,4 +44,4 @@ Utility functions
 
     mldb.fast                                     TEST - with saveAll
     mldb.ingestcsv                                NOT STARTED
-    mldb.saveAll                                  TEST
+    mldb.saveAll                                  STARTED
