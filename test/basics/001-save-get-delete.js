@@ -21,7 +21,7 @@ tests.basics = function(callback) {
   db.save({from: "test", to: "all", body: "wibble"},"/messages/1", {collection: "messages"},function(result) {
     // now fetch it
     logger.debug("****** Doc created. Fetching doc.");
-    var doc = db.get("/messages/1", function(result) {
+    db.get("/messages/1", function(result) {
       // now print it
       logger.debug("****** Doc content: " + JSON.stringify(result.doc));
       
@@ -30,7 +30,7 @@ tests.basics = function(callback) {
       db.delete("/messages/1", function(result) {
         logger.debug("****** Doc deleted");
         //assert.isNull(result.doc);
-        callback(undefined == result.doc);
+        callback(!result.inError);
       });
     });
   });

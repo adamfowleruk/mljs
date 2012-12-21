@@ -10,23 +10,23 @@ Design principles
  
 Targets for V 0.2 (Dec 2012) in descending order of importance
  - DONE abstract authentication (digest and basic) 
- - TESTING support creation of database and rest api on the fly - Destroy DONE, Create in Testing
+ - DONE support creation of database and rest api on the fly
  - DONE provide document save, get, update
  - DONE access all documents within a directory (mldb.list)
  - DONE access all documents within a collection (mldb.collect)
  - DONE add ACID transaction support across calls to the db
- - provide access to document properties fragment
+ - DONE provide access to document properties fragment (all metadata)
  - DONE basic searching (aka search:search), with facets
  - STARTED heavily document ALL quick start examples, with task orientated alternatives, and link back to REST docs on website
  - Generate JavaScript API docs and publish somewhere browseable on the web
  - DONE handle errors elegantly
- - TESTING support simple json structured query
+ - DONE support simple json structured query
  - DONE generic do function to invoke any REST API functionality I've not created a comprehensive helper method for
- - STARTED Utility function to save many docs in one go. (TODO: make transaction and fast aware)
 
 For more information [See the wiki.](/adamfowleruk/mldb/wiki)
 
 Targets for 0.4 (Feb 2012)
+ - STARTED Utility function to save many docs in one go. (TODO: make transaction and fast aware)
  - Support all search options not currently provided
  - Support SSL
  - SSL with Basic

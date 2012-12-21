@@ -9,12 +9,13 @@ Driver configuration
 Database Management
 
     mldb.exists (aka mldb.test)                   004-create-destroy    PASS
-    mldb.create                                   004-create-destroy    *** FAIL ***
+    mldb.create                                   004-create-destroy    PASS
     mldb.destroy                                  004-create-destroy    PASS
 
 Document management
 
     mldb.get                                      001-save-get-delete   PASS
+    mldb.metadata                                 004-metadata          PASS
     mldb.save                                     001-save-get-delete   PASS
     mldb.merge                                    005-merge             PASS
     mldb.delete (aka mldb.remove)                 001-save-get-delete   PASS
@@ -25,7 +26,7 @@ Search
     mldb.list                                     006-directory         PASS
     mldb.keyvalue                                 001-keyvalue          PASS
     mldb.search                                   003-search-query      PASS
-    mldb.structuredSearch                         TEST
+    mldb.structuredSearch                         002-structured-search PASS
 
 ACID Transactions
 

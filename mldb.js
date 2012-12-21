@@ -120,16 +120,16 @@ m.prototype.__doreq = function(reqname,options,content,callback_opt) {
   if (options.host != this.dboptions.host || options.port != this.dboptions.port) {
     var name = options.host + ":" + options.port;
     this.logger.debug("WARNING: Not accessing same host as REST API. Accessing: " + name);
-    //if (undefined == this.dboptions.wrappers[name]) {
+    if (undefined == this.dboptions.wrappers[name]) {
       this.logger.debug("Creating new wrapper");
       var nw = new digest();
       nw.configure(this.dboptions.username,this.dboptions.password,this.logger);
       this.dboptions.wrappers[name] = nw;
       wrapper = nw;
-    /*} else {
+    } else {
       this.logger.debug("Reusing saved wrapper");
       wrapper = this.dboptions.wrappers[name];
-    }*/ // TRYING TO ALWAYS FORCE NEW CONNECTION FOR ADMIN REQUESTS -> gets us past db.exists()->true, but not ECONNRESET
+    }
   }
   
   var completeRan = false; // declared here incase of request error
@@ -199,6 +199,7 @@ m.prototype.__doreq = function(reqname,options,content,callback_opt) {
   });
   httpreq.on("error",function(e) {
     completeRan = true;
+    self.logger.debug("__doreq: REQUEST ERROR: " + e);
     (callback_opt || noop)({inError: true,error: e}); 
   });
   if (undefined != content && null != content) {
@@ -257,10 +258,16 @@ m.prototype.exists = function(callback) {
     if (result.inError) {
       // if 404 then it's not technically in error
       self.logger.debug("exists: inError: " + JSON.stringify(result));
+      result.exists = false; // assume 404 not found or connect exception
+      result.inError = false;
       callback(result);
     } else {
       self.logger.debug("Returned rest api info: " + JSON.stringify(result.doc));
-      var ex = !(undefined == result.doc["rest-apis"] || undefined == result.doc["rest-apis"][0] || self.dboptions.database != result.doc["rest-apis"][0].database);
+      //var ex = !(undefined == result.doc["rest-apis"] || (result.doc["rest-apis"].length == 0) ||undefined == result.doc["rest-apis"][0] || (undefined != result.doc["rest-apis"][0] && self.dboptions.database != result.doc["rest-apis"][0].database));
+      var ex = false;
+      if (undefined != result.doc["rest-apis"] && result.doc["rest-apis"].length > 0 && result.doc["rest-apis"][0].database == self.dboptions.database) {
+        ex = true;
+      }
       // NB can return http 200 with no data to mean that DB does not exist
       self.logger.debug("exists:? " + ex);
       callback({inError:false,exists:ex});
@@ -297,28 +304,17 @@ m.prototype.create = function(callback_opt) {
  * Destroys the database and rest api instance
  */
 m.prototype.destroy = function(callback_opt) {
-  
-  // abandon any transaction if it exists
-  if (undefined != this.__transaction_id) {
-    this.rollbackTransaction(function(result) {
-      // no matter what the result, destroy the db
-      dodestroy();
-    });
-  } else {
-    dodestroy();
-  }
-  
+  var self = this;
   var dodestroy = function() {
     // don't assume the dbname is the same as the rest api name - look it up
   
     var getoptions = {
-      host: this.dboptions.host,
-      port: this.dboptions.adminport,
-      path: "/v1/rest-apis?database=" + encodeURI(this.dboptions.database) + "&format=json",
+      host: self.dboptions.host,
+      port: self.dboptions.adminport,
+      path: "/v1/rest-apis?database=" + encodeURI(self.dboptions.database) + "&format=json",
       method: "GET"
     };
-    var self = this;
-    this.__doreq("DESTROY-EXISTS",getoptions,null,function(result) {
+    self.__doreq("DESTROY-EXISTS",getoptions,null,function(result) {
       self.logger.debug("Returned rest api info: " + JSON.stringify(result.doc));
     
       var ex = !(undefined == result.doc["rest-apis"] || undefined == result.doc["rest-apis"][0] || self.dboptions.database != result.doc["rest-apis"][0].database);
@@ -341,6 +337,17 @@ m.prototype.destroy = function(callback_opt) {
     
     });
   }
+  
+  // abandon any transaction if it exists
+  if (undefined != this.__transaction_id) {
+    this.rollbackTransaction(function(result) {
+      // no matter what the result, destroy the db
+      dodestroy();
+    });
+  } else {
+    dodestroy();
+  }
+  
   
 };
 
@@ -370,6 +377,24 @@ m.prototype.get = function(docuri,callback_opt) {
   };
   
   this.__doreq("GET",options,null,callback_opt);
+};
+
+/**
+ * Fetches the metadata for a document with the given URI. Metadata document returned in result.doc
+ * 
+ * https://docs.marklogic.com/REST/GET/v1/documents
+ */
+m.prototype.metadata = function(docuri,callback_opt) {
+  if (undefined == callback_opt && typeof(docuri)==='function') {
+    callback_opt = docuri;
+    docuri = undefined;
+  }
+  var options = {
+    path: '/v1/documents?uri=' + encodeURI(docuri) + "&format=json&category=metadata",
+    method: 'GET'
+  };
+  
+  this.__doreq("METADATA",options,null,callback_opt);
 };
 
 /**
@@ -613,7 +638,7 @@ m.prototype.structuredSearch = function(query_opt,options_opt,callback) {
     callback = options_opt;
     options_opt = undefined;
   }
-  var url = "/v1/search?structuredQuery=" + encodeURI(query_opt) + "&format=json";
+  var url = "/v1/search?structuredQuery=" + encodeURI(JSON.stringify(query_opt)) + "&format=json";
   if (options_opt != undefined) {
     url += "&options=" + encodeURI(options_opt);
   }
@@ -627,7 +652,7 @@ m.prototype.structuredSearch = function(query_opt,options_opt,callback) {
     path: url,
     method: "GET"
   };
-  this.__doreq("SEARCH",options,null,callback_opt);
+  this.__doreq("SEARCH",options,null,callback);
 };
 
 

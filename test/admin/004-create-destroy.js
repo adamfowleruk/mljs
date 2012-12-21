@@ -12,7 +12,7 @@ var mldb = require("../../mldb"),
           new winston.transports.File({ filename: 'logs/004-create-destroy.log' })
        ]
      });
-/*
+
 tests.createDestroy = function(callback) {
   var db = new mldb(); // default options
   db.setLogger(logger);
@@ -33,7 +33,7 @@ tests.createDestroy = function(callback) {
         // try exists again
         db.exists(function(result) {
           assert(!result.inError,"db.exists should not be in error if db destroyed");
-          assert(result.exists,"db.exists should be false if db destroyed");
+          assert(!result.exists,"db.exists should be false if db destroyed");
           
           if (!result.inError) {
             // incase exists() returns 'true', with no error, but it actually doesn't exist
@@ -55,7 +55,7 @@ tests.createDestroy = function(callback) {
                 logger.debug("TEST: Calling save post create");
 
                 db.save({first: "isfirst"},uri,function(result) {
-                  assert(result.inError,"Should not be able to save new document if db is destroyed.");
+                  assert(!result.inError,"Should be able to save new document if db is created.");
                   callback(true);
                 });
               });
@@ -95,5 +95,5 @@ tests.createDestroy = function(callback) {
   tests.createDestroy_ok = function(t) {
     assert.ok(t);
   };
-*/
+
 ensure(__filename, tests, module,process.argv[2]);
