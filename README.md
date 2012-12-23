@@ -2,12 +2,12 @@
 
 This library provides a convenient JavaScript wrapper for common operations on MarkLogic V6's REST API. It abstracts authentication and common search settings to make it intuitive for a non MarkLogician to get started rapidly with MarkLogic.
 
-Design principles
- - Don't require MarkLogic specific knowledge to get started - just work against any MarkLogic 6 server
- - Use sensible defaults throughout (E.g. ports/host/auth match default MarkLogic server install, use GUIDs and time for doc ids, sensible search options)
- - Be fully event oriented (for non blocking IO), unlike other DB's NodeJS modules
- - Expose entire result object from server, don't wrap it. This provides future proofing and greatest power with minimum extra learning curve for this driver
- 
+Further information
+ - Install with `npm install mldb`
+ - Read the [API documentation](https://github.com/adamfowleruk/mldb/wiki/Api)
+ - And the rest of the [WIKI](https://github.com/adamfowleruk/mldb/wiki)
+ - And perhaps the [design principles document](https://github.com/adamfowleruk/mldb/wiki/Design)
+
 Targets for V 0.2 (Dec 2012) in descending order of importance
  - DONE abstract authentication (digest and basic) 
  - DONE support creation of database and rest api on the fly
@@ -17,11 +17,11 @@ Targets for V 0.2 (Dec 2012) in descending order of importance
  - DONE add ACID transaction support across calls to the db
  - DONE provide access to document properties fragment (all metadata)
  - DONE basic searching (aka search:search), with facets
- - STARTED heavily document ALL quick start examples, with task orientated alternatives, and link back to REST docs on website
- - Generate JavaScript API docs and publish somewhere browseable on the web
+ - DONE heavily document ALL quick start examples, with task orientated alternatives, and link back to REST docs on website
  - DONE handle errors elegantly
  - DONE support simple json structured query
  - DONE generic do function to invoke any REST API functionality I've not created a comprehensive helper method for
+ - DONE Complete testing of all core functionality
 
 For more information [See the wiki.](/adamfowleruk/mldb/wiki)
 
@@ -61,3 +61,4 @@ Targets for 1.0 (Aug 2013)
 
 Not applicable / dropped / postponed targets
  - N/A sensible to/from json settings (Default on &format=json on server)
+ - N/A documented on WIKI - Generate JavaScript API docs and publish somewhere browseable on the web

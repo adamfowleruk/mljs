@@ -3,7 +3,7 @@
 Driver configuration
 
     mldb Constructor                              all                   PASS
-    mldb.configure                                TEST (Needs create)
+    mldb.configure                                009-configure         PASS
     mldb.setLogger                                all                   PASS
 
 Database Management
@@ -44,4 +44,4 @@ Utility functions
 
     mldb.fast                                     TEST - with saveAll
     mldb.ingestcsv                                NOT STARTED
-    mldb.saveAll                                  STARTED
+    mldb.saveAll                                  NOT STARTED

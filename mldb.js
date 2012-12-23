@@ -55,6 +55,7 @@ m.prototype.configure = function(dboptions) {
   this.dboptions = defaultdboptions;
   if (undefined != dboptions) {
     this.dboptions = this.__merge(defaultdboptions,dboptions);
+    this.logger.debug("MERGED: " + JSON.stringify(this.dboptions)); // TODO TEST
   }
   
   this.dboptions.wrappers = new Array();
@@ -92,7 +93,7 @@ module.exports = function() {return new m()};
 // PRIVATE METHODS
 
 m.prototype.__genid = function() {
-  return "" + /*(new Date()).millis() + "-" +*/ Math.ceil(Math.random()*100000000);
+  return "" + ((new Date()).getTime()) + "-" + Math.ceil(Math.random()*100000000);
 };
 
 
