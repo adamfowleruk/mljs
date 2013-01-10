@@ -27,6 +27,8 @@ For more information [See the wiki.](/adamfowleruk/mldb/wiki)
 
 Targets for 0.4 (Feb 2013)
  - STARTED Utility function to save many docs in one go. (TODO: make transaction and fast aware)
+ - TEST Create a saved search with a name (default grammar, collection, geospatial proximity) (NB uses REST API Extension from myself)
+ - TEST subscribe/unsubscribe to saved searches (NB uses REST API Extension from myself)
  - Support all search options not currently provided
  - Support SSL
  - SSL with Basic

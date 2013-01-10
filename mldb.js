@@ -825,23 +825,149 @@ m.prototype.saveAll = function(doc_array,uri_array_opt,callback_opt) {
 }
 
 
+
+
+
+
 // REST API EXTENSIONS
 
-
-
-
-
-
+// START EXTENSION - subscribe-resource.xqy - Adam Fowler adam.fowler@marklogic.com - Save searches by name, and subscribe to alerts from them. Alerts sent to a given URL.
 /**
- * Uses Adam Fowler's (me!) REST API extension for subscribing to geospatial alerts. RESTful HTTP calls are sent with the new information to the specified nodeurl.
+ * Save a query using the default search grammar (see search:search) with a given name
  */
-m.prototype.subscribe = function(nodeurl,lat,lon,radiusmiles,callback_opt) {
-  
+m.prototype.saveBasicSearch = function(searchname,shared,query,callback_opt) {
+  this._doSaveBasicSearch(searchname,shared,query,"search",null,callback_opt);
+};
+
+m.prototype._doSaveBasicSearch = function(searchname,shared,query,createmode,notificationurl,callback_opt) {
+  var url = "/v1/resources/subscribe?notificationurl=" + encodeURI(notificationurl) + "&format=json&searchname=" + encodeURI(searchname) + 
+    "&create=" + encodeURI(createmode) + "&shared=" + encodeURI(shared) + "&query=" + encodeURI(query) + "&querytype=basic";
+  if ("both" == createmode) {
+    url += "&notificationurl=" + encodeURI(notificationurl);
+  }
+    
+  var options = {
+    path: url,
+    method: "PUT"
+  };
+  this.__doreq("SAVEBASICSEARCH",options,null,callback_opt);
 };
 
 /**
- * Unsubscribe a nodeurl from all geospatial alerts. Uses Adam Fowler's (me!) REST API extension.
+ * Save a query that matches documents created within a collection, with a given name
  */
-m.prototype.unsubscribe = function(nodeurl,callback_opt) {
-  
+m.prototype.saveCollectionSearch = function(searchname,shared,collection,callback_opt) {
+  this._doSaveCollectionSearch(searchname,shared,collection,"search",null,callback_opt);
 };
+
+m.prototype._doSaveCollectionSearch = function(searchname,shared,collection,createmode,notificationurl,callback_opt) {
+  var url = "/v1/resources/subscribe?notificationurl=" + encodeURI(notificationurl) + "&format=json&searchname=" + encodeURI(searchname) + 
+    "&create=" + encodeURI(createmode) + "&shared=" + encodeURI(shared) + "&collection=" + encodeURI(collection) + "&querytype=collection";
+  if ("both" == createmode) {
+    url += "&notificationurl=" + encodeURI(notificationurl);
+  }
+    
+  var options = {
+    path: url,
+    method: "PUT"
+  };
+  this.__doreq("SAVECOLLECTIONSEARCH",options,null,callback_opt);
+};
+
+/**
+ * Save a geospatial search based on a point and radius from it, with a given name
+ * TODO check if we need to include an alert module name in the options
+ */
+m.prototype.saveGeoNearSearch = function(searchname,shared,latitude,longitude,radiusmiles,callback_opt) {
+  this._doSaveGeoNearSearch(searchname,shared,latitude,longitude,radiusmiles,"search",null,callback_opt);
+};
+
+m.prototype._doSaveGeoNearSearch = function(searchname,shared,latitude,longitude,radiusmiles,createmode,notificationurl,callback_opt) {
+  var url = "/v1/resources/subscribe?notificationurl=" + encodeURI(notificationurl) + "&format=json&searchname=" + encodeURI(searchname) + 
+    "&create=" + encodeURI(createmode) + "&shared=" + encodeURI(shared) + "&lat=" + encodeURI(latitude)  + "&lon=" + encodeURI(longitude)  + "&radiusmiles=" + encodeURI(radiusmiles) + "&querytype=geonear";
+  if ("both" == createmode) {
+    url += "&notificationurl=" + encodeURI(notificationurl);
+  }
+    
+  var options = {
+    path: url,
+    method: "PUT"
+  };
+  this.__doreq("SAVEGEONEARSEARCH",options,null,callback_opt);
+};
+
+/**
+ * Save an arbitrary search (any cts:query) already stored in the database, with a given name. Enables easy referencing and activation of alerts on this search.
+ */
+m.prototype.saveExistingSearch = function(searchname,shared,searchdocuri,callback_opt) {
+  this._doSaveExistingSearch(searchname,shared,searchdocuri,"search",null,callback_opt)
+};
+
+m.prototype._doSaveExistingSearch = function(searchname,shared,searchdocuri,createmode,notificationurl,callback_opt) {
+  var url = "/v1/resources/subscribe?notificationurl=" + encodeURI(notificationurl) + "&format=json&searchname=" + encodeURI(searchname) + 
+    "&create=" + encodeURI(createmode) + "&shared=" + encodeURI(shared) + "&searchdocuri=" + encodeURI(searchdocuri) + "&querytype=uri";
+  if ("both" == createmode) {
+    url += "&notificationurl=" + encodeURI(notificationurl);
+  }
+    
+  var options = {
+    path: url,
+    method: "PUT"
+  };
+  this.__doreq("SAVEEXISTINGSEARCH",options,null,callback_opt);
+};
+
+/**
+ * Uses Adam Fowler's (me!) REST API extension for subscribing to searches. RESTful HTTP calls are sent with the new information to the specified url.
+ */
+m.prototype.subscribe = function(notificationurl,searchname,detail,contenttype,callback_opt) {
+  var url = "/v1/resources/subscribe?notificationurl=" + encodeURI(notificationurl) + "&format=json&searchname=" + encodeURI(searchname) + 
+    "&detail=" + encodeURI(detail) + "&contenttype=" + encodeURI(contenttype);
+    
+  var options = {
+    path: url,
+    method: "POST"
+  };
+  this.__doreq("SUBSCRIBE",options,null,callback_opt);
+};
+
+/**
+ * Unsubscribe a notificationurl from a named search. Uses Adam Fowler's (me!) REST API extension.
+ */
+m.prototype.unsubscribe = function(notificationurl,searchname,callback_opt) {
+  var url = "/v1/resources/subscribe?notificationurl=" + encodeURI(notificationurl) + "&format=json&searchname=" + encodeURI(searchname) + "&delete=search";
+    
+  var options = {
+    path: url,
+    method: "DELETE"
+  };
+  this.__doreq("UNSUBSCRIBE",options,null,callback_opt);
+};
+
+/**
+ * Unsubscribe from an alert and delete the underlying saved search. Convenience method.
+ */
+m.prototype.unsubscribeAndDelete = function(notificationurl,searchname,callback_opt) {
+  var url = "/v1/resources/subscribe?notificationurl=" + encodeURI(notificationurl) + "&format=json&searchname=" + encodeURI(searchname) + "&delete=both";
+    
+  var options = {
+    path: url,
+    method: "DELETE"
+  };
+  this.__doreq("UNSUBSCRIBE",options,null,callback_opt);
+};
+
+/**
+ * Delete the saved search. Assumes already unsubscribed from alerts used by it. (If not, alerts will still fire!)
+ */
+m.prototype.deleteSavedSearch = function(searchname,callback_opt) {
+  var url = "/v1/resources/subscribe?format=json&searchname=" + encodeURI(searchname) + "&delete=search";
+    
+  var options = {
+    path: url,
+    method: "DELETE"
+  };
+  this.__doreq("DELETESAVEDSEARCH",options,null,callback_opt);
+};
+
+// END EXTENSION - subscribe-resource.xqy - Adam Fowler adam.fowler@marklogic.com - Save searches by name, and subscribe to alerts from them. Alerts sent to a given URL.
