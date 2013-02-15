@@ -140,15 +140,15 @@ m.prototype.__doreq = function(reqname,options,content,callback_opt) {
   
   var httpreq = wrapper.request(options, function(res) {
     var body = "";
-    self.logger.debug("---- START " + reqname);
-    self.logger.debug(reqname + " In Response");
-    self.logger.debug(reqname + " Got response: " + res.statusCode);
-    self.logger.debug("Method: " + options.method);
+    //self.logger.debug("---- START " + reqname);
+    //self.logger.debug(reqname + " In Response");
+    //self.logger.debug(reqname + " Got response: " + res.statusCode);
+    //self.logger.debug("Method: " + options.method);
     
     
     res.on('data', function(data) {
       body += data;
-      self.logger.debug(reqname + " Data: " + data);
+      //self.logger.debug(reqname + " Data: " + data);
     });
     var complete =  function() { 
       if (!completeRan) {
@@ -367,17 +367,25 @@ m.prototype.destroy = function(callback_opt) {
  * 
  * https://docs.marklogic.com/REST/GET/v1/documents
  */
-m.prototype.get = function(docuri,callback_opt) {
-  if (undefined == callback_opt && typeof(docuri)==='function') {
-    callback_opt = docuri;
-    docuri = undefined;
+m.prototype.get = function(docuri,options_opt,callback_opt) {
+  if (undefined == callback_opt && typeof(options_opt)==='function') {
+    callback_opt = options_opt;
+    options_opt = undefined;
   }
   var options = {
     path: '/v1/documents?uri=' + encodeURI(docuri) + "&format=json",
     method: 'GET'
   };
+  if (undefined != options_opt) {
+    if (undefined != options_opt.transform) {
+      options.path += "&transform=" + encodeURI(options_opt.transform)
+    }
+  }
   
-  this.__doreq("GET",options,null,callback_opt);
+  this.__doreq("GET",options,null,function (result) {
+    result.docuri = docuri;
+    (callback_opt||noop)(result);
+  });
 };
 
 /**
@@ -629,6 +637,37 @@ m.prototype.search = function(query_opt,options_opt,callback) {
 };
 
 /**
+ * Performs a search:search via REST
+ * http://docs.marklogic.com/REST/GET/v1/search
+ *
+ * See supported search grammar http://docs.marklogic.com/guide/search-dev/search-api#id_41745 
+ */ 
+m.prototype.searchCollection = function(collection_opt,query_opt,options_opt,callback) { 
+  if (callback == undefined && typeof(options_opt) === 'function') {
+    callback = options_opt;
+    options_opt = undefined;
+  }
+  var url = "/v1/search?q=" + encodeURI(query_opt) + "&format=json";
+  if (undefined != collection_opt) {
+    url += "&collection=" + encodeURI(collection_opt);
+  }
+  if (options_opt != undefined) {
+    url += "&options=" + encodeURI(options_opt);
+  }
+  
+  // make transaction aware
+  if (undefined != this.__transaction_id) {
+    url += "&txid=" + encodeURI(this.__transaction_id);
+  }
+    
+  var options = {
+    path: url,
+    method: "GET"
+  };
+  this.__doreq("SEARCH",options,null,callback);
+};
+
+/**
  * Performs a structured search.
  * http://docs.marklogic.com/REST/GET/v1/search
  * 
@@ -653,12 +692,24 @@ m.prototype.structuredSearch = function(query_opt,options_opt,callback) {
     path: url,
     method: "GET"
   };
+  //console.log("OPTIONS: " + JSON.stringify(options));
   this.__doreq("SEARCH",options,null,callback);
 };
 
 
-
-
+/**
+ * Saves search options with the given name. These are referred to by mldb.structuredSearch.
+ * http://docs.marklogic.com/REST/PUT/v1/config/query/*
+ *
+ * For structured serch options see http://docs.marklogic.com/guide/rest-dev/search#id_48838
+ */
+m.prototype.saveSearchOptions = function(name,searchoptions,callback_opt) {
+  var options = {
+    path: "/v1/config/query/" + name + "?format=json",
+    method: "PUT"
+  };
+  this.__doreq("SAVESEARCHOPTIONS",options,searchoptions,callback_opt);
+};
 
 
 // TRANSACTION MANAGEMENT
@@ -916,6 +967,10 @@ m.prototype._doSaveExistingSearch = function(searchname,shared,searchdocuri,crea
   };
   this.__doreq("SAVEEXISTINGSEARCH",options,null,callback_opt);
 };
+
+/*
+ * TODO create-and-subscribe methods, subscribe to uri method
+ */
 
 /**
  * Uses Adam Fowler's (me!) REST API extension for subscribing to searches. RESTful HTTP calls are sent with the new information to the specified url.

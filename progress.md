@@ -14,7 +14,7 @@ Database Management
 
 Document management
 
-    mldb.get                                      001-save-get-delete   PASS
+    mldb.get                                      001-save-get-delete   PASS    006-save-get-delete-in-loop   ???
     mldb.metadata                                 004-metadata          PASS
     mldb.save                                     001-save-get-delete   PASS
     mldb.merge                                    005-merge             PASS
