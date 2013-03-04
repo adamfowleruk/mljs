@@ -813,8 +813,8 @@ m.prototype.rollback = m.prototype.rollbackTransaction;
  * Generic wrapper to wrap any mldb code you wish to execute in parallel. E.g. uploading a mahoosive CSV file. Wrap ingestcsv with this and watch it fly!
  * NOTE: By default all E-node (app server requests, like the ones issued by this JavaScript wrapper) are executed in a map-reduce style. That is to say
  * they are highly parallelised by the server, automatically, if in a clustered environment. This is NOT what the fast function does. The fast function
- * is intended to wrap utility functionality (like CSV upload) where it may be possible to make throughput gains by runnin items in parallel. This is
- * akin to ML Content Pump (mlcp)'s -thread_count and -transaction_size ingestion options. See ddefaultboptions for details
+ * is intended to wrap utility functionality (like CSV upload) where it may be possible to make throughput gains by running items in parallel. This is
+ * akin to ML Content Pump (mlcp)'s -thread_count and -transaction_size ingestion options. See defaultdboptions for details
  */
 m.prototype.fast = function(callback_opt) {
   this.__fast = true;
@@ -863,7 +863,7 @@ m.prototype.saveAll = function(doc_array,uri_array_opt,callback_opt) {
   var error = null;
   for (var i = 0;null == error && i < doc_array.length;i++) {
     this.save(doc_array[i],uri_array_opt[i],function(result) {
-      if (result.inError()) {
+      if (result.inError) {
         error = result;
       }
     });
@@ -873,9 +873,91 @@ m.prototype.saveAll = function(doc_array,uri_array_opt,callback_opt) {
   } else {
     (callback_opt||noop)(error);
   }
+};
+
+var rv = function(totalruns,maxrunning,start_func,finish_func,complete_func) {
+  this.running = 0;
+  this.runnercount = 0;
+  this.cancelled = false;
+  this.maxrunning = maxrunning;
+  this.sf = start_func;
+  this.ff = finish_func;
+  this.cf = complete_func;
+  this.totalruns = totalruns;
+};
+
+rv.prototype.run = function() {
+  this.cancelled = false;
+  for (var i = 0;i < this.maxrunning;i++) {
+    this._start();
+  }
+};
+
+rv.prototype.cancel = function() {
+  this.cancelled = true;
 }
 
+rv.prototype._start = function() {
+  this.running++;
+  var that = this;
+  var mc = this.runnercount++;
+  this.sf(mc,function(mc,result) {
+    that.callback(mc,result,that);
+  });
+};
 
+rv.prototype.callback = function(mc,result,that) {
+  that.running--;
+  that.ff(mc,result);
+  if (that.runnercount == that.totalruns) {
+    that.cf();
+    that.runnercount++; // should never happen, but just ensuring an infinite loop does not happen if this is coded wrong somewhere
+  } else if (!that.cancelled && that.running < that.maxrunning && that.runnercount < that.totalruns) {
+    that._start();
+  }
+};
+
+/**
+ * Alternative saveAll function that throttles invoking MarkLogic to a maximum number of simultaneous 'parallel' requests. (JavaScript is never truly parallel)
+ */
+m.prototype.saveAll2 = function(doc_array,uri_array_opt,callback_opt) {
+  if (callback_opt == undefined && typeof(uri_array_opt)==='function') {
+    callback_opt = uri_array_opt;
+    uri_array_opt = undefined;
+  }
+  if (undefined == uri_array_opt) {
+    uri_array_opt = new Array();
+    for (var i = 0;i < doc_array.length;i++) {
+      uri_array_opt[i] = this.__genid();
+    }
+  }
+  
+  // TODO make fast aware
+  // TODO make transaction aware (auto by using save - need to check for error on return. pass error up for auto rollback)
+  var error = null;
+  //for (var i = 0;null == error && i < doc_array.length;i++) {
+  var that = this;
+  var start_func = function(mc,callback) {
+    that.save(doc_array[mc],uri_array_opt[mc],callback);
+  };
+  var finish_func = function(result) {
+    if (result.inError) {
+      error = result;
+    }
+  };
+  
+  var complete_func = function() {
+    if (null == error) {
+      (callback_opt||noop)({inError: false,docuris: uri_array_opt});
+    } else {
+      (callback_opt||noop)(error);
+    }
+  };
+  
+  var myrv = new rv(doc_array.length,this.dboptions.fastparts,start_func,finish_func,complete_func);
+  myrv.run();
+  
+};
 
 
 

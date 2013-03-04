@@ -26,16 +26,21 @@ Targets for V 0.2 (Dec 2012) in descending order of importance
 For more information [See the wiki.](/adamfowleruk/mldb/wiki)
 
 Targets for 0.4 (Feb 2013)
- - STARTED Utility function to save many docs in one go. (TODO: make transaction and fast aware)
+ - DONE Utility function to save many docs in one go. (TODO: make transaction and fast aware)
  - TEST Create a saved search with a name (default grammar, collection, geospatial proximity) (NB uses REST API Extension from myself)
  - TEST subscribe/unsubscribe to saved searches (NB uses REST API Extension from myself)
+ - TEST no auth (default user)
+ 
+Targets for 0.6 (Apr 2013)
+ - Lazy loading on search results (E.g. when requesting page 2 result 3 (result 13), make http request for re-search transparent)
+ - Easy geospatial search
+ - Support nested cts:search (if possible)
  - Support all search options not currently provided
  - Support SSL
  - SSL with Basic
  - SSL with Digest
  - Basic + Digest non SSL
  - SSL Basic + Digest
- - TESTING no auth (default user)
  - SSL no auth (default user)
  - Support 'anyauth' option, much like curl
  - support simple aggregations of query results
@@ -44,11 +49,6 @@ Targets for 0.4 (Feb 2013)
  - allow upload and use of XSLT for result transform
  - Pretty print utility for errors in JSON and XML
  - Samples for XML use, equivalent to some of the existing JSON samples (not exhaustive)
- 
-Targets for 0.6 (Apr 2013)
- - Lazy loading on search results (E.g. when requesting page 2 result 3 (result 13), make http request for re-search transparent)
- - Easy geospatial search
- - Support nested cts:search (if possible)
  
 Targets for 0.8 (Jun 2013)
  - Execute mldb from within general JavaScript, not just NodeJS (requires many wrappers, refactoring, extra tests)
