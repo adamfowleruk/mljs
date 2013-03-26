@@ -1,17 +1,30 @@
-var basic = require("./lib/basic-wrapper"),
-    digest = require("./lib/digest-wrapper"),
-    thru = require("./lib/passthrough-wrapper"),
-    noop = require("./lib/noop"),
-    winston = require('winston');
+var basic = null, digest = null, thru = null, noop = null, winston = null;
+var logger = null;
+if (typeof window === 'undefined') {
+  basic = require("./lib/basic-wrapper"),
+  digest = require("./lib/digest-wrapper"),
+  thru = require("./lib/passthrough-wrapper"),
+  noop = require("./lib/noop"),
+  winston = require('winston');
 
-     var logger = new (winston.Logger)({
-       transports: [
-         new winston.transports.Console()
-       ],
-       exceptionHandlers: [
-         new winston.transports.Console()
-       ]
-     });
+  logger = new (winston.Logger)({
+    transports: [
+      new winston.transports.Console()
+    ],
+    exceptionHandlers: [
+      new winston.transports.Console()
+    ]
+  });
+} else {
+  var cl = function() {
+    // do nothing
+  };
+  cl.prototype.debug = function(msg) {
+    console.log(msg);
+  };
+  cl.prototype.info = cl.prototype.debug;
+  logger = new cl();
+}
 
 // DEFAULTS
 
@@ -58,18 +71,60 @@ m.prototype.configure = function(dboptions) {
     this.logger.debug("MERGED: " + JSON.stringify(this.dboptions)); // TODO TEST
   }
   
+  
+  
   this.dboptions.wrappers = new Array();
-  // TODO support curl like 'anyauth' option to determine auth mechanism automatically (via HTTP 401 Authenticate)
-  if (this.dboptions.auth == "basic") {
-    this.dboptions.wrapper = new basic(); 
-  } else if (this.dboptions.auth == "digest") {
-    this.dboptions.wrapper = new digest();
-  } else if (this.dboptions.auth == "none"){
-    // no auth - default user
-    this.dboptions.wrapper = new thru();
-  } else if (this.dboptions.auth == "basicdigest" || this.dboptions.auth == "basic+digest") {
-    // TODO basic+digest authentication
-  }  
+  
+  
+  // determine which context we're running in
+  if (!(typeof window ==="undefined")) {
+    // in a browser
+    
+    if (!(typeof jQuery == 'undefined')) {
+      // is jquery defined?
+      logger.debug("Wrapper: jQuery, Version: " + jQuery.fn.jquery);
+      if (undefined == mldb.bindings || undefined == mldb.bindings.jquery) {
+        logger.debug("ERROR SEVERE: mldb.bindings.jquery is not defined. Included mldb-jquery.js ?");
+      } else {
+        this.dboptions.wrapper = new mldb.bindings.jquery();
+      }
+    } else if (!(typeof Prototype == 'undefined')) {
+      // is prototypejs defined?
+      logger.debug("Wrapper: Prototype, Version: " + Prototype.Version);
+      if (undefined == mldb.bindings || undefined == mldb.bindings.prototypejs) {
+        logger.debug("ERROR SEVERE: mldb.bindings.prototypejs is not defined. Included mldb-prototype.js ?");
+      } else {
+        this.dboptions.wrapper = new mldb.bindings.prototypejs();
+      }
+    } else {
+      // fallback to XMLHttpRequest
+      logger.debug("Wrapper: Falling back to XMLHttpRequest");
+      if (undefined == mldb.bindings || undefined == mldb.bindings.xhr) {
+        logger.debug("ERROR SEVERE: mldb.bindings.xhr is not defined. Included mldb-xhr.js ?");
+      } else {
+        this.dboptions.wrapper = new mldb.bindings.xhr();
+      }
+    }
+    
+    // configure appropriate browser wrapper
+    this.__doreq_impl = this.__doreq_wrap;
+  } else {
+    // in NodeJS
+  
+    // TODO support curl like 'anyauth' option to determine auth mechanism automatically (via HTTP 401 Authenticate)
+    if (this.dboptions.auth == "basic") {
+      this.dboptions.wrapper = new basic(); 
+    } else if (this.dboptions.auth == "digest") {
+     this.dboptions.wrapper = new digest();
+    } else if (this.dboptions.auth == "none"){
+      // no auth - default user
+      this.dboptions.wrapper = new thru();
+    } else if (this.dboptions.auth == "basicdigest" || this.dboptions.auth == "basic+digest") {
+      // TODO basic+digest authentication
+    }  
+    
+    this.__doreq_impl = this.__doreq_node;
+  }
   this.dboptions.wrapper.configure(this.dboptions.username,this.dboptions.password,this.logger);
 };
 
@@ -96,23 +151,11 @@ m.prototype.__genid = function() {
   return "" + ((new Date()).getTime()) + "-" + Math.ceil(Math.random()*100000000);
 };
 
+m.prototype.__doreq_wrap = function(reqname,options,content,callback_opt) {
+  this.dboptions.wrapper.request(reqname,options,content,callback_opt);
+};
 
-/**
- * Handles management of all HTTP requests passed to the wrappers. Should never be invoked directly.
- */
-m.prototype.__doreq = function(reqname,options,content,callback_opt) {
-  this.logger.debug("__doreq: reqname: " + reqname + ", method: " + options.method + ", uri: " + options.path);
-  if (undefined == options.host) {
-    options.host = this.dboptions.host;
-  }
-  if (undefined == options.port) {
-    options.port = this.dboptions.port;
-  }
-  if (undefined == options.headers) {
-    options.headers = {};
-  } else {
-     this.logger.debug(reqname + " headers: " + JSON.stringify(options.headers))
-  }
+m.prototype.__doreq_node = function(reqname,options,content,callback_opt) {
   var self = this;
   
   var wrapper = this.dboptions.wrapper;
@@ -207,6 +250,26 @@ m.prototype.__doreq = function(reqname,options,content,callback_opt) {
     httpreq.write(JSON.stringify(content));
   }
   httpreq.end();
+};
+
+/**
+ * Handles management of all HTTP requests passed to the wrappers. Should never be invoked directly.
+ */
+m.prototype.__doreq = function(reqname,options,content,callback_opt) {
+  this.logger.debug("__doreq: reqname: " + reqname + ", method: " + options.method + ", uri: " + options.path);
+  if (undefined == options.host) {
+    options.host = this.dboptions.host;
+  }
+  if (undefined == options.port) {
+    options.port = this.dboptions.port;
+  }
+  if (undefined == options.headers) {
+    options.headers = {};
+  } else {
+    this.logger.debug(reqname + " headers: " + JSON.stringify(options.headers))
+  }
+  
+  this.__doreq_impl(reqname,options,content,callback_opt);
 };
 
 
