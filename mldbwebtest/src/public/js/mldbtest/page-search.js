@@ -28,6 +28,9 @@ $(document).ready(function() {
               type: "xs:string",
               facet: true,
               collation: "http://marklogic.com/collation/en",
+          "facet-option": [
+            "item-order","ascending"
+          ],
               element: {
                 ns: "",
                 name: "animal"
@@ -41,6 +44,9 @@ $(document).ready(function() {
               type: "xs:string",
               facet: true,
               collation: "http://marklogic.com/collation/en",
+          "facet-option": [
+            "item-frequency","ascending"
+          ],
               element: {
                 ns: "",
                 name: "family"

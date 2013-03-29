@@ -716,6 +716,7 @@ m.prototype.search = function(query_opt,options_opt,start_opt,callback) {
   if (undefined != start_opt) {
     url += "&start=" + start_opt;
   }
+  url += "&view=all";
   
   // TODO check options' type - if string, then pass as options param. If JSON object, then do POST to /v1/search to provide options dynamically
   
