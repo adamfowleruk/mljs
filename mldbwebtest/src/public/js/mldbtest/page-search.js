@@ -5,6 +5,7 @@ $(document).ready(function() {
   
   var wgt = new com.marklogic.widgets.searchpage("search-page");
   
+  wgt.bar.setOptionsName("mldbtest-page-search-options");
   wgt.bar.setOptions(
     {
       options: {

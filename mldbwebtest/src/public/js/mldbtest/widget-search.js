@@ -137,6 +137,7 @@ com.marklogic.widgets.searchbar.prototype.__doquery = function(q,start) {
         // TODO log error somewhere sensible on screen
         console.log(result.error);
       } else {
+        self.optionsExists = true; // to stop overwriting on subsequent requests
         dos();
       }
     });
