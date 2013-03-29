@@ -1,0 +1,137 @@
+
+/****
+ * Generic styles
+ ****/
+.hidden {
+  display: none;
+}
+
+/****
+ * ALL SEARCH WIDGETS DEFAULT CSS BELOW HERE
+ ****/
+
+/** search page testing css **/
+
+.search-page {
+  width: 100%;
+}
+
+/** search page, overarching widget **/
+
+.searchpage-inner {
+}
+
+.searchpage-facets {
+}
+
+.searchpage-main {
+  width: auto;
+  float: left;
+  top:0px;
+  height: 100%;
+}
+
+.searchpage-bar {
+  width: auto;
+  background-color: #D2D2D2;
+  color: #4B4B4B;
+}
+
+.searchpage-controls {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.searchpage-controls-inner {
+}
+
+.searchpage-results {
+}
+
+/** searchbar internal **/
+
+.searchbar-inner {
+  padding: 10px;
+}
+
+.searchbar-query {
+  border: 1px solid #929292;
+  padding: 4px;
+  height: 20px;
+  width: 440px;
+}
+
+.searchbar-submit {
+  height: 30px;
+  margin-left: 5px;
+  line-height: 20px;
+  text-align: center;
+  border: 1px solid #929292;
+  padding: 4px;
+}
+
+.searchbar-errorrow {
+  height: 31px;
+  background-color: #992222;
+  color: white;
+  font-weight: bold;
+}
+
+/** search pager internal CSS **/
+
+.searchpager-showing {
+  margin-right: 20px;
+}
+
+.searchpager-button {
+  width: 100px;
+}
+
+.searchpager-page {
+  width: 120px;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.searchpager-link {
+  text-decoration: none;
+  color: black;
+}
+
+.searchpager-link:hover {
+  text-decoration: underline;
+  color: blue;
+}
+
+/** facets area **/
+
+.searchfacets-title {
+  background-color: #D2D2D2;
+  color: #4B4B4B;
+  padding: 10px;
+  height: 31px;
+  line-height: 31px;
+}
+
+/** search results **/
+.searchresults-inner {
+}
+
+.searchresults-title {
+  font-weight: bold;
+  font-size: 1.2em;
+  color: #4B4B4B;
+  margin-bottom: 15px;
+}
+
+.searchresults-results {
+  
+}
+
+.searchresults-result {
+  padding: 10px;
+}
+
+.searchresults-result:hover {
+  background-color: #D2D2D2;
+}
