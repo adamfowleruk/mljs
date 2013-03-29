@@ -106,6 +106,11 @@ m.prototype.configure = function(dboptions) {
       }
     }
     
+    // set up default connection (most browser apps will have 1 connection only)
+    if (undefined == m.defaultconnection) {
+      m.defaultconnection = this;
+    }
+    
     // configure appropriate browser wrapper
     this.__doreq_impl = this.__doreq_wrap;
   } else {
@@ -139,8 +144,13 @@ m.prototype.setLogger = function(newlogger) {
   }
 };
 
-module.exports = function() {return new m()};
 
+if (typeof window === 'undefined') {
+  // NodeJS exports
+  module.exports = function() {return new m()};
+} else {
+  mldb = m;
+}
 
 
 
@@ -148,8 +158,12 @@ module.exports = function() {return new m()};
 // PRIVATE METHODS
 
 m.prototype.__genid = function() {
-  return "" + ((new Date()).getTime()) + "-" + Math.ceil(Math.random()*100000000);
+  return m.__dogenid();
 };
+
+m.__dogenid = function() {
+  return "" + ((new Date()).getTime()) + "-" + Math.ceil(Math.random()*100000000);
+}
 
 m.prototype.__doreq_wrap = function(reqname,options,content,callback_opt) {
   this.dboptions.wrapper.request(reqname,options,content,callback_opt);
@@ -677,15 +691,33 @@ m.prototype.keyvalue = function(key,value,keytype_opt,callback_opt) {
  *
  * See supported search grammar http://docs.marklogic.com/guide/search-dev/search-api#id_41745 
  */ 
-m.prototype.search = function(query_opt,options_opt,callback) { 
+m.prototype.search = function(query_opt,options_opt,start_opt,callback) { 
+  this.logger.debug("*** start_opt: " + start_opt);
+  if (callback == undefined && typeof(start_opt) === 'function') {
+    callback = start_opt;
+    start_opt = undefined;
+  }
   if (callback == undefined && typeof(options_opt) === 'function') {
     callback = options_opt;
     options_opt = undefined;
   }
+  var content = null;
+  var method = "GET";
   var url = "/v1/search?q=" + encodeURI(query_opt) + "&format=json";
   if (options_opt != undefined) {
-    url += "&options=" + encodeURI(options_opt);
+    if (typeof options_opt === "string") {
+      url += "&options=" + encodeURI(options_opt);
+    }/* else {
+      // add as content document
+      content = options_opt;
+      method = "POST"; // TODO verify
+    }*/
   }
+  if (undefined != start_opt) {
+    url += "&start=" + start_opt;
+  }
+  
+  // TODO check options' type - if string, then pass as options param. If JSON object, then do POST to /v1/search to provide options dynamically
   
   // make transaction aware
   if (undefined != this.__transaction_id) {
@@ -694,9 +726,9 @@ m.prototype.search = function(query_opt,options_opt,callback) {
     
   var options = {
     path: url,
-    method: "GET"
+    method: method
   };
-  this.__doreq("SEARCH",options,null,callback);
+  this.__doreq("SEARCH",options,content,callback);
 };
 
 /**
