@@ -42,7 +42,7 @@ com.marklogic.widgets.searchbar = function(container) {
   this.sortPublisher = new com.marklogic.events.Publisher();
   
   // draw widget within container
-  console.log("adding search bar html");
+  mldb.defaultconnection.logger.debug("adding search bar html");
   document.getElementById(container).innerHTML = 
     "<div class='searchbar-inner'>" +
       "<div class='searchbar-queryrow'>" +
@@ -51,10 +51,10 @@ com.marklogic.widgets.searchbar = function(container) {
         "<input class='searchbar-submit' type='submit' id='" + container + "-submit' value='Search' />" +
       "</div><div class='searchbar-errorrow hidden'></div>";
     "</div>";
-  console.log("adding submit click handler");
+  mldb.defaultconnection.logger.debug("adding submit click handler");
   var self = this;
   document.getElementById(container + "-submit").onclick = function() {self._dosearch(self);}; // TODO Check this is valid
-  console.log("added submit click handler");
+  mldb.defaultconnection.logger.debug("added submit click handler");
   
   // set default connection
   this.db = mldb.defaultconnection;
@@ -93,7 +93,7 @@ com.marklogic.widgets.searchbar.__dosearch = function(submitelement) {
   // execute it's dosearch method
   var bar = com.marklogic.widgets.searchbar.list[id];
   if (null == id) {
-    console.log("searchbar.__dosearch - search bar instance does not exist: " + id);
+    mldb.defaultconnection.logger.debug("searchbar.__dosearch - search bar instance does not exist: " + id);
   } else {
     bar._dosearch();
   }
@@ -119,7 +119,7 @@ com.marklogic.widgets.searchbar.prototype.__doquery = function(q,start) {
    self.db.search(q,self.optionsName,ourstart,function(result) { // TODO pass start position through, if defined
     if (result.inError) {
       // report error on screen somewhere sensible (e.g. under search bar)
-      console.log(result.error);
+      mldb.defaultconnection.logger.debug(result.error);
       // TODO show error div below search div with message
       self.resultsPublisher.publish(false); // hides refresh glyth on error
       self.facetsPublisher.publish(false);
@@ -135,7 +135,7 @@ com.marklogic.widgets.searchbar.prototype.__doquery = function(q,start) {
     this.db.saveSearchOptions(this.optionsName,this.options,function(result) {
       if (result.inError) {
         // TODO log error somewhere sensible on screen
-        console.log(result.error);
+        mldb.defaultconnection.logger.debug(result.error);
       } else {
         self.optionsExists = true; // to stop overwriting on subsequent requests
         dos();
@@ -427,7 +427,7 @@ com.marklogic.widgets.searchresults.prototype._refresh = function() {
         "<div class='searchresults-title'>Results</div><div class='searchresults-results'>No Results</div>" +
       "</div>";
   } else {
-    console.log("RESULTS OBJECT: " + JSON.stringify(this.results));
+    mldb.defaultconnection.logger.debug("RESULTS OBJECT: " + JSON.stringify(this.results));
     
     var resStr = 
       "<div class='searchresults-inner'><div class='searchresults-title'>Results</div><div class='searchresults-results'>";
@@ -446,7 +446,7 @@ com.marklogic.widgets.searchresults.prototype._refresh = function() {
       
     }
     resStr += "</div></div>"; // end of results container div and results inner
-    console.log("RES STR: " + resStr);
+    mldb.defaultconnection.logger.debug("RES STR: " + resStr);
     
     document.getElementById(this.container).innerHTML = resStr;
   }
@@ -604,11 +604,11 @@ com.marklogic.widgets.searchpager.prototype._previous = function() {
 com.marklogic.widgets.searchpager.prototype._next = function() {
   this.start = this.start + this.perPage;
   var lastpage = 1 + Math.floor(this.total / this.perPage);
-  console.log("start now: " + this.start + ", lastpage: " + lastpage);
+  mldb.defaultconnection.logger.debug("start now: " + this.start + ", lastpage: " + lastpage);
   if (Math.floor(this.start / this.perPage) > lastpage) {
-    console.log("new page greater than maxpage");
+    mldb.defaultconnection.logger.debug("new page greater than maxpage");
     this.start = 1 + Math.floor(this.perPage * (lastpage - 1));
-    console.log("start now now: " + this.start);
+    mldb.defaultconnection.logger.debug("start now now: " + this.start);
   }
   this._fire();
 };

@@ -18,11 +18,38 @@ if (typeof window === 'undefined') {
 } else {
   var cl = function() {
     // do nothing
+    this.loglevels = ["debug","info","warn","error"];
+    this.loglevel = 2;
+  };
+  cl.prototype.setLogLevel = function(levelstring) {
+    var l = 0;
+    for (;l < this.loglevels.length;l++) {
+      if (this.loglevels[l] == levelstring) {
+        this.loglevel = l;
+        l = this.loglevels.length;
+      }
+    }
   };
   cl.prototype.debug = function(msg) {
-    console.log(msg);
+    if (this.loglevel == 0) {
+      console.log("DEBUG: " + msg);
+    }
   };
-  cl.prototype.info = cl.prototype.debug;
+  cl.prototype.info = function(msg) {
+    if (this.loglevel <= 1) {
+      console.log("INFO:  " + msg);
+    }
+  };
+  cl.prototype.warn = function(msg) {
+    if (this.loglevel <= 2) {
+      console.log("WARN:  " + msg);
+    }
+  };
+  cl.prototype.error = function(msg) {
+    if (this.loglevel <= 3) {
+      console.log("ERROR: " + msg);
+    }
+  };
   logger = new cl();
 }
 
@@ -281,6 +308,13 @@ m.prototype.__doreq = function(reqname,options,content,callback_opt) {
     options.headers = {};
   } else {
     this.logger.debug(reqname + " headers: " + JSON.stringify(options.headers))
+  }
+  // Convert format=json in to a content type header (increases performance for some reason)
+  var pos = options.path.indexOf("format=json");
+  if (-1 != pos) {
+    options.path = options.path.substring(0,pos - 1) + options.path.substring(pos+11);
+    options.headers["Content-Type"] = "application/json";
+    this.logger.debug("Converted format=json to Content-Type header. Path now: " + options.path + " , headers now: " + JSON.stringify(options.headers));
   }
   
   this.__doreq_impl(reqname,options,content,callback_opt);

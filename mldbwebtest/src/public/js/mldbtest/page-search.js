@@ -2,6 +2,7 @@
 $(document).ready(function() {
   // initialise MLDB
   var db = new mldb(); // calls default configure
+  db.logger.setLogLevel("debug");
   
   var wgt = new com.marklogic.widgets.searchpage("search-page");
   
