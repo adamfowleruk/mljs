@@ -31,7 +31,11 @@ Targets for 0.4 (Feb 2013)
  - TEST subscribe/unsubscribe to saved searches (NB uses REST API Extension from myself)
  - TEST no auth (default user)
  
-Targets for 0.6 (Apr 2013)
+Targets for 0.6 (Apr 2013) - for MarkLogic World 2013
+ - DONE Execute mldb from within general JavaScript, not just NodeJS (requires many wrappers, refactoring, extra tests)
+ - DONE Search widgets, and overarching search page widget UI layer over MLDB in browser, including custom result rendering plugins
+ - DONE search options persistance support
+ - DONE structured search support
  - Lazy loading on search results (E.g. when requesting page 2 result 3 (result 13), make http request for re-search transparent)
  - Easy geospatial search
  - Support nested cts:search (if possible)
@@ -42,7 +46,7 @@ Targets for 0.6 (Apr 2013)
  - Basic + Digest non SSL
  - SSL Basic + Digest
  - SSL no auth (default user)
- - Support 'anyauth' option, much like curl
+ - Support 'anyauth' option, much like curl (i.e. auth method auto detection)
  - support simple aggregations of query results
  - support arbitrary XPath for searches (if possible)
  - support XML returned as well as JSON
@@ -51,9 +55,8 @@ Targets for 0.6 (Apr 2013)
  - Samples for XML use, equivalent to some of the existing JSON samples (not exhaustive)
  
 Targets for 0.8 (Jun 2013)
- - Execute mldb from within general JavaScript, not just NodeJS (requires many wrappers, refactoring, extra tests)
- - allow binding of JSON to jQuery table (for example)
- - allow binding of XML to jQuery table (for example)
+ - allow binding of JSON search results to jQuery table (for example)
+ - allow binding of XML search results to jQuery table (for example)
  - basic demonstration sample for graph based on MarkLogic data
  - Provide REST API proxy within NodeJS wrapper
  - Support REST API proxy within general javascript and nodejs javascript code
