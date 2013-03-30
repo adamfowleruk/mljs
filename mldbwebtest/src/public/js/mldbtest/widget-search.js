@@ -37,9 +37,9 @@ com.marklogic.widgets.searchbar = function(container) {
   };
   
   // set up event handlers
-  this.resultsPublisher = new com.marklogic.events.Publisher();
-  this.facetsPublisher = new com.marklogic.events.Publisher();
-  this.sortPublisher = new com.marklogic.events.Publisher();
+  this.resultsPublisher = new com.marklogic.events.Publisher(); // publishes search results (including facet values)
+  this.facetsPublisher = new com.marklogic.events.Publisher(); // publishese facets selection changes
+  this.sortPublisher = new com.marklogic.events.Publisher(); // publishes sort changes (from query bar)
   
   // draw widget within container
   mldb.defaultconnection.logger.debug("adding search bar html");
@@ -99,9 +99,60 @@ com.marklogic.widgets.searchbar.__dosearch = function(submitelement) {
   }
 };
 
+com.marklogic.widgets.searchbar.prototype._parseQuery = function(q) {
+  var text = "";
+  var facets = new Array();
+  var sort = null;
+  var parts = q.split(" "); // TODO handler spaces in facet values
+  for (var i = 0;i < parts.length;i++) {
+    if (parts[i].startsWith(this.sortWord + ":")) {
+      sort = parts[i].substring(5);
+    } else if (-1 != parts[i].indexOf(":")) {
+      mldb.defaultconnection.logger.debug("FOUND A FACET IN QUERY: " + parts[i]);
+      var fv = parts[i].split(":");
+      mldb.defaultconnection.logger.debug("Facet name: " + fv[0] + " value: " + fv[1]);
+      if (fv[1].startsWith("\"")) {
+        fv[1] = fv[1].substring(1);
+        if (fv[1].endsWith("\"")) {
+          fv[1] = fv[1].substring(0,fv[1].length-1);
+        }
+      }
+      mldb.defaultconnection.logger.debug("Facet info now name: " + fv[0] + " value: " + fv[1]);
+      var found = false;
+      for (var f = 0;f < facets.length;f++) {
+        if (facets[f].name == fv[0]) {
+          // replace value
+          facets[f].value = fv[1];
+          found = true;
+        }
+      }
+      if (!found) {
+        facets.push({name: fv[0], value: fv[1]});
+      }
+    } else {
+      text += " " + parts[i];
+    }
+  }
+  return {q: text.trim(),facets: facets,sort: sort};
+};
+
+com.marklogic.widgets.searchbar.prototype._queryToText = function(parsed) {
+  var q = parsed.q;
+  if (null != parsed.sort) {
+    q += " " + this.sortWord + ":" + parsed.sort;
+  }
+  for (var i = 0;i < parsed.facets.length;i++) {
+    q += " " + parsed.facets[i].name + ":\"" + parsed.facets[i].value + "\"";
+  }
+  return q;
+};
+
 com.marklogic.widgets.searchbar.prototype._dosearch = function(self) {
   // get our search input element
   var q = document.getElementById(self.container + "-searchinput").value;
+  
+  // TODO parse for Sort and Facets values, and update listeners accordingly (user may remove facets/sort by hand)
+  
   self.__doquery(q);
 };
 
@@ -114,6 +165,17 @@ com.marklogic.widgets.searchbar.prototype.__doquery = function(q,start) {
     ourstart = start;
   }
   
+  // cleanse query value first
+  mldb.defaultconnection.logger.debug("Query before: " + q);
+  var parsed = self._parseQuery(q);
+  mldb.defaultconnection.logger.debug("Query parsed: " + JSON.stringify(parsed));
+  var cq = self._queryToText(parsed);
+  q = cq;
+  mldb.defaultconnection.logger.debug("Query after: " + cq);
+  document.getElementById(this.container + "-searchinput").value = cq;
+  
+  self.facetsPublisher.publish(parsed.facets);
+  
   var dos = function() {
    // fetch results (and update facets, sort)
    self.db.search(q,self.optionsName,ourstart,function(result) { // TODO pass start position through, if defined
@@ -122,10 +184,8 @@ com.marklogic.widgets.searchbar.prototype.__doquery = function(q,start) {
       mldb.defaultconnection.logger.debug(result.error);
       // TODO show error div below search div with message
       self.resultsPublisher.publish(false); // hides refresh glyth on error
-      self.facetsPublisher.publish(false);
     } else {
       self.resultsPublisher.publish(result.doc);
-      self.facetsPublisher.publish(result.doc.facets); // TODO verify this is the right element to send
     }
    });
   };
@@ -176,17 +236,12 @@ com.marklogic.widgets.searchbar.prototype.removeFacetsListener = function(fl) {
 };
 
 com.marklogic.widgets.searchbar.prototype.updateFacets = function(facetSelection) {
-  // update facet selection, and perform search
-  var strFacets = "";
-  // expecting [ {name: 'facetname', value: 'facetvalue'}, ...]
-  for (var i = 0;i < facetSelection.length;i++) {
-    strFacets += facetSelection[i].name + ":\"" + facetSelection[i].value + "\" ";
-  }
-  
-  // merge with current query
-  // TODO remove existing facets in the query string
   var q = document.getElementById(this.container + "-searchinput").value;
-  q += " " + strFacets;
+  
+  var parsed = this._parseQuery(q);
+  parsed.facets = facetSelection;
+  
+  q = this._queryToText(parsed);
   
   this.__doquery(q);
 };
@@ -203,7 +258,7 @@ com.marklogic.widgets.searchbar.prototype.updatePage = function(json) {
 
 com.marklogic.widgets.searchbar.prototype.updateSort = function(sortSelection) {
   // update sort selection, and perform search
-  var q = document.getElementById(this.container + "-searchinput").getAttribute("value");
+  var q = document.getElementById(this.container + "-searchinput").value;
   // TODO remove any existing sort
   q += " " + this.sortWord + ":" + sortSelection;
   
@@ -240,8 +295,14 @@ com.marklogic.widgets.searchfacets = function(container) {
   this.extendedSize = 10;
   this.allowShowAll = true;
   this.facetSettings = new Array();
+  this.hideEmptyFacets = true;
   
   this.results = null;
+  
+  this.selected = new Array();
+  
+  this.facetNameTransform = "all"; // This is camelcase and splitdash and splitunderscore
+  this.facetValueTransform = "all"; // This is camelcase and splitdash and splitunderscore
   
   // set up event handlers
   this.selectionPublisher = new com.marklogic.events.Publisher();
@@ -270,29 +331,62 @@ com.marklogic.widgets.searchfacets.prototype._refresh = function() {
     return;
   }
   // example: "facets":{"collection":{"type":"collection","facetValues":[]},"animal":{"type":"xs:string","facetValues":[]},"family":{"type":"xs:string","facetValues":[]}}
+  // full example: "facets":{"collection":{"type":"collection","facetValues":[]},
+  // "animal":{"type":"xs:string","facetValues":[{"name":"cat","count":2,"value":"cat"}, {"name":"dog","count":2,"value":"dog"},{"name":"homosapien","count":2,"value":"homosapien"},
+  //   {"name":"penguin","count":2,"value":"penguin"}]},  
+  // "family":{"type":"xs:string","facetValues":[{"name":"bird","count":2,"value":"bird"},{"name":"marklogician","count":2,"value":"marklogician"},{"name":"pet","count":4,"value":"pet"}]}}
   var more = new Array();
   var extended = new Array();
   
   var str = "<div class='searchfacets-title'>Browse</div> <div id='" + this.container + "-facetinfo' class='search-facets'> ";
   
+  // draw selected facets and deselectors
+  var deselectionTodo = new Array();
+  if (0 != this.selected.length) {
+    str += "<div class='searchfacets-selected'>";
+    
+    // lopp through selected
+    for (var i = 0;i < this.selected.length;i++) {
+      var s = this.selected[i];
+      str += "<div class='searchfacets-selection'>" + 
+        "<a href='#' class='searchfacets-deselect' id='" + this.container + "-desel-" + s.name + "-" + s.value + "'>X</a> " +
+        this._transformFacetName(s.name) + ": " + this._transformFacetValue(s.value) + "</div>";
+      // add deselection X link
+      deselectionTodo.push(s);
+    }
+    
+    str += "</div>";
+  }
+  
+  var facetHandlersTodo = new Array();
   if (null != this.results && undefined != this.results) {
     if (undefined != this.results.facets) {
-      for (var i = 0;i < this.results.facets.length;i++) { // TODO replace with introspection of objects within search facets (objects, not array)
-        var name = this.results.facets[i];
-        str += "<div class='searchfacets-facet'><div class='searchfacets-facet-title'>" + name + "</div>" +
+      for (var name in this.results.facets) { // TODO replace with introspection of objects within search facets (objects, not array)
+        var facetStr = "<div class='searchfacets-facet'><div class='searchfacets-facet-title'>" + this._transformFacetName(name) + "</div>" +
           "<div class='searchfacets-facet-values'>";
         var settings = this._getFacetSettings(name);
-        var valuesCount = this.results.facets[name].facetValues.length;
-        for (var v = 0;v < valuesCount;v++) {
-          // TODO limit number of values shown
+        var max = this.listSize;
+        var values = this.results.facets[name].facetValues;
+        var valuesCount = values.length;
+        if (settings.more) {
+          max = this.extendedSize;
+        }
+        if (settings.showAll && settings.extended) {
+          max = valuesCount;
+        }
+        for (var v = 0;v < max && v < valuesCount;v++) {
+          // limit number of values shown
           if (v < this.listSize || (v < this.extendedSize && settings.extended) || settings.showAll) {
-            str += "<div class='searchfacets-facet-value'>" + this.results.facets[name].facetValues[v] + "</div>";
+            var fv = values[v];
+            facetStr += "<div class='searchfacets-facet-value' id='" + this.container + "-fv-" + name + "-" + fv.name + "'>" + this._transformFacetValue(fv.name) + " (" + fv.count + ")" + "</div>";
+            facetHandlersTodo.push({name: name, value: fv.name});
           }
         }
         if (valuesCount > this.listSize) {
+          // TODO less... clickable links
           if (!settings.extended) {
             // html for 'show more'
-            str += "<div class='searchfacets-more'><a href='#' id='" + this.container + "-" + name + "-more-link'>More...</a></div>";
+            facetStr += "<div class='searchfacets-more'><a href='#' id='" + this.container + "-" + name + "-more-link'>More...</a></div>";
             more.push(name);
           } else {
             if (valuesCount > this.extendedSize && !settings.showAll && this.allowShowAll) {
@@ -301,7 +395,10 @@ com.marklogic.widgets.searchfacets.prototype._refresh = function() {
             }
           }
         }
-        str += "</div></div>";
+        facetStr += "</div></div>";
+        if (!(0 == valuesCount && this.hideEmptyFacets)) {
+          str += facetStr;
+        }
       }
     }
   }
@@ -312,12 +409,125 @@ com.marklogic.widgets.searchfacets.prototype._refresh = function() {
   
   // set up event handlers
   var self = this;
+  
+  // selection handlers
+  var addfh = function(fh) {
+    var el = document.getElementById(self.container + "-fv-" + fh.name + "-" + fh.value);
+    if (undefined != el) {
+      el.onclick = function() {self._selectFacet(fh.name,fh.value)};
+    }
+  };
+  for (var i = 0;i < facetHandlersTodo.length;i++) {
+    var fh = facetHandlersTodo[i];
+    addfh(fh);
+  }
+  // deselection
+  var remfh = function(fh) {
+    var el = document.getElementById(self.container + "-desel-" + fh.name + "-" + fh.value);
+    if (undefined != el) {
+      el.onclick = function() {self._deselectFacet(fh.name,fh.value)};
+    }
+  };
+  for (var i = 0;i < deselectionTodo.length;i++) {
+    var fh = deselectionTodo[i];
+    remfh(fh);
+  }
+  
+  // more handlers
   for (var i = 0;i < more.length;i++) {
-    document.getElementById(container + "-" + more[i] + "-more-link").onclick = function() {self._more(more[i]);};
+    document.getElementById(this.container + "-" + more[i] + "-more-link").onclick = function() {self._more(more[i]);};
   }
+  
+  // extended handlers
   for (var i = 0;i < extended.length;i++) {
-    document.getElementById(container + "-" + extended[i] + "-extended-link").onclick = function() {self._extended(extended[i]);};
+    document.getElementById(this.container + "-" + extended[i] + "-extended-link").onclick = function() {self._extended(extended[i]);};
   }
+  
+  // TODO less handlers
+};
+
+com.marklogic.widgets.searchfacets.prototype._selectFacet = function(facetName,value) {
+  mldb.defaultconnection.logger.debug("Selecting " + facetName + ":" + value);
+  this.selected.push({name: facetName,value: value});
+  // draw selection
+  this._refresh();
+  // fire event to handlers
+  this.selectionPublisher.publish(this.selected);
+};
+
+com.marklogic.widgets.searchfacets.prototype._deselectFacet = function(facetName,value) {
+  mldb.defaultconnection.logger.debug("Deselecting " + facetName + ":" + value);
+  var newsel = new Array();
+  for (var i = 0;i < this.selected.length;i++) {
+    var el = this.selected[i];
+    if (el.name == facetName && el.value == value) {
+      // don't add
+    } else {
+      newsel.push(el);
+    }
+  }
+  this.selected = newsel;
+  this._refresh();
+  // fire event to handlers
+  this.selectionPublisher.publish(this.selected);
+};
+
+com.marklogic.widgets.searchfacets.prototype._transformFacetName = function(facetName) {
+  var name = facetName;
+  name = this._splitdash(name,this.facetNameTransform);
+  name = this._splitunderscore(name,this.facetNameTransform);
+  name = this._camelcase(name,this.facetNameTransform);
+  return name;
+};
+
+com.marklogic.widgets.searchfacets.prototype._transformFacetValue = function(facetValue) {
+  var name = facetValue;
+  name = this._splitdash(name,this.facetValueTransform);
+  name = this._splitunderscore(name,this.facetValueTransform);
+  name = this._camelcase(name,this.facetValueTransform);
+  return name;
+};
+
+com.marklogic.widgets.searchfacets.prototype._splitdash = function(value,mode) {
+  var name = value;
+  if ("all" == mode || "splitdash" == mode) {
+    //mldb.defaultconnection.logger.debug("Apply splitdash transform to " + name);
+    var parts = name.split("-");
+    var nn = "";
+    for (var i = 0;i < parts.length;i++) {
+      nn += parts[i] + " ";
+    }
+    name = nn.trim();
+  }
+  return name;
+};
+
+com.marklogic.widgets.searchfacets.prototype._splitunderscore = function(value,mode) {
+  var name = value;
+  if ("all" == mode || "splitunderscore" == mode) {
+    //mldb.defaultconnection.logger.debug("Apply splitunderscore transform to " + name);
+    var parts = name.split("_");
+    var nn = "";
+    for (var i = 0;i < parts.length;i++) {
+      nn += parts[i] + " ";
+    }
+    name = nn.trim();
+  }
+  return name;
+};
+
+com.marklogic.widgets.searchfacets.prototype._camelcase = function(value,mode) {
+  var name = value;
+  if ("all" == mode || "camelcase" == mode) {
+    //mldb.defaultconnection.logger.debug("Apply camelcase transform to " + name);
+    var parts = name.split(" ");
+    var nn = "";
+    for (var i = 0;i < parts.length;i++) {
+      nn += parts[i].substring(0,1).toUpperCase() + parts[i].substring(1) + " ";
+    }
+    name = nn.trim();
+  }
+  return name;
 };
 
 com.marklogic.widgets.searchfacets.prototype._more = function(facetName) {
@@ -348,7 +558,16 @@ com.marklogic.widgets.searchfacets.prototype.removeSelectionListener = function(
 };
 
 com.marklogic.widgets.searchfacets.prototype.updateFacets = function(results) {
+  if ("boolean" == typeof results) {
+    return;
+  }
   this.results = results;
+  this._refresh();
+};
+
+com.marklogic.widgets.searchfacets.prototype.updateSelectedFacets = function(facets) {
+  mldb.defaultconnection.logger.debug("In updateSelectedFacets(facets): " + JSON.stringify(facets));
+  this.selected = facets;
   this._refresh();
 };
 
@@ -417,7 +636,7 @@ com.marklogic.widgets.searchresults.prototype.updateResults = function(results) 
 
 com.marklogic.widgets.searchresults.prototype._refresh = function() {
   // update results
-  if (false == this.results || true == this.results ) {
+  if (typeof this.results == "boolean" ) {
     // TODO show/hide refresh image based on value of this.results (true|false)
     return;
   }
@@ -516,7 +735,9 @@ com.marklogic.widgets.searchpager = function(container) {
 };
 
 com.marklogic.widgets.searchpager.prototype.updatePage = function(results) {
-  if (false == this.results || true == this.results ) {
+  mldb.defaultconnection.logger.debug("updatePage: results: " + results);
+  
+  if ("boolean" == typeof results) {
     // TODO show/hide refresh image based on value of this.results (true|false)
     return;
   }
@@ -542,6 +763,7 @@ com.marklogic.widgets.searchpager.prototype.removePageListener = function(l) {
 };
 
 com.marklogic.widgets.searchpager.prototype._refresh = function() {
+  mldb.defaultconnection.logger.debug("REFRESH: start: " + this.start + ", total: " + this.total + ", perPage: " + this.perPage);
   var last = (this.start + this.perPage - 1);
   if (last > this.total) {
     last = this.total;
@@ -700,6 +922,7 @@ com.marklogic.widgets.searchpage = function(container) {
   this.bar.addResultsListener(function(res) {self.pager.updatePage(res);});
   this.bar.addResultsListener(function(obj) {self.facets.updateFacets(obj);});
   this.bar.addSortListener(function(obj) {self.sort.updateSort(obj);});
+  this.bar.addFacetsListener(function(obj) {self.facets.updateSelectedFacets(obj);});
   
   this.sort.addSelectionListener(function(obj) {self.bar.updateSort(obj);});
   this.facets.addSelectionListener(function(obj) {self.bar.updateFacets(obj);});

@@ -34,7 +34,7 @@ $(document).ready(function() {
             "item-order","ascending"
           ],
               element: {
-                ns: "",
+                ns: "http://marklogic.com/xdmp/json/basic",
                 name: "animal"
               }
             }
@@ -50,7 +50,7 @@ $(document).ready(function() {
             "item-frequency","ascending"
           ],
               element: {
-                ns: "",
+                ns: "http://marklogic.com/xdmp/json/basic",
                 name: "family"
               }
             }

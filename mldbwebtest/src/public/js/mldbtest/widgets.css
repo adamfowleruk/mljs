@@ -113,6 +113,37 @@
   line-height: 31px;
 }
 
+.searchfacets-facet-title {
+  font-weight: bold;
+  margin-top: 5px;
+}
+
+.searchfacets-facet-values {
+  padding-left: 10px;
+}
+
+.searchfacets-facet-value {
+  
+}
+
+.searchfacets-facet-value:hover {
+  background-color: #D2D2D2;
+  cursor: pointer;
+  text-decoration: underline;
+  color: blue;
+}
+
+.searchfacets-deselect {
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.searchfacets-deselect:hover {
+  cursor: pointer;
+  text-decoration: underline;
+  color: blue;
+}
+
 /** search results **/
 .searchresults-inner {
 }
