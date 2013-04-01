@@ -22,9 +22,16 @@ com.marklogic.widgets.highcharts = function(container) {
   this.valueSource = "value"; // e.g. temperature
   this.categorySource = "category"; // E.g. month
   this.categoryOrdering = "month";
+  this.autoCategories = false;
   this.categories = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   this.series = new Array();
   
+  this._updateOptions();
+  
+  this._refresh();
+};
+
+com.marklogic.widgets.highcharts.prototype._updateOptions = function() {
   this.options = {
     chart: {
                 type: 'line',
@@ -45,7 +52,7 @@ com.marklogic.widgets.highcharts = function(container) {
                 }
             },
             tooltip: {
-                enabled: false,
+                enabled: true,
                 formatter: function() {
                     return '<b>'+ this.series.name +'</b><br/>'+
                         this.x +': '+ this.y;
@@ -61,8 +68,11 @@ com.marklogic.widgets.highcharts = function(container) {
             },
     series: this.series
   };
-  
-  this._refresh();
+  mldb.defaultconnection.logger.debug("highcharts.prototype._updateOptions(): Options now: " + JSON.stringify(this.options));
+};
+
+com.marklogic.widgets.highcharts.prototype.setAggregateFunction = function(fn) {
+  this.aggregateFunction = fn; // TODO sanity check value
 };
 
 com.marklogic.widgets.highcharts.prototype._refresh = function() {
@@ -72,6 +82,10 @@ com.marklogic.widgets.highcharts.prototype._refresh = function() {
   
   //$("#" + this.container).highcharts(this.options);
   this.chart = new Highcharts.Chart(this.options);
+};
+
+com.marklogic.widgets.highcharts.prototype.setAutoCategories = function(bv) {
+  this.autoCategories = bv;
 };
 
 com.marklogic.widgets.highcharts.prototype.setSeriesSources = function(nameSource,categorySource,valueSource) {
@@ -86,14 +100,29 @@ com.marklogic.widgets.highcharts.prototype.updateResults = function(results) {
   var seriesValues = new Array(); // name -> array(category) -> array(values)
   var seriesCounts = new Array(); // name -> array(category) -> count of values
   
+  var allCategories = new Array();
+  
+  if (undefined != results && undefined == results.results) {
+    results = { results: results};
+  }
+  
   for (var r = 0;r < results.results.length;r++) {
     var result = results.results[r].content;
     // get name value
-    var name = this._extractValue(result,this.nameSource);
+    var name = "";
+    if (this.nameSource.startsWith("#")) {
+      // hardcoded value
+      name = this.nameSource.substring(1);
+    } else {
+      name = this._extractValue(result,this.nameSource);
+    }
     // get data value
     var value = this._extractValue(result,this.valueSource);
     
     var category = this._extractValue(result,this.categorySource);
+    if (!allCategories.contains(category)) {
+      allCategories.push(category);
+    }
     
     // see if name is already known
     if (!seriesNames.contains(name)) {
@@ -109,6 +138,12 @@ com.marklogic.widgets.highcharts.prototype.updateResults = function(results) {
     }
     seriesValues[name][category].push(value);
     seriesCounts[name][category] += 1;
+  }
+  
+  if (this.autoCategories) {
+    mldb.defaultconnection.logger.debug("updateResults(): Auto categories enabled");
+    this.categories = allCategories;
+    // TODO sort categories alphabetically
   }
   
   mldb.defaultconnection.logger.debug("Series names: " + JSON.stringify(seriesNames));
@@ -150,6 +185,9 @@ com.marklogic.widgets.highcharts.prototype.updateResults = function(results) {
     }
     return max;
   };
+  var count = function(arr) {
+    return arr.length;
+  };
   
   var func = sum;
   if ("mean" == this.aggregateFunction) {
@@ -158,6 +196,8 @@ com.marklogic.widgets.highcharts.prototype.updateResults = function(results) {
     func = min;
   } else if ("max" == this.aggregateFunction) {
     func = max;
+  } else if ("count" == this.aggregateFunction) {
+    func = count;
   }
   
   // now loop over names, categories, and create values array
@@ -175,6 +215,7 @@ com.marklogic.widgets.highcharts.prototype.updateResults = function(results) {
   
   // now set chart's option's series values
   this.options.series = series;
+  this.options.xAxis.categories = this.categories;
   
   this._refresh();
 };

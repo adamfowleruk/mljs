@@ -32,34 +32,46 @@ Targets for 0.4 (Feb 2013)
  - TEST no auth (default user)
  
 Targets for 0.6 (Apr 2013) - for MarkLogic World 2013
- - DONE Execute mldb from within general JavaScript, not just NodeJS (requires many wrappers, refactoring, extra tests)
- - DONE Search widgets, and overarching search page widget UI layer over MLDB in browser, including custom result rendering plugins
- - DONE search options persistance support
+ - DONE Browser: Execute mldb from within general JavaScript, not just NodeJS (requires many wrappers, refactoring, extra tests)
+ - DONE search options persistence support
  - DONE structured search support
- - Lazy loading on search results (E.g. when requesting page 2 result 3 (result 13), make http request for re-search transparent)
- - Easy geospatial search
- - Support nested cts:search (if possible)
- - Support all search options not currently provided
- - Support SSL
- - SSL with Basic
- - SSL with Digest
- - Basic + Digest non SSL
- - SSL Basic + Digest
- - SSL no auth (default user)
- - Support 'anyauth' option, much like curl (i.e. auth method auto detection)
- - support simple aggregations of query results
- - support arbitrary XPath for searches (if possible)
- - support XML returned as well as JSON
- - allow upload and use of XSLT for result transform
- - Pretty print utility for errors in JSON and XML
- - Samples for XML use, equivalent to some of the existing JSON samples (not exhaustive)
+ - DONE Widgets: basic demonstration samples for graphs based on MarkLogic data (Highcharts - shipped with MarkLogic)
+ - DONE browser distribution building script
+ - TEST Widgets: Search widgets, and overarching search page widget UI layer over MLDB in browser, including custom result rendering plugins (search bar, facets, results, paging, sorting)
+ - DONE Widgets: graphs to support simple aggregations of query results (mean, sum, min, max, count)
+ - DONE Widgets: example for joining search bar to graphs, using different aggregations for the same results
  
 Targets for 0.8 (Jun 2013)
- - allow binding of JSON search results to jQuery table (for example)
- - allow binding of XML search results to jQuery table (for example)
- - basic demonstration sample for graph based on MarkLogic data
- - Provide REST API proxy within NodeJS wrapper
- - Support REST API proxy within general javascript and nodejs javascript code
+ - Widgets: Support array children in aggregations for graphs
+ - support XML returned as well as JSON
+ - include XML -> JSON transform in JavaScript (workaround for XML snippets / raw returned in search results even with format=json enabled)
+ - Pretty print utility for errors in JSON and XML (Probably requires XML -> JSON utility. Errors are always XML.)
+ - Docs: Samples for XML use, equivalent to some of the existing JSON samples (not exhaustive)
+ - Widgets: File upload (single and multiple)
+ - Browser: Lazy loading on search results (E.g. when requesting page 2 result 3 (result 13), make http request for re-search transparent) - Also for graphing when all search results need loading
+ - Widgets: Create search context object, and make search widgets responsible for registering themselves with it. Refactor search execution code in to here.
+ - Easy geospatial search
+ - Widgets: Google maps (via OpenLayers?)
+ - Support all search options not currently provided
+ - Support nested cts:search (if possible)
+ - Support for binary and plain text file save/get/search
+ - CSV and TSV utilities
+ - NodeJS: Support SSL
+ - NodeJS: SSL with Basic
+ - NodeJS: SSL with Digest
+ - NodeJS: Basic + Digest non SSL
+ - NodeJS: SSL Basic + Digest
+ - NodeJS: SSL no auth (default user)
+ - NodeJS: Support 'anyauth' option, much like curl (i.e. auth method auto detection)
+ - support arbitrary XPath for searches (if possible)
+ - allow upload and use of XSLT for result transform
+ - Widget: Table - allow binding of JSON search results to jQuery table (for example)
+ - Widget: Table - allow binding of XML search results to jQuery table (for example)
+ - Widget: Tree - browse JSON/XML documents in search results as a tree
+ - Widget: Timeline (point in time and start / stop dates)
+ - Widget: Rose - direction (N, S etc) and time (12 and 24 hour) - arbitrary categories
+ - NodeJS: Provide REST API proxy within NodeJS wrapper
+ - Browser: Support REST API proxy within general javascript and nodejs javascript code
 
 Targets for 1.0 (Aug 2013)
  - Support current functionality against MarkLogic V7

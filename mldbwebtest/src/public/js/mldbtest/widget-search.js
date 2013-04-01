@@ -4,6 +4,71 @@ com.marklogic = window.com.marklogic || {};
 com.marklogic.widgets = window.com.marklogic.widgets || {};
 
 
+// SEARCH HELPER STATIC OBJECT FUNCTIONS
+
+com.marklogic.widgets.searchhelper = {};
+
+com.marklogic.widgets.searchhelper.processValueAll = function(str) {
+  return com.marklogic.widgets.searchhelper.processValue(str,"all");
+};
+
+com.marklogic.widgets.searchhelper.processValue = function(str,mode) {
+  var name = str;
+  name = com.marklogic.widgets.searchhelper.splitdash(name,mode);
+  name = com.marklogic.widgets.searchhelper.splitunderscore(name,mode);
+  name = com.marklogic.widgets.searchhelper.camelcase(name,mode);
+  return name;
+};
+
+com.marklogic.widgets.searchhelper.splitdash = function(value,mode) {
+  var name = value;
+  if ("all" == mode || "splitdash" == mode) {
+    //mldb.defaultconnection.logger.debug("Apply splitdash transform to " + name);
+    var parts = name.split("-");
+    var nn = "";
+    for (var i = 0;i < parts.length;i++) {
+      nn += parts[i] + " ";
+    }
+    name = nn.trim();
+  }
+  return name;
+};
+
+com.marklogic.widgets.searchhelper.splitunderscore = function(value,mode) {
+  var name = value;
+  if ("all" == mode || "splitunderscore" == mode) {
+    //mldb.defaultconnection.logger.debug("Apply splitunderscore transform to " + name);
+    var parts = name.split("_");
+    var nn = "";
+    for (var i = 0;i < parts.length;i++) {
+      nn += parts[i] + " ";
+    }
+    name = nn.trim();
+  }
+  return name;
+};
+
+com.marklogic.widgets.searchhelper.camelcase = function(value,mode) {
+  var name = value;
+  if ("all" == mode || "camelcase" == mode) {
+    //mldb.defaultconnection.logger.debug("Apply camelcase transform to " + name);
+    var parts = name.split(" ");
+    var nn = "";
+    for (var i = 0;i < parts.length;i++) {
+      nn += parts[i].substring(0,1).toUpperCase() + parts[i].substring(1) + " ";
+    }
+    name = nn.trim();
+  }
+  return name;
+};
+
+
+
+
+
+
+
+
 
 // SEARCH BAR ELEMENT
 
@@ -17,6 +82,9 @@ com.marklogic.widgets.searchbar = function(container) {
   
   this.optionsName = mldb.__dogenid();
   this.optionsExists = false;
+  
+  this.collection = null;
+  this.directory = null;
   
   this.options = {
                       options: {
@@ -58,6 +126,14 @@ com.marklogic.widgets.searchbar = function(container) {
   
   // set default connection
   this.db = mldb.defaultconnection;
+};
+
+com.marklogic.widgets.searchbar.prototype.setCollection = function(col) {
+  this.collection = col;
+};
+
+com.marklogic.widgets.searchbar.prototype.setDirectory = function(dir) {
+  this.directory = dir;
 };
 
 com.marklogic.widgets.searchbar.prototype.setOptions = function(options) {
@@ -147,6 +223,11 @@ com.marklogic.widgets.searchbar.prototype._queryToText = function(parsed) {
   return q;
 };
 
+com.marklogic.widgets.searchbar.prototype.execute = function() {
+  var q = document.getElementById(this.container + "-searchinput").value;
+  this.__doquery(q);
+};
+
 com.marklogic.widgets.searchbar.prototype._dosearch = function(self) {
   // get our search input element
   var q = document.getElementById(self.container + "-searchinput").value;
@@ -178,7 +259,14 @@ com.marklogic.widgets.searchbar.prototype.__doquery = function(q,start) {
   
   var dos = function() {
    // fetch results (and update facets, sort)
-   self.db.search(q,self.optionsName,ourstart,function(result) { // TODO pass start position through, if defined
+   var sprops = {};
+   if (null != self.collection) {
+     sprops.collection = self.collection;
+   }
+   if (null != self.directory) {
+     sprops.directory = self.directory;
+   }
+   self.db.search(q,self.optionsName,ourstart,sprops,function(result) { // TODO pass start position through, if defined
     if (result.inError) {
       // report error on screen somewhere sensible (e.g. under search bar)
       mldb.defaultconnection.logger.debug(result.error);
@@ -473,62 +561,23 @@ com.marklogic.widgets.searchfacets.prototype._deselectFacet = function(facetName
 };
 
 com.marklogic.widgets.searchfacets.prototype._transformFacetName = function(facetName) {
-  var name = facetName;
-  name = this._splitdash(name,this.facetNameTransform);
-  name = this._splitunderscore(name,this.facetNameTransform);
-  name = this._camelcase(name,this.facetNameTransform);
-  return name;
+  /*var name = facetName;
+  name = com.marklogic.widgets.searchhelper.splitdash(name,this.facetNameTransform);
+  name = com.marklogic.widgets.searchhelper.splitunderscore(name,this.facetNameTransform);
+  name = com.marklogic.widgets.searchhelper.camelcase(name,this.facetNameTransform);
+  return name;*/
+  return com.marklogic.widgets.searchhelper.processValue(facetName,this.facetNameTransform);
 };
 
 com.marklogic.widgets.searchfacets.prototype._transformFacetValue = function(facetValue) {
-  var name = facetValue;
-  name = this._splitdash(name,this.facetValueTransform);
-  name = this._splitunderscore(name,this.facetValueTransform);
-  name = this._camelcase(name,this.facetValueTransform);
-  return name;
+  /*var name = facetValue;
+  name = com.marklogic.widgets.searchhelper.splitdash(name,this.facetValueTransform);
+  name = com.marklogic.widgets.searchhelper.splitunderscore(name,this.facetValueTransform);
+  name = com.marklogic.widgets.searchhelper.camelcase(name,this.facetValueTransform);
+  return name;*/
+  return com.marklogic.widgets.searchhelper.processValue(facetValue,this.facetValueTransform);
 };
 
-com.marklogic.widgets.searchfacets.prototype._splitdash = function(value,mode) {
-  var name = value;
-  if ("all" == mode || "splitdash" == mode) {
-    //mldb.defaultconnection.logger.debug("Apply splitdash transform to " + name);
-    var parts = name.split("-");
-    var nn = "";
-    for (var i = 0;i < parts.length;i++) {
-      nn += parts[i] + " ";
-    }
-    name = nn.trim();
-  }
-  return name;
-};
-
-com.marklogic.widgets.searchfacets.prototype._splitunderscore = function(value,mode) {
-  var name = value;
-  if ("all" == mode || "splitunderscore" == mode) {
-    //mldb.defaultconnection.logger.debug("Apply splitunderscore transform to " + name);
-    var parts = name.split("_");
-    var nn = "";
-    for (var i = 0;i < parts.length;i++) {
-      nn += parts[i] + " ";
-    }
-    name = nn.trim();
-  }
-  return name;
-};
-
-com.marklogic.widgets.searchfacets.prototype._camelcase = function(value,mode) {
-  var name = value;
-  if ("all" == mode || "camelcase" == mode) {
-    //mldb.defaultconnection.logger.debug("Apply camelcase transform to " + name);
-    var parts = name.split(" ");
-    var nn = "";
-    for (var i = 0;i < parts.length;i++) {
-      nn += parts[i].substring(0,1).toUpperCase() + parts[i].substring(1) + " ";
-    }
-    name = nn.trim();
-  }
-  return name;
-};
 
 com.marklogic.widgets.searchfacets.prototype._more = function(facetName) {
   this._setFacetSettings(facetName,true,false);
@@ -847,6 +896,10 @@ com.marklogic.widgets.searchpager.prototype._last = function() {
 
 
 
+
+
+
+
 // SEARCH SORT ELEMENT
 
 com.marklogic.widgets.searchsort = function(container) {
@@ -854,17 +907,37 @@ com.marklogic.widgets.searchsort = function(container) {
   
   // event handlers
   this.selectionPublisher = new com.marklogic.events.Publisher();
+  this.sortOptions = new Array();
+  this.sortOptions.push({title: "None", value: ""}); // value is required
+  //this.sortOptions.push({title: "Relevance", value: "relevance", order: "descending"}); // value is required
   
   // html
   this._refresh();
 };
 
 com.marklogic.widgets.searchsort.prototype._refresh = function() {
-  document.getElementById(this.container).innerHTML = 
+  var str = 
     "<span class='searchsort-text'>Sort: </span>" +
-    "<select class='searchsort-select'>" +
-      "<option value='relevance'>Relevance</option>" +
-    "</select>";
+    "<select class='searchsort-select'>";
+//      "<option value='relevance'>Relevance</option>" +
+  for (var i = 0;i < this.sortOptions.length;i++) {
+    var o = this.sortOptions[i];
+    str += "<option value='" + o.value + "'>";
+    if (undefined != o.title) {
+      str += o.title;
+    } else {
+      str += com.marklogic.widgets.searchhelper.processValueAll(o.value);
+    }
+    //str += " (";
+    /*if (undefined != o.order) {
+      str += " (" +com.marklogic.widgets.searchhelper.camelcase(o.order,"all") + ")";
+    } else {
+      // TODO not specified - default to ascending?
+    }*/
+    //str += ")";
+  }
+  str += "</select>";
+  document.getElementById(this.container).innerHTML = str;
 };
 
 com.marklogic.widgets.searchsort.prototype.addSelectionListener = function(sl) {
@@ -882,6 +955,24 @@ com.marklogic.widgets.searchsort.prototype.updateSort = function(sortSelection) 
   // NB do NOT fire results update event here - we've likely been called by it
   
 };
+
+com.marklogic.widgets.searchsort.prototype.setOptions = function(options) {
+  // parse options object for sort settings
+  var so = options.options["sort-order"];
+  this.sortOptions = new Array();
+  this.sortOptions.push({title: "None", value: ""}); // value is required
+  if (undefined != so) {
+    for (var i = 0;i < so.length;i++) {
+      var key = so[i]["json-key"];
+      if (undefined != key) {
+        this.sortOptions.push({value: key, order: so[i]["direction"]});
+      }
+    }
+  }
+  this._refresh();
+};
+
+
 
 
 

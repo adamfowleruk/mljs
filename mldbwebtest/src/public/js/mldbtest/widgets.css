@@ -116,6 +116,10 @@
 .searchfacets-facet-title {
   font-weight: bold;
   margin-top: 5px;
+  background-color: #323231;
+  color: #E6E6E6;
+  height: 22px;
+  padding: 8px 1keyn0px 0;
 }
 
 .searchfacets-facet-values {

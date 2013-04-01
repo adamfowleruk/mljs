@@ -725,15 +725,21 @@ m.prototype.keyvalue = function(key,value,keytype_opt,callback_opt) {
  *
  * See supported search grammar http://docs.marklogic.com/guide/search-dev/search-api#id_41745 
  */ 
-m.prototype.search = function(query_opt,options_opt,start_opt,callback) { 
+m.prototype.search = function(query_opt,options_opt,start_opt,sprops_opt,callback) { 
   this.logger.debug("*** start_opt: " + start_opt);
-  if (callback == undefined && typeof(start_opt) === 'function') {
-    callback = start_opt;
-    start_opt = undefined;
-  }
-  if (callback == undefined && typeof(options_opt) === 'function') {
-    callback = options_opt;
-    options_opt = undefined;
+  if (callback == undefined && typeof(sprops_opt) === 'function') {
+    callback = sprops_opt;
+    sprops_opt = undefined;
+  } else {
+    if (callback == undefined && typeof(start_opt) === 'function') {
+      callback = start_opt;
+      start_opt = undefined;
+    } else {
+      if (callback == undefined && typeof(options_opt) === 'function') {
+      callback = options_opt;
+      options_opt = undefined;
+      }
+    }
   }
   var content = null;
   var method = "GET";
@@ -746,6 +752,14 @@ m.prototype.search = function(query_opt,options_opt,start_opt,callback) {
       content = options_opt;
       method = "POST"; // TODO verify
     }*/
+  }
+  if (undefined != sprops_opt) {
+    if (undefined != sprops_opt.collection) {
+      url += "&collection=" + sprops_opt.collection;
+    }
+    if (undefined != sprops_opt.directory) {
+      url += "&directory=" + sprops_opt.directory;
+    }
   }
   if (undefined != start_opt) {
     url += "&start=" + start_opt;
