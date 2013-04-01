@@ -16,6 +16,9 @@ if (typeof window === 'undefined') {
     ]
   });
 } else {
+  noop = function() {
+    // do nothing
+  };
   var cl = function() {
     // do nothing
     this.loglevels = ["debug","info","warn","error"];
@@ -193,7 +196,9 @@ m.__dogenid = function() {
 }
 
 m.prototype.__doreq_wrap = function(reqname,options,content,callback_opt) {
-  this.dboptions.wrapper.request(reqname,options,content,callback_opt);
+  this.dboptions.wrapper.request(reqname,options,content,function(result) {
+    (callback_opt || noop)(result);
+  });
 };
 
 m.prototype.__doreq_node = function(reqname,options,content,callback_opt) {
@@ -854,6 +859,29 @@ m.prototype.saveSearchOptions = function(name,searchoptions,callback_opt) {
   };
   this.__doreq("SAVESEARCHOPTIONS",options,searchoptions,callback_opt);
 };
+
+/**
+ * Fetches values from a lexicon or computes 2-way co-occurence.
+ * https://docs.marklogic.com/REST/GET/v1/values/*
+ */
+m.prototype.values = function(query,tuplesname,optionsname,callback_opt) {
+  var options = {
+    path: "/v1/values/" + tuplesname + "?format=json&options=" + encodeURI(optionsname),
+    method: "GET"
+  };
+  if (typeof query == "string") {
+    // plain text query
+    options.path += "&q=" + encodeURI(query);
+  } else if (typeof query == "object") {
+    // structured query
+    options.path += "&structuredQuery=" + encodeURI(JSON.stringify(query));
+  }
+  
+  this.__doreq("VALUES",options,null,callback_opt);
+};
+
+
+
 
 
 // TRANSACTION MANAGEMENT

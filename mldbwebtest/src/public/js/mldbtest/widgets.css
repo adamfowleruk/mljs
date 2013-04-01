@@ -119,7 +119,7 @@
   background-color: #323231;
   color: #E6E6E6;
   height: 22px;
-  padding: 8px 1keyn0px 0;
+  padding: 8px 10px 0;
 }
 
 .searchfacets-facet-values {
@@ -170,3 +170,36 @@
 .searchresults-result:hover {
   background-color: #D2D2D2;
 }
+
+
+
+
+/****
+ * Co-occurence widget
+ ****/
+ 
+.cooccurence-title {
+  font-weight: bold;
+  margin-top: 5px;
+  background-color: #323231;
+  color: #E6E6E6;
+  height: 22px;
+  padding: 8px 10px 0;
+}
+
+.cooccurence-values {
+  padding-left: 10px;
+}
+
+.cooccurence-value {
+}
+
+.cooccurence-value:hover {
+  background-color: #D2D2D2;
+  cursor: pointer;
+}
+
+.cooccurence-count {
+  font-weight: bold;
+}
+
