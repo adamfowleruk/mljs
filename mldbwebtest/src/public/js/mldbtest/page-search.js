@@ -78,4 +78,6 @@ $(document).ready(function() {
   wgt.bar.setOptions(options);
   wgt.sort.setOptions(options);
   
+  wgt.bar.execute();
+  
 });

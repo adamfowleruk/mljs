@@ -449,12 +449,15 @@ com.marklogic.widgets.searchfacets.prototype._refresh = function() {
   var facetHandlersTodo = new Array();
   if (null != this.results && undefined != this.results) {
     if (undefined != this.results.facets) {
+      
       for (var name in this.results.facets) { // TODO replace with introspection of objects within search facets (objects, not array)
         var facetStr = "<div class='searchfacets-facet'><div class='searchfacets-facet-title'>" + this._transformFacetName(name) + "</div>" +
           "<div class='searchfacets-facet-values'>";
         var settings = this._getFacetSettings(name);
         var max = this.listSize;
         var values = this.results.facets[name].facetValues;
+        // sort facets first by count
+        bubbleSort(values, "count");
         var valuesCount = values.length;
         if (settings.more) {
           max = this.extendedSize;

@@ -11,7 +11,6 @@ mkdir $T/css
 D=./mldbwebtest/src/public/js/mldbtest
 cp $D/mldb*.js $T/js/
 cp $D/widget*.js $T/js/
-cp $D/events.js $T/js/
 cp $D/widgets.css $T/css/
 cp $D/page*.js $T/jstest/
 

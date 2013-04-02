@@ -3,17 +3,6 @@ com = window.com || {};
 com.marklogic = window.com.marklogic || {};
 com.marklogic.widgets = window.com.marklogic.widgets || {};
 
-// TODO remove the below and replace with sensible default / check
-Array.prototype.contains = function(obj) {
-    var i = this.length;
-    while (i--) {
-        if (this[i] === obj) {
-            return true;
-        }
-    }
-    return false;
-};
-
 com.marklogic.widgets.highcharts = function(container) {
   this.container = container;
   
@@ -114,12 +103,12 @@ com.marklogic.widgets.highcharts.prototype.updateResults = function(results) {
       // hardcoded value
       name = this.nameSource.substring(1);
     } else {
-      name = this._extractValue(result,this.nameSource);
+      name = jsonExtractValue(result,this.nameSource);
     }
     // get data value
-    var value = this._extractValue(result,this.valueSource);
+    var value = this.jsonExtractValue(result,this.valueSource);
     
-    var category = this._extractValue(result,this.categorySource);
+    var category = this.jsonExtractValue(result,this.categorySource);
     if (!allCategories.contains(category)) {
       allCategories.push(category);
     }
@@ -218,22 +207,4 @@ com.marklogic.widgets.highcharts.prototype.updateResults = function(results) {
   this.options.xAxis.categories = this.categories;
   
   this._refresh();
-};
-
-com.marklogic.widgets.highcharts.prototype._extractPosition = function(arr,value) {
-  for (var i = 0;i < arr.length;i++) {
-    if (arr[i] == value) {
-      return i;
-    }
-  }
-  return -1;
-};
-
-com.marklogic.widgets.highcharts.prototype._extractValue = function(json,namePath) {
-  var paths = namePath.split(".");
-  var obj = json;
-  for (var i = 0;undefined != obj && i < paths.length;i++) {
-    obj = obj[paths[i]]; // TODO handle documents with multiple result container elements (arrays of results within same doc)
-  }
-  return obj;
 };

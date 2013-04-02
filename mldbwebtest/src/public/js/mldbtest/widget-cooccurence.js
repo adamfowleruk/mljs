@@ -37,7 +37,10 @@ com.marklogic.widgets.cooccurence.prototype._refresh = function() {
   }
   var str = "<div class='cooccurence-title'>" + this.title + "</div>";
   if (undefined != this.values["values-response"] && undefined != this.values["values-response"].tuple) {
-    var tuples = this.values["values-response"].tuple;
+    var tuplesOriginal = this.values["values-response"].tuple;
+    //msort(tuplesOriginal,0,tuplesOriginal.length,"frequency"); // REQUIRES widgets.js. Sorts in place (doesn't return a new array)
+    bubbleSort(tuplesOriginal,"frequency");
+    var tuples = tuplesOriginal;
     for (var i = 0;i < tuples.length;i++) {
       str += "<div class='cooccurence-values'>";
       var t = tuples[i];
