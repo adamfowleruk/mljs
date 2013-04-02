@@ -62,8 +62,53 @@ var defaultdboptions = {
   host: "localhost", port: 9090, adminport: 8002, ssl: false, auth: "digest", username: "admin",password: "admin", database: "mldbtest", searchoptions: {}, fastthreads: 10, fastparts: 100
 }; // TODO make Documents the default db, automatically figure out port when creating new rest server
 
+function textToXML(text){
+	if (window.ActiveXObject){
+    var doc=new ActiveXObject('Microsoft.XMLDOM');
+    doc.async='false';
+    doc.loadXML(text);
+  } else {
+    var parser=new DOMParser();
+    var doc=parser.parseFromString(text,'text/xml');
+	}
+	return doc;
+}
 
-
+// from http://stackoverflow.com/questions/7769829/tool-javascript-to-convert-a-xml-string-to-json
+function xmlToJson(xml) {
+  if (null == xml || undefined == typeof xml) {
+    return {};
+  }
+  var obj = {};
+  if (xml.nodeType == 1) {                
+    if (xml.attributes.length > 0) {
+      obj["@attributes"] = {};
+      for (var j = 0; j < xml.attributes.length; j++) {
+        var attribute = xml.attributes.item(j);
+        obj["@attributes"][attribute.nodeName] = attribute.value;
+      }
+    }
+  } else if (xml.nodeType == 3) { 
+    obj = xml.nodeValue;
+  }            
+  if (xml.hasChildNodes()) {
+    for (var i = 0; i < xml.childNodes.length; i++) {
+      var item = xml.childNodes.item(i);
+      var nodeName = item.nodeName;
+      if (typeof (obj[nodeName]) == "undefined") {
+        obj[nodeName] = xmlToJson(item);
+      } else {
+        if (typeof (obj[nodeName].push) == "undefined") {
+          var old = obj[nodeName];
+          obj[nodeName] = [];
+          obj[nodeName].push(old);
+        }
+        obj[nodeName].push(xmlToJson(item));
+      }
+    }
+  }
+  return obj;
+};
 
 
 
@@ -245,7 +290,7 @@ m.prototype.__doreq_node = function(reqname,options,content,callback_opt) {
         self.logger.debug(reqname + " complete()");
         if (res.statusCode.toString().substring(0,1) == ("4")) {
           self.logger.debug(reqname + " error: " + body);
-          (callback_opt || noop)({statusCode: res.statusCode,error: body,inError: true});
+          (callback_opt || noop)({statusCode: res.statusCode,error: body,inError: true, details: xmlToJson(body)});
         } else {
           // 2xx or 3xx response (200=OK, 303=Other(content created) )
           var jsonResult = {body: body, statusCode: res.statusCode,inError: false};

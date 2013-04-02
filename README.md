@@ -33,8 +33,8 @@ Targets for 0.4 (Feb 2013)
  
 Targets for 0.6 (Apr 2013) - for MarkLogic World 2013
  - DONE Browser: Execute mldb from within general JavaScript, not just NodeJS (requires many wrappers, refactoring, extra tests)
- - DONE search options persistence support
- - DONE structured search support
+ - DONE Core: search options persistence support
+ - DONE Core: structured search support
  - DONE Widgets: basic demonstration samples for graphs based on MarkLogic data (Highcharts - shipped with MarkLogic)
  - DONE browser distribution building script
  - TEST Widgets: Search widgets, and overarching search page widget UI layer over MLDB in browser, including custom result rendering plugins (search bar, facets, results, paging, sorting)
@@ -43,17 +43,21 @@ Targets for 0.6 (Apr 2013) - for MarkLogic World 2013
  - DONE Widgets: Co-occurence widget 
  - DONE Core: Added values() function for lexicon and co-occurence (GET /v1/values/[name])
  - DONE Widgets: Google Kratu Analytics widget linked to MarkLogic search results
- - support XML returned as well as JSON
- - include XML -> JSON transform in JavaScript (workaround for XML snippets / raw returned in search results even with format=json enabled)
- - Pretty print utility for errors in JSON and XML (Probably requires XML -> JSON utility. Errors are always XML.)
+ - IN PROGRESS Core: support XML returned as well as JSON
+ - IN PROGRESS Core: include XML -> JSON transform in JavaScript (workaround for XML snippets / raw returned in search results even with format=json enabled)
+ - IN PROGRESS Widgets: Pretty print utility for errors in JSON and XML (Probably requires XML -> JSON utility. Errors are always XML.)
  - Docs: Samples for XML use, equivalent to some of the existing JSON samples (not exhaustive)
  - Widgets: Support for using widgets in non ML 6 REST webapps, and embedding widgets remotely, via W3C CORS support (i.e. cross site support)
  - Widgets: File upload (single and multiple)
+ - Core: Search Options Builder
+ - Core: Structured Search Builder
  
 Targets for 0.8 (Jun 2013)
+ - Widgets: Create search context object, and make search widgets responsible for registering themselves with it. Refactor search execution code in to here.
+ - Widgets: Navigable charts / co-occurence - clicking sets facet value
+ - Widgets: Abstract enough to plug in Version 5 REST Wrapper results, as required (Corona?)
  - Widgets: Support array children in aggregations for graphs
  - Browser: Lazy loading on search results (E.g. when requesting page 2 result 3 (result 13), make http request for re-search transparent) - Also for graphing when all search results need loading
- - Widgets: Create search context object, and make search widgets responsible for registering themselves with it. Refactor search execution code in to here.
  - Easy geospatial search
  - Widgets: Google maps (via OpenLayers?)
  - Support all search options not currently provided

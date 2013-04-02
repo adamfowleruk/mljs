@@ -63,6 +63,11 @@ b.jquery.prototype.request = function(reqname,options,content,callback) {
       res.inError = true;
       res.statusCode = xhr.status;
       res.doc = xhr.responseXML; // failures are returned in XML
+      if (undefined == res.doc) {
+        res.doc = xhr.responseText;
+      }
+      res.doc = textToXML(res.doc);
+      res.details = xmlToJson(res.doc); // convert text in res.doc to XML first
       callback(res);
     }
   });
