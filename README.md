@@ -40,13 +40,17 @@ Targets for 0.6 (Apr 2013) - for MarkLogic World 2013
  - TEST Widgets: Search widgets, and overarching search page widget UI layer over MLDB in browser, including custom result rendering plugins (search bar, facets, results, paging, sorting)
  - DONE Widgets: graphs to support simple aggregations of query results (mean, sum, min, max, count)
  - DONE Widgets: example for joining search bar to graphs, using different aggregations for the same results
+ - DONE Widgets: Co-occurence widget 
+ - DONE Core: Added values() function for lexicon and co-occurence (GET /v1/values/[name])
+ - DONE Widgets: Google Kratu Analytics widget linked to MarkLogic search results
+ - Widgets: Support for using widgets in non REST apps, and embedding widgets remotely, via W3C CORS support
  
 Targets for 0.8 (Jun 2013)
- - Widgets: Support array children in aggregations for graphs
  - support XML returned as well as JSON
  - include XML -> JSON transform in JavaScript (workaround for XML snippets / raw returned in search results even with format=json enabled)
  - Pretty print utility for errors in JSON and XML (Probably requires XML -> JSON utility. Errors are always XML.)
  - Docs: Samples for XML use, equivalent to some of the existing JSON samples (not exhaustive)
+ - Widgets: Support array children in aggregations for graphs
  - Widgets: File upload (single and multiple)
  - Browser: Lazy loading on search results (E.g. when requesting page 2 result 3 (result 13), make http request for re-search transparent) - Also for graphing when all search results need loading
  - Widgets: Create search context object, and make search widgets responsible for registering themselves with it. Refactor search execution code in to here.
