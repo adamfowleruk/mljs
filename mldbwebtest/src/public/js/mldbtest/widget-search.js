@@ -4,6 +4,166 @@ com.marklogic = window.com.marklogic || {};
 com.marklogic.widgets = window.com.marklogic.widgets || {};
 
 
+
+/****
+ * Search Options management
+ ****/
+/*
+  Sample usage 1: page-search.js:- (and page-chartsearch except without .pageLength(100) )
+ 
+  var ob = new com.marklogic.widgets.options();
+  ob.defaultCollation("http://marklogic.com/collation/en")
+    //.defaultType("xs:string"); // this should be the default anyway 
+    //.defaultNamespace("http://marklogic.com/xdmp/json/basic") // this should be the default anyway 
+    //.defaultSortDirection("ascending") // this should be the default anyway 
+    //.sortOrderScore() // include by default? have .sortOrderClear() to remove? 
+    //.sortOrder("family") // defaults to a json-key, type string, default collation, direction ascending 
+    //.sortOrder("animal") // defaults to a json-key, type string, default collation, direction ascending. define sort order defaults anyway for each constraint??? 
+    .constraintCollection() // default constraint name of 'collection' 
+    .constraintRange(["item-order"],"animal") // constraint name defaults to that of the range element name 
+    .constraintRange(["item-frequency"],"family"); // constraint name defaults to that of the range element name 
+*/
+/*
+  Sample usage 2: page-movies.js
+  
+  ob.tuples("coag","actor","genre"); // first is tuple name. defaults to string, json namespace
+  
+  ob2.tuples("coay","actor","year"); // first is tuple name. defaults to string, json namespace
+*/
+com.marklogic.widgets.options = function() {
+  this.options = {};
+  this.options.additionalQuery = new Array(); // [string]
+  this.options.concurrencyLevel = undefined;
+  this.options.constraint = new Array(); // [constraint]
+  this.options.debug = false;
+  this.options.defaultSuggestionSource = new Array(); // [suggestion-source]
+  this.options.extractMetadata = undefined; //extract-metadata
+  this.options.forest = undefined; // unsigned long,
+  this.options.fragmentScope = undefined; //string,
+  this.options.grammar = undefined; //grammar,
+  this.options.operator = new Array(); // [ operator ],
+  this.options.pageLength = 10; //unsigned long,
+  this.options.qualityWeight = undefined;// double,
+  this.options.returnAggregates = false; // boolean,
+  this.options.returnConstraints = false;// boolean,
+  this.options.returnFacets = true; // boolean,
+  this.options.returnFrequencies false; // boolean,
+  this.options.returnMetrics = true; // boolean,
+  this.options.returnPlan = false; // boolean,
+  this.options.returnQtext = true; // boolean
+  this.options.returnQuery = false; // boolean,
+  this.options.returnResults = true; // boolean,
+  this.options.returnSimilar = false; // boolean,
+  this.options.returnValues = false; // boolean,
+  this.options.searchOption = new Array(); // [ string ],
+  this.options.searchableExpression = undefined; // { path-expression }
+  this.options.sortOrder = new Array(); // [ sort-order ],
+  this.options.suggestionSource = new Array(); [ suggestion-source ],
+  this.options.term = undefined; // term-definition,
+  this.options.transformResults = {apply: "raw"}; // transform-results,
+  this.options.tuples = undefined; // values-or-tuples,
+  this.options.values = undefined; // values-or-tuples 
+  
+  // defaults
+  this.sortOrderScore();
+  
+  this.defaultType = "xs:string";
+  this.defaultCollation = "http://marklogic.com/collation";
+  this.defaultNamespace = "http://marklogic.com/xdmp/json/basic";
+  this.defaultSortDirection = "ascending";
+};
+
+com.marklogic.widgets.options.prototype.toJson = function() {
+  return {options: this.options};
+};
+
+com.marklogic.widgets.options.prototype.additionalQuery = function(str) {
+  this.options.additionalQuery = str;
+  return this;
+};
+
+com.marklogic.widgets.options.prototype.constraint = function(todo) {
+  
+};
+
+com.marklogic.widgets.options.prototype.pageLength = function(length) {
+  this.options.pageLength = length;
+  return this;
+};
+
+com.marklogic.widgets.options.prototype.transformResults = function(apply,ns,func) {
+  // TODO transformResults
+};
+
+com.marklogic.widgets.options.prototype.sortOrderScore = function() {
+  // TODO add check to see if we already exist
+  this.options.sortOrder.push({"direction": "descending","score": null});
+  return this;
+};
+
+com.marklogic.widgets.options.prototype.sortOrder = function(direction,type,key,collation) {
+  // TODO check for unspecified type, direction, collation (and element + ns instead of key)
+  var so = {direction:direction,type:type,"json-key": key};
+  if ("xs:string" == type) {
+    if (undefined == typeof collation) {
+      so.collation = this.defaultCollation;
+    } else {
+      so.collation = collation;
+    }
+  }
+  this.options.sortOrder.push(so);
+  return this;
+};
+/*
+    "options": {
+      "tuples": [
+        {
+          "name": agName,
+          "range": [
+            {
+              "type": "xs:string",
+              "element": {
+                "ns": "http://marklogic.com/xdmp/json/basic",
+                "name": "actor"
+              }
+            },
+            {
+              "type": "xs:string",
+              "element": {
+                "ns": "http://marklogic.com/xdmp/json/basic",
+                "name": "genre"
+              }
+            }
+          ]
+        }
+      ]
+    }
+    */
+com.marklogic.widgets.options.prototype.range = function() {
+  // TODO range
+};
+
+com.marklogic.widgets.options.prototype._quickRange = function(el) {
+  if (typeof el == "string") {
+    return {type: this.defaultType, element: {ns: this.defaultNamespace, name: el}});
+  } else {
+    // json range object
+  }
+};
+
+com.marklogic.widgets.options.prototype.tuples = function(name,el,el2) { // TODO handle infinite tuple definitions (think /v1/ only does 2 at the moment anyway)
+  var tuples = {name: name,range: new Array()};
+  tuples.range.push(this._quickRange(el));
+  tuples.range.push(this._quickRange(el2));
+  this.options.tuples.push(tuples);
+  return this;
+};
+
+
+
+
+
+
 // SEARCH HELPER STATIC OBJECT FUNCTIONS
 
 com.marklogic.widgets.searchhelper = {};
