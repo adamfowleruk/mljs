@@ -28,6 +28,7 @@ declare option xdmp:mapping "false";
 
 <script type="text/javascript" src="/js/mldbtest/widgets.js"></script>
 <script type="text/javascript" src="/js/mldbtest/widget-cooccurence.js"></script>
+<script type="text/javascript" src="/js/mldbtest/widget-search.js"></script>
 
 <script type="text/javascript" src="/js/mldbtest/page-movies.js"></script>
   

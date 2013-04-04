@@ -106,9 +106,9 @@ com.marklogic.widgets.highcharts.prototype.updateResults = function(results) {
       name = jsonExtractValue(result,this.nameSource);
     }
     // get data value
-    var value = this.jsonExtractValue(result,this.valueSource);
+    var value = jsonExtractValue(result,this.valueSource);
     
-    var category = this.jsonExtractValue(result,this.categorySource);
+    var category = jsonExtractValue(result,this.categorySource);
     if (!allCategories.contains(category)) {
       allCategories.push(category);
     }

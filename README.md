@@ -47,12 +47,15 @@ Targets for 0.6 (Apr 2013) - for MarkLogic World 2013
  - IN PROGRESS Core: include XML -> JSON transform in JavaScript (workaround for XML snippets / raw returned in search results even with format=json enabled)
  - IN PROGRESS Widgets: Pretty print utility for errors in JSON and XML (Probably requires XML -> JSON utility. Errors are always XML.)
  - Docs: Samples for XML use, equivalent to some of the existing JSON samples (not exhaustive)
- - Widgets: Support for using widgets in non ML 6 REST webapps, and embedding widgets remotely, via W3C CORS support (i.e. cross site support)
+ - Widgets: Update search samples to include one set of mixed XML and JSON documents
+ - Widgets: Update search samples to include a custom renderer for one document type
  - Widgets: File upload (single and multiple)
- - Core: Search Options Builder
+ - IN PROGRESS Core: Search Options Builder
  - Core: Structured Search Builder
  
 Targets for 0.8 (Jun 2013)
+ - Widgets: XML/JSON document creation by example (via HTML form generator)
+ - Widgets: Support for using widgets in non ML 6 REST webapps, and embedding widgets remotely, via W3C CORS support (i.e. cross site support)
  - Widgets: Create search context object, and make search widgets responsible for registering themselves with it. Refactor search execution code in to here.
  - Widgets: Navigable charts / co-occurence - clicking sets facet value
  - Widgets: Abstract enough to plug in Version 5 REST Wrapper results, as required (Corona?)
@@ -60,7 +63,7 @@ Targets for 0.8 (Jun 2013)
  - Browser: Lazy loading on search results (E.g. when requesting page 2 result 3 (result 13), make http request for re-search transparent) - Also for graphing when all search results need loading
  - Easy geospatial search
  - Widgets: Google maps (via OpenLayers?)
- - Support all search options not currently provided
+ - Support all search functions not currently provided
  - Complete support for /v1/values REST function
  - More support for server management (namespaces, indexes, service extensions, update REST instance configuration, XSLT transform management)
  - Widgets: Administration widgets (mainly aimed at pre-sales developers, not sysadmins)

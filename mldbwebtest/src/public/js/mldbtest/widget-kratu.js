@@ -31,7 +31,7 @@ com.marklogic.widgets.kratu.prototype.updateResults = function(results) {
 };
 
 com.marklogic.widgets.kratu.prototype._refresh = function() {
-  if (null == this.results || undefined == typeof this.results || "boolean" == this.results) {
+  if (null == this.results || undefined == this.results || "boolean" == this.results) {
     return; // draw nothing
   }
   this.kratu.renderReport();

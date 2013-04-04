@@ -32,6 +32,22 @@ $(document).ready(function() {
   tempcolumn.options.plotOptions = {column: {pointPadding: 0.2,borderWidth: 0,
     dataLabels: { enabled: true, style: { fontWeight: 'bold' } } } };
   
+  var ob = new com.marklogic.widgets.options();
+  ob.defaultCollation("http://marklogic.com/collation/en")
+    .pageLength(100)
+    //.defaultType("xs:string"); // this should be the default anyway 
+    //.defaultNamespace("http://marklogic.com/xdmp/json/basic") // this should be the default anyway 
+    //.defaultSortDirection("ascending") // this should be the default anyway 
+    //.sortOrderScore() // include by default? have .sortOrderClear() to remove? 
+    //.sortOrder("family") // defaults to a json-key, type string, default collation, direction ascending 
+    //.sortOrder("animal") // defaults to a json-key, type string, default collation, direction ascending. define sort order defaults anyway for each constraint??? 
+    .collectionConstraint() // default constraint name of 'collection' 
+    .rangeConstraint("animal",["item-order"]) // constraint name defaults to that of the range element name 
+    .rangeConstraint("family",["item-frequency"]); // constraint name defaults to that of the range element name 
+    
+  var options = ob.toJson();
+  console.log("Created options: " + JSON.stringify(options));
+  /*
   var options = 
   { options: {
         "return-results": true,
@@ -72,9 +88,9 @@ $(document).ready(function() {
               type: "xs:string",
               facet: true,
               collation: "http://marklogic.com/collation/en",
-          "facet-option": [
-            "item-order","ascending"
-          ],
+              "facet-option": [
+                "item-order","ascending"
+              ],
               element: {
                 ns: "http://marklogic.com/xdmp/json/basic",
                 name: "animal"
@@ -99,7 +115,7 @@ $(document).ready(function() {
           }
         ]
     }
-  };
+  };*/
   var bar = new com.marklogic.widgets.searchbar("cs-bar");
   bar.setOptionsName(optionsName);
   bar.setCollection("animals"); // restrict all search results

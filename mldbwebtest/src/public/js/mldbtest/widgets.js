@@ -207,7 +207,7 @@ function jsonExtractValue(json,namePath) {
 
 // EXTRA ARRAY FUNCTIONS
 
-if (undefined == typeof Array.prototype.swap) {
+if (undefined == Array.prototype.swap) {
   Array.prototype.swap=function(a, b)
   {
 	  var tmp=this[a];
@@ -217,7 +217,7 @@ if (undefined == typeof Array.prototype.swap) {
 }
 
 // TODO remove the below and replace with sensible default / check
-if (undefined == typeof Array.prototype.contains) {
+if (undefined == Array.prototype.contains) {
   Array.prototype.contains = function(obj) {
     var i = this.length;
     while (i--) {

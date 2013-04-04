@@ -6,6 +6,13 @@ $(document).ready(function() {
   var agName = "actor-genre";
   var ayName = "actor-year";
 
+  var ob = new com.marklogic.widgets.options();
+  ob.tuples(agName,"actor","genre"); // first is tuple name. defaults to string, json namespace
+  var ag = ob.toJson();
+  var ob2 = new com.marklogic.widgets.options();
+  ob2.tuples(ayName,"actor","year"); // first is tuple name. defaults to string, json namespace
+  var ay = ob2.toJson();
+  /*
   var ag = {
     "options": {
       "tuples": [
@@ -31,11 +38,11 @@ $(document).ready(function() {
       ]
     }
   };
-
+*/
   var coag = new com.marklogic.widgets.cooccurence("coag");
   coag.title = "Actor vs. Movie Genre";
   coag.setOptions(ag);
-
+/*
   var ay = {
     "options": {
       "tuples": [
@@ -60,7 +67,7 @@ $(document).ready(function() {
         }
       ]
     }
-  };
+  };*/
 
   var coay = new com.marklogic.widgets.cooccurence("coay");
   coay.title = "Actor vs. Movie Year";
@@ -74,8 +81,8 @@ $(document).ready(function() {
     }
   };
 
-  db.saveSearchOptions("actor-genre",ag,function(result) {
-    db.saveSearchOptions("actor-year",ay,function(result) {
+  db.saveSearchOptions(agName,ag,function(result) {
+    db.saveSearchOptions(ayName,ay,function(result) {
       db.values(query,agName,agName,function(result) {
         var values = result.doc;
         coag.updateValues(values);

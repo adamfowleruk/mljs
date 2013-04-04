@@ -4,6 +4,10 @@ $(document).ready(function() {
   var db = new mldb(); // calls default configure
   db.logger.setLogLevel("debug");
   
+  var ob = new com.marklogic.widgets.options();
+  ob.pageLength(100);
+  var options = ob.toJson();
+  /*
   var options = 
     {
       options: {
@@ -13,7 +17,7 @@ $(document).ready(function() {
           apply: "raw"
         }
       }
-    };
+    };*/
   var optionsName = "page-kratu";
   
   var wgt = new com.marklogic.widgets.kratu("el-kratu");
