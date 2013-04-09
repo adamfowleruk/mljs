@@ -57,7 +57,7 @@ Targets for 0.6 (Apr 2013) - for MarkLogic World 2013
  - IN PROGRESS Core: Structured Search Builder
  - TEST Browser: prototype.js binding
  - TEST Browser: XMLHttpRequest (xhr) binding
- - Docs: Samples for XML use, equivalent to some of the existing JSON samples (not exhaustive)
+ - IN PROGRESS Docs: Samples for XML use, equivalent to some of the existing JSON samples (not exhaustive)
  - Tests: Test samples for xml content
  
 Targets for 0.8 (Jun 2013)

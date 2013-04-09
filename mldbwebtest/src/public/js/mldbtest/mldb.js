@@ -387,6 +387,8 @@ m.prototype.__doreq_node = function(reqname,options,content,callback_opt) {
           var details = body;
           if ("string" == typeof body) {
             details = textToXML(body);
+          }
+          if (undefined != details.nodeType) {
             details = xmlToJson(details);
           }
           (callback_opt || noop)({statusCode: res.statusCode,error: body,inError: true, details: details});
