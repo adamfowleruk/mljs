@@ -7,6 +7,45 @@
 }
 
 /****
+ * General widgets - e.g. error
+ ****/
+
+.error-inner {
+  background-color: red;
+  color: white;
+  padding: 10px;
+}
+
+.error-title {
+  font-size: +1;
+  font-weight: bold;
+}
+
+.error-pointer {
+  
+}
+
+.error-details {
+  
+}
+
+.error-show, .error-hide {
+  color: white;
+}
+
+.error-details-frame-details a:visited {
+  color: white;
+}
+
+.error-details-frames {
+  padding-left: 10px;
+}
+
+.error-frame {
+  
+}
+
+/****
  * ALL SEARCH WIDGETS DEFAULT CSS BELOW HERE
  ****/
 

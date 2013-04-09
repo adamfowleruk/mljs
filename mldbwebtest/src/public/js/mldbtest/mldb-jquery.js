@@ -38,16 +38,23 @@ b.jquery.prototype.request = function(reqname,options,content,callback) {
       if (undefined != data && null != data) {
         self.logger.debug("Data type: " + (typeof data));
         self.logger.debug("Data value: " + data);
-        self.logger.debug("response text: " + xhr.responseText);
-        try {
-          self.logger.debug("parsing xhr.responseText");
-          wibble = $.parseJSON(xhr.responseText); // successes are JSON text (needs parsing)
-          self.logger.debug("js raw: " + wibble);
-          self.logger.debug("json str: " + JSON.stringify(wibble));
-          self.logger.debug("Parsed JSON successfully");
-        } catch (ex) {
-          // do nothing - likely a blank XML document
-          self.logger.debug("Exception: " + ex);
+        var xml = xhr.responseXML;
+        if (undefined != xml) {
+          res.format = "xml";
+          res.doc = xml;
+        } else {
+          self.logger.debug("response text: " + xhr.responseText);
+          try {
+            self.logger.debug("parsing xhr.responseText");
+            wibble = $.parseJSON(xhr.responseText); // successes are JSON text (needs parsing)
+            res.format = "json";
+            self.logger.debug("js raw: " + wibble);
+            self.logger.debug("json str: " + JSON.stringify(wibble));
+            self.logger.debug("Parsed JSON successfully");
+          } catch (ex) {
+            // do nothing - likely a blank XML document
+            self.logger.debug("Exception: " + ex);
+          }
         }
       }
       res.doc = wibble;
@@ -65,9 +72,29 @@ b.jquery.prototype.request = function(reqname,options,content,callback) {
       res.doc = xhr.responseXML; // failures are returned in XML
       if (undefined == res.doc) {
         res.doc = xhr.responseText;
+        res.format = "text"; // TODO handle binary content
+        try {
+          self.logger.debug("parsing xhr.responseText");
+          var wibble = $.parseJSON(xhr.responseText); // successes are JSON text (needs parsing)
+          res.format = "json";
+          self.logger.debug("js raw: " + wibble);
+          self.logger.debug("json str: " + JSON.stringify(wibble));
+          self.logger.debug("Parsed JSON successfully");
+          res.doc = wibble;
+        } catch (ex) {
+          // do nothing - likely a blank XML document
+          self.logger.debug("Exception: " + ex);
+        }
+      } else {
+        res.format = "xml";
       }
-      res.doc = textToXML(res.doc);
-      res.details = xmlToJson(res.doc); // convert text in res.doc to XML first
+      res.details = res.doc;
+      if ("string" == typeof res.details) { // TODO add response content type check (document could be plain text!)
+        res.details = textToXML(res.details);
+      }
+      if (undefined != res.details.nodeType) { // must be an XML document
+        res.details = xmlToJson(res.details); // convert text in res.doc to XML first
+      } 
       callback(res);
     }
   });

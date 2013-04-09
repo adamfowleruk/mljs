@@ -30,6 +30,15 @@ declare option xdmp:mapping "false";
 
 <script type="text/javascript" src="/js/mldbtest/page-error.js"></script>
 
+ 
+ <div id="error-basic">Basic</div>
+ <hr />
+ <div id="error-summary">Summary</div>
+ <hr />
+ <div id="error-pointer">Pointer</div>
+ <hr />
+ <div id="error-details">Details</div>
+ <hr />
  <div id="error">Errors here:-<br/> 
  </div>
 </div>

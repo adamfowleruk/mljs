@@ -1,27 +1,16 @@
-
 $(document).ready(function() {
-  // initialise MLDB
-  var db = new mldb(); // calls default configure
-  db.logger.setLogLevel("debug");
+  var db = new mldb();
   
-  var options = 
-    {
-      options: {
-        "return-results": true,
-        "page-length": 100,
-        "transform-results": {
-          apply: "raw"
-        }
-      }
-    };
   var optionsName = "page-charts-tempchart";
+  var ob = new com.marklogic.widgets.options();
+  ob.pageLength(100);
+  var options = ob.toJson();
   
   var tempchart = new com.marklogic.widgets.highcharts("tempchart");
   tempchart.setSeriesSources("city","month","reading.temp");
   tempchart.options.title.text = "Line: City temperature means";
   tempchart.options.subtitle.text = "Degrees C";
   tempchart.options.yAxis.title.text = "C";
-  //tempchart.options.xAxis.title.text = "Month";
   
   var tempspline = new com.marklogic.widgets.highcharts("tempsplineline");
   tempspline.setSeriesSources("city","month","reading.temp");
@@ -78,13 +67,9 @@ $(document).ready(function() {
   tempscolumn.options.chart.type = "column";
   tempscolumn.options.plotOptions = {column: {stacking: 'normal',dataLabels: {enabled: true,color: (Highcharts.theme && Highcharts.theme.dataLabelsColor) || 'white'}}};
   
-  var query = {
-    query: {
-      "collection-query": {
-        "uri": ["temperatures"]
-      }
-    }
-  };
+  var qb = new com.marklogic.widgets.query();
+  qb.query(qb.collection("temperatures"));
+  var query = qb.toJson();
   
   db.saveSearchOptions(optionsName,options,function(result) {
     db.structuredSearch(query,optionsName,function(result) {

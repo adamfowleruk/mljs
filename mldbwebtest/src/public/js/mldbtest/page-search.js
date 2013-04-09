@@ -1,23 +1,47 @@
-
 $(document).ready(function() {
-  // initialise MLDB
-  var db = new mldb(); // calls default configure
-  db.logger.setLogLevel("debug");
+  var db = new mldb(); 
   
   var wgt = new com.marklogic.widgets.searchpage("search-page");
-  
-  /*for (var name in ob) {
-    console.log("ob member: " + name + ", type: " + (typeof ob[name]));
-  }*/
+  wgt.results.addProcessor("animals", function(result) {
+    return ("object" == typeof result.content && undefined != result.content.animal && undefined != result.content.title && undefined != result.content.summary);
+  }, function (result) {
+    return "<div class='searchresults-result'><h3>" + result.index + ". " + result.content.title + "</h3>" +
+      "<div class='searchresults-snippet'>I am " + result.content.title + ". A " + result.content.animal + " fact is: " + result.content.summary + "</div></div>";
+  });
+  wgt.results.addProcessor("movies", function(result) {
+    if ("object" == typeof result.content && undefined != result.content.actor && undefined != result.content.genre && undefined != result.content.year) {
+      return true;
+    }
+    return false;
+  }, function (result) {
+    return "<div class='searchresults-result'><h3>" + result.index + ". " + result.content.title + "(" + result.content.year + ")</h3>" +
+      "<div class='searchresults-snippet'>Starring " + result.content.actor + ". A " + result.content.genre + " film.</div></div>";
+  });
+  wgt.results.addProcessor("svg", function(result) {
+    var xml = null;
+    if ("string" == typeof result.content) {
+      xml = textToXML(result.content);
+    } else if ("object" == typeof result.content && undefined != result.content.nodeType) {
+      xml = result.content; // should never happen - always returned as string
+    }
+    if (null != xml) {
+      // check namespace and root element
+      mldb.defaultconnection.logger.debug("Potential SVG nodeName: " + xml.childNodes[0].nodeName);
+      mldb.defaultconnection.logger.debug("Potential SVG nodeType: " + xml.childNodes[0].nodeType);
+      if (xml.childNodes[0].nodeName == "svg") {
+        return true;
+      } else {
+        return false;
+      }
+    }
+    return false;
+  }, function (result) {
+    return "<div class='searchresults-result'><h3>" + result.index + ". " + result.uri + "</h3>" +
+      "<div style='height: 200px;position:relative;'>" + result.content + "</div></div>"; // returns the full xml to be applied within the document as SVG
+  });
   
   var ob = new com.marklogic.widgets.options();
   ob.defaultCollation("http://marklogic.com/collation/en")
-    //.defaultType("xs:string"); // default: 
-    //.defaultNamespace("http://marklogic.com/xdmp/json/basic") // default: 
-    //.defaultSortDirection("ascending") // this should be the default anyway 
-    //.sortOrderScore() // default: 
-    //.sortOrder("family") // defaults to a json-key, type string, default collation, direction ascending. Creating a range constraint also creates a sort order config item
-    //.sortOrder("animal") // defaults to a json-key, type string, default collation, direction ascending. Creating a range constraint also creates a sort order config item
     .collectionConstraint() // default constraint name of 'collection' 
     .rangeConstraint("animal",["item-order"]) // constraint name defaults to that of the range element name 
     .rangeConstraint("family",["item-frequency"]) // constraint name defaults to that of the range element name 
@@ -26,80 +50,8 @@ $(document).ready(function() {
     .rangeConstraint("city",["item-order"],"http://marklogic.com/collation/")
     .rangeConstraint("month",["item-order"],"http://marklogic.com/collation/");
   var options = ob.toJson();
-  db.logger.debug("Created options: " + JSON.stringify(options));
-    /*
-  var options = 
-  { options: {
-        "return-results": true,
-        "page-length": 10,
-        "transform-results": {
-          apply: "raw"
-        },
-      "sort-order": [
-      {
-        "direction": "descending",
-        "score": null
-      },
-      {
-        "direction": "ascending",
-        "type": "xs:string",
-        "json-key": "family",
-        "collation": "http://marklogic.com/collation/en"
-      },
-      {
-        "direction": "ascending",
-        "type": "xs:string",
-        "json-key": "animal",
-        "collation": "http://marklogic.com/collation/en"
-      }
-      ],
-        constraint: [
-          {
-            "name": "collection",
-            "collection": {
-              "prefix": "",
-              "facet-option": "limit=10"
-            }
-          } // other constraints here
-          ,
-          {
-            "name": "animal",
-            range: {
-              type: "xs:string",
-              facet: true,
-              collation: "http://marklogic.com/collation/en",
-          "facet-option": [
-            "item-order","ascending"
-          ],
-              element: {
-                ns: "http://marklogic.com/xdmp/json/basic",
-                name: "animal"
-              }
-            }
-          }
-          ,
-          {
-            "name": "family",
-            range: {
-              type: "xs:string",
-              facet: true,
-              collation: "http://marklogic.com/collation/en",
-          "facet-option": [
-            "item-frequency","ascending"
-          ],
-              element: {
-                ns: "http://marklogic.com/xdmp/json/basic",
-                name: "family"
-              }
-            }
-          }
-        ]
-    }
-  };*/
-  wgt.bar.setOptionsName("mldbtest-page-search-options");
-  wgt.bar.setOptions(options);
-  wgt.sort.setOptions(options);
   
-  wgt.bar.execute();
+  wgt.setOptions("mldbtest-page-search-options",options);
+  wgt.execute();
   
 });

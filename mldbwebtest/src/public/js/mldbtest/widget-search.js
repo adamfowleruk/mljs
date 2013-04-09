@@ -342,7 +342,7 @@ com.marklogic.widgets.options.prototype.tuples = function(name,el,el2) { // TODO
 
 
 com.marklogic.widgets.query = function() {
-  this.query = {
+  this._query = {
     // TODO initialise query object
   };
   
@@ -351,7 +351,7 @@ com.marklogic.widgets.query = function() {
 };
 
 com.marklogic.widgets.query.prototype.toJson = function() {
-  return {query: this.query};
+  return {query: this._query};
 };
 
 // TOP LEVEL QUERY CONFIGURATION (returning this)
@@ -359,7 +359,7 @@ com.marklogic.widgets.query.prototype.toJson = function() {
 com.marklogic.widgets.query.prototype.query = function(query_opt) {
   for (var name in query_opt) {
     // copy {collection: ...} collection (or and-query, or-query) in to our query object - should work with any valid query type
-    this.query[name] = query_opt[name];
+    this._query[name] = query_opt[name];
   }
   return this;
 };
@@ -395,19 +395,13 @@ com.marklogic.widgets.query.prototype.collection = function(uri_opt,depth_opt) {
   } else {
     mldb.defaultconnection.logger.debug("WARNING: query.collection(): uri_opt not an array or string, but instead a '" + (typeof uri_opt) + "'");
   }
-  return this;
+  return undefined;
 };
 
 // TODO geo example
 /*
                         query: {
                           "and-query": {
-                            /*
-                            "collection-query":{
-                              "uri": ["sensor:reading"]
-                            },*/
-                            
-                            
                             
                             "range-constraint-query": {
                               "constraint-name": "type",
@@ -435,7 +429,7 @@ com.marklogic.widgets.query.prototype.georadius = function(constraint_name,lat,l
     if ("km" == radiusmeasure_opt) {
     } else if ("m" == radiusmeasure_opt) {
     } else if ("nm" == radiusmeasure_opt) {
-      
+      // TODO conversion helper
     } else if ("degrees" == radiusmeasure_opt) {
       // degrees of rotation - 1 minute (1/60 of a degree) is 1 nm
     }
@@ -450,6 +444,14 @@ com.marklogic.widgets.query.prototype.georadius = function(constraint_name,lat,l
     }
   }
 };
+
+// TODO bounding box query
+
+// TODO within polygon query
+
+
+
+
 
 
 
@@ -572,6 +574,7 @@ com.marklogic.widgets.searchbar = function(container) {
   this.resultsPublisher = new com.marklogic.events.Publisher(); // publishes search results (including facet values)
   this.facetsPublisher = new com.marklogic.events.Publisher(); // publishese facets selection changes
   this.sortPublisher = new com.marklogic.events.Publisher(); // publishes sort changes (from query bar)
+  this.errorPublisher = new com.marklogic.events.Publisher(); // errors occuring at search time
   
   // draw widget within container
   mldb.defaultconnection.logger.debug("adding search bar html");
@@ -687,6 +690,10 @@ com.marklogic.widgets.searchbar.prototype._queryToText = function(parsed) {
   return q;
 };
 
+com.marklogic.widgets.searchbar.prototype.clear = function() {
+  document.getElementById(this.container + "-searchinput").value = "";
+};
+
 com.marklogic.widgets.searchbar.prototype.execute = function() {
   var q = document.getElementById(this.container + "-searchinput").value;
   this.__doquery(q);
@@ -787,6 +794,14 @@ com.marklogic.widgets.searchbar.prototype.removeFacetsListener = function(fl) {
   this.facetsPublisher.unsubscribe(fl);
 };
 
+com.marklogic.widgets.searchbar.prototype.addErrorListener = function(fl) {
+  this.errorPublisher.subscribe(fl);
+};
+
+com.marklogic.widgets.searchbar.prototype.removeErrorListener = function(fl) {
+  this.errorPublisher.unsubscribe(fl);
+};
+
 com.marklogic.widgets.searchbar.prototype.updateFacets = function(facetSelection) {
   var q = document.getElementById(this.container + "-searchinput").value;
   
@@ -875,6 +890,11 @@ com.marklogic.widgets.searchfacets.prototype._getFacetSettings = function(facetN
   } else {
     return res;
   }
+};
+
+com.marklogic.widgets.searchfacets.prototype.clear = function() {
+  this.results = null;
+  this._refresh();
 };
 
 com.marklogic.widgets.searchfacets.prototype._refresh = function() {
@@ -1111,10 +1131,11 @@ com.marklogic.widgets.searchresults = function(container) {
   this.availableProcessors = new Array();
   this.processorPriority = new Array();
   
-  this.addProcessor("default",
-    function(result) {
+  this.defaultProcessor = {
+    matcher: function(result) {
       return true; // handles all results
-    }, function(result) {
+    }, 
+    processor: function(result) {
       var resStr = "";
       // parse each results and snippet / raw content
       var title = result.uri;
@@ -1136,12 +1157,17 @@ com.marklogic.widgets.searchresults = function(container) {
       resStr += "</div>";
       return resStr;
     }
-  );
+  };
   
   this._refresh();
   
   // event handlers
   this.selectionPublisher = new com.marklogic.events.Publisher();
+};
+
+com.marklogic.widgets.searchresults.prototype.clear = function() {
+  this.results = null;
+  this._refresh();
 };
 
 com.marklogic.widgets.searchresults.prototype.updateResults = function(results) {
@@ -1166,24 +1192,44 @@ com.marklogic.widgets.searchresults.prototype._refresh = function() {
     
     var resStr = 
       "<div class='searchresults-inner'><div class='searchresults-title'>Results</div><div class='searchresults-results'>";
+      
+    var uureplace = 1001;
+    var replacements = new Array();
     
     for (var i = 0;i < this.results.results.length;i++) {
       // run processors in order
       var result = this.results.results[i];
-      var found = false
+      var found = false;
       for (var p = 0;!found && p < this.processorPriority.length;p++) {
         var pname = this.processorPriority[p];
+        mldb.defaultconnection.logger.debug("checking applicability of processor: " + pname);
         if (this.processors[pname].matcher(result)) {
           found = true;
-          resStr += this.processors[pname].processor(result);
+          mldb.defaultconnection.logger.debug("found processor: " + pname);
+          var returned = this.processors[pname].processor(result);
+          if (undefined != returned.nodeType) {
+            var id = (uureplace++);
+            resStr = "<div id='" + this.container + "-searchresults-xml-" + id + "'></div>";
+            replacements[id] = returned;
+          } else {
+            resStr += returned;
+          }
         }
       }
-      
+      if (!found) {
+        mldb.defaultconnection.logger.debug("No processor found, using default");
+        resStr += this.defaultProcessor.processor(result);
+      }
     }
     resStr += "</div></div>"; // end of results container div and results inner
     mldb.defaultconnection.logger.debug("RES STR: " + resStr);
     
     document.getElementById(this.container).innerHTML = resStr;
+    
+    // now do any XML replacements
+    for (var r = 1001;r < uureplace;r++) {
+      document.getElementById(this.container + "-searchresults-xml-" + r).innerHTML = replacements[r]; // TODO verify we don't have to clone the XML document before insert (shouldn't need to)
+    }
   }
 };
 
@@ -1248,6 +1294,10 @@ com.marklogic.widgets.searchpager = function(container) {
   document.getElementById(container + "-searchpager-last-a").onclick = function() {self._last();};
   
   this._refresh();
+};
+
+com.marklogic.widgets.searchpager.prototype.clear = function() {
+  this.updatePage(null);
 };
 
 com.marklogic.widgets.searchpager.prototype.updatePage = function(results) {
@@ -1458,6 +1508,7 @@ com.marklogic.widgets.searchpage = function(container) {
     "<div id='" + container + "-facets' class='grid_4 searchpage-facets'> </div> " + 
     "<div id='" + container + "-main' class='grid_8 searchpage-main'>" +
       "<div id='" + container + "-bar' class='searchpage-bar'></div>" +
+      "<div id='" + container + "-error' class='searchpage-error'></div>" +
       "<div class='grid_8 searchpage-controls'>" +
         "<div class='searchpage-controls-inner'>" +
           "<div id='" + container + "-pager' class='grid_6 alpha searchpage-pager'></div>" +
@@ -1473,6 +1524,7 @@ com.marklogic.widgets.searchpage = function(container) {
   this.pager = new com.marklogic.widgets.searchpager(container + "-pager");
   this.sort = new com.marklogic.widgets.searchsort(container + "-sort");
   this.results = new com.marklogic.widgets.searchresults(container + "-results");
+  this.error = new com.marklogic.widgets.error(container + "-error");
   
   // cross register handlers
   var self = this;
@@ -1486,11 +1538,28 @@ com.marklogic.widgets.searchpage = function(container) {
   this.facets.addSelectionListener(function(obj) {self.bar.updateFacets(obj);});
   this.pager.addPageListener(function(obj) {self.bar.updatePage(obj);});
   
+  this.bar.addErrorListener(function(obj) {
+    this.error.updateError(obj);
+    this.facets.clear();
+    this.results.clear();
+    this.page.clear();
+  });
+  
   // set default connection
   this.db = mldb.defaultconnection;
 };
 
-com.marklogic.widgets.searchbar.prototype.setConnection = function(connection) {
+com.marklogic.widgets.searchpage.prototype.setOptions = function(name,options) {
+  this.bar.setOptionsName(name);
+  this.bar.setOptions(options);
+  this.sort.setOptions(options);
+};
+
+com.marklogic.widgets.searchpage.prototype.execute = function() {
+  this.bar.execute(); // search for all
+};
+
+com.marklogic.widgets.searchpage.prototype.setConnection = function(connection) {
   this.db = connection;
   // update search bar connection
   this.bar.setConnection(connection);

@@ -37,24 +37,35 @@ Targets for 0.6 (Apr 2013) - for MarkLogic World 2013
  - DONE Core: structured search support
  - DONE Widgets: basic demonstration samples for graphs based on MarkLogic data (Highcharts - shipped with MarkLogic)
  - DONE browser distribution building script
- - TEST Widgets: Search widgets, and overarching search page widget UI layer over MLDB in browser, including custom result rendering plugins (search bar, facets, results, paging, sorting)
+ - IN PROGRESS Widgets: Search widgets, and overarching search page widget UI layer over MLDB in browser, including custom result rendering plugins (search bar, facets, results, paging, sorting)
+  - Sorting widget actions
+  - More... all... links in facets
+  - BUG: one page too many in results if results are multiple of page size (i.e. 30 gives you 4 pages, not 3)
+  - BUG: multi word facet selection causes search to be limited to first word only (no quotes) -> query parser, not facet issue
  - DONE Widgets: graphs to support simple aggregations of query results (mean, sum, min, max, count)
  - DONE Widgets: example for joining search bar to graphs, using different aggregations for the same results
  - DONE Widgets: Co-occurence widget 
  - DONE Core: Added values() function for lexicon and co-occurence (GET /v1/values/[name])
  - DONE Widgets: Google Kratu Analytics widget linked to MarkLogic search results
  - IN PROGRESS Core: support XML returned as well as JSON
- - IN PROGRESS Core: include XML -> JSON transform in JavaScript (workaround for XML snippets / raw returned in search results even with format=json enabled)
- - IN PROGRESS Widgets: Pretty print utility for errors in JSON and XML (Probably requires XML -> JSON utility. Errors are always XML.)
- - Docs: Samples for XML use, equivalent to some of the existing JSON samples (not exhaustive)
- - Widgets: Update search samples to include one set of mixed XML and JSON documents
- - Widgets: Update search samples to include a custom renderer for one document type
+ - DONE Core: include XML -> JSON transform in JavaScript (workaround for XML snippets / raw returned in search results even with format=json enabled)
+ - DONE Widgets: Pretty print utility for errors in JSON and XML (Probably requires XML -> JSON utility. Errors are always XML, unless configured on server otherwise.)
+ - IN PROGRESS Widgets: Update search samples to include one set of mixed XML and JSON documents
+ - DONE Widgets: Update search samples to include a custom renderer for one document type
  - Widgets: File upload (single and multiple)
  - IN PROGRESS Core: Search Options Builder
- - Core: Structured Search Builder
+ - IN PROGRESS Core: Structured Search Builder
+ - TEST Browser: prototype.js binding
+ - TEST Browser: XMLHttpRequest (xhr) binding
+ - Docs: Samples for XML use, equivalent to some of the existing JSON samples (not exhaustive)
+ - Tests: Test samples for xml content
  
 Targets for 0.8 (Jun 2013)
- - Widgets: XML/JSON document creation by example (via HTML form generator)
+ - Core: Return and add binary documents
+ - Core: Return and add plain text documents
+ - Widgets: (multi) Upload progress bar
+ - Widgets: D3.js network diagram
+ - Widgets: XML/JSON document creation-by-example (via HTML form generator)
  - Widgets: Support for using widgets in non ML 6 REST webapps, and embedding widgets remotely, via W3C CORS support (i.e. cross site support)
  - Widgets: Create search context object, and make search widgets responsible for registering themselves with it. Refactor search execution code in to here.
  - Widgets: Navigable charts / co-occurence - clicking sets facet value

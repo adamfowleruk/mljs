@@ -16,7 +16,7 @@ $(document).ready(function() {
     {title: "Hammy the Hamster", summary: "Do dah dee dee do dah do do", animal: "hamster", family: "pet", age: 3},
     {title: "Hetty the Hamster", summary: "He he he he he", animal: "hamster", family: "pet", age: 4},
     {title: "George the Gerbil", summary: "Tiny", animal: "gerbil", family: "pet", age:1},
-    {title: "Charlie the Cat", summary: "Only live a couple of years", animal: "guinea pig", family: "pet", age: 5},
+    {title: "Gregory the Guinea Pig", summary: "Only live a couple of years", animal: "guinea pig", family: "pet", age: 5},
     {title: "Adam the MarkLogician", summary: "Adam has no imagination", animal: "homosapien", family: "marklogician", age: 21}
   ];
   

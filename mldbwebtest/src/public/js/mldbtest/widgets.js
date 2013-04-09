@@ -2,6 +2,7 @@
 
 com = window.com || {};
 com.marklogic = window.com.marklogic || {};
+com.marklogic.widgets = window.com.marklogic.widgets || {};
 
 /**
  * Provides objects for generic event publish-subscribe workflows
@@ -237,3 +238,153 @@ Array.prototype.position = function(value) {
   }
   return -1;
 };
+
+
+
+
+// our own global widgets here
+com.marklogic.widgets.error = function(container) {
+  this.container = container;
+  
+  this.error = null;
+  
+  this.allowDetails = false; // shows 'show details' button
+  this.showFirstCodefile = false; // shows first file name,line number and column
+  
+  this._refresh();
+};
+
+com.marklogic.widgets.error.prototype.show = function(message) {
+  this.error = message;
+  this._refresh();
+};
+
+com.marklogic.widgets.error.prototype.updateError = com.marklogic.widgets.error.prototype.show;
+
+com.marklogic.widgets.error.prototype.clear = function() {
+  this.show(null);
+};
+
+com.marklogic.widgets.error.prototype._refresh = function() {
+  if (null != this.error && "object" == typeof this.error) {
+    // check if a result object or a error frame set, or an XML document
+    if (undefined != this.error.inError) {
+      // mldb results object
+      if (this.error.inError) {
+        if (this.error.format == "json") {
+          mldb.defaultconnection.logger.debug("Error object is result, and json");
+          this._genhtml(this.error);
+        } else {
+          mldb.defaultconnection.logger.debug("Error object is result, and xml");
+          this._genhtml(xmlToJson(this.error.doc));
+        }
+        return true;
+      } else {
+        mldb.defaultconnection.logger.debug("Error object is result, and not in error");
+        return false; // doing this allows you to do one if statement rather than if and call
+      }
+    } else {
+      mldb.defaultconnection.logger.debug("Error document is not an MLDB response document");
+        if (undefined == this.error.nodeType) {
+          mldb.defaultconnection.logger.debug("Error object is error doc, and json");
+          this._genhtml(this.error);
+        } else {
+          mldb.defaultconnection.logger.debug("Error object is error doc, and xml");
+          this._genhtml(xmlToJson(this.error.doc));
+        }
+      //this._genhtml(this.error);
+    }
+    // display pretty print JSON error
+  } else {
+    mldb.defaultconnection.logger.debug("Error object is simple string");
+    // assume string
+    if (null != this.error && undefined != error) {
+      var str = "<div class='error-inner hidden' id='" + this.container + "-error-inner'><div class='error-message'>" + this.error + "</div>";
+      str += "</div>";
+      var el = document.getElementById(this.container);
+      el.innerHTML = str;
+    } else {
+      document.getElementById(this.container).innerHTML = "";
+    }
+  }
+};
+
+com.marklogic.widgets.error.prototype._genhtml = function(obj) {
+  var str = "<div class='error-inner' id='" + this.container + "-error-inner'>";
+  // do header
+  str += "<div class='error-title'>" + obj.error["format-string"] + "</div>";
+  // further details, line num, etc
+  if (this.showFirstCodefile) {
+    if (undefined != obj.error.stack.frame[0]) {
+      var frame = obj.error.stack.frame[0];
+      str += "<div class='error-pointer'>" + frame.uri + ":" + frame.line + " column " + frame.column + " - operation " + frame.operation + "</div>";
+    }
+  }
+  // then provide link for more details (if allowDetails is true)
+  if (this.allowDetails) {
+    str += "<div id='" + this.container + "-frame-details'><a class='error-show' id='" + this.container + "-frame-show' href='#'>Show Details</a><a class='hidden error-hide' id='" + this.container + "-frame-hide' href='#'>Hide Details</a></div>";
+  }
+  str += "</div>";
+  document.getElementById(this.container).innerHTML = str;
+  var self = this;
+  if (this.allowDetails) {
+    document.getElementById(this.container + "-frame-show").onclick = function(evt) {
+      self._showDetails();
+    };
+  }
+};
+
+com.marklogic.widgets.error.prototype._showDetails = function() {
+  var details = document.getElementById(this.container + "-error-details-frames");
+  if (undefined == details) {
+    // generate HTML
+    var str = "<div id='" + this.container + "-error-details-frames'>";
+    for (var f = 0;f < this.error.error.stack.frame.length;f++) {
+      var frame = this.error.error.stack.frame[f];
+      str += "<div class='error-frame'>";
+      
+      // show frame details
+      str += frame.uri + ":" + frame.line + "." + frame.column;
+      if (undefined != frame.operation) {
+        str += " " + frame.operation; 
+      }
+      
+      str += "</div>";
+    }
+    str += "</div>";
+    var parent = document.getElementById(this.container + "-frame-details");
+    parent.innerHTML = parent.innerHTML + str;
+    
+    details = document.getElementById(this.container + "-error-details-frames");
+  }
+  console.log("setting details class");
+  details.setAttribute("class","error-details-frames");
+  
+  console.log("setting show to invisible")
+  var show = document.getElementById(this.container + "-frame-show");
+  show.setAttribute("class","error-show hidden");
+  console.log("setting hide to visible");
+  var hide = document.getElementById(this.container + "-frame-hide");
+  hide.setAttribute("class","error-hide");
+  var self = this;
+  document.getElementById(this.container + "-frame-hide").onclick = function(evt) {
+    console.log("hide clicked");
+    self._hideDetails();
+    console.log("hide clicked complete");
+  };
+};
+
+com.marklogic.widgets.error.prototype._hideDetails = function() {
+  var details = document.getElementById(this.container + "-error-details-frames");
+  details.setAttribute("class","error-details-frames hidden");
+  
+  var show = document.getElementById(this.container + "-frame-show");
+  show.setAttribute("class","error-show");
+  var hide = document.getElementById(this.container + "-frame-hide");
+  hide.setAttribute("class","error-hide hidden");
+  var self = this;
+  document.getElementById(this.container + "-frame-show").onclick = function(evt) {
+    self._showDetails();
+  };
+};
+

@@ -28,6 +28,7 @@ declare option xdmp:mapping "false";
 
 <script type="text/javascript" src="/js/mldbtest/widgets.js"></script>
 <script type="text/javascript" src="/js/mldbtest/highcharts.js"></script>
+<script type="text/javascript" src="/js/mldbtest/widget-search.js"></script>
 <script type="text/javascript" src="/js/mldbtest/widget-highcharts.js"></script>
 
 <script type="text/javascript" src="/js/mldbtest/page-highcharts.js"></script>

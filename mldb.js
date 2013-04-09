@@ -74,8 +74,102 @@ function textToXML(text){
 	return doc;
 }
 
-// from http://stackoverflow.com/questions/7769829/tool-javascript-to-convert-a-xml-string-to-json
+/**
+ * This returns a simplified JSON structure, equivalent to merging text nodes
+ * removing whitespace and merging elements with attributes. Namespaces are also removed.
+ * Use xmlToJsonStrict instead if you want an exact JSON representation of an XML document.
+ */
 function xmlToJson(xml) {
+  if (null == xml || undefined == xml) {
+    return {};
+  }
+  var obj = {};
+  if (xml.nodeType == 1) {                
+    if (xml.attributes.length > 0) {
+      //obj["@attributes"] = {};
+      for (var j = 0; j < xml.attributes.length; j++) {
+        var attribute = xml.attributes.item(j);
+        var nodeName = attribute.nodeName;
+        var pos = nodeName.indexOf(":");
+        if (-1 != pos) {
+          nodeName = nodeName.substring(pos + 1);
+        }
+        obj[nodeName] = attribute.value;
+      }
+    }
+  } else if (xml.nodeType == 3) { 
+    obj = xml.nodeValue;
+  }            
+  if (xml.hasChildNodes()) {
+    var justText = true;
+    for (var i = 0; i < xml.childNodes.length; i++) {
+      var item = xml.childNodes.item(i);
+      var nodeName = item.nodeName;
+      var pos = nodeName.indexOf(":");
+      if (-1 != pos) {
+        nodeName = nodeName.substring(pos + 1);
+      }
+      if (typeof (obj[nodeName]) == "undefined") {
+        obj[nodeName] = xmlToJson(item);
+      } else {
+        if (typeof (obj[nodeName].push) == "undefined") {
+          var old = obj[nodeName];
+          obj[nodeName] = [];
+          obj[nodeName].push(old);
+        }
+        obj[nodeName].push(xmlToJson(item));
+        // do text merge here
+      }
+      if (("#text" == nodeName)) {
+        if (Array.isArray(obj[nodeName])) {
+          var text = "";
+          for (var a = 0;a < obj[nodeName].length;a++) {
+            text += obj[nodeName][a];
+          }
+          text = text.replace("\n","").replace("\t","").replace("\r","").trim();
+          if (0 != text.length) {
+            obj[nodeName] = text;
+          } else {
+            obj[nodeName] = undefined;
+          }
+        } else if ("string" == typeof obj[nodeName]){
+          var text = obj[nodeName];
+          text = text.replace("\n","").replace("\t","").replace("\r","").trim();
+          if (0 != text.length) {
+            // check for a value of "\"\"", which MUST still be included in response (its a blank value, not XML whitespace)
+            obj[nodeName] = text.replace("\"","").replace("\"","");
+          } else {
+            obj[nodeName] = undefined;
+          }
+        }
+      }
+      if (undefined != obj[nodeName]) {
+        justText = justText && ("#text" == nodeName);
+      }
+    }
+    // check all children to see if they are only text items
+    // if so, merge text items
+    // now replace #text child with just the merged text value
+    if (justText && undefined != obj[nodeName]) {
+      var text = "";
+      for (var i = 0; i < obj[nodeName].length; i++) {
+        if ("string" == typeof obj[nodeName][i]) {
+          text += obj[nodeName][i];
+        } else if (Array.isArray(obj[nodeName][i])) {
+          // merge array then add to text
+          // No need, done elsewhere above
+          mldb.defaultconnection.logger.warn("WARNING: #text is still an array. Should not happen.")
+        }
+      }
+      obj = text; // removes whitespace as unimportant // TODO replace with check for all string is whitespace first
+    }
+  }
+  return obj;
+};
+
+
+// from http://stackoverflow.com/questions/7769829/tool-javascript-to-convert-a-xml-string-to-json
+function xmlToJsonStrict(xml) {
   if (null == xml || undefined == typeof xml) {
     return {};
   }
@@ -96,14 +190,14 @@ function xmlToJson(xml) {
       var item = xml.childNodes.item(i);
       var nodeName = item.nodeName;
       if (typeof (obj[nodeName]) == "undefined") {
-        obj[nodeName] = xmlToJson(item);
+        obj[nodeName] = xmlToJsonStrict(item);
       } else {
         if (typeof (obj[nodeName].push) == "undefined") {
           var old = obj[nodeName];
           obj[nodeName] = [];
           obj[nodeName].push(old);
         }
-        obj[nodeName].push(xmlToJson(item));
+        obj[nodeName].push(xmlToJsonStrict(item));
       }
     }
   }
@@ -290,7 +384,14 @@ m.prototype.__doreq_node = function(reqname,options,content,callback_opt) {
         self.logger.debug(reqname + " complete()");
         if (res.statusCode.toString().substring(0,1) == ("4")) {
           self.logger.debug(reqname + " error: " + body);
-          (callback_opt || noop)({statusCode: res.statusCode,error: body,inError: true, details: xmlToJson(body)});
+          var details = body;
+          if ("string" == typeof body) {
+            details = textToXML(body);
+          }
+          if (undefined != details.nodeType) {
+            details = xmlToJson(details);
+          }
+          (callback_opt || noop)({statusCode: res.statusCode,error: body,inError: true, details: details});
         } else {
           // 2xx or 3xx response (200=OK, 303=Other(content created) )
           var jsonResult = {body: body, statusCode: res.statusCode,inError: false};
