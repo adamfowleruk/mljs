@@ -40,7 +40,7 @@ $(document).ready(function() {
       "<div style='height: 200px;position:relative;'>" + result.content + "</div></div>"; // returns the full xml to be applied within the document as SVG
   });
   
-  var ob = new com.marklogic.widgets.options();
+  var ob = db.options();
   ob.defaultCollation("http://marklogic.com/collation/en")
     .collectionConstraint() // default constraint name of 'collection' 
     .rangeConstraint("animal",["item-order"]) // constraint name defaults to that of the range element name 

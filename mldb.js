@@ -1426,3 +1426,628 @@ m.prototype.deleteSavedSearch = function(searchname,callback_opt) {
 };
 
 // END EXTENSION - subscribe-resource.xqy - Adam Fowler adam.fowler@marklogic.com - Save searches by name, and subscribe to alerts from them. Alerts sent to a given URL.
+
+
+
+
+
+
+
+com = {};
+com.marklogic = {};
+
+
+
+/****
+ * Search Options management
+ ****/
+/*
+  Sample usage 1: page-search.js:- (and page-chartsearch except without .pageLength(100) )
+ 
+  var ob = new com.marklogic.widgets.options();
+  ob.defaultCollation("http://marklogic.com/collation/en")
+    //.defaultType("xs:string"); // this should be the default anyway 
+    //.defaultNamespace("http://marklogic.com/xdmp/json/basic") // this should be the default anyway 
+    //.defaultSortDirection("ascending") // this should be the default anyway 
+    //.sortOrderScore() // include by default? have .sortOrderClear() to remove? 
+    //.sortOrder("family") // defaults to a json-key, type string, default collation, direction ascending 
+    //.sortOrder("animal") // defaults to a json-key, type string, default collation, direction ascending. define sort order defaults anyway for each constraint??? 
+    .collectionConstraint() // default constraint name of 'collection' 
+    .rangeConstraint("animal",["item-order"]) // constraint name defaults to that of the range element name 
+    .rangeConstraint("family",["item-frequency"]); // constraint name defaults to that of the range element name 
+*/
+/*
+  Sample usage 2: page-movies.js
+  
+  var ob = new com.marklogic.widgets.options();
+  ob.tuples("coag","actor","genre"); // first is tuple name. defaults to string, json namespace
+  var ob2 = new com.marklogic.widgets.options();
+  ob2.tuples("coay","actor","year"); // first is tuple name. defaults to string, json namespace
+*/
+com.marklogic.options = function() {
+  this.options = {};
+  this.options["concurrency-level"] = undefined;
+  this.options.debug = false;
+  this.options["extract-metadata"] = undefined; //extract-metadata
+  this.options.forest = undefined; // unsigned long,
+  this.options["fragment-scope"] = undefined; //string,
+  this.options["searchable-expression"] = undefined; // { path-expression }
+  this.options.term = undefined; // term-definition,
+  this.options.tuples = undefined; // values-or-tuples,
+  this.options.values = undefined; // values-or-tuples 
+  
+  // general defaults
+  this.defaults = {};
+  this.defaults.type = "xs:string";
+  this.defaults.collation = "http://marklogic.com/collation/";
+  this.defaults.namespace = "http://marklogic.com/xdmp/json/basic";
+  this.defaults.sortDirection = "ascending";
+  this.defaults.facetOption = undefined; // limit=10
+};
+
+com.marklogic.options.prototype._includeSearchDefaults = function() {
+  // called by any functions that specify search features 
+  if (undefined == this.options["page-length"] || undefined == this.options.constraint) { // means none of these are defined
+    this.options["transform-results"] = {apply: "raw"}; // transform-results,  
+    this.options.constraint = new Array(); // [constraint]
+    this.options["default-suggestion-source"] = new Array(); // [suggestion-source]
+    this.options["additional-query"] = new Array(); // [string]
+    this.options.grammar = undefined; //grammar,
+    this.options.operator = new Array(); // [ operator ],
+    this.options["page-length"] = 10; //unsigned long,
+    this.options["quality-weight"] = undefined;// double,
+    this.options["return-aggregates"] = false; // boolean,
+    this.options["return-constraints"] = false;// boolean,
+    this.options["return-facets"] = true; // boolean,
+    this.options["return-frequencies"] = false; // boolean,
+    this.options["return-metrics"] = true; // boolean,
+    this.options["return-plan"] = false; // boolean,
+    this.options["return-qtext"] = true; // boolean
+    this.options["return-query"] = false; // boolean,
+    this.options["return-results"] = true; // boolean,
+    this.options["return-similar"] = false; // boolean,
+    this.options["return-values"] = false; // boolean,
+    this.options["search-option"] = new Array(); // [ string ],
+    this.options["sort-order"] = new Array(); // [ sort-order ],
+    this.options["suggestion-source"] = new Array(); //[ suggestion-source ],
+    
+    // defaults
+    this.sortOrderScore();
+  }
+};
+
+com.marklogic.options.prototype.toJson = function() {
+  // set empty arrays to undefined
+//  if (undefined != this.options[""])
+  
+  // return options object
+  return {options: this.options};
+};
+
+com.marklogic.options.prototype.additionalQuery = function(str) {
+  this._includeSearchDefaults();
+  this.options["additional-query"] = str;
+  return this;
+};
+
+com.marklogic.options.prototype.concurrencyLevel = function(level) {
+  this.options["concurrency-level"] = level;
+  return this;
+};
+
+com.marklogic.options.prototype.debug = function(dbg) {
+  this.options.debug = dbg;
+};
+
+com.marklogic.options.prototype.forest = function(forests) {
+  if (Array.isArray(forests)) {
+    this.options.forest = forests;
+  } else {
+    // assume single forest id
+    this.options.forest = [forest];
+  }
+  return this;
+};
+
+com.marklogic.options.prototype.fragmentScope = function(scope) {
+  this.options["fragment-scope"] = scope;
+  return this;
+};
+
+com.marklogic.options.prototype.qualityWeight = function(weight) {
+  this.options["quality-weight"] = weight;
+  return this;
+};
+
+com.marklogic.options.prototype.returnAggregates = function(ret) {
+  if (undefined == ret) {
+    ret = true;
+  }
+  this.options["return-aggregates"] = ret;
+  return this;
+};
+
+com.marklogic.options.prototype.returnConstraints = function(ret) {
+  if (undefined == ret) {
+    ret = true;
+  }
+  this.options["return-constraints"] = ret;
+  return this;
+};
+
+com.marklogic.options.prototype.returnFacets = function(ret) {
+  if (undefined == ret) {
+    ret = true;
+  }
+  this.options["return-facets"] = ret;
+  return true;
+};
+
+com.marklogic.options.prototype.returnFrequencies = function(ret) {
+  if (undefined == ret) {
+    ret = true;
+  }
+  this.options["return-frequencies"] = ret;
+  return this;
+};
+
+com.marklogic.options.prototype.returnMetrics = function(ret) {
+  if (undefined == ret) {
+    ret = true;
+  }
+  this.options["return-metrics"] = ret;
+  return this;
+};
+
+com.marklogic.options.prototype.returnPlan = function(ret) {
+  if (undefined == ret) {
+    ret = true;
+  }
+  this.options["return-plan"] = ret;
+  return this;
+};
+
+com.marklogic.options.prototype.returnQtext = function(ret) {
+  if (undefined == ret) {
+    ret = true;
+  }
+  this.options["return-qtext"] = ret;
+  return this;
+};
+
+com.marklogic.options.prototype.returnQuery = function(ret) {
+  if (undefined == ret) {
+    ret = true;
+  }
+  this.options["return-query"] = ret;
+  return this;
+};
+
+com.marklogic.options.prototype.returnResults = function(ret) {
+  if (undefined == ret) {
+    ret = true;
+  }
+  this.options["return-results"] = ret;
+  return this;
+};
+
+com.marklogic.options.prototype.returnSimilar = function(ret) {
+  if (undefined == ret) {
+    ret = true;
+  }
+  this.options["return-similar"] = ret;
+  return this;
+};
+
+com.marklogic.options.prototype.returnValues = function(ret) {
+  if (undefined == ret) {
+    ret = true;
+  }
+  this.options["return-values"] = ret;
+  return this;
+};
+
+com.marklogic.options.prototype.defaultCollation = function(col) {
+  this.defaults.collation = col;
+  return this;
+};
+
+com.marklogic.options.prototype.defaultSortOrder = function(sort) {
+  this.defaults.sortDirection = sort;
+  return this;
+};
+
+com.marklogic.options.prototype.defaultType = function(type) {
+  this.defaults.type = type;
+  return this;
+};
+
+com.marklogic.options.prototype.defaultNamespace = function(ns) {
+  this.defaults.namespace = ns;
+  return this;
+};
+
+com.marklogic.options.prototype.pathConstraint = function() {
+  // TODO path range constraint
+};
+com.marklogic.options.prototype.path = com.marklogic.options.prototype.pathConstraint;
+
+com.marklogic.options.prototype.rangeConstraint = function(constraint_name_opt,name_or_key,ns_opt,type_opt,collation_opt,facet_opt,facet_options_opt) {
+  this._includeSearchDefaults();
+  if (undefined == facet_options_opt) {
+    if (undefined != facet_opt && Array.isArray(facet_opt)) {
+      facet_options_opt = facet_opt;
+      facet_opt = true;
+    } else if (undefined != collation_opt && Array.isArray(collation_opt)) {
+      facet_options_opt = collation_opt;
+      collation_opt = undefined;
+      facet_opt = true;
+    } else if (undefined != typeof type_opt && Array.isArray(type_opt)) {
+      facet_options_opt = type_opt;
+      type_opt = undefined;
+      facet_opt = true;
+    } else if (undefined != typeof ns_opt && Array.isArray(ns_opt)) {
+      facet_options_opt = ns_opt;
+      ns_opt = undefined;
+      facet_opt = true;
+    }
+  }
+  if (undefined == facet_opt) {
+    if (undefined != collation_opt && "boolean" === typeof collation_opt) {
+      facet_opt = collation_opt;
+      collation_opt = undefined;
+    } else if (undefined !=  type_opt && "boolean" === typeof type_opt) {
+      facet_opt = type_opt;
+      type_opt = undefined;
+    } else if (undefined !=  ns_opt && "boolean" === typeof ns_opt) {
+      facet_opt = ns_opt;
+      ns_opt = undefined;
+    }
+  }
+  if (undefined ==  collation_opt) {
+    if (undefined !=  type_opt && "string" === typeof type_opt && (type_opt.length < 4 || "xs:" != type_opt.substring(0,3))) {
+      collation_opt = type_opt;
+      type_opt = undefined;
+    } else if (undefined !=  ns_opt && "string" === typeof ns_opt && (ns_opt.length < 4 || "xs:" != ns_opt.substring(0,3))) {
+      collation_opt = ns_opt;
+      ns_opt = undefined;
+    } 
+  }
+  if (undefined ==  type_opt) {
+    if (undefined !=  ns_opt && "string" === typeof ns_opt && (ns_opt.length > 4 && "xs:" == ns_opt.substring(0,3))) {
+      type_opt = ns_opt;
+      ns_opt = undefined;
+    }
+  }
+  if ("string" == typeof constraint_name_opt && Array.isArray(name_or_key)) {
+    facet_opt = name_or_key;
+    name_or_key = constraint_name_opt;
+  }
+  if (undefined == name_or_key) {
+    if (undefined !=  constraint_name_opt) {
+      name_or_key = constraint_name_opt; // keep contraint name same as name or key (dont set to undefined)
+    }
+  }
+  if (undefined == constraint_name_opt) {
+    constraint_name_opt = name_or_key;  
+  }
+  // output values here
+  mldb.defaultconnection.logger.debug("rangeConstraint(): cName: " + constraint_name_opt + 
+    ", name_or_key: " + name_or_key + ", ns_opt: " + ns_opt + ", type_opt: " + type_opt + ", collation_opt: " + collation_opt +
+    ", facet_opt: " + facet_opt + ", facet_options_opt: " + facet_options_opt);
+  // now use values
+  var range = {name: constraint_name_opt,
+    range: {
+      type: type_opt || this.defaults.type, 
+      element: {
+        name: name_or_key, ns : ns_opt || this.defaults.namespace
+      },
+      collation: collation_opt || this.defaults.collation
+    }
+  };
+  if (undefined != facet_opt || undefined != facet_options_opt) {
+    range.range.facet = true;
+  }
+  if (undefined != facet_options_opt) {
+    range.range["facet-options"] = facet_options_opt;
+  }
+  
+  // Create sort orders automatically
+  this.sortOrder(this.defaultSortDirection,type_opt || this.defaults.type,name_or_key,collation_opt || this.defaults.collation); // TODO verify this works with normal XML range indexes not json keys
+  
+  this.addConstraint(range);
+  
+  return this;
+};
+com.marklogic.options.prototype.range = com.marklogic.options.prototype.rangeConstraint;
+
+com.marklogic.options.prototype.addConstraint = function(con) {
+  this.options.constraint.push(con);
+};
+
+com.marklogic.options.prototype.collectionConstraint = function(constraint_name_opt,prefix_opt,facet_option_opt) {
+  this._includeSearchDefaults();
+  var con = { name: constraint_name_opt || "collection", collection: {}};
+  if (undefined != prefix_opt && null != prefix_opt) {
+    con.collection.prefix = prefix_opt;
+  } else {
+    con.collection.prefix = "";
+  }
+  if (undefined != facet_option_opt && null != facet_option_opt) {
+    con.collection["facet-option"] = facet_option_opt;
+  } else if (undefined != this.defaults.facetOption) {
+    con.collection["facet-option"] = this.defaults.facetOption;
+  }
+  this.addConstraint(con);
+  return this;
+};
+com.marklogic.options.prototype.collection = com.marklogic.options.prototype.collectionConstraint;
+
+com.marklogic.options.prototype.geoelemConstraint = function(constraint_name_opt,parent,ns_opt,element,ns_el_opt) {
+  if (undefined == element) {
+    if (undefined == ns_opt) {
+      element = parent;
+      parent = constraint_name_opt;
+      constraint_name_opt = undefined;
+    } else {
+      element = ns_opt;
+      ns_opt = parent;
+      parent = constraint_name_opt;
+      constraint_name_opt = undefined;
+    }
+  }
+  if (undefined == parent) {
+    constraint_name_opt = parent;
+    parent = ns_opt;
+    ns_opt = undefined;
+  }
+  if (undefined == constraint_name_opt) {
+    constraint_name_opt = element;
+  }
+  var con = { name: constraint_name_opt, "geo-elem": {
+    parent: {ns: ns_opt || this.defaults.namespace, name: parent, element: {ns: ns_el_opt || this.defaults.namespace, name: element}}
+  }};
+  this.addConstraint(con);
+  return this;
+};
+com.marklogic.options.prototype.geoelem = com.marklogic.options.prototype.geoelemConstraint;
+
+com.marklogic.options.prototype.geoelemattrConstraint = function() {
+  // TODO geoelem attr
+};
+com.marklogic.options.prototype.geoelemattr = com.marklogic.options.prototype.geoelemattrConstraint;
+
+com.marklogic.options.prototype.geoelempairConstraint = function() {
+  // TODO geoelem pair
+};
+com.marklogic.options.prototype.geoelempair = com.marklogic.options.prototype.geoelempairConstraint;
+
+com.marklogic.options.prototype.pageLength = function(length) {
+  this._includeSearchDefaults();
+  this.options["page-length"] = length;
+  return this;
+};
+
+com.marklogic.options.prototype.transformResults = function(apply,ns_opt,at_opt) {
+  this._includeSearchDefaults();
+  this.options["transform-results"].apply = apply;
+  if (undefined != ns_opt && undefined != at_opt) {
+    this.options["transform-results"].ns = ns_opt;
+    this.options["transform-results"].at = at_opt;
+  }
+  return this;
+};
+
+com.marklogic.options.prototype.sortOrderClear = function() {
+  this._includeSearchDefaults();
+  this.options["sort-order"] = new Array();
+  return this;
+};
+
+com.marklogic.options.prototype.sortOrderScore = function() {
+  this._includeSearchDefaults();
+  // TODO add check to see if we already exist
+  this.options["sort-order"].push({"direction": "descending","score": null});
+  return this;
+};
+
+com.marklogic.options.prototype.sortOrder = function(direction_opt,type_opt,key,collation_opt) {
+  this._includeSearchDefaults();
+  // TODO check for unspecified type, direction, collation (and element + ns instead of key)
+  var so = {direction: direction_opt || this.defaults.sortDirection,type:type_opt || this.defaults.type,"json-key": key};
+  if ("xs:string" == collation_opt) {
+    so.collation = collation_opt || this.defaults.collation;
+  }
+  this.options["sort-order"].push(so);
+  return this;
+};
+/*
+    "options": {
+      "tuples": [
+        {
+          "name": agName,
+          "range": [
+            {
+              "type": "xs:string",
+              "element": {
+                "ns": "http://marklogic.com/xdmp/json/basic",
+                "name": "actor"
+              }
+            },
+            {
+              "type": "xs:string",
+              "element": {
+                "ns": "http://marklogic.com/xdmp/json/basic",
+                "name": "genre"
+              }
+            }
+          ]
+        }
+      ]
+    }
+    */
+
+com.marklogic.options.prototype._quickRange = function(el) {
+  if (typeof el == "string") {
+    return {type: this.defaults.type, element: {ns: this.defaults.namespace, name: el}};
+  } else {
+    // json range object
+    return el;
+  }
+};
+
+com.marklogic.options.prototype.tuples = function(name,el,el2) { // TODO handle infinite tuple definitions (think /v1/ only does 2 at the moment anyway)
+  var tuples = {name: name,range: new Array()};
+  if (undefined == this.options.tuples) {
+    this.options.tuples = new Array();
+  }
+  tuples.range.push(this._quickRange(el));
+  tuples.range.push(this._quickRange(el2));
+  this.options.tuples.push(tuples);
+  return this;
+};
+
+com.marklogic.options.prototype.values = function(name,el,el2) {
+  var values = {name: name,range: new Array()};
+  if (undefined == this.options.values) {
+    this.options.values = new Array();
+  }
+  values.range.push(this._quickRange(el));
+  values.range.push(this._quickRange(el2));
+  this.options.values.push(values);
+  return this;
+};
+
+
+
+
+m.prototype.options = function() {
+  return new com.marklogic.options();
+};
+
+
+
+
+
+
+
+
+
+
+
+
+// Structured Query Builder object
+
+
+com.marklogic.query = function() {
+  this._query = {
+    // TODO initialise query object
+  };
+  
+  this.defaults = {};
+  // TODO set defaults
+};
+
+com.marklogic.query.prototype.toJson = function() {
+  return {query: this._query};
+};
+
+// TOP LEVEL QUERY CONFIGURATION (returning this)
+
+com.marklogic.query.prototype.query = function(query_opt) {
+  for (var name in query_opt) {
+    // copy {collection: ...} collection (or and-query, or-query) in to our query object - should work with any valid query type
+    this._query[name] = query_opt[name];
+  }
+  return this;
+};
+
+// QUERY CREATION FUNCTIONS (returns query JSON)
+
+com.marklogic.query.prototype.and = function(query_opt) {
+  if (Array.isArray(query_opt)) {
+    return { "and-query": query_opt};
+  } else {
+    // object
+    return { "and-query": [query_opt]};
+  }
+};
+
+com.marklogic.query.prototype.or = function(query_opt) {
+  if (Array.isArray(query_opt)) {
+    return { "or-query": query_opt};
+  } else {
+    // object
+    return { "or-query": [query_opt]};
+  }
+};
+
+com.marklogic.query.prototype.collection = function(uri_opt,depth_opt) {
+  if (undefined == uri_opt) {
+    return {"collection-query": {uri: ""}}; // all collections by default
+  } else if ("string" == typeof uri_opt) {
+    // single uri
+    return {"collection-query": {uri: uri_opt}}
+  } else if (Array.isArray(uri_opt)) {
+    // TODO handle array of uris
+  } else {
+    mldb.defaultconnection.logger.debug("WARNING: query.collection(): uri_opt not an array or string, but instead a '" + (typeof uri_opt) + "'");
+  }
+  return undefined;
+};
+
+// TODO geo example
+/*
+                        query: {
+                          "and-query": {
+                            
+                            "range-constraint-query": {
+                              "constraint-name": "type",
+                              "value": ["maptile"]
+                            },
+                            
+                            "range-constraint-query": {
+                              "constraint-name": "layer",
+                              "value": ["os"]
+                            },
+                            
+                            "geospatial-constraint-query": {
+                              "constraint-name": "centre",
+                              "circle": {
+                                "radius": json.radiusmiles,
+                                "point":[{"latitude":json.lat,"longitude":json.lon}]
+                              }
+                            }
+                          }
+                        }
+*/
+com.marklogic.query.prototype.georadius = function(constraint_name,lat,lon,radiusmiles,radiusmeasure_opt) {
+  var radiusactual = radiusmiles;
+  if (undefined != radiusmeasure_opt) {
+    if ("km" == radiusmeasure_opt) {
+    } else if ("m" == radiusmeasure_opt) {
+    } else if ("nm" == radiusmeasure_opt) {
+      // TODO conversion helper
+    } else if ("degrees" == radiusmeasure_opt) {
+      // degrees of rotation - 1 minute (1/60 of a degree) is 1 nm
+    }
+  }
+  return {
+    "geospatial-constraint-query" : {
+      "constraint-name": constraint_name,
+      "circle": {
+        "radius": radiusactual,
+        point: [{"latitude": lat,"longitude": lon}]
+      }
+    }
+  }
+};
+
+// TODO bounding box query
+
+// TODO within polygon query
+
+
+m.prototype.query = function() {
+  return new com.marklogic.query();
+};

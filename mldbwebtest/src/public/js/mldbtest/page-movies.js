@@ -6,10 +6,10 @@ $(document).ready(function() {
   var agName = "actor-genre";
   var ayName = "actor-year";
 
-  var ob = new com.marklogic.widgets.options();
+  var ob = db.options();
   ob.tuples(agName,"actor","genre"); // first is tuple name. defaults to string, json namespace
   var ag = ob.toJson();
-  var ob2 = new com.marklogic.widgets.options();
+  var ob2 = db.options();
   ob2.tuples(ayName,"actor","year"); // first is tuple name. defaults to string, json namespace
   var ay = ob2.toJson();
   /*

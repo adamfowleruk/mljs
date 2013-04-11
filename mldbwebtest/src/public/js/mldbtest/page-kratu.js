@@ -4,7 +4,7 @@ $(document).ready(function() {
   var db = new mldb(); // calls default configure
   db.logger.setLogLevel("debug");
   
-  var ob = new com.marklogic.widgets.options();
+  var ob = db.options();
   ob.pageLength(100);
   var options = ob.toJson();
   /*

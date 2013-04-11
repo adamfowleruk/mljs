@@ -2,7 +2,7 @@ $(document).ready(function() {
   var db = new mldb();
   
   var optionsName = "page-charts-tempchart";
-  var ob = new com.marklogic.widgets.options();
+  var ob = db.options();
   ob.pageLength(100);
   var options = ob.toJson();
   
@@ -67,7 +67,7 @@ $(document).ready(function() {
   tempscolumn.options.chart.type = "column";
   tempscolumn.options.plotOptions = {column: {stacking: 'normal',dataLabels: {enabled: true,color: (Highcharts.theme && Highcharts.theme.dataLabelsColor) || 'white'}}};
   
-  var qb = new com.marklogic.widgets.query();
+  var qb = db.query();
   qb.query(qb.collection("temperatures"));
   var query = qb.toJson();
   
