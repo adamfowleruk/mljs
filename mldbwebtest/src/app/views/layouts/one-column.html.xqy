@@ -52,6 +52,13 @@ declare variable $q as xs:string? := vh:get("q");
     }
     <div class="canvas">
       <div class="header" arcsize="5 5 0 0">
+        <a href="/mldbtest/search">Search</a> | 
+        <a href="/mldbtest/charts">Charts</a> | 
+        <a href="/mldbtest/chartsearch">Chart + Search</a> | 
+        <a href="/mldbtest/movies">Co-occurence</a> | 
+        <a href="/mldbtest/error">Error</a> | 
+        <a href="/mldbtest/kratu">Kratu</a> | 
+        <a href="/mldbtest/docbuilder">Document Builder</a> 
       </div>
       <div class="content">
         { $view }
