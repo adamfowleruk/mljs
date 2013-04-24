@@ -23,10 +23,21 @@ b.jquery.prototype.request = function(reqname,options,content,callback) {
   
   var data = null;
   if (undefined != content && null != content) {
-    data = JSON.stringify(content);
+    console.log("content typeof: " + (typeof content));
+    if ("ArrayBuffer" == typeof content) {
+      data = content;
+    } else if ("object" == typeof content) {
+      data = JSON.stringify(content);
+    } else if ("string" == typeof content) {
+      data = content;
+    }
+  }
+  var ct = options.contentType;
+  if (undefined == ct) {
+    ct = "application/json";
   }
   $.ajax(options.path,{
-    contentType: "application/json",
+    contentType: ct,
     type: options.method.toLowerCase(), 
     data: data,
     dataType: 'json',

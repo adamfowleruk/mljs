@@ -210,15 +210,15 @@ com.marklogic.widgets.searchbar.prototype._parseQuery = function(q) {
   var sort = null;
   var parts = q.split(" "); // TODO handler spaces in facet values
   for (var i = 0;i < parts.length;i++) {
-    if (parts[i].startsWith(this.sortWord + ":")) {
+    if (0 == parts[i].indexOf(this.sortWord + ":")) {
       sort = parts[i].substring(5);
     } else if (-1 != parts[i].indexOf(":")) {
       mldb.defaultconnection.logger.debug("FOUND A FACET IN QUERY: " + parts[i]);
       var fv = parts[i].split(":");
       mldb.defaultconnection.logger.debug("Facet name: " + fv[0] + " value: " + fv[1]);
-      if (fv[1].startsWith("\"")) {
+      if (0 == fv[1].indexOf("\"")) {
         fv[1] = fv[1].substring(1);
-        if (fv[1].endsWith("\"")) {
+        if ((fv[1].length - 1) == fv[1].indexOf("\"")) {
           fv[1] = fv[1].substring(0,fv[1].length-1);
         }
       }

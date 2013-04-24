@@ -675,7 +675,7 @@ m.prototype.metadata = function(docuri,callback_opt) {
  *
  * https://docs.marklogic.com/REST/PUT/v1/documents
  */
-m.prototype.save = function(json,docuri_opt,props_opt,callback_opt) {
+m.prototype.save = function(jsonXmlBinary,docuri_opt,props_opt,callback_opt) {
   if (undefined == callback_opt) {
     if (undefined != props_opt) {
       if (typeof(props_opt)==='function') {
@@ -724,14 +724,27 @@ m.prototype.save = function(json,docuri_opt,props_opt,callback_opt) {
     docuri_opt = this.__genid();
   }
   
-  
-  var url = "/v1/documents?uri=" + encodeURI(docuri_opt) + "&format=json";
+  var format = "json";
+  var contentType = null; // default to using format, above
+  var url = "/v1/documents?uri=" + encodeURI(docuri_opt);
   if (props_opt) {
     if (props_opt.collection) {
       url += "&collection=" + encodeURI(props_opt.collection);
     }
+    if (props_opt.contentType) {
+      format = null;
+      contentType = props_opt.contentType;
+    }
+    if (props_opt.permissions) {
+      // array of {role: name, permission: read|update|execute} objects
+      for (var p = 0;p < props_opt.permissions.length;p++) {
+        url += "&perm:" + props_opt.permissions[p].role + "=" + props_opt.permissions[p].permission;
+      }
+    }
   }
-  
+  if (null != format) {
+    url += "&format=" + format;
+  }
   // make transaction aware
   if (undefined != this.__transaction_id) {
     url += "&txid=" + encodeURI(this.__transaction_id);
@@ -741,8 +754,11 @@ m.prototype.save = function(json,docuri_opt,props_opt,callback_opt) {
     path: url,
     method: 'PUT'
   };
+  if (null != contentType) {
+    options.contentType = contentType;
+  }
   
-  this.__doreq("SAVE",options,json,function(result) {
+  this.__doreq("SAVE",options,jsonXmlBinary,function(result) {
     result.docuri = docuri_opt;
     (callback_opt||noop)(result);
   });
@@ -1026,6 +1042,106 @@ m.prototype.values = function(query,tuplesname,optionsname,callback_opt) {
   this.__doreq("VALUES",options,null,callback_opt);
 };
 
+
+
+
+// VERSION 7 SEMANTIC CAPABILITIES
+/**
+ * Saves a set of triples as an n-triples graph. Allows you to specify a named graph (collection) or use the default graph.
+ * 
+ * No documentation URL - still in Early Access
+ */
+m.prototype.saveGraph = function(triples,uri_opt,callback_opt) {
+  if (undefined == callback_opt && "function" === typeof uri_opt) {
+    callback_opt = uri_opt;
+    uri_opt = undefined;
+  }
+  
+  var options = {
+    path: "/v1/graph",
+    method: "PUT"
+  }
+  if (undefined != uri_opt) {
+    options.path += "?graph=" + encodeURI(uri_opt);
+  } else {
+    options.path += "?default";
+  }
+  // create a graph doc
+  var graphdoc = "";
+  for (var i = 0;i < triples.length;i++) {
+    graphdoc += "<" + triples[i].subject + "> <" + triples[i].predicate + "> <" + triples[i].object + "> .\n";
+  }
+  this.__doreq("SAVEGRAPH",options,graphdoc,callback_opt);
+};
+
+/**
+ * Merges a set of triples in to an n-triples graph. Allows you to specify a named graph (collection) or use the default graph.
+ * 
+ * No documentation URL - still in Early Access
+ */
+m.prototype.mergeGraph = function(triples,uri_opt,callback_opt) {
+  if (undefined == callback_opt && "function" === typeof uri_opt) {
+    callback_opt = uri_opt;
+    uri_opt = undefined;
+  }
+  
+  var options = {
+    path: "/v1/graph",
+    method: "POST"
+  }
+  if (undefined != uri_opt) {
+    options.path += "?graph=" + encodeURI(uri_opt);
+  } else {
+    options.path += "?default";
+  }
+  // create a graph doc
+  var graphdoc = "";
+  for (var i = 0;i < triples.length;i++) {
+    graphdoc += "<" + triples[i].subject + "> <" + triples[i].predicate + "> <" + triples[i].object + "> .\n";
+  }
+  this.__doreq("MERGEGRAPH",options,graphdoc,callback_opt);
+};
+
+m.prototype.graph = function(uri_opt,callback_opt) {
+  if (undefined == callback_opt && "function" === typeof uri_opt) {
+    callback_opt = uri_opt;
+    uri_opt = undefined;
+  }
+  
+  var options = {
+    path: "/v1/graph",
+    method: "GET"
+  }
+  if (undefined != uri_opt) {
+    options.path += "?graph=" + encodeURI(uri_opt);
+  } else {
+    options.path += "?default";
+  }
+  
+  this.__doreq("GETGRAPH",options,null,function(result) {
+    if (result.inError) {
+      (callback_opt||noop)(result);
+    } else {
+      // convert to JSON array representation
+      var lines = result.doc.split("\n");
+      var triples = new Array();
+      var spos,ppos,opos,send,pend,oend,line;
+      for (var l = 0;l < lines.length;l++) {
+        line = lines[l];
+        spos = line.indexOf("<");
+        send = line.indexOf(">",spos + 1);
+        ppos = line.indexOf("<",send + 1);
+        pend = line.indexOf(">",ppos + 1);
+        opos = line.indexOf("<",pend + 1);
+        oend = line.indexOf(">",opos + 1);
+        triples.push({subject: line.substring(spos + 1,send), predicate: line.substring(ppos + 1,pend), object: line.substring(opos + 1,oend)});
+      }
+      result.triples = triples;
+      (callback||noop)(result);
+    }
+  });
+  
+};
 
 
 
