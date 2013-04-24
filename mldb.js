@@ -1059,6 +1059,7 @@ m.prototype.saveGraph = function(triples,uri_opt,callback_opt) {
   
   var options = {
     path: "/v1/graph",
+    contentType: "text/plain",
     method: "PUT"
   }
   if (undefined != uri_opt) {
@@ -1068,8 +1069,12 @@ m.prototype.saveGraph = function(triples,uri_opt,callback_opt) {
   }
   // create a graph doc
   var graphdoc = "";
-  for (var i = 0;i < triples.length;i++) {
-    graphdoc += "<" + triples[i].subject + "> <" + triples[i].predicate + "> <" + triples[i].object + "> .\n";
+  if ("object" === typeof triples) {
+    for (var i = 0;i < triples.length;i++) {
+      graphdoc += "<" + triples[i].subject + "> <" + triples[i].predicate + "> <" + triples[i].object + "> .\n";
+    }
+  } else {
+    graphdoc = triples; // raw text in n-triples format
   }
   this.__doreq("SAVEGRAPH",options,graphdoc,callback_opt);
 };
@@ -1087,6 +1092,7 @@ m.prototype.mergeGraph = function(triples,uri_opt,callback_opt) {
   
   var options = {
     path: "/v1/graph",
+    contentType: "text/plain",
     method: "POST"
   }
   if (undefined != uri_opt) {
@@ -1096,8 +1102,12 @@ m.prototype.mergeGraph = function(triples,uri_opt,callback_opt) {
   }
   // create a graph doc
   var graphdoc = "";
-  for (var i = 0;i < triples.length;i++) {
-    graphdoc += "<" + triples[i].subject + "> <" + triples[i].predicate + "> <" + triples[i].object + "> .\n";
+  if ("object" === typeof triples) {
+    for (var i = 0;i < triples.length;i++) {
+      graphdoc += "<" + triples[i].subject + "> <" + triples[i].predicate + "> <" + triples[i].object + "> .\n";
+    }
+  } else {
+    graphdoc = triples; // raw text in n-triples format
   }
   this.__doreq("MERGEGRAPH",options,graphdoc,callback_opt);
 };
