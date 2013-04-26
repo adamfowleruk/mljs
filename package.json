@@ -8,5 +8,5 @@
 , "devDependencies": { "async": "~0.1.9", "ensure": "0.3.0", "sleep": "1.1.0" }
 , "scripts": { "test": "./test/run" }
 , "main": "./mldb.js"
-, "engines" : { "node" : "~0.10.x" }
+, "engines" : { "node" : "~0.10" }
 }
