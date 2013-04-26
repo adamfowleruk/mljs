@@ -464,7 +464,10 @@ m.prototype.__doreq = function(reqname,options,content,callback_opt) {
   var pos = options.path.indexOf("format=json");
   if (-1 != pos) {
     //options.path = options.path.substring(0,pos - 1) + options.path.substring(pos+11);
-    options.headers["Content-type"] = "application/json";
+    if (options.method !== "GET") {
+      options.headers["Content-type"] = "application/json";
+    }
+    options.headers["Accept"] = "application/json";
     this.logger.debug("Converted format=json to Content-Type header. Path now: " + options.path + " , headers now: " + JSON.stringify(options.headers));
   }
   
