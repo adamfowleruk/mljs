@@ -4,9 +4,9 @@
 , "version": "0.6.1"
 , "author": "Adam Fowler <adamfowleruk@gmail.com> (http://adamfowlerml.wordpress.com)"
 , "keywords": ["MarkLogic", "mldb", "search", "data", "xml", "json", "nosql", "nodejs"]
-, "dependencies": { "request": "~2.1.1", "underscore": "~1.1.7", "winston": "~0.6.2" }
+, "dependencies": { "request": "~2.1.1", "underscore": "~1.1.7", "winston": "~0.6.2", "jsdom": "~0.2" }
 , "devDependencies": { "async": "~0.1.9", "ensure": "0.3.0", "sleep": "1.1.0" }
 , "scripts": { "test": "./test/run" }
 , "main": "./mldb.js"
-, "engines" : { "node" : ">=0.4.8" }
+, "engines" : { "node" : "~0.10" }
 }
