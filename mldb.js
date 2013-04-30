@@ -6,6 +6,7 @@ if (typeof window === 'undefined') {
   thru = require("./lib/passthrough-wrapper"),
   noop = require("./lib/noop"),
   winston = require('winston');
+  jsdom = require('jsdom');
 
   logger = new (winston.Logger)({
     transports: [
@@ -63,15 +64,19 @@ var defaultdboptions = {
 }; // TODO make Documents the default db, automatically figure out port when creating new rest server
 
 function textToXML(text){
-	if (window.ActiveXObject){
-    var doc=new ActiveXObject('Microsoft.XMLDOM');
-    doc.async='false';
-    doc.loadXML(text);
+  if (typeof window !== "undefined") {
+    if (window.ActiveXObject) {
+      var doc=new ActiveXObject('Microsoft.XMLDOM');
+      doc.async='false';
+      doc.loadXML(text);
+    } else {
+      var parser=new DOMParser();
+      var doc=parser.parseFromString(text,'text/xml');
+    }
   } else {
-    var parser=new DOMParser();
-    var doc=parser.parseFromString(text,'text/xml');
-	}
-	return doc;
+    var doc = jsdom.jsdom(text, null, { FetchExternalResources: false, ProcessExternalResources: false })
+  }
+  return doc;
 }
 
 /**
