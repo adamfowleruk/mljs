@@ -72,7 +72,7 @@ function textToXML(text){
     var doc=parser.parseFromString(text,'text/xml');
 	}
 	return doc;
-}
+};
 
 /**
  * This returns a simplified JSON structure, equivalent to merging text nodes
@@ -100,7 +100,7 @@ function xmlToJson(xml) {
   } else if (xml.nodeType == 3) { 
     obj = xml.nodeValue;
   }            
-  if (xml.hasChildNodes()) {
+  if (undefined != xml.childNodes) {
     var justText = true;
     for (var i = 0; i < xml.childNodes.length; i++) {
       var item = xml.childNodes.item(i);
@@ -167,6 +167,131 @@ function xmlToJson(xml) {
   return obj;
 };
 
+
+/**
+ * This returns a simplified JSON structure, equivalent to merging text nodes
+ * removing whitespace and merging elements with attributes. Namespaces are also removed.
+ * Use xmlToJsonStrict instead if you want an exact JSON representation of an XML document.
+ *
+ * THIS ONE IS FOR XML RESULTS TO JSON RESULTS
+ */
+function xmlToJsonSearchResults(xml) {
+  if (null == xml || undefined == xml) {
+    return {};
+  }
+  
+  var obj = {};
+  if (xml.nodeType == 1) {                
+    if (xml.attributes.length > 0) {
+      //obj["@attributes"] = {};
+      for (var j = 0; j < xml.attributes.length; j++) {
+        var attribute = xml.attributes.item(j);
+        var nodeName = attribute.nodeName;
+        var pos = nodeName.indexOf(":");
+        if (-1 != pos) {
+          nodeName = nodeName.substring(pos + 1);
+        }
+        obj[nodeName] = attribute.value;
+      }
+    }
+  } else if (xml.nodeType == 3) { 
+    obj = xml.nodeValue;
+  }            
+  if (undefined != xml.childNodes) {
+    
+    var justText = true;
+    // check if parent name is 'result'. If so, return content json object with encoded string of all child nodes
+    var isResultContent = false;
+    if (null != xml.parentNode) {
+      console.log("parentNode is not null");
+      var ourName = xml.parentNode.nodeName;
+      var pos = ourName.indexOf(":");
+      if (-1 != pos) {
+        ourName = ourName.substring(pos + 1);
+      }
+      console.log("ourName: " + ourName);
+      if ("result"==ourName) {
+        isResultContent = true;
+      }
+    }
+      
+    if (isResultContent) {
+        console.log("GOT RESULT");
+        /*
+        var s = "";
+        for (var i = 0; i < xml.childNodes.length; i++) {
+          s += (new XMLSerializer()).serializeToString(xml.childNodes.item(i));
+        }
+        obj.content = s;
+        */
+        obj.content = (new XMLSerializer()).serializeToString(xml);
+    } else {
+  
+    for (var i = 0; i < xml.childNodes.length; i++) {
+      var item = xml.childNodes.item(i);
+      var nodeName = item.nodeName;
+      if (typeof (obj[nodeName]) == "undefined") {
+        obj[nodeName] = xmlToJson(item);
+      } else {
+        if (typeof (obj[nodeName].push) == "undefined") {
+          var old = obj[nodeName];
+          obj[nodeName] = [];
+          obj[nodeName].push(old);
+        }
+        obj[nodeName].push(xmlToJson(item));
+        // do text merge here
+      }
+      if (("#text" == nodeName)) {
+        if (Array.isArray(obj[nodeName])) {
+          var text = "";
+          for (var a = 0;a < obj[nodeName].length;a++) {
+            text += obj[nodeName][a];
+          }
+          text = text.replace("\n","").replace("\t","").replace("\r","").trim();
+          if (0 != text.length) {
+            obj[nodeName] = text;
+          } else {
+            obj[nodeName] = undefined;
+          }
+        } else if ("string" == typeof obj[nodeName]){
+          var text = obj[nodeName];
+          text = text.replace("\n","").replace("\t","").replace("\r","").trim();
+          if (0 != text.length) {
+            // check for a value of "\"\"", which MUST still be included in response (its a blank value, not XML whitespace)
+            obj[nodeName] = text.replace("\"","").replace("\"","");
+          } else {
+            obj[nodeName] = undefined;
+          }
+        }
+      }
+      if (undefined != obj[nodeName]) {
+        justText = justText && ("#text" == nodeName);
+      }
+    }
+  
+    // check all children to see if they are only text items
+    // if so, merge text items
+    // now replace #text child with just the merged text value
+    if (justText && undefined != obj[nodeName]) {
+      var text = "";
+      for (var i = 0; i < obj[nodeName].length; i++) {
+        if ("string" == typeof obj[nodeName][i]) {
+          text += obj[nodeName][i];
+        } else if (Array.isArray(obj[nodeName][i])) {
+          // merge array then add to text
+          // No need, done elsewhere above
+          mldb.defaultconnection.logger.warn("WARNING: #text is still an array. Should not happen.")
+        }
+      }
+      obj = text; // removes whitespace as unimportant // TODO replace with check for all string is whitespace first
+    }
+    
+  }
+    
+  }
+  return obj;
+ 
+};
 
 // from http://stackoverflow.com/questions/7769829/tool-javascript-to-convert-a-xml-string-to-json
 function xmlToJsonStrict(xml) {
@@ -735,6 +860,10 @@ m.prototype.save = function(jsonXmlBinary,docuri_opt,props_opt,callback_opt) {
       format = null;
       contentType = props_opt.contentType;
     }
+    if (props_opt.format) {
+      // most likely 'binary'
+      format = props_opt.format;
+    }
     if (props_opt.permissions) {
       // array of {role: name, permission: read|update|execute} objects
       for (var p = 0;p < props_opt.permissions.length;p++) {
@@ -910,7 +1039,7 @@ m.prototype.search = function(query_opt,options_opt,start_opt,sprops_opt,callbac
   }
   var content = null;
   var method = "GET";
-  var url = "/v1/search?q=" + encodeURI(query_opt) + "&format=json";
+  var url = "/v1/search?q=" + encodeURI(query_opt) ;
   if (options_opt != undefined) {
     if (typeof options_opt === "string") {
       url += "&options=" + encodeURI(options_opt);
@@ -920,6 +1049,7 @@ m.prototype.search = function(query_opt,options_opt,start_opt,sprops_opt,callbac
       method = "POST"; // TODO verify
     }*/
   }
+  var format = "&format=json";
   if (undefined != sprops_opt) {
     if (undefined != sprops_opt.collection) {
       url += "&collection=" + sprops_opt.collection;
@@ -927,7 +1057,15 @@ m.prototype.search = function(query_opt,options_opt,start_opt,sprops_opt,callbac
     if (undefined != sprops_opt.directory) {
       url += "&directory=" + sprops_opt.directory;
     }
+    if (undefined != sprops_opt.transform) {
+      // MarkLogic 7.0+ only
+      url += "&transform=" + sprops_opt.transform;
+    }
+    if (undefined != sprops_opt.format) {
+      format = "&format=" + sprops_opt.format;
+    }
   }
+  url += format;
   if (undefined != start_opt) {
     url += "&start=" + start_opt;
   }
@@ -944,7 +1082,29 @@ m.prototype.search = function(query_opt,options_opt,start_opt,sprops_opt,callbac
     path: url,
     method: method
   };
-  this.__doreq("SEARCH",options,content,callback);
+  var self = this;
+  this.__doreq("SEARCH",options,content,function(result) {
+    // Horrendous V7 EA1 workaround...
+    if ("xml" == result.format) {
+      self.logger.debug("result currently: " + JSON.stringify(result));
+      // convert to json for now (quick in dirty)
+      // TODO replace this with 'nice' fix for V7 transforms
+      result.doc = xmlToJsonSearchResults(result.doc);
+      result.format = "json";
+      //if (undefined == result.doc.result) {
+        result.doc = result.doc.response;
+        result.doc.results = result.doc.result;
+        result.doc.result = undefined;
+        /*
+        for (var i = 0;i < result.doc.results.length;i++) {
+          result.doc.results[i].content = {html: result.doc.results[i].html};
+          result.doc.results[i].html = undefined;
+        }*/
+      //}
+      self.logger.debug("Result doc now: " + JSON.stringify(result.doc));
+    }
+    (callback||noop)(result);
+  });
 };
 
 /**
@@ -1023,6 +1183,20 @@ m.prototype.saveSearchOptions = function(name,searchoptions,callback_opt) {
 };
 
 /**
+ * Fetches search options, if they exist, for the given search options name
+ * http://docs.marklogic.com/REST/PUT/v1/config/query/*
+ * 
+ * For structured serch options see http://docs.marklogic.com/guide/rest-dev/search#id_48838
+ */
+m.prototype.searchoptions = function(name,callback) {
+  var options = {
+    path: "/v1/config/query/" + name + "?format=json",
+    method: "GET"
+  };
+  this.__doreq("SEARCHOPTIONS",options,null,callback);
+};
+
+/**
  * Fetches values from a lexicon or computes 2-way co-occurence.
  * https://docs.marklogic.com/REST/GET/v1/values/*
  */
@@ -1042,6 +1216,72 @@ m.prototype.values = function(query,tuplesname,optionsname,callback_opt) {
   this.__doreq("VALUES",options,null,callback_opt);
 };
 
+/**
+ * Same functionality as values() but uses a combined search options and query mechanism.
+ * This requires MarkLogic V7 EA 1 or above
+ * http://docs-ea.marklogic.com/REST/POST/v1/values/*
+ * 
+ * For structured serch options see http://docs.marklogic.com/guide/rest-dev/search#id_48838
+ */
+m.prototype.valuesCombined = function(search,callback) {
+  
+  var options = {
+    path: "/v1/values/shotgun?direction=ascending&view=values",
+    method: "POST"
+  };
+  
+  this.__doreq("VALUESCOMBINED",options,search,callback);
+};
+
+/**
+ * Lists the collection URIS underneath the parent uri.
+ * Helper method to fetch collections from the collection lexicon using mldb.valuesCombined().
+ */
+m.prototype.subcollections = function(parenturi,callback) {
+  var values = {
+    search: {
+      "query": {
+        "collection-query" : {
+          uri: [parenturi]
+        }
+      },
+      "options": {
+        "values": [
+          {
+            "name": "childcollectionsvalues",
+            "constraint": [
+              {
+                "name": "childcollections",
+                "collection": {
+                  "prefix": parenturi
+                }
+              }
+            ]
+          } 
+        ]
+      }
+    }
+  };
+  
+  var self = this;
+  
+  this.valuesCombined(values,function(result) {
+    self.logger.debug("collection values result: " + JSON.stringify(result));
+    if (result.inError) {
+      callback(result);
+    } else {
+      // extract just the values collection and return that for simplicity
+      var list = result["values-response"].value;
+      var values = new Array();
+      for (var i = 0;i < list.length;i++) {
+        values.push(list[i][0]._value);
+      }
+      result.doc = {values: values};
+      
+      callback(result);
+    }
+  });
+};
 
 
 
@@ -1049,7 +1289,7 @@ m.prototype.values = function(query,tuplesname,optionsname,callback_opt) {
 /**
  * Saves a set of triples as an n-triples graph. Allows you to specify a named graph (collection) or use the default graph.
  * 
- * No documentation URL - still in Early Access
+ * No documentation URL - still in Early Access, docs only available on internal MarkLogic wiki
  */
 m.prototype.saveGraph = function(triples,uri_opt,callback_opt) {
   if (undefined == callback_opt && "function" === typeof uri_opt) {
@@ -1058,7 +1298,8 @@ m.prototype.saveGraph = function(triples,uri_opt,callback_opt) {
   }
   
   var options = {
-    path: "/v1/graph",
+    path: "/v1/graphs", // EA nightly URL
+    contentType: "text/plain",
     method: "PUT"
   }
   if (undefined != uri_opt) {
@@ -1068,8 +1309,12 @@ m.prototype.saveGraph = function(triples,uri_opt,callback_opt) {
   }
   // create a graph doc
   var graphdoc = "";
-  for (var i = 0;i < triples.length;i++) {
-    graphdoc += "<" + triples[i].subject + "> <" + triples[i].predicate + "> <" + triples[i].object + "> .\n";
+  if ("object" === typeof triples) {
+    for (var i = 0;i < triples.length;i++) {
+      graphdoc += "<" + triples[i].subject + "> <" + triples[i].predicate + "> <" + triples[i].object + "> .\n";
+    }
+  } else {
+    graphdoc = triples; // raw text in n-triples format
   }
   this.__doreq("SAVEGRAPH",options,graphdoc,callback_opt);
 };
@@ -1087,6 +1332,7 @@ m.prototype.mergeGraph = function(triples,uri_opt,callback_opt) {
   
   var options = {
     path: "/v1/graph",
+    contentType: "text/plain",
     method: "POST"
   }
   if (undefined != uri_opt) {
@@ -1096,12 +1342,22 @@ m.prototype.mergeGraph = function(triples,uri_opt,callback_opt) {
   }
   // create a graph doc
   var graphdoc = "";
-  for (var i = 0;i < triples.length;i++) {
-    graphdoc += "<" + triples[i].subject + "> <" + triples[i].predicate + "> <" + triples[i].object + "> .\n";
+  if ("object" === typeof triples) {
+    for (var i = 0;i < triples.length;i++) {
+      graphdoc += "<" + triples[i].subject + "> <" + triples[i].predicate + "> <" + triples[i].object + "> .\n";
+    }
+  } else {
+    graphdoc = triples; // raw text in n-triples format
   }
   this.__doreq("MERGEGRAPH",options,graphdoc,callback_opt);
 };
 
+/**
+ * Returns the specified graph from MarkLogic Server, or the full default graph. USE CAREFULLY!
+ * Returns the triples as a JSON {subject: "...", predicate: "...", object: "..."} array in result.triples, or the raw in result.doc
+ *
+ * No documentation URL - still in Early Access
+ */
 m.prototype.graph = function(uri_opt,callback_opt) {
   if (undefined == callback_opt && "function" === typeof uri_opt) {
     callback_opt = uri_opt;
@@ -1140,8 +1396,23 @@ m.prototype.graph = function(uri_opt,callback_opt) {
       (callback||noop)(result);
     }
   });
-  
 };
+
+/**
+ * Deletes the specified graph from MarkLogic Server
+ *
+ * No documentation URL - still in Early Access
+ */
+m.prototype.deleteGraph = function(uri,callback_opt) {
+  var options = {
+    path: "/v1/graph?graph=" + encodeURI(uri),
+    method: "DELETE"
+  }
+  
+  this.__doreq("DELETEGRAPH",options,null,callback_opt);
+};
+
+
 
 
 
@@ -1544,7 +1815,18 @@ m.prototype.deleteSavedSearch = function(searchname,callback_opt) {
 // END EXTENSION - subscribe-resource.xqy - Adam Fowler adam.fowler@marklogic.com - Save searches by name, and subscribe to alerts from them. Alerts sent to a given URL.
 
 
-
+/**
+ * Fetches information about the user behind the current session.
+ *
+ * Useful is your webapp performs the login so your javascript doesn't know your username. Also looks up roles.
+ */
+m.prototype.whoami = function(callback) {
+  var options = {
+    path: "/v1/resources/whoami",
+    method: "GET"
+  };
+  this.__doreq("WHOAMI",options,null,callback);
+};
 
 
 
@@ -1788,6 +2070,36 @@ com.marklogic.options.prototype.pathConstraint = function() {
 };
 com.marklogic.options.prototype.path = com.marklogic.options.prototype.pathConstraint;
 
+
+com.marklogic.options.prototype.elemattrRangeConstraint = function(constraint_name,element,namespace,attr,type_opt,collation_opt,facet_opt,facet_options_opt) {
+  var range = {name: constraint_name,
+    range: {
+      type: type_opt || this.defaults.type, 
+      element: {
+        name: element, ns : namespace || this.defaults.namespace
+      },
+      attribute: {
+        name: attr,
+        ns: namespace || this.defaults.namespace
+      },
+      collation: collation_opt || this.defaults.collation
+    }
+  };
+  if (undefined != facet_opt || undefined != facet_options_opt) {
+    range.range.facet = true;
+  }
+  if (undefined != facet_options_opt) {
+    range.range["facet-options"] = facet_options_opt;
+  }
+  
+  // Create sort orders automatically
+  this.sortOrder(this.defaultSortDirection,type_opt || this.defaults.type,element,collation_opt || this.defaults.collation); // TODO verify this works with normal XML range indexes not json keys
+  
+  this.addConstraint(range);
+  
+  return this;
+};
+
 com.marklogic.options.prototype.rangeConstraint = function(constraint_name_opt,name_or_key,ns_opt,type_opt,collation_opt,facet_opt,facet_options_opt) {
   this._includeSearchDefaults();
   if (undefined == facet_options_opt) {
@@ -1946,6 +2258,7 @@ com.marklogic.options.prototype.pageLength = function(length) {
 
 com.marklogic.options.prototype.transformResults = function(apply,ns_opt,at_opt) {
   this._includeSearchDefaults();
+  //this.options["search-option"] = true;
   this.options["transform-results"].apply = apply;
   if (undefined != ns_opt && undefined != at_opt) {
     this.options["transform-results"].ns = ns_opt;
@@ -2156,6 +2469,16 @@ com.marklogic.query.prototype.georadius = function(constraint_name,lat,lon,radiu
         point: [{"latitude": lat,"longitude": lon}]
       }
     }
+  }
+};
+
+com.marklogic.query.prototype.range = function(constraint_name,val) {
+  return {
+    
+            "range-constraint-query": {
+              "value": val,
+              "constraint-name": constraint_name
+            }
   }
 };
 

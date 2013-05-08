@@ -36,12 +36,12 @@ b.jquery.prototype.request = function(reqname,options,content,callback) {
   if (undefined == ct) {
     ct = "application/json";
   }
-  $.ajax(options.path,{
-    contentType: ct,
-    type: options.method.toLowerCase(), 
-    data: data,
-    dataType: 'json',
-    success: function(data,textStatus,xhr) {
+  
+  // binary data hack XHR2
+  if (null != content && undefined != content && -1 != options.path.indexOf("&format=binary")) {
+    var xhr = new XMLHttpRequest();
+    xhr.open(options.method, options.path, true);
+    xhr.onload = function(e) {
       var res = {};
       res.inError = false;
       res.statusCode = xhr.status;
@@ -63,16 +63,81 @@ b.jquery.prototype.request = function(reqname,options,content,callback) {
             self.logger.debug("json str: " + JSON.stringify(wibble));
             self.logger.debug("Parsed JSON successfully");
           } catch (ex) {
-            // do nothing - likely a blank XML document
-            self.logger.debug("Exception: " + ex);
+            self.logger.debug("JSON parsing failed. Trying XML parsing.");
+            // try XML conversion now
+            try {
+              wibble = textToXML(xhr.responseText);
+              res.format = "xml";
+            } catch (ex2) {
+              // do nothing - likely a blank document
+              self.logger.debug("Not JSON or XML. Exception: " + ex2);
+            }
           }
         }
       }
       res.doc = wibble;
-      self.logger.debug("json final str: " + JSON.stringify(res.doc));
-      // TODO support XML returned too
+      //self.logger.debug("json final str: " + JSON.stringify(res.doc));
+      // now supports XML returned too
+      callback(res);
+    };
+    xhr.send(content);
+  } else {
+  
+  var dataType = "json";
+  if ("application/xml" == ct) {
+    dataType = "xml";
+  } else if ("text/plan" == ct) {
+    dataType = "text";
+  }
+  
+  $.ajax(options.path,{
+    contentType: ct,
+    type: options.method.toLowerCase(), 
+    data: data,
+    processData: false,
+    dataType: dataType,
+    converters: {"* text": window.String, "text html": true, "text json": window.String, "text xml": jQuery.parseXML},
+    success: function(data,textStatus,xhr) {
+      console.log("jquery success");
+      var res = {};
+      res.inError = false;
+      res.statusCode = xhr.status;
+      var wibble;
+      if (undefined != data && null != data) {
+        self.logger.debug("Data type: " + (typeof data));
+        self.logger.debug("Data value: " + data);
+        var xml = xhr.responseXML;
+        if (undefined != xml) {
+          res.format = "xml";
+          res.doc = xml;
+        } else {
+          self.logger.debug("response text: " + xhr.responseText);
+          try {
+            self.logger.debug("parsing xhr.responseText");
+            wibble = $.parseJSON(xhr.responseText); // successes are JSON text (needs parsing)
+            res.format = "json";
+            self.logger.debug("js raw: " + wibble);
+            self.logger.debug("json str: " + JSON.stringify(wibble));
+            self.logger.debug("Parsed JSON successfully");
+          } catch (ex) {
+            self.logger.debug("JSON parsing failed. Trying XML parsing.");
+            // try XML conversion now
+            try {
+              wibble = textToXML(xhr.responseText);
+              res.format = "xml";
+            } catch (ex2) {
+              // do nothing - likely a blank document
+              self.logger.debug("Not JSON or XML. Exception: " + ex2);
+            }
+          }
+        }
+      }
+      res.doc = wibble;
+      //self.logger.debug("json final str: " + JSON.stringify(res.doc));
+      // now supports XML returned too
       callback(res);
     } , error: function(xhr,textStatus,errorThrown) {
+      console.log("jquery error");
       // get failure code to determine what to do next
       var res = {};
       if (xhr.status == 303) {
@@ -109,7 +174,7 @@ b.jquery.prototype.request = function(reqname,options,content,callback) {
       callback(res);
     }
   });
-  
+ } 
   
 };
 

@@ -210,6 +210,13 @@
   background-color: #D2D2D2;
 }
 
+.searchresults-wrapper {
+  
+}
+
+.searchresults-navigable {
+  cursor: pointer;
+}
 
 
 
@@ -242,3 +249,147 @@
   font-weight: bold;
 }
 
+
+
+
+
+
+/****
+ * Markings widget
+ ****/
+.markings-title {
+  font-weight: bold;
+  margin-top: 5px;
+  background-color: #323231;
+  color: #E6E6E6;
+  height: 22px;
+  padding: 8px 10px 0;
+}
+
+.markings-meta-table {
+  border: none; 
+  width: 100%;
+}
+
+.markings-meta-title {
+  font-weight: bold;
+  margin-top: 5px;
+  background-color: #323231;
+  color: #E6E6E6;
+  height: 22px;
+  padding: 8px 10px 0;
+  
+  /*
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-top: 2px;
+  margin-bottom: 2px;*/
+}
+
+.markings-security-title {
+  font-weight: bold;
+  margin-top: 5px;
+  background-color: #323231;
+  color: #E6E6E6;
+  height: 22px;
+  padding: 8px 10px 0;
+  
+  /*
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-top: 4px;
+  margin-bottom: 2px;
+  padding-top: 4px;
+  border-top: solid 2px #E6E6E6;*/
+}
+
+.markings-content-title {
+  font-weight: bold;
+  margin-top: 5px;
+  background-color: #323231;
+  color: #E6E6E6;
+  height: 22px;
+  padding: 8px 10px 0;
+  
+  /*
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-top: 4px;
+  margin-bottom: 2px;
+  padding-top: 4px;
+  border-top: solid 2px #E6E6E6;*/
+}
+
+.markings-content-table {
+  width: 100%;
+  border: none;
+  border-collapse: separate;
+}
+
+.markings-content-row > td {
+  padding: 2px;
+}
+
+.markings-content-section-content {
+  border: 3px solid red;
+  margin-bottom: 5px;
+}
+
+.markings-content-section-part {
+  width: 60%;
+}
+
+.markings-content-section-triples {
+  padding-left: 5px;
+  width: 40%;
+}
+
+.markings-content-section-full {
+  width: 100%;
+}
+
+.markings-content-section-controls {
+  width: 100%;
+}
+
+.markings-content-section-controls label {
+  font-weight: bold;
+}
+
+.markings-content-section-html {
+  padding: 10px;
+}
+
+.markings-actionbar {
+  text-align: center;
+}
+
+/** Highlighting Markings **/
+.secure-redaction {
+  background-color: black;
+  color: #E6E6E6;
+  padding: 4px;
+  font-weight: bold;
+  margin-top: 4px;
+  margin-bottom: 5px;
+}
+
+.secure-section {
+  margin-bottom: 5px;
+}
+
+span.placename {
+  background-color: #88ff88;
+}
+
+span.organisation {
+  background-color: #ff8888;
+}
+
+span.person {
+  background-color: #8888ff;
+}
+
+.secure-section-triples {
+  display: none;
+}

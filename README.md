@@ -37,33 +37,51 @@ Targets for 0.6 (Apr 2013) - for MarkLogic World 2013
  - DONE Core: structured search support
  - DONE Widgets: basic demonstration samples for graphs based on MarkLogic data (Highcharts - shipped with MarkLogic)
  - DONE browser distribution building script
- - IN PROGRESS Widgets: Search widgets, and overarching search page widget UI layer over MLDB in browser, including custom result rendering plugins (search bar, facets, results, paging, sorting)
-  - Sorting widget actions
-  - More... all... links in facets
-  - BUG: one page too many in results if results are multiple of page size (i.e. 30 gives you 4 pages, not 3)
-  - BUG: multi word facet selection causes search to be limited to first word only (no quotes) -> query parser, not facet issue
  - DONE Widgets: graphs to support simple aggregations of query results (mean, sum, min, max, count)
  - DONE Widgets: example for joining search bar to graphs, using different aggregations for the same results
  - DONE Widgets: Co-occurence widget 
  - DONE Core: Added values() function for lexicon and co-occurence (GET /v1/values/[name])
  - DONE Widgets: Google Kratu Analytics widget linked to MarkLogic search results
- - IN PROGRESS Core: support XML returned as well as JSON
  - DONE Core: include XML -> JSON transform in JavaScript (workaround for XML snippets / raw returned in search results even with format=json enabled)
  - DONE Widgets: Pretty print utility for errors in JSON and XML (Probably requires XML -> JSON utility. Errors are always XML, unless configured on server otherwise.)
- - IN PROGRESS Widgets: Update search samples to include one set of mixed XML and JSON documents
  - DONE Widgets: Update search samples to include a custom renderer for one document type
- - Widgets: File upload (single and multiple)
- - IN PROGRESS Core: Search Options Builder
+ 
+Targets for 0.7 (May 2013 tidy up edition) 
+ - IN PROGRESS Widgets: Search widgets, and overarching search page widget UI layer over MLDB in browser, including custom result rendering plugins (search bar, facets, results, paging, sorting)
+  - Sorting widget actions
+  - More... all... links in facets
+  - BUG: one page too many in results if results are multiple of page size (i.e. 30 gives you 4 pages, not 3)
+  - BUG: multi word facet selection causes search to be limited to first word only (no quotes) -> query parser, not facet issue
+ - TEST Core: support XML returned as well as JSON
+ - TEST Widgets: Update search samples to include one set of mixed XML and JSON documents
+ - IN PROGRESS Widgets: File upload (single and multiple)
+ - TEST Core: Search Options Builder
  - IN PROGRESS Core: Structured Search Builder
  - TEST Browser: prototype.js binding
  - TEST Browser: XMLHttpRequest (xhr) binding
+ - IN PROGRESS Browser: XmlHttpRequest2 (xhr2) binding
  - IN PROGRESS Docs: Samples for XML use, equivalent to some of the existing JSON samples (not exhaustive)
  - Tests: Test samples for xml content
+ - TEST Core: Return and add binary documents
+ - TEST Core: Return and add plain text documents
+ - Widgets: (multi) Upload progress bar
+ - TEST Support for binary and plain text file save/get/search
+ - EA 1 support
+  - TEST Add/delete/modify/replace named graphs
+  - Interactive SPARQL query builder and result handler (including paging, linking to document search, restrict by collection, other document search criteria)
+ - IN PROGRESS REST extensions
+  - TEST DLS declare document as a record
+  - DLS list all documents in a record collection
+  - DLS list all DLS collections
+  - DLS list all retention rules
+  - DLS get document history
+  - DLS get document version
+  - DLS add retention rule
+  - Browser: DLS add retention rule widget
+  - TEST Browser: DLS declare search results as record widget
+ - TEST Get collections starting with a URI (values query helper method)
  
 Targets for 0.8 (Jun 2013)
- - Core: Return and add binary documents
- - Core: Return and add plain text documents
- - Widgets: (multi) Upload progress bar
  - Widgets: D3.js network diagram
  - Widgets: XML/JSON document creation-by-example (via HTML form generator)
  - Widgets: Support for using widgets in non ML 6 REST webapps, and embedding widgets remotely, via W3C CORS support (i.e. cross site support)
@@ -79,7 +97,6 @@ Targets for 0.8 (Jun 2013)
  - More support for server management (namespaces, indexes, service extensions, update REST instance configuration, XSLT transform management)
  - Widgets: Administration widgets (mainly aimed at pre-sales developers, not sysadmins)
  - Support nested cts:search (if possible)
- - Support for binary and plain text file save/get/search
  - CSV and TSV utilities
  - NodeJS: Support SSL
  - NodeJS: SSL with Basic
@@ -100,6 +117,9 @@ Targets for 0.8 (Jun 2013)
 
 Targets for 1.0 (Aug 2013)
  - Support current functionality against MarkLogic V7
+ - New V7 functionality (as and when required)
+  - Dynamic search options
+  - Alerting
 
 Not applicable / dropped / postponed targets
  - N/A sensible to/from json settings (Default on &format=json on server)

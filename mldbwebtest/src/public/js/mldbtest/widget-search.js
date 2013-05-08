@@ -113,6 +113,8 @@ com.marklogic.widgets.searchbar = function(container) {
   
   this.collection = null;
   this.directory = null;
+  this.transform = null;
+  this.format = null;
   
   this.options = {
                       options: {
@@ -155,6 +157,14 @@ com.marklogic.widgets.searchbar = function(container) {
   
   // set default connection
   this.db = mldb.defaultconnection;
+};
+
+com.marklogic.widgets.searchbar.prototype.setTransform = function(t) {
+  this.transform = t;
+};
+
+com.marklogic.widgets.searchbar.prototype.setFormat = function(f) {
+  this.format = f;
 };
 
 com.marklogic.widgets.searchbar.prototype.setCollection = function(col) {
@@ -298,6 +308,12 @@ com.marklogic.widgets.searchbar.prototype.__doquery = function(q,start) {
    }
    if (null != self.directory) {
      sprops.directory = self.directory;
+   }
+   if (null != self.transform) {
+     sprops.transform = self.transform;
+   }
+   if (null != self.format) {
+     sprops.format = self.format;
    }
    self.db.search(q,self.optionsName,ourstart,sprops,function(result) { // TODO pass start position through, if defined
     if (result.inError) {
@@ -693,31 +709,97 @@ com.marklogic.widgets.searchresults = function(container) {
   this.availableProcessors = new Array();
   this.processorPriority = new Array();
   
+  this.detailsLink = null;
+  
+  var htmlRec = function(content) {
+    var resStr = "";
+    console.log("type of content: " + (typeof content));
+    if ("string" == typeof content) {
+      return content;
+    } else {
+      for (var tag in content) {
+        console.log("processing tag: " + tag);
+        resStr += "<" + tag;
+        if (undefined != content[tag].class) {
+          resStr += " class='" + content[tag].class + "'";
+          content[tag].class = undefined;
+        }
+        if (undefined != content[tag].id) {
+          resStr += " id='" + content[tag].id + "'";
+          content[tag].id = undefined;
+        }
+        resStr += ">";
+        console.log("calling htmlRec for tag: " + tag);
+        resStr += htmlRec(content[tag]);
+        resStr += "</" + tag + ">";
+      }
+      return resStr;
+    }
+  };
   this.defaultProcessor = {
     matcher: function(result) {
       return true; // handles all results
     }, 
     processor: function(result) {
-      var resStr = "";
-      // parse each results and snippet / raw content
-      var title = result.uri;
-      if (!(typeof result.content.title === 'undefined')) {
-        title = result.content.title;
-      }
-      var snippet = null;
-      // TODO show all content if snippeting mode is snippet
-      if (undefined != result.content.summary) {
-        snippet = result.content.summary;
+      // check if 1 root json element that is called 'html'
+      /*
+      console.log("TYPEOF: " + (typeof result.content));
+      console.log("length: " + ( result.content.length));
+      console.log("html: " + ( result.content.html)); */
+      console.log("matches:" + result.matches);
+      console.log("first match: " + result.matches[0]);
+      console.log("match text: " + result.matches[0]["match-text"]);
+      console.log("match text 0: " + result.matches[0]["match-text"][0]);
+      if ("object" == typeof result.content && undefined != result.content.html) {
+        // is a xhtml document rendered as json
+        var content = result.content.html.body;
+        var resStr = htmlRec(content);
+      } else if (undefined != result.matches && result.matches[0] && result.matches[0]["match-text"] && result.matches[0]["match-text"][0] && result.matches[0]["match-text"][0].indexOf("<html") == 0) {
+        console.log("GOT A SNIPPET MATCH WITH A HTML ELEMENT");
+        var xml = textToXML(result.matches[0]["match-text"][0]);
+        var txt = result.matches[0]["match-text"][0];
+        console.log("RAW HTML TEXT: " + txt);
+        var strip = txt.substring(txt.indexOf(">",txt.indexOf("<body") + 5) + 1,txt.indexOf("</body>"));
+        console.log("STRIP TEXT: " + strip);
+        var title = null;
+        var titleEl = xml.getElementsByTagName("title")[0];
+        console.log("PATH: " + result.matches[0].path);
+        if (undefined != titleEl && null != titleEl && null != titleEl.nodeValue) {
+          title = titleEl.nodeValue;
+        } else {
+          title = result.matches[0].path.substring(8,result.matches[0].path.length - 2);
+        }
+        var resStr = "<div class='searchresults-result'><h3>" + result.index + ". " + title + "</h3>";
+        //resStr += "<div class='searchresults-snippet'>" + (new XMLSerializer()).serializeToString(xml.getElementsByTagName("body")[0]) + "</div>";
+        resStr += "<div class='searchresults-snippet'>" + strip + "</div>";
+        //resStr += "<div class='searchresults-snippet'><iframe scrolling='no'>" + result.matches[0]["match-text"][0] + "</iframe></div>";
+        
+        resStr += "</div>";
+        return resStr;
       } else {
-        snippet = JSON.stringify(result.content); 
-        // TODO check for XML (string not object) content in results.results[i].content
+        var resStr = "";
+        // parse each results and snippet / raw content
+        var title = result.uri;
+        if (undefined != result.content && undefined != result.content.title ) {
+          title = result.content.title;
+        }
+        var snippet = null;
+        // TODO show all content if snippeting mode is snippet
+        if (undefined != result.content && undefined != result.content.summary) {
+          snippet = result.content.summary;
+        } else if (undefined != result.content) {
+          snippet = JSON.stringify(result.content); 
+          // TODO check for XML (string not object) content in results.results[i].content
+        } else {
+          // no snippet available
+        }
+        resStr += "<div class='searchresults-result'><h3>" + result.index + ". " + title + "</h3>";
+        if (null != snippet) {
+          resStr += "<div class='searchresults-snippet'>" + snippet + "</div>";
+        }
+        resStr += "</div>";
+        return resStr;
       }
-      resStr += "<div class='searchresults-result'><h3>" + result.index + ". " + title + "</h3>";
-      if (null != snippet) {
-        resStr += "<div class='searchresults-snippet'>" + snippet + "</div>";
-      }
-      resStr += "</div>";
-      return resStr;
     }
   };
   
@@ -725,6 +807,10 @@ com.marklogic.widgets.searchresults = function(container) {
   
   // event handlers
   this.selectionPublisher = new com.marklogic.events.Publisher();
+};
+
+com.marklogic.widgets.searchresults.prototype.details = function(urlspec) {
+  this.detailsLink = urlspec;
 };
 
 com.marklogic.widgets.searchresults.prototype.clear = function() {
@@ -744,7 +830,7 @@ com.marklogic.widgets.searchresults.prototype._refresh = function() {
     // TODO show/hide refresh image based on value of this.results (true|false)
     return;
   }
-  if (null == this.results || this.results.results.length == 0) {
+  if (null == this.results || undefined == this.results.results || this.results.results.length == 0) {
     document.getElementById(this.container).innerHTML = 
       "<div class='searchresults-inner'>" +
         "<div class='searchresults-title'>Results</div><div class='searchresults-results'>No Results</div>" +
@@ -758,7 +844,16 @@ com.marklogic.widgets.searchresults.prototype._refresh = function() {
     var uureplace = 1001;
     var replacements = new Array();
     
+    var pointer = null != this.detailsLink;
+    
     for (var i = 0;i < this.results.results.length;i++) {
+      resStr += "<div id='" + this.container + "-searchresults-wrapper-" + i + "' class='searchresults-wrapper"
+      if (pointer) {
+        resStr += " searchresults-navigable";
+      }
+      resStr += "'>";
+        
+        
       // run processors in order
       var result = this.results.results[i];
       var found = false;
@@ -782,17 +877,36 @@ com.marklogic.widgets.searchresults.prototype._refresh = function() {
         mldb.defaultconnection.logger.debug("No processor found, using default");
         resStr += this.defaultProcessor.processor(result);
       }
+      
+      resStr += "</div>";
     }
     resStr += "</div></div>"; // end of results container div and results inner
     mldb.defaultconnection.logger.debug("RES STR: " + resStr);
     
     document.getElementById(this.container).innerHTML = resStr;
     
+    // now add click handlers to each result div, if required
+    if (pointer) {
+      var self = this;
+      for (var i = 0;i < this.results.results.length;i++) {
+        var id = this.container + "-searchresults-wrapper-" + i;
+        var result = this.results.results[i];
+        document.getElementById(id).onclick = function(evt) {
+          self._navigateTo(result.uri);
+        }
+      }
+    }
+    
     // now do any XML replacements
     for (var r = 1001;r < uureplace;r++) {
       document.getElementById(this.container + "-searchresults-xml-" + r).innerHTML = replacements[r]; // TODO verify we don't have to clone the XML document before insert (shouldn't need to)
     }
   }
+};
+
+com.marklogic.widgets.searchresults.prototype._navigateTo = function(uri) {
+  var go = this.detailsLink.replace("#URI#",uri);
+  window.location = go;
 };
 
 com.marklogic.widgets.searchresults.prototype.addSelectionListener = function(sl) {
@@ -1078,6 +1192,7 @@ com.marklogic.widgets.searchpage = function(container) {
         "</div>" +
       "</div>" +
       "<div id='" + container + "-results' class='grid_8 searchpage-results'></div>" +
+      "<div id='" + container + "-results-actions' class='grid_8 searchpage-results-actions'></div>" +
     "</div></div>";
   
   // NB these simple names allow direct access via mypage.bar in order for page creator to set config defaults (E.g. facet size)
@@ -1111,10 +1226,28 @@ com.marklogic.widgets.searchpage = function(container) {
   this.db = mldb.defaultconnection;
 };
 
-com.marklogic.widgets.searchpage.prototype.setOptions = function(name,options) {
+com.marklogic.widgets.searchpage.prototype.setOptions = function(name,options,disable_options_check) {
+  // set widgets with those provided
   this.bar.setOptionsName(name);
   this.bar.setOptions(options);
   this.sort.setOptions(options);
+  
+  // check if options exist
+  var self = this;
+  if (undefined != disable_options_check && true == disable_options_check) {
+    mldb.defaultconnection.searchoptions(name,function(result) {
+      console.log("RESULT: " + JSON.stringify(result.doc));
+      if (result.inError) {
+        console.log("Search options " + name + " do not exist on the server. Search bar widget will auto create them on next search.");
+        console.log("ERROR: " + JSON.stringify(result.details));
+      } else {
+        // update widgets with ACTUAL options
+        self.bar.setOptions(result.doc);
+        self.sort.setOptions(result.doc);
+        self.bar.optionsExists = true;
+      }
+    });
+  }
 };
 
 com.marklogic.widgets.searchpage.prototype.execute = function() {

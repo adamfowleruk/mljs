@@ -173,7 +173,13 @@ com.marklogic.widgets.create.prototype.dnd = function() {
   return this;
 };
 
-com.marklogic.widgets.create.prototype.permissions = function(allowMultiple,firstRoleArray,title_opt) {
+com.marklogic.widgets.create.prototype.forcePermission = function(permObject) {
+  this._permissions.push(permObject);
+  
+  return this;
+};
+
+com.marklogic.widgets.create.prototype.permissions = function(allowMultiple,firstRoleArray,title_opt,privilege) {
   // add permissions control
   var id = this.container + "-permissions-" + (++this.controlCount);
   var html = "<div id='" + id + "' class='create-permissions'>" + 
@@ -186,6 +192,7 @@ com.marklogic.widgets.create.prototype.permissions = function(allowMultiple,firs
   html += "</select></div>";
   
   this._place(html,"permissions",id);
+  this.controlData[id] = {privilege:privilege};
   return this;
 };
 
@@ -224,7 +231,14 @@ com.marklogic.widgets.create.prototype.save = function(title_opt) {
   
   var self = this;
   //document.getElementById(id).onclick = function(e) {console.log("got onclick");self._onSave(self);console.log("done onsave");e.stopPropagation();console.log("done stop prop");return false;}; // TODO Check this is valid
-  document.getElementById(this.container + "-create-form").onsubmit = function() {self._onSave();return false;};
+  document.getElementById(this.container + "-create-form").onsubmit = function() {
+    try {
+      self._onSave();
+    } catch (ex) {
+      console.log("ERROR ON SAVE: " + ex);
+    }
+    return false;
+  };
   // TODO find a way to do this without working at the form level
   
   return this;
@@ -258,32 +272,56 @@ com.marklogic.widgets.create.prototype._onSave = function() {
       }
       // TODO extract other properties about this document
       if ("permissions" == ctl.type) {
+        var ctlData = this.controlData[ctl.id];
         var e = document.getElementById(ctl.id + "-select");
         //console.log("selected value: " + e.value);
         //console.log("selected perm: " + e.selectedIndex);
         //console.log("selected perm value: " + e.options[e.selectedIndex]);
         //var str = e.options[e.selectedIndex].text;
         //console.log("adding permission: " + e.value + " = read");
-        perms.push({role: e.value, permission: "read"});
+        perms.push({role: e.value, permission: ctlData.privilege});
+        //perms.push({role: e.value + "-write", permission: "insert"});
+        //perms.push({role: e.value + "-write", permission: "update"});
+        //perms.push({role: "can-read", permission: "read"});
       }
+    }
+    
+    // add forced permissions
+    for (var p = 0;p < this._permissions.length;p++) {
+      perms.push(this._permissions[p]);
     }
     
     if (null != uploadCtl) {
       console.log("got uploadCtl");
+      
+      
+      /*
       // get file info for upload
       var reader = new FileReader();
       //var files = this.controlData[uploadCtl.id].files;
       //var file = files[0]; // TODO handle multiple, none
       console.log("fetching file")
-      var file = document.getElementById(uploadCtl.id).files[0];
+      var fileel = document.getElementById(uploadCtl.id);
+      var file = fileel.files[0];
       console.log("reading file");
       
       var self = this;
       
       reader.onload = (function(theFile) {
+      
+      var bin = reader.readAsArrayBuffer(theFile);
+      console.log("BIN RESULT: " + bin);
+      console.log("Reader info: " + JSON.stringify(reader));
+      
         return function(e) {
-          var res = e.target.result;
-          console.log("result: " + res);
+          var res = e.target.result; // WRONG - THIS IS SENDING BYTE LENGTH ONLY
+          console.log("TARGET JSON: " + JSON.stringify(e));
+          //
+          for (var n in fileel) {
+            console.log(" " + n);
+            console.log("  " + n + ": " + typeof(fileel[n]));
+          }//
+          console.log("result: " + JSON.stringify(res));
           var cols = "";
           for (var i = 0;i < self._collections.length;i++) {
             if (0 != i) {
@@ -299,6 +337,7 @@ com.marklogic.widgets.create.prototype._onSave = function() {
             permissions: perms
           }
           console.log("mime type: " + file.type);
+          console.log("Request properties: " + JSON.stringify(props));
           mldb.defaultconnection.save(res,self._uriprefix + file.name,props,function(result) {
             if (result.inError) {
               console.log("ERROR: " + result.doc);
@@ -310,7 +349,89 @@ com.marklogic.widgets.create.prototype._onSave = function() {
         }
       })(file);
       
-      reader.readAsArrayBuffer(file);
+      */
+      
+      
+      
+      
+      
+    var files = document.getElementById(uploadCtl.id).files;
+    if (!files.length) {
+      alert('Please select a file!');
+      return;
+    }
+
+    var file = files[0];
+    var start = 0;
+    var stop = file.size - 1;
+
+    
+          var cols = "";
+          for (var i = 0;i < this._collections.length;i++) {
+            if (0 != i) {
+              cols += ",";
+            }
+            cols += this._collections[i];
+          }
+          
+          var props = {
+            contentType: file.type,
+            //contentType: false,
+            format: "binary",
+            collection: cols,
+            permissions: perms
+          }
+          console.log("mime type: " + file.type);
+          console.log("Request properties: " + JSON.stringify(props));
+          
+    var reader = new FileReader();
+    var self = this;
+
+    // If we use onloadend, we need to check the readyState.
+    reader.onloadend = function(evt) {
+      if (evt.target.readyState == FileReader.DONE) { // DONE == 2
+        //document.getElementById('byte_content').textContent = evt.target.result;
+        
+        console.log("file content: " + evt.target.result);
+        
+        // save to ML
+        
+        console.log("calling mldb save");
+          /*
+          var arrBuff = new ArrayBuffer(evt.target.result.length);
+var writer = new Uint8Array(arrBuff);
+for (var i = 0, len = evt.target.result.length; i < len; i++) {
+    writer[i] = evt.target.result.charCodeAt(i);
+}*/
+          
+          mldb.defaultconnection.save(file,self._uriprefix + file.name,props,function(result) {
+            if (result.inError) {
+              console.log("ERROR: " + result.doc);
+            } else {
+              console.log("SUCCESS: " + result.docuri);
+              self.completePublisher.publish(result.docuri);
+            }
+          });
+        
+        
+        
+        
+        /*document.getElementById('byte_range').textContent = 
+            ['Read bytes: ', start + 1, ' - ', stop + 1,
+             ' of ', file.size, ' byte file'].join('');*/
+      }
+    };
+
+    var blob = null;
+    if (file.webkitSlice) {
+      blob = file.webkitSlice(start, stop + 1);
+    } else if (file.mozSlice) {
+      blob = file.mozSlice(start, stop + 1);
+    }
+    //reader.readAsBinaryString(blob);
+    reader.readAsArrayBuffer(blob);
+    //reader.readAsText(file);
+      
     } else {
       // TODO
       console.log("upload ctl null");
