@@ -3,6 +3,11 @@ com = window.com || {};
 com.marklogic = window.com.marklogic || {};
 com.marklogic.widgets = window.com.marklogic.widgets || {};
 
+/**
+ * Displays co-occurence results from a searches values list, ordered by inverse score.
+ * @constructor
+ * @param {string} container - The HTML ID of the element to place this widget within.
+ */
 com.marklogic.widgets.cooccurence = function(container) {
   this.container = container;
   
@@ -10,15 +15,15 @@ com.marklogic.widgets.cooccurence = function(container) {
   
   this.values = null;
   
-  this.options = null;
-  
   this._refresh();
 };
 
-com.marklogic.widgets.cooccurence.prototype.setOptions = function(options) {
-  this.options = options;
-};
-
+/**
+ * Updates the widget with the specified values JSON object. (top level element is "values-response"). 
+ * See GET /v1/values
+ * 
+ * @param {JSON} values - the values returned as a values response JSON object.
+ */
 com.marklogic.widgets.cooccurence.prototype.updateValues = function(values) {
   this.values = values;
   

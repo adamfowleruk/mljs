@@ -22,7 +22,7 @@ if (typeof window === 'undefined') {
   var cl = function() {
     // do nothing
     this.loglevels = ["debug","info","warn","error"];
-    this.loglevel = 2;
+    this.loglevel = 0;
   };
   cl.prototype.setLogLevel = function(levelstring) {
     var l = 0;
@@ -62,6 +62,10 @@ var defaultdboptions = {
   host: "localhost", port: 9090, adminport: 8002, ssl: false, auth: "digest", username: "admin",password: "admin", database: "mldbtest", searchoptions: {}, fastthreads: 10, fastparts: 100
 }; // TODO make Documents the default db, automatically figure out port when creating new rest server
 
+/**
+ * Converts the specified text to XML using the Browser's built in XML support
+ * @param {string} text - The textual representation of the XML
+ */
 function textToXML(text){
 	if (window.ActiveXObject){
     var doc=new ActiveXObject('Microsoft.XMLDOM');
@@ -78,6 +82,8 @@ function textToXML(text){
  * This returns a simplified JSON structure, equivalent to merging text nodes
  * removing whitespace and merging elements with attributes. Namespaces are also removed.
  * Use xmlToJsonStrict instead if you want an exact JSON representation of an XML document.
+ *
+ * @param {string} xml - The XML Document object to conver to JSON
  */
 function xmlToJson(xml) {
   if (null == xml || undefined == xml) {
@@ -174,6 +180,8 @@ function xmlToJson(xml) {
  * Use xmlToJsonStrict instead if you want an exact JSON representation of an XML document.
  *
  * THIS ONE IS FOR XML RESULTS TO JSON RESULTS
+ *
+ * @param {string} xml - The XML Document to transform to JSON
  */
 function xmlToJsonSearchResults(xml) {
   if (null == xml || undefined == xml) {
@@ -293,7 +301,12 @@ function xmlToJsonSearchResults(xml) {
  
 };
 
-// from http://stackoverflow.com/questions/7769829/tool-javascript-to-convert-a-xml-string-to-json
+/**
+ * Strictly converts the supplied XML document to a JSON representation
+ * from http://stackoverflow.com/questions/7769829/tool-javascript-to-convert-a-xml-string-to-json
+ *
+ * @param {string} xml - The XML Document to convert to JSON
+ */
 function xmlToJsonStrict(xml) {
   if (null == xml || undefined == typeof xml) {
     return {};
@@ -341,16 +354,23 @@ function xmlToJsonStrict(xml) {
 // MLDB DATABASE OBJECT
 
 var self;
-var m = function() {
+/**
+ * Creates an MLDB instance. Aliased to new mldb().
+ * @constructor
+ */
+var mldb = function() {
   this.configure();
 };
+var m = mldb;
 
 // CONFIG METHODS
 
 /**
  * Provide configuration information to this database. This is merged with the defaults.
+ *
+ * @param {JSON} dboptions - The DB Options to merge with the default options for this connection.
  */
-m.prototype.configure = function(dboptions) {
+mldb.prototype.configure = function(dboptions) {
   self = this;
   if (undefined == this.logger) {
     this.logger = logger;
@@ -374,7 +394,7 @@ m.prototype.configure = function(dboptions) {
   if (!(typeof window ==="undefined")) {
     // in a browser
     
-    if (!(typeof jQuery == 'undefined')) {
+    if (!(typeof jQuery == 'undefined') && (!(undefined == mldb.bindings || undefined == mldb.bindings.jquery))) {
       // is jquery defined?
       logger.debug("Wrapper: jQuery, Version: " + jQuery.fn.jquery);
       if (undefined == mldb.bindings || undefined == mldb.bindings.jquery) {
@@ -382,7 +402,7 @@ m.prototype.configure = function(dboptions) {
       } else {
         this.dboptions.wrapper = new mldb.bindings.jquery();
       }
-    } else if (!(typeof Prototype == 'undefined')) {
+    } else if (!(typeof Prototype == 'undefined') && !(undefined == mldb.bindings || undefined == mldb.bindings.prototypejs)) {
       // is prototypejs defined?
       logger.debug("Wrapper: Prototype, Version: " + Prototype.Version);
       if (undefined == mldb.bindings || undefined == mldb.bindings.prototypejs) {
@@ -393,10 +413,16 @@ m.prototype.configure = function(dboptions) {
     } else {
       // fallback to XMLHttpRequest
       logger.debug("Wrapper: Falling back to XMLHttpRequest");
-      if (undefined == mldb.bindings || undefined == mldb.bindings.xhr) {
-        logger.debug("ERROR SEVERE: mldb.bindings.xhr is not defined. Included mldb-xhr.js ?");
+      if (undefined == mldb.bindings) {
+        logger.debug("ERROR SEVERE: mldb.bindings.xhr or xhr2 is not defined. Included mldb-xhr(2).js ?");
       } else {
-        this.dboptions.wrapper = new mldb.bindings.xhr();
+        if (undefined == mldb.bindings.xhr) {
+          logger.debug("Wrapper: Using XmlHttpRequest 2");
+          this.dboptions.wrapper = new mldb.bindings.xhr2();
+        } else {
+          logger.debug("Wrapper: Using XmlHttpRequest");
+          this.dboptions.wrapper = new mldb.bindings.xhr();
+        }
       }
     }
     
@@ -429,8 +455,10 @@ m.prototype.configure = function(dboptions) {
 
 /**
  * Set the logging object to be used by this class and all wrappers. Must provide as a minimum a debug and info method that takes a single string.
+ *
+ * @param {object} newlogger - The logger object to use. Must support debug, log and info methods taking single string parameters.
  */
-m.prototype.setLogger = function(newlogger) {
+mldb.prototype.setLogger = function(newlogger) {
   //logger = newlogger;
   this.logger = newlogger;
   if (this.dboptions.wrapper != undefined) {
@@ -441,9 +469,9 @@ m.prototype.setLogger = function(newlogger) {
 
 if (typeof window === 'undefined') {
   // NodeJS exports
-  module.exports = function() {return new m()};
+  module.exports = function() {return new mldb()};
 } else {
-  mldb = m;
+  //mldb = m;
 }
 
 
@@ -451,7 +479,7 @@ if (typeof window === 'undefined') {
 
 // PRIVATE METHODS
 
-m.prototype.__genid = function() {
+mldb.prototype.__genid = function() {
   return m.__dogenid();
 };
 
@@ -459,13 +487,19 @@ m.__dogenid = function() {
   return "" + ((new Date()).getTime()) + "-" + Math.ceil(Math.random()*100000000);
 }
 
-m.prototype.__doreq_wrap = function(reqname,options,content,callback_opt) {
+/**
+ * Invokes the appropriate Browser AJAX connection wrapper. Not to be called directly.
+ */
+mldb.prototype.__doreq_wrap = function(reqname,options,content,callback_opt) {
   this.dboptions.wrapper.request(reqname,options,content,function(result) {
     (callback_opt || noop)(result);
   });
 };
 
-m.prototype.__doreq_node = function(reqname,options,content,callback_opt) {
+/**
+ * Invokes the appropriate Node.js connection wrapper (see DigestWrapper and BasicWrapper for more information). Not to be called directly.
+ */
+mldb.prototype.__doreq_node = function(reqname,options,content,callback_opt) {
   var self = this;
   
   var wrapper = this.dboptions.wrapper;
@@ -572,7 +606,7 @@ m.prototype.__doreq_node = function(reqname,options,content,callback_opt) {
 /**
  * Handles management of all HTTP requests passed to the wrappers. Should never be invoked directly.
  */
-m.prototype.__doreq = function(reqname,options,content,callback_opt) {
+mldb.prototype.__doreq = function(reqname,options,content,callback_opt) {
   this.logger.debug("__doreq: reqname: " + reqname + ", method: " + options.method + ", uri: " + options.path);
   if (undefined == options.host) {
     options.host = this.dboptions.host;
@@ -609,10 +643,12 @@ m.prototype.__doreq = function(reqname,options,content,callback_opt) {
  * Function allowing MLDB's underlying REST invocation mechanism to be used for an arbitrary request. 
  * Useful for future proofing should some new functionality come out, or bug discovered that prevents
  * your use of a JavaScript Driver API call.
- * options = {method: "GET|POST|PUT|DELETE", path: "/v1/somepath?key=value&format=json"}
- * content = undefined for GET, DELETE, json for PUT, whatever as required for POST
+ * 
+ * @param {object} options_opt - {method: "GET|POST|PUT|DELETE", path: "/v1/somepath?key=value&format=json"}
+ * @param {object} content_opt - undefined for GET, DELETE, json for PUT, whatever as required for POST
+ * @param {object} callback_opt - the optional callback to invoke after the method has completed
  */
-m.prototype.do = function(options_opt,content_opt,callback_opt) {
+mldb.prototype.do = function(options_opt,content_opt,callback_opt) {
   if (callback_opt == undefined && typeof(content_opt)==='function') {
     callback_opt = content_opt;
     content_opt = undefined;
@@ -632,8 +668,10 @@ m.prototype.do = function(options_opt,content_opt,callback_opt) {
 
 /**
  * Does this database exist? Returns an object, not boolean, to the callback
+ *
+ * @param {function} callback - The callback function to invoke
  */
-m.prototype.exists = function(callback) {
+mldb.prototype.exists = function(callback) {
   var options = {
     host: this.dboptions.host,
     port: this.dboptions.adminport,
@@ -662,13 +700,15 @@ m.prototype.exists = function(callback) {
     }
   });
 };
-m.prototype.test = m.prototype.exists;
+mldb.prototype.test = mldb.prototype.exists;
 
 
 /**
  * Creates the database and rest server if it does not already exist
+ *
+ * @param {function} callback_opt - The optional callback to invoke after the method completes
  */
-m.prototype.create = function(callback_opt) {
+mldb.prototype.create = function(callback_opt) {
   /*
   curl -v --anyauth --user admin:admin -X POST \
       -d'{"rest-api":{"name":"mldbtest-rest-9090","database": "mldbtest","modules-database": "mldbtest-modules","port": "9090"}}' \
@@ -690,8 +730,10 @@ m.prototype.create = function(callback_opt) {
 
 /**
  * Destroys the database and rest api instance
+ *
+ * @param {function} callback_opt - The optional callback to invoke after the method completes
  */
-m.prototype.destroy = function(callback_opt) {
+mldb.prototype.destroy = function(callback_opt) {
   var self = this;
   var dodestroy = function() {
     // don't assume the dbname is the same as the rest api name - look it up
@@ -753,8 +795,10 @@ m.prototype.destroy = function(callback_opt) {
  * Fetches a document with the given URI.
  * 
  * https://docs.marklogic.com/REST/GET/v1/documents
+ *
+ * @param {function} callback_opt - The optional callback to invoke after the method completes
  */
-m.prototype.get = function(docuri,options_opt,callback_opt) {
+mldb.prototype.get = function(docuri,options_opt,callback_opt) {
   if (undefined == callback_opt && typeof(options_opt)==='function') {
     callback_opt = options_opt;
     options_opt = undefined;
@@ -779,8 +823,10 @@ m.prototype.get = function(docuri,options_opt,callback_opt) {
  * Fetches the metadata for a document with the given URI. Metadata document returned in result.doc
  * 
  * https://docs.marklogic.com/REST/GET/v1/documents
+ *
+ * @param {function} callback_opt - The optional callback to invoke after the method completes
  */
-m.prototype.metadata = function(docuri,callback_opt) {
+mldb.prototype.metadata = function(docuri,callback_opt) {
   if (undefined == callback_opt && typeof(docuri)==='function') {
     callback_opt = docuri;
     docuri = undefined;
@@ -799,8 +845,10 @@ m.prototype.metadata = function(docuri,callback_opt) {
  * If no docuri is specified, one is generated by using a combination of the time and a large random number.
  *
  * https://docs.marklogic.com/REST/PUT/v1/documents
+ *
+ * @param {function} callback_opt - The optional callback to invoke after the method completes
  */
-m.prototype.save = function(jsonXmlBinary,docuri_opt,props_opt,callback_opt) {
+mldb.prototype.save = function(jsonXmlBinary,docuri_opt,props_opt,callback_opt) {
   if (undefined == callback_opt) {
     if (undefined != props_opt) {
       if (typeof(props_opt)==='function') {
@@ -896,8 +944,10 @@ m.prototype.save = function(jsonXmlBinary,docuri_opt,props_opt,callback_opt) {
 /**
  * Updates the document with the specified uri by only modifying the passed in properties.
  * NB May not be possible in V6 REST API elegantly - may need to do a full fetch, update, save
+ *
+ * @param {function} callback_opt - The optional callback to invoke after the method completes
  */
-m.prototype.merge = function(json,docuri,callback_opt) { 
+mldb.prototype.merge = function(json,docuri,callback_opt) { 
   // make transaction aware - automatically done by save
   var self = this;
   this.get(docuri,function(result) {
@@ -910,7 +960,7 @@ m.prototype.merge = function(json,docuri,callback_opt) {
   });
 };
 
-m.prototype.__merge = function(json1,json2) {
+mldb.prototype.__merge = function(json1,json2) {
   this.logger.debug("__merge: JSON json1: " + JSON.stringify(json1) + ", json2: " + JSON.stringify(json2));
   if (undefined == json1 && undefined != json2) {
     this.logger.debug("JSON1 undefined, returning: " + json2);
@@ -942,8 +992,10 @@ m.prototype.__merge = function(json1,json2) {
  * Deletes the specified document
  * 
  * https://docs.marklogic.com/REST/DELETE/v1/documents
+ *
+ * @param {function} callback_opt - The optional callback to invoke after the method completes
  */ 
-m.prototype.delete = function(docuri,callback_opt) { 
+mldb.prototype.delete = function(docuri,callback_opt) { 
   var url = '/v1/documents?uri=' + encodeURI(docuri);
   
   // make transaction aware
@@ -958,13 +1010,15 @@ m.prototype.delete = function(docuri,callback_opt) {
   
   this.__doreq("DELETE",options,null,callback_opt);
 };
-m.prototype.remove = m.prototype.delete; // Convenience method for people with bad memories like me
+mldb.prototype.remove = mldb.prototype.delete; // Convenience method for people with bad memories like me
 
 /**
  * Returns all documents in a collection, optionally matching against the specified fields
  * http://docs.marklogic.com/REST/GET/v1/search
+ *
+ * @param {function} callback_opt - The optional callback to invoke after the method completes
  */
-m.prototype.collect = function(collection,fields_opt,callback_opt) {
+mldb.prototype.collect = function(collection,fields_opt,callback_opt) {
   if (callback_opt == undefined && typeof(fields_opt)==='function') {
     callback_opt = fields_opt;
     fields_opt = undefined;
@@ -979,8 +1033,10 @@ m.prototype.collect = function(collection,fields_opt,callback_opt) {
 /**
  * Lists all documents in a directory, to the specified depth (default: 1), optionally matching the specified fields
  * http://docs.marklogic.com/REST/GET/v1/search
+ *
+ * @param {function} callback_opt - The optional callback to invoke after the method completes
  */
-m.prototype.list = function(directory,callback_opt) { 
+mldb.prototype.list = function(directory,callback_opt) { 
   var options = {
     path: "/v1/search?directory=" + encodeURI(directory) + "&format=json&view=results",
     method: "GET"
@@ -992,8 +1048,10 @@ m.prototype.list = function(directory,callback_opt) {
  * Performs a simple key-value search. Of most use to JSON programmers.
  * 
  * https://docs.marklogic.com/REST/GET/v1/keyvalue
+ *
+ * @param {function} callback_opt - The optional callback to invoke after the method completes
  */
-m.prototype.keyvalue = function(key,value,keytype_opt,callback_opt) {
+mldb.prototype.keyvalue = function(key,value,keytype_opt,callback_opt) {
   if (undefined == callback_opt && typeof(keytype_opt) === 'function') {
     callback_opt = keytype_opt;
     keytype_opt = undefined;
@@ -1020,8 +1078,10 @@ m.prototype.keyvalue = function(key,value,keytype_opt,callback_opt) {
  * http://docs.marklogic.com/REST/GET/v1/search
  *
  * See supported search grammar http://docs.marklogic.com/guide/search-dev/search-api#id_41745 
+ *
+ * @param {function} callback_opt - The optional callback to invoke after the method completes
  */ 
-m.prototype.search = function(query_opt,options_opt,start_opt,sprops_opt,callback) { 
+mldb.prototype.search = function(query_opt,options_opt,start_opt,sprops_opt,callback) { 
   this.logger.debug("*** start_opt: " + start_opt);
   if (callback == undefined && typeof(sprops_opt) === 'function') {
     callback = sprops_opt;
@@ -1112,8 +1172,10 @@ m.prototype.search = function(query_opt,options_opt,start_opt,sprops_opt,callbac
  * http://docs.marklogic.com/REST/GET/v1/search
  *
  * See supported search grammar http://docs.marklogic.com/guide/search-dev/search-api#id_41745 
+ *
+ * @param {function} callback - The callback to invoke after the method completes
  */ 
-m.prototype.searchCollection = function(collection_opt,query_opt,options_opt,callback) { 
+mldb.prototype.searchCollection = function(collection_opt,query_opt,options_opt,callback) { 
   if (callback == undefined && typeof(options_opt) === 'function') {
     callback = options_opt;
     options_opt = undefined;
@@ -1143,8 +1205,10 @@ m.prototype.searchCollection = function(collection_opt,query_opt,options_opt,cal
  * http://docs.marklogic.com/REST/GET/v1/search
  * 
  * Uses structured search instead of cts:query style searches. See http://docs.marklogic.com/guide/search-dev/search-api#id_53458
+ *
+ * @param {function} callback - The callback to invoke after the method completes
  */
-m.prototype.structuredSearch = function(query_opt,options_opt,callback) {
+mldb.prototype.structuredSearch = function(query_opt,options_opt,callback) {
   if (callback == undefined && typeof(options_opt) === 'function') {
     callback = options_opt;
     options_opt = undefined;
@@ -1173,8 +1237,10 @@ m.prototype.structuredSearch = function(query_opt,options_opt,callback) {
  * http://docs.marklogic.com/REST/PUT/v1/config/query/*
  *
  * For structured serch options see http://docs.marklogic.com/guide/rest-dev/search#id_48838
+ *
+ * @param {function} callback_opt - The optional callback to invoke after the method completes
  */
-m.prototype.saveSearchOptions = function(name,searchoptions,callback_opt) {
+mldb.prototype.saveSearchOptions = function(name,searchoptions,callback_opt) {
   var options = {
     path: "/v1/config/query/" + name + "?format=json",
     method: "PUT"
@@ -1187,8 +1253,10 @@ m.prototype.saveSearchOptions = function(name,searchoptions,callback_opt) {
  * http://docs.marklogic.com/REST/PUT/v1/config/query/*
  * 
  * For structured serch options see http://docs.marklogic.com/guide/rest-dev/search#id_48838
+ *
+ * @param {function} callback - The callback to invoke after the method completes
  */
-m.prototype.searchoptions = function(name,callback) {
+mldb.prototype.searchoptions = function(name,callback) {
   var options = {
     path: "/v1/config/query/" + name + "?format=json",
     method: "GET"
@@ -1199,8 +1267,10 @@ m.prototype.searchoptions = function(name,callback) {
 /**
  * Fetches values from a lexicon or computes 2-way co-occurence.
  * https://docs.marklogic.com/REST/GET/v1/values/*
+ *
+ * @param {function} callback_opt - The optional callback to invoke after the method completes
  */
-m.prototype.values = function(query,tuplesname,optionsname,callback_opt) {
+mldb.prototype.values = function(query,tuplesname,optionsname,callback_opt) {
   var options = {
     path: "/v1/values/" + tuplesname + "?format=json&options=" + encodeURI(optionsname),
     method: "GET"
@@ -1222,8 +1292,10 @@ m.prototype.values = function(query,tuplesname,optionsname,callback_opt) {
  * http://docs-ea.marklogic.com/REST/POST/v1/values/*
  * 
  * For structured serch options see http://docs.marklogic.com/guide/rest-dev/search#id_48838
+ *
+ * @param {function} callback - The callback to invoke after the method completes
  */
-m.prototype.valuesCombined = function(search,callback) {
+mldb.prototype.valuesCombined = function(search,callback) {
   
   var options = {
     path: "/v1/values/shotgun?direction=ascending&view=values",
@@ -1236,8 +1308,10 @@ m.prototype.valuesCombined = function(search,callback) {
 /**
  * Lists the collection URIS underneath the parent uri.
  * Helper method to fetch collections from the collection lexicon using mldb.valuesCombined().
+ *
+ * @param {function} callback - The callback to invoke after the method completes
  */
-m.prototype.subcollections = function(parenturi,callback) {
+mldb.prototype.subcollections = function(parenturi,callback) {
   var values = {
     search: {
       "query": {
@@ -1290,8 +1364,10 @@ m.prototype.subcollections = function(parenturi,callback) {
  * Saves a set of triples as an n-triples graph. Allows you to specify a named graph (collection) or use the default graph.
  * 
  * No documentation URL - still in Early Access, docs only available on internal MarkLogic wiki
+ *
+ * @param {function} callback_opt - The optional callback to invoke after the method completes
  */
-m.prototype.saveGraph = function(triples,uri_opt,callback_opt) {
+mldb.prototype.saveGraph = function(triples,uri_opt,callback_opt) {
   if (undefined == callback_opt && "function" === typeof uri_opt) {
     callback_opt = uri_opt;
     uri_opt = undefined;
@@ -1323,8 +1399,10 @@ m.prototype.saveGraph = function(triples,uri_opt,callback_opt) {
  * Merges a set of triples in to an n-triples graph. Allows you to specify a named graph (collection) or use the default graph.
  * 
  * No documentation URL - still in Early Access
+ *
+ * @param {function} callback_opt - The optional callback to invoke after the method completes
  */
-m.prototype.mergeGraph = function(triples,uri_opt,callback_opt) {
+mldb.prototype.mergeGraph = function(triples,uri_opt,callback_opt) {
   if (undefined == callback_opt && "function" === typeof uri_opt) {
     callback_opt = uri_opt;
     uri_opt = undefined;
@@ -1357,8 +1435,10 @@ m.prototype.mergeGraph = function(triples,uri_opt,callback_opt) {
  * Returns the triples as a JSON {subject: "...", predicate: "...", object: "..."} array in result.triples, or the raw in result.doc
  *
  * No documentation URL - still in Early Access
+ *
+ * @param {function} callback_opt - The optional callback to invoke after the method completes
  */
-m.prototype.graph = function(uri_opt,callback_opt) {
+mldb.prototype.graph = function(uri_opt,callback_opt) {
   if (undefined == callback_opt && "function" === typeof uri_opt) {
     callback_opt = uri_opt;
     uri_opt = undefined;
@@ -1402,8 +1482,10 @@ m.prototype.graph = function(uri_opt,callback_opt) {
  * Deletes the specified graph from MarkLogic Server
  *
  * No documentation URL - still in Early Access
+ *
+ * @param {function} callback_opt - The optional callback to invoke after the method completes
  */
-m.prototype.deleteGraph = function(uri,callback_opt) {
+mldb.prototype.deleteGraph = function(uri,callback_opt) {
   var options = {
     path: "/v1/graph?graph=" + encodeURI(uri),
     method: "DELETE"
@@ -1428,8 +1510,10 @@ m.prototype.deleteGraph = function(uri,callback_opt) {
 /**
  * Opens a new transaction. Optionally, specify your own name.
  * http://docs.marklogic.com/REST/POST/v1/transactions
+ *
+ * @param {function} callback - The callback to invoke after the method completes
  */
-m.prototype.beginTransaction = function(name_opt,callback) {
+mldb.prototype.beginTransaction = function(name_opt,callback) {
   if (undefined == callback && typeof(name_opt)==='function') {
     callback = name_opt;
     name_opt = undefined;
@@ -1470,13 +1554,15 @@ m.prototype.beginTransaction = function(name_opt,callback) {
     }); 
   }
 };
-m.prototype.begin = m.prototype.beginTransaction;
+mldb.prototype.begin = mldb.prototype.beginTransaction;
 
 /**
  * Commits the open transaction
  * http://docs.marklogic.com/REST/POST/v1/transactions/*
+ *
+ * @param {function} callback - The callback to invoke after the method completes
  */
-m.prototype.commitTransaction = function(callback) {
+mldb.prototype.commitTransaction = function(callback) {
   var options = {
     path: "/v1/transactions/" + this.__transaction_id + "?result=commit",
     method: "POST"
@@ -1484,13 +1570,15 @@ m.prototype.commitTransaction = function(callback) {
   this.__transaction_id = undefined;
   this.__doreq("COMMITTRANS",options,null,callback);
 };
-m.prototype.commit = m.prototype.commitTransaction;
+mldb.prototype.commit = mldb.prototype.commitTransaction;
 
 /**
  * Rolls back the open transaction.
  * http://docs.marklogic.com/REST/POST/v1/transactions/*
+ *
+ * @param {function} callback - The callback to invoke after the method completes
  */
-m.prototype.rollbackTransaction = function(callback) {
+mldb.prototype.rollbackTransaction = function(callback) {
   var options = {
     path: "/v1/transactions/" + this.__transaction_id + "?result=rollback",
     method: "POST"
@@ -1498,7 +1586,7 @@ m.prototype.rollbackTransaction = function(callback) {
   this.__transaction_id = undefined;
   this.__doreq("ABANDONTRANS",options,null,callback);
 };
-m.prototype.rollback = m.prototype.rollbackTransaction;
+mldb.prototype.rollback = mldb.prototype.rollbackTransaction;
 
 
 
@@ -1520,8 +1608,10 @@ m.prototype.rollback = m.prototype.rollbackTransaction;
  * they are highly parallelised by the server, automatically, if in a clustered environment. This is NOT what the fast function does. The fast function
  * is intended to wrap utility functionality (like CSV upload) where it may be possible to make throughput gains by running items in parallel. This is
  * akin to ML Content Pump (mlcp)'s -thread_count and -transaction_size ingestion options. See defaultdboptions for details
+ *
+ * @param {function} callback_opt - The optional callback to invoke after the method completes
  */
-m.prototype.fast = function(callback_opt) {
+mldb.prototype.fast = function(callback_opt) {
   this.__fast = true;
   (callback_opt||noop)({inError:false,fast: true});
 };
@@ -1543,15 +1633,19 @@ m.prototype.fast = function(callback_opt) {
 /**
  * Takes a csv file and adds to the database.
  * fast aware method
+ *
+ * @param {function} callback_opt - The optional callback to invoke after the method completes
  */
-m.prototype.ingestcsv = function(csvdata,docid_opt,callback_opt) {
+mldb.prototype.ingestcsv = function(csvdata,docid_opt,callback_opt) {
   
 };
 
 /**
  * Inserts many JSON documents. FAST aware, TRANSACTION aware.
+ *
+ * @param {function} callback_opt - The optional callback to invoke after the method completes
  */
-m.prototype.saveAll = function(doc_array,uri_array_opt,callback_opt) {
+mldb.prototype.saveAll = function(doc_array,uri_array_opt,callback_opt) {
   if (callback_opt == undefined && typeof(uri_array_opt)==='function') {
     callback_opt = uri_array_opt;
     uri_array_opt = undefined;
@@ -1624,8 +1718,10 @@ rv.prototype.callback = function(mc,result,that) {
 
 /**
  * Alternative saveAll function that throttles invoking MarkLogic to a maximum number of simultaneous 'parallel' requests. (JavaScript is never truly parallel)
+ *
+ * @param {function} callback_opt - The optional callback to invoke after the method completes
  */
-m.prototype.saveAll2 = function(doc_array,uri_array_opt,callback_opt) {
+mldb.prototype.saveAll2 = function(doc_array,uri_array_opt,callback_opt) {
   if (callback_opt == undefined && typeof(uri_array_opt)==='function') {
     callback_opt = uri_array_opt;
     uri_array_opt = undefined;
@@ -1672,12 +1768,14 @@ m.prototype.saveAll2 = function(doc_array,uri_array_opt,callback_opt) {
 // START EXTENSION - subscribe-resource.xqy - Adam Fowler adam.fowler@marklogic.com - Save searches by name, and subscribe to alerts from them. Alerts sent to a given URL.
 /**
  * Save a query using the default search grammar (see search:search) with a given name
+ *
+ * @param {function} callback_opt - The optional callback to invoke after the method completes
  */
-m.prototype.saveBasicSearch = function(searchname,shared,query,callback_opt) {
+mldb.prototype.saveBasicSearch = function(searchname,shared,query,callback_opt) {
   this._doSaveBasicSearch(searchname,shared,query,"search",null,callback_opt);
 };
 
-m.prototype._doSaveBasicSearch = function(searchname,shared,query,createmode,notificationurl,callback_opt) {
+mldb.prototype._doSaveBasicSearch = function(searchname,shared,query,createmode,notificationurl,callback_opt) {
   var url = "/v1/resources/subscribe?notificationurl=" + encodeURI(notificationurl) + "&format=json&searchname=" + encodeURI(searchname) + 
     "&create=" + encodeURI(createmode) + "&shared=" + encodeURI(shared) + "&query=" + encodeURI(query) + "&querytype=basic";
   if ("both" == createmode) {
@@ -1693,12 +1791,14 @@ m.prototype._doSaveBasicSearch = function(searchname,shared,query,createmode,not
 
 /**
  * Save a query that matches documents created within a collection, with a given name
+ *
+ * @param {function} callback_opt - The optional callback to invoke after the method completes
  */
-m.prototype.saveCollectionSearch = function(searchname,shared,collection,callback_opt) {
+mldb.prototype.saveCollectionSearch = function(searchname,shared,collection,callback_opt) {
   this._doSaveCollectionSearch(searchname,shared,collection,"search",null,callback_opt);
 };
 
-m.prototype._doSaveCollectionSearch = function(searchname,shared,collection,createmode,notificationurl,callback_opt) {
+mldb.prototype._doSaveCollectionSearch = function(searchname,shared,collection,createmode,notificationurl,callback_opt) {
   var url = "/v1/resources/subscribe?notificationurl=" + encodeURI(notificationurl) + "&format=json&searchname=" + encodeURI(searchname) + 
     "&create=" + encodeURI(createmode) + "&shared=" + encodeURI(shared) + "&collection=" + encodeURI(collection) + "&querytype=collection";
   if ("both" == createmode) {
@@ -1715,12 +1815,14 @@ m.prototype._doSaveCollectionSearch = function(searchname,shared,collection,crea
 /**
  * Save a geospatial search based on a point and radius from it, with a given name
  * TODO check if we need to include an alert module name in the options
+ *
+ * @param {function} callback_opt - The optional callback to invoke after the method completes
  */
-m.prototype.saveGeoNearSearch = function(searchname,shared,latitude,longitude,radiusmiles,callback_opt) {
+mldb.prototype.saveGeoNearSearch = function(searchname,shared,latitude,longitude,radiusmiles,callback_opt) {
   this._doSaveGeoNearSearch(searchname,shared,latitude,longitude,radiusmiles,"search",null,callback_opt);
 };
 
-m.prototype._doSaveGeoNearSearch = function(searchname,shared,latitude,longitude,radiusmiles,createmode,notificationurl,callback_opt) {
+mldb.prototype._doSaveGeoNearSearch = function(searchname,shared,latitude,longitude,radiusmiles,createmode,notificationurl,callback_opt) {
   var url = "/v1/resources/subscribe?notificationurl=" + encodeURI(notificationurl) + "&format=json&searchname=" + encodeURI(searchname) + 
     "&create=" + encodeURI(createmode) + "&shared=" + encodeURI(shared) + "&lat=" + encodeURI(latitude)  + "&lon=" + encodeURI(longitude)  + "&radiusmiles=" + encodeURI(radiusmiles) + "&querytype=geonear";
   if ("both" == createmode) {
@@ -1736,12 +1838,14 @@ m.prototype._doSaveGeoNearSearch = function(searchname,shared,latitude,longitude
 
 /**
  * Save an arbitrary search (any cts:query) already stored in the database, with a given name. Enables easy referencing and activation of alerts on this search.
+ *
+ * @param {function} callback_opt - The optional callback to invoke after the method completes
  */
-m.prototype.saveExistingSearch = function(searchname,shared,searchdocuri,callback_opt) {
+mldb.prototype.saveExistingSearch = function(searchname,shared,searchdocuri,callback_opt) {
   this._doSaveExistingSearch(searchname,shared,searchdocuri,"search",null,callback_opt)
 };
 
-m.prototype._doSaveExistingSearch = function(searchname,shared,searchdocuri,createmode,notificationurl,callback_opt) {
+mldb.prototype._doSaveExistingSearch = function(searchname,shared,searchdocuri,createmode,notificationurl,callback_opt) {
   var url = "/v1/resources/subscribe?notificationurl=" + encodeURI(notificationurl) + "&format=json&searchname=" + encodeURI(searchname) + 
     "&create=" + encodeURI(createmode) + "&shared=" + encodeURI(shared) + "&searchdocuri=" + encodeURI(searchdocuri) + "&querytype=uri";
   if ("both" == createmode) {
@@ -1761,8 +1865,10 @@ m.prototype._doSaveExistingSearch = function(searchname,shared,searchdocuri,crea
 
 /**
  * Uses Adam Fowler's (me!) REST API extension for subscribing to searches. RESTful HTTP calls are sent with the new information to the specified url.
+ *
+ * @param {function} callback_opt - The optional callback to invoke after the method completes
  */
-m.prototype.subscribe = function(notificationurl,searchname,detail,contenttype,callback_opt) {
+mldb.prototype.subscribe = function(notificationurl,searchname,detail,contenttype,callback_opt) {
   var url = "/v1/resources/subscribe?notificationurl=" + encodeURI(notificationurl) + "&format=json&searchname=" + encodeURI(searchname) + 
     "&detail=" + encodeURI(detail) + "&contenttype=" + encodeURI(contenttype);
     
@@ -1775,8 +1881,10 @@ m.prototype.subscribe = function(notificationurl,searchname,detail,contenttype,c
 
 /**
  * Unsubscribe a notificationurl from a named search. Uses Adam Fowler's (me!) REST API extension.
+ *
+ * @param {function} callback_opt - The optional callback to invoke after the method completes
  */
-m.prototype.unsubscribe = function(notificationurl,searchname,callback_opt) {
+mldb.prototype.unsubscribe = function(notificationurl,searchname,callback_opt) {
   var url = "/v1/resources/subscribe?notificationurl=" + encodeURI(notificationurl) + "&format=json&searchname=" + encodeURI(searchname) + "&delete=search";
     
   var options = {
@@ -1788,8 +1896,10 @@ m.prototype.unsubscribe = function(notificationurl,searchname,callback_opt) {
 
 /**
  * Unsubscribe from an alert and delete the underlying saved search. Convenience method.
+ *
+ * @param {function} callback_opt - The optional callback to invoke after the method completes
  */
-m.prototype.unsubscribeAndDelete = function(notificationurl,searchname,callback_opt) {
+mldb.prototype.unsubscribeAndDelete = function(notificationurl,searchname,callback_opt) {
   var url = "/v1/resources/subscribe?notificationurl=" + encodeURI(notificationurl) + "&format=json&searchname=" + encodeURI(searchname) + "&delete=both";
     
   var options = {
@@ -1801,8 +1911,10 @@ m.prototype.unsubscribeAndDelete = function(notificationurl,searchname,callback_
 
 /**
  * Delete the saved search. Assumes already unsubscribed from alerts used by it. (If not, alerts will still fire!)
+ *
+ * @param {function} callback_opt - The optional callback to invoke after the method completes
  */
-m.prototype.deleteSavedSearch = function(searchname,callback_opt) {
+mldb.prototype.deleteSavedSearch = function(searchname,callback_opt) {
   var url = "/v1/resources/subscribe?format=json&searchname=" + encodeURI(searchname) + "&delete=search";
     
   var options = {
@@ -1819,8 +1931,10 @@ m.prototype.deleteSavedSearch = function(searchname,callback_opt) {
  * Fetches information about the user behind the current session.
  *
  * Useful is your webapp performs the login so your javascript doesn't know your username. Also looks up roles.
+ *
+ * @param {function} callback - The callback to invoke after the method completes
  */
-m.prototype.whoami = function(callback) {
+mldb.prototype.whoami = function(callback) {
   var options = {
     path: "/v1/resources/whoami",
     method: "GET"
@@ -1839,10 +1953,23 @@ com.marklogic = {};
 /****
  * Search Options management
  ****/
-/*
-  Sample usage 1: page-search.js:- (and page-chartsearch except without .pageLength(100) )
  
-  var ob = new com.marklogic.widgets.options();
+/**
+ * <p>Creates a new search options builder connected to this client database connection mldb instance. Each function returns a reference to the option builder object to support chaining.
+ * </p><p><b>Note: I believe all search options are covered in the methods. If you find anything missing, or want a helper function, let me know.</b></p><p>
+ * Applies the following sensible defaults:-</p>
+ <ul>
+ <li>  type = "xs:string"</li>
+  <li> collation = "http://marklogic.com/collation/"</li>
+  <li> namespace = "http://marklogic.com/xdmp/json/basic"</li>
+  <li> sortDirection = "ascending"</li>
+  <li> transform-results = "raw" (Note: Default elsewhere in marklogic is 'snippet' instead)</li>
+  <li> page-length = 10</li>
+ </ul>
+ * 
+  <h3>Sample usage 1: page-search.js:- (and page-chartsearch except without .pageLength(100) )</h3>
+ <pre>
+  var ob = new db.options();
   ob.defaultCollation("http://marklogic.com/collation/en")
     //.defaultType("xs:string"); // this should be the default anyway 
     //.defaultNamespace("http://marklogic.com/xdmp/json/basic") // this should be the default anyway 
@@ -1853,16 +1980,19 @@ com.marklogic = {};
     .collectionConstraint() // default constraint name of 'collection' 
     .rangeConstraint("animal",["item-order"]) // constraint name defaults to that of the range element name 
     .rangeConstraint("family",["item-frequency"]); // constraint name defaults to that of the range element name 
-*/
-/*
-  Sample usage 2: page-movies.js
-  
-  var ob = new com.marklogic.widgets.options();
+ </pre>
+ *
+  <h3>Sample usage 2: page-movies.js</h3>
+  <pre>
+  var ob = new db.options();
   ob.tuples("coag","actor","genre"); // first is tuple name. defaults to string, json namespace
-  var ob2 = new com.marklogic.widgets.options();
+  var ob2 = new db.options();
   ob2.tuples("coay","actor","year"); // first is tuple name. defaults to string, json namespace
-*/
-com.marklogic.options = function() {
+  </pre>
+ *
+ * @constructor
+ */
+mldb.prototype.options = function() {
   this.options = {};
   this.options["concurrency-level"] = undefined;
   this.options.debug = false;
@@ -1883,7 +2013,7 @@ com.marklogic.options = function() {
   this.defaults.facetOption = undefined; // limit=10
 };
 
-com.marklogic.options.prototype._includeSearchDefaults = function() {
+mldb.prototype.options.prototype._includeSearchDefaults = function() {
   // called by any functions that specify search features 
   if (undefined == this.options["page-length"] || undefined == this.options.constraint) { // means none of these are defined
     this.options["transform-results"] = {apply: "raw"}; // transform-results,  
@@ -1914,7 +2044,10 @@ com.marklogic.options.prototype._includeSearchDefaults = function() {
   }
 };
 
-com.marklogic.options.prototype.toJson = function() {
+/**
+ * Returns the JSON search options object needed by the REST API and generated by this class
+ */
+mldb.prototype.options.prototype.toJson = function() {
   // set empty arrays to undefined
 //  if (undefined != this.options[""])
   
@@ -1922,22 +2055,34 @@ com.marklogic.options.prototype.toJson = function() {
   return {options: this.options};
 };
 
-com.marklogic.options.prototype.additionalQuery = function(str) {
+/**
+ * Specifies the additional query to use to filter any search results
+ */
+mldb.prototype.options.prototype.additionalQuery = function(str) {
   this._includeSearchDefaults();
   this.options["additional-query"] = str;
   return this;
 };
 
-com.marklogic.options.prototype.concurrencyLevel = function(level) {
+/**
+ * Specified the concurrency level option
+ */
+mldb.prototype.options.prototype.concurrencyLevel = function(level) {
   this.options["concurrency-level"] = level;
   return this;
 };
 
-com.marklogic.options.prototype.debug = function(dbg) {
+/**
+ * Specified the debug level for the search
+ */
+mldb.prototype.options.prototype.debug = function(dbg) {
   this.options.debug = dbg;
 };
 
-com.marklogic.options.prototype.forest = function(forests) {
+/**
+ * Specified the forest to search within
+ */
+mldb.prototype.options.prototype.forest = function(forests) {
   if (Array.isArray(forests)) {
     this.options.forest = forests;
   } else {
@@ -1947,17 +2092,26 @@ com.marklogic.options.prototype.forest = function(forests) {
   return this;
 };
 
-com.marklogic.options.prototype.fragmentScope = function(scope) {
+/**
+ * Specified the fragment scope
+ */
+mldb.prototype.options.prototype.fragmentScope = function(scope) {
   this.options["fragment-scope"] = scope;
   return this;
 };
 
-com.marklogic.options.prototype.qualityWeight = function(weight) {
+/**
+ * Specified the quality weight
+ */
+mldb.prototype.options.prototype.qualityWeight = function(weight) {
   this.options["quality-weight"] = weight;
   return this;
 };
 
-com.marklogic.options.prototype.returnAggregates = function(ret) {
+/**
+ * Specified whether to return aggregates
+ */
+mldb.prototype.options.prototype.returnAggregates = function(ret) {
   if (undefined == ret) {
     ret = true;
   }
@@ -1965,7 +2119,10 @@ com.marklogic.options.prototype.returnAggregates = function(ret) {
   return this;
 };
 
-com.marklogic.options.prototype.returnConstraints = function(ret) {
+/**
+ * Specified whether to return constraints
+ */
+mldb.prototype.options.prototype.returnConstraints = function(ret) {
   if (undefined == ret) {
     ret = true;
   }
@@ -1973,7 +2130,10 @@ com.marklogic.options.prototype.returnConstraints = function(ret) {
   return this;
 };
 
-com.marklogic.options.prototype.returnFacets = function(ret) {
+/**
+ * Specified whether to return facets
+ */
+mldb.prototype.options.prototype.returnFacets = function(ret) {
   if (undefined == ret) {
     ret = true;
   }
@@ -1981,7 +2141,10 @@ com.marklogic.options.prototype.returnFacets = function(ret) {
   return true;
 };
 
-com.marklogic.options.prototype.returnFrequencies = function(ret) {
+/**
+ * Specified whether to return frequencies
+ */
+mldb.prototype.options.prototype.returnFrequencies = function(ret) {
   if (undefined == ret) {
     ret = true;
   }
@@ -1989,7 +2152,10 @@ com.marklogic.options.prototype.returnFrequencies = function(ret) {
   return this;
 };
 
-com.marklogic.options.prototype.returnMetrics = function(ret) {
+/**
+ * Specified whether to return search metrics
+ */
+mldb.prototype.options.prototype.returnMetrics = function(ret) {
   if (undefined == ret) {
     ret = true;
   }
@@ -1997,7 +2163,10 @@ com.marklogic.options.prototype.returnMetrics = function(ret) {
   return this;
 };
 
-com.marklogic.options.prototype.returnPlan = function(ret) {
+/**
+ * Specifies whether to return the internal search plan generated by the search query (Useful to debug poorly performing queries)
+ */
+mldb.prototype.options.prototype.returnPlan = function(ret) {
   if (undefined == ret) {
     ret = true;
   }
@@ -2005,7 +2174,10 @@ com.marklogic.options.prototype.returnPlan = function(ret) {
   return this;
 };
 
-com.marklogic.options.prototype.returnQtext = function(ret) {
+/**
+ * Specifies whether to return the query text with the search results
+ */
+mldb.prototype.options.prototype.returnQtext = function(ret) {
   if (undefined == ret) {
     ret = true;
   }
@@ -2013,7 +2185,10 @@ com.marklogic.options.prototype.returnQtext = function(ret) {
   return this;
 };
 
-com.marklogic.options.prototype.returnQuery = function(ret) {
+/**
+ * Specifies whether to return the entire query with the search results
+ */
+mldb.prototype.options.prototype.returnQuery = function(ret) {
   if (undefined == ret) {
     ret = true;
   }
@@ -2021,7 +2196,10 @@ com.marklogic.options.prototype.returnQuery = function(ret) {
   return this;
 };
 
-com.marklogic.options.prototype.returnResults = function(ret) {
+/**
+ * Specifies whether to return search result documents (or snippets thereof)
+ */
+mldb.prototype.options.prototype.returnResults = function(ret) {
   if (undefined == ret) {
     ret = true;
   }
@@ -2029,7 +2207,10 @@ com.marklogic.options.prototype.returnResults = function(ret) {
   return this;
 };
 
-com.marklogic.options.prototype.returnSimilar = function(ret) {
+/**
+ * Specifies whether to return cts:similar documents to those in the search results
+ */
+mldb.prototype.options.prototype.returnSimilar = function(ret) {
   if (undefined == ret) {
     ret = true;
   }
@@ -2037,7 +2218,10 @@ com.marklogic.options.prototype.returnSimilar = function(ret) {
   return this;
 };
 
-com.marklogic.options.prototype.returnValues = function(ret) {
+/**
+ * Specifies whether to return values objects
+ */
+mldb.prototype.options.prototype.returnValues = function(ret) {
   if (undefined == ret) {
     ret = true;
   }
@@ -2045,33 +2229,51 @@ com.marklogic.options.prototype.returnValues = function(ret) {
   return this;
 };
 
-com.marklogic.options.prototype.defaultCollation = function(col) {
+/**
+ * Specifies the default collation applies to all string constraints and sorts, if not specified on constraint definition
+ */
+mldb.prototype.options.prototype.defaultCollation = function(col) {
   this.defaults.collation = col;
   return this;
 };
 
-com.marklogic.options.prototype.defaultSortOrder = function(sort) {
+/**
+ * Specifies the default sort order
+ */
+mldb.prototype.options.prototype.defaultSortOrder = function(sort) {
   this.defaults.sortDirection = sort;
   return this;
 };
 
-com.marklogic.options.prototype.defaultType = function(type) {
+/**
+ * Specifies the default constraint type
+ */
+mldb.prototype.options.prototype.defaultType = function(type) {
   this.defaults.type = type;
   return this;
 };
 
-com.marklogic.options.prototype.defaultNamespace = function(ns) {
+/**
+ * Specifies the default element namespace to use
+ */
+mldb.prototype.options.prototype.defaultNamespace = function(ns) {
   this.defaults.namespace = ns;
   return this;
 };
 
-com.marklogic.options.prototype.pathConstraint = function() {
+/**
+ * Generates a new Xpath constraint - TODO
+ */
+mldb.prototype.options.prototype.pathConstraint = function() {
   // TODO path range constraint
 };
-com.marklogic.options.prototype.path = com.marklogic.options.prototype.pathConstraint;
+mldb.prototype.options.prototype.path = mldb.prototype.options.prototype.pathConstraint;
 
 
-com.marklogic.options.prototype.elemattrRangeConstraint = function(constraint_name,element,namespace,attr,type_opt,collation_opt,facet_opt,facet_options_opt) {
+/**
+ * Creates a new element attribute range constraint, and adds it to the search options object
+ */
+mldb.prototype.options.prototype.elemattrRangeConstraint = function(constraint_name,element,namespace,attr,type_opt,collation_opt,facet_opt,facet_options_opt) {
   var range = {name: constraint_name,
     range: {
       type: type_opt || this.defaults.type, 
@@ -2100,7 +2302,10 @@ com.marklogic.options.prototype.elemattrRangeConstraint = function(constraint_na
   return this;
 };
 
-com.marklogic.options.prototype.rangeConstraint = function(constraint_name_opt,name_or_key,ns_opt,type_opt,collation_opt,facet_opt,facet_options_opt) {
+/**
+ * Specifies a new range constraint, and adds it to the search options object
+ */
+mldb.prototype.options.prototype.rangeConstraint = function(constraint_name_opt,name_or_key,ns_opt,type_opt,collation_opt,facet_opt,facet_options_opt) {
   this._includeSearchDefaults();
   if (undefined == facet_options_opt) {
     if (undefined != facet_opt && Array.isArray(facet_opt)) {
@@ -2187,13 +2392,19 @@ com.marklogic.options.prototype.rangeConstraint = function(constraint_name_opt,n
   
   return this;
 };
-com.marklogic.options.prototype.range = com.marklogic.options.prototype.rangeConstraint;
+mldb.prototype.options.prototype.range = mldb.prototype.options.prototype.rangeConstraint;
 
-com.marklogic.options.prototype.addConstraint = function(con) {
+/**
+ * Adds any new constraint JSON to the search options object
+ */
+mldb.prototype.options.prototype.addConstraint = function(con) {
   this.options.constraint.push(con);
 };
 
-com.marklogic.options.prototype.collectionConstraint = function(constraint_name_opt,prefix_opt,facet_option_opt) {
+/**
+ * Create a collection constraint, and adds it to the search options object
+ */
+mldb.prototype.options.prototype.collectionConstraint = function(constraint_name_opt,prefix_opt,facet_option_opt) {
   this._includeSearchDefaults();
   var con = { name: constraint_name_opt || "collection", collection: {}};
   if (undefined != prefix_opt && null != prefix_opt) {
@@ -2209,9 +2420,12 @@ com.marklogic.options.prototype.collectionConstraint = function(constraint_name_
   this.addConstraint(con);
   return this;
 };
-com.marklogic.options.prototype.collection = com.marklogic.options.prototype.collectionConstraint;
+mldb.prototype.options.prototype.collection = mldb.prototype.options.prototype.collectionConstraint;
 
-com.marklogic.options.prototype.geoelemConstraint = function(constraint_name_opt,parent,ns_opt,element,ns_el_opt) {
+/**
+ * Create a geospatial element pair constraint, and adds it to the search options object
+ */
+mldb.prototype.options.prototype.geoelemConstraint = function(constraint_name_opt,parent,ns_opt,element,ns_el_opt) {
   if (undefined == element) {
     if (undefined == ns_opt) {
       element = parent;
@@ -2238,25 +2452,37 @@ com.marklogic.options.prototype.geoelemConstraint = function(constraint_name_opt
   this.addConstraint(con);
   return this;
 };
-com.marklogic.options.prototype.geoelem = com.marklogic.options.prototype.geoelemConstraint;
+mldb.prototype.options.prototype.geoelem = mldb.prototype.options.prototype.geoelemConstraint;
 
-com.marklogic.options.prototype.geoelemattrConstraint = function() {
+/**
+ * Specifies a geospatial element attribute pair constraint, and adds it to the search options object
+ */
+mldb.prototype.options.prototype.geoelemattrConstraint = function() {
   // TODO geoelem attr
 };
-com.marklogic.options.prototype.geoelemattr = com.marklogic.options.prototype.geoelemattrConstraint;
+mldb.prototype.options.prototype.geoelemattr = mldb.prototype.options.prototype.geoelemattrConstraint;
 
-com.marklogic.options.prototype.geoelempairConstraint = function() {
+/**
+ * Specifies a geospatial element pair constraint, and adds it to the search options object
+ */
+mldb.prototype.options.prototype.geoelempairConstraint = function() {
   // TODO geoelem pair
 };
-com.marklogic.options.prototype.geoelempair = com.marklogic.options.prototype.geoelempairConstraint;
+mldb.prototype.options.prototype.geoelempair = mldb.prototype.options.prototype.geoelempairConstraint;
 
-com.marklogic.options.prototype.pageLength = function(length) {
+/**
+ * Specifies the number of search results to return on each page
+ */
+mldb.prototype.options.prototype.pageLength = function(length) {
   this._includeSearchDefaults();
   this.options["page-length"] = length;
   return this;
 };
 
-com.marklogic.options.prototype.transformResults = function(apply,ns_opt,at_opt) {
+/**
+ * Specifies the results transformation options. Defaults to raw (full document returned).
+ */
+mldb.prototype.options.prototype.transformResults = function(apply,ns_opt,at_opt) {
   this._includeSearchDefaults();
   //this.options["search-option"] = true;
   this.options["transform-results"].apply = apply;
@@ -2267,20 +2493,29 @@ com.marklogic.options.prototype.transformResults = function(apply,ns_opt,at_opt)
   return this;
 };
 
-com.marklogic.options.prototype.sortOrderClear = function() {
+/**
+ * Clears any default or specified sort order definitions
+ */
+mldb.prototype.options.prototype.sortOrderClear = function() {
   this._includeSearchDefaults();
   this.options["sort-order"] = new Array();
   return this;
 };
 
-com.marklogic.options.prototype.sortOrderScore = function() {
+/**
+ * Specifies score as the sort order
+ */
+mldb.prototype.options.prototype.sortOrderScore = function() {
   this._includeSearchDefaults();
   // TODO add check to see if we already exist
   this.options["sort-order"].push({"direction": "descending","score": null});
   return this;
 };
 
-com.marklogic.options.prototype.sortOrder = function(direction_opt,type_opt,key,collation_opt) {
+/**
+ * Specifies the sort order. Automatically called for any of the range constraint constructor functions.
+ */
+mldb.prototype.options.prototype.sortOrder = function(direction_opt,type_opt,key,collation_opt) {
   this._includeSearchDefaults();
   // TODO check for unspecified type, direction, collation (and element + ns instead of key)
   var so = {direction: direction_opt || this.defaults.sortDirection,type:type_opt || this.defaults.type,"json-key": key};
@@ -2316,7 +2551,7 @@ com.marklogic.options.prototype.sortOrder = function(direction_opt,type_opt,key,
     }
     */
 
-com.marklogic.options.prototype._quickRange = function(el) {
+mldb.prototype.options.prototype._quickRange = function(el) {
   if (typeof el == "string") {
     return {type: this.defaults.type, element: {ns: this.defaults.namespace, name: el}};
   } else {
@@ -2325,7 +2560,10 @@ com.marklogic.options.prototype._quickRange = function(el) {
   }
 };
 
-com.marklogic.options.prototype.tuples = function(name,el,el2) { // TODO handle infinite tuple definitions (think /v1/ only does 2 at the moment anyway)
+/**
+ * Creates a tuples definition for returning co-occurence values
+ */
+mldb.prototype.options.prototype.tuples = function(name,el,el2) { // TODO handle infinite tuple definitions (think /v1/ only does 2 at the moment anyway)
   var tuples = {name: name,range: new Array()};
   if (undefined == this.options.tuples) {
     this.options.tuples = new Array();
@@ -2336,7 +2574,10 @@ com.marklogic.options.prototype.tuples = function(name,el,el2) { // TODO handle 
   return this;
 };
 
-com.marklogic.options.prototype.values = function(name,el,el2) {
+/**
+ * Creates a values definition for returning lexicon values
+ */
+mldb.prototype.options.prototype.values = function(name,el,el2) {
   var values = {name: name,range: new Array()};
   if (undefined == this.options.values) {
     this.options.values = new Array();
@@ -2350,10 +2591,11 @@ com.marklogic.options.prototype.values = function(name,el,el2) {
 
 
 
-m.prototype.options = function() {
-  return new com.marklogic.options();
+/*
+mldb.prototype.options = function() {
+  return new mldb.prototype.options();
 };
-
+*/
 
 
 
@@ -2367,8 +2609,11 @@ m.prototype.options = function() {
 
 // Structured Query Builder object
 
-
-com.marklogic.query = function() {
+/**
+ * Creates a structured query builder object
+ * @constructor
+ */
+mldb.prototype.query = function() {
   this._query = {
     // TODO initialise query object
   };
@@ -2377,13 +2622,19 @@ com.marklogic.query = function() {
   // TODO set defaults
 };
 
-com.marklogic.query.prototype.toJson = function() {
+/**
+ * Returns the JSON object used in the REST API (and MLDB functions) that this query builder represents
+ */
+mldb.prototype.query.prototype.toJson = function() {
   return {query: this._query};
 };
 
 // TOP LEVEL QUERY CONFIGURATION (returning this)
 
-com.marklogic.query.prototype.query = function(query_opt) {
+/**
+ * Copies an existing query options object in to this object (pass a JSON structure query, not an mldb.query object)
+ */
+mldb.prototype.query.prototype.query = function(query_opt) {
   for (var name in query_opt) {
     // copy {collection: ...} collection (or and-query, or-query) in to our query object - should work with any valid query type
     this._query[name] = query_opt[name];
@@ -2393,7 +2644,10 @@ com.marklogic.query.prototype.query = function(query_opt) {
 
 // QUERY CREATION FUNCTIONS (returns query JSON)
 
-com.marklogic.query.prototype.and = function(query_opt) {
+/**
+ * Creates an and query, and returns it
+ */
+mldb.prototype.query.prototype.and = function(query_opt) {
   if (Array.isArray(query_opt)) {
     return { "and-query": query_opt};
   } else {
@@ -2402,7 +2656,11 @@ com.marklogic.query.prototype.and = function(query_opt) {
   }
 };
 
-com.marklogic.query.prototype.or = function(query_opt) {
+
+/**
+ * Creates an or query, and returns it
+ */
+mldb.prototype.query.prototype.or = function(query_opt) {
   if (Array.isArray(query_opt)) {
     return { "or-query": query_opt};
   } else {
@@ -2411,7 +2669,10 @@ com.marklogic.query.prototype.or = function(query_opt) {
   }
 };
 
-com.marklogic.query.prototype.collection = function(uri_opt,depth_opt) {
+/**
+ * Creates a collection query, and returns it
+ */
+mldb.prototype.query.prototype.collection = function(uri_opt,depth_opt) {
   if (undefined == uri_opt) {
     return {"collection-query": {uri: ""}}; // all collections by default
   } else if ("string" == typeof uri_opt) {
@@ -2450,7 +2711,10 @@ com.marklogic.query.prototype.collection = function(uri_opt,depth_opt) {
                           }
                         }
 */
-com.marklogic.query.prototype.georadius = function(constraint_name,lat,lon,radiusmiles,radiusmeasure_opt) {
+/**
+ * Creates a geospatial circle query and returns it
+ */
+mldb.prototype.query.prototype.georadius = function(constraint_name,lat,lon,radiusmiles,radiusmeasure_opt) {
   var radiusactual = radiusmiles;
   if (undefined != radiusmeasure_opt) {
     if ("km" == radiusmeasure_opt) {
@@ -2472,7 +2736,10 @@ com.marklogic.query.prototype.georadius = function(constraint_name,lat,lon,radiu
   }
 };
 
-com.marklogic.query.prototype.range = function(constraint_name,val) {
+/**
+ * Creates a range constraint query and returns it
+ */
+mldb.prototype.query.prototype.range = function(constraint_name,val) {
   return {
     
             "range-constraint-query": {
@@ -2486,7 +2753,7 @@ com.marklogic.query.prototype.range = function(constraint_name,val) {
 
 // TODO within polygon query
 
-
-m.prototype.query = function() {
-  return new com.marklogic.query();
-};
+/*
+mldb.prototype.query = function() {
+  return new mldb.prototype.query();
+};*/

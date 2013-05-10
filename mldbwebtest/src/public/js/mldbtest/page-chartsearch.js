@@ -32,7 +32,7 @@ $(document).ready(function() {
   tempcolumn.options.plotOptions = {column: {pointPadding: 0.2,borderWidth: 0,
     dataLabels: { enabled: true, style: { fontWeight: 'bold' } } } };
   
-  var ob = db.options();
+  var ob = new db.options();
   ob.defaultCollation("http://marklogic.com/collation/en")
     .pageLength(100)
     //.defaultType("xs:string"); // this should be the default anyway 

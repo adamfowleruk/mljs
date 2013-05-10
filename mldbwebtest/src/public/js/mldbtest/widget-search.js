@@ -100,6 +100,10 @@ com.marklogic.widgets.searchhelper.camelcase = function(value,mode) {
 
 // SEARCH BAR ELEMENT
 
+/**
+ * Creates a search bar widget
+ * @constructor
+ */
 com.marklogic.widgets.searchbar = function(container) {
   if (undefined == com.marklogic.widgets.searchbar.list) {
     com.marklogic.widgets.searchbar.list = new Array(); // [containerID] -> searchbar widget
@@ -159,33 +163,64 @@ com.marklogic.widgets.searchbar = function(container) {
   this.db = mldb.defaultconnection;
 };
 
+/**
+ * Sets the name of the search transform to use. See GET /v1/search
+ * @param {string} t - The transform name to use
+ */
 com.marklogic.widgets.searchbar.prototype.setTransform = function(t) {
   this.transform = t;
 };
 
+/**
+ * Sets the format to use. If not specified, defaults to json
+ * 
+ * @param {string} format - The format to use (json or xml)
+ */
 com.marklogic.widgets.searchbar.prototype.setFormat = function(f) {
   this.format = f;
 };
 
+/**
+ * Sets the collection to restrict search results by on the fly. See GET /v1/search
+ * 
+ * @param {string} col - the collection name, or comma delimited collection names, to restrict the search results to
+ */
 com.marklogic.widgets.searchbar.prototype.setCollection = function(col) {
   this.collection = col;
 };
 
+/**
+ * Restricts search results by the directory a document is within. See GET /v1/search
+ * 
+ * @param {string} dir - Directory base uri
+ */
 com.marklogic.widgets.searchbar.prototype.setDirectory = function(dir) {
   this.directory = dir;
 };
 
+/**
+ * Sets to options object to use. By default on V6 this will be persisted to the server. 
+ * In V7 this will be passed on the fly to MarkLogic.
+ * 
+ * @param {JSON} options - The REST API JSON search options object to use
+ */
 com.marklogic.widgets.searchbar.prototype.setOptions = function(options) {
   this.options = options;
   this.optionsExists = false;
 };
 
+/**
+ * Sets the name of the options object to refer to. This will be used by every search in this widget.
+ * 
+ * @param {string} name - Search options object's name
+ */
 com.marklogic.widgets.searchbar.prototype.setOptionsName = function(name) {
   this.optionsName = name;
 };
 
 /**
- * Should be set E.g. to "sort:relevance"
+ * Sets the default query. Should be set to non blank, E.g. "sort:relevance"
+ * @param {string} defQuery - Default string query to use
  */
 com.marklogic.widgets.searchbar.prototype.setDefaultQuery = function(defQuery) {
   this.defaultQuery = defQuery;
@@ -196,6 +231,11 @@ com.marklogic.widgets.searchbar.prototype.setDefaultQuery = function(defQuery) {
   }
 };
 
+/**
+ * Sets the underlying MLDB connection to use
+ * 
+ * @param {mldb} connection - The MLDB connection instance to use.
+ */
 com.marklogic.widgets.searchbar.prototype.setConnection = function(connection) {
   this.db = connection;
 };
@@ -262,10 +302,16 @@ com.marklogic.widgets.searchbar.prototype._queryToText = function(parsed) {
   return q;
 };
 
+/**
+ * Clears the search string in the input box of this widget
+ */
 com.marklogic.widgets.searchbar.prototype.clear = function() {
   document.getElementById(this.container + "-searchinput").value = "";
 };
 
+/**
+ * Executes the search currently container in this widget's input box. Useful to execute a 'blank' search on initial page load without user interaction.
+ */
 com.marklogic.widgets.searchbar.prototype.execute = function() {
   var q = document.getElementById(this.container + "-searchinput").value;
   this.__doquery(q);
@@ -344,42 +390,92 @@ com.marklogic.widgets.searchbar.prototype.__doquery = function(q,start) {
   
 };
 
+/**
+ * Specifies the sort word from the search options to use to sort the results on the next search
+ * 
+ * @param {string} word - The sort option to use
+ */
 com.marklogic.widgets.searchbar.prototype.setSortWord = function(word) {
   this.sortWord = word;
 };
 
+/**
+ * Add a results listener.
+ * 
+ * @param {function(results)} rl - Results listener to add
+ */
 com.marklogic.widgets.searchbar.prototype.addResultsListener = function(rl) {
   this.resultsPublisher.subscribe(rl);
 };
 
+/**
+ * Remove a results listener
+ * 
+ * @param {function(results)} rl - The result listener function to remove.
+ */
 com.marklogic.widgets.searchbar.prototype.removeResultsListener = function(rl) {
   this.resultsPublisher.unsubscribe(rl);
 };
 
+/**
+ * Adds a sort listener to this widget.
+ * 
+ * @param {function(string)} sl - The sort listener to add
+ */
 com.marklogic.widgets.searchbar.prototype.addSortListener = function(sl) {
   this.sortPublisher.subscribe(sl);
 };
 
+/**
+ * Removes a sort listener
+ * 
+ * @param {function(string)} sl - The sort listener to remove
+ */
 com.marklogic.widgets.searchbar.prototype.removeSortListener = function(sl) {
   this.sortPublisher.unsubscribe(sl);
 };
 
+/**
+ * Adds a facet listener to this widget. Normally you'd use a results listener instead in order to get more context.
+ * 
+ * @param {function(facetValues)} fl - The Facet Listener to add
+ */
 com.marklogic.widgets.searchbar.prototype.addFacetsListener = function(fl) {
   this.facetsPublisher.subscribe(fl);
 };
 
+/**
+ * Removes a facet listener
+ * 
+ * @param {function(facetValues)} fl - The Facet Listener to remove
+ */
 com.marklogic.widgets.searchbar.prototype.removeFacetsListener = function(fl) {
   this.facetsPublisher.unsubscribe(fl);
 };
 
+/**
+ * Adds an error listener to this widget
+ * 
+ * @param {function(error)} fl - The error listener to add
+ */
 com.marklogic.widgets.searchbar.prototype.addErrorListener = function(fl) {
   this.errorPublisher.subscribe(fl);
 };
 
+/**
+ * Removes an error listener
+ * 
+ * @param {function(error)} fl - The error listener to remove
+ */
 com.marklogic.widgets.searchbar.prototype.removeErrorListener = function(fl) {
   this.errorPublisher.unsubscribe(fl);
 };
 
+/**
+ * Event target. Useful to call directly from a Search Facets widget upon selection of a facet value. Executes a new search.
+ * facetSelection = {name: facetName, value: facetValue}
+ * @param {facetSelection} facetSelection - The facet value to restrict the search results by. 
+ */
 com.marklogic.widgets.searchbar.prototype.updateFacets = function(facetSelection) {
   var q = document.getElementById(this.container + "-searchinput").value;
   
@@ -391,6 +487,11 @@ com.marklogic.widgets.searchbar.prototype.updateFacets = function(facetSelection
   this.__doquery(q);
 };
 
+/**
+ * Event target. Useful to call directly from a search pager widget. Executes a new search
+ * json = {show: number, start: number}
+ * @param {JSON} json - JSON representing the start result and the number of results to return per page.
+ */
 com.marklogic.widgets.searchbar.prototype.updatePage = function(json) {
   // example: {start: this.start, show: this.perPage}
   if (this.options.options["page-length"] != json.show) {
@@ -401,6 +502,11 @@ com.marklogic.widgets.searchbar.prototype.updatePage = function(json) {
   this.__doquery(q,json.start);
 };
 
+/**
+ * Event Target. Useful for linking to a search sorter. Updates the sort word and executes a search.
+ * 
+ * @param {string} sortSelection - The sort word. Relates to the search options used.
+ */
 com.marklogic.widgets.searchbar.prototype.updateSort = function(sortSelection) {
   // update sort selection, and perform search
   var q = document.getElementById(this.container + "-searchinput").value;
@@ -410,6 +516,9 @@ com.marklogic.widgets.searchbar.prototype.updateSort = function(sortSelection) {
   this.__doquery(q);
 };
 
+/**
+ * Resets the search bar input box. Resets all dependant search results/facets/pager/sorters too.
+ */
 com.marklogic.widgets.searchbar.prototype.reset = function() {
   // clear search bar text
   // send update to results and facets and sort
@@ -433,6 +542,11 @@ com.marklogic.widgets.searchbar.prototype.reset = function() {
 
 // SEARCH FACETS ELEMENT
 
+/**
+ * Creates a search facets interactive widget in the specified container.
+ * 
+ * @param {string} container - The HTML ID of the element this widget should place its content in to.
+ */
 com.marklogic.widgets.searchfacets = function(container) {
   this.container = container;
   
@@ -470,6 +584,9 @@ com.marklogic.widgets.searchfacets.prototype._getFacetSettings = function(facetN
   }
 };
 
+/**
+ * Clears the facet widget of all results.
+ */
 com.marklogic.widgets.searchfacets.prototype.clear = function() {
   this.results = null;
   this._refresh();
@@ -654,23 +771,49 @@ com.marklogic.widgets.searchfacets.prototype._extended = function(facetName) {
   this._refresh();
 };
 
+/**
+ * Sets the initial list size and the extended list size to show. Controls number of results to show per facet.
+ * 
+ * @param {positiveInteger} listSize - Number of results to show per facet (listed by descending frequency)
+ * @param {positiveInteger} extendedSize - Number of results to show per facet if 'show more' is clicked.
+ */
 com.marklogic.widgets.searchfacets.prototype.setSizes = function(listSize,extendedSize) {
   this.listSize = listSize;
   this.extendedSize = extendedSize;
 };
 
+/**
+ * Sets whether to allow the user to show all results per facet.
+ * 
+ * @param {boolean} boolvalue - Whether to enable the 'show all' link after clicking 'show more'.
+ */
 com.marklogic.widgets.searchfacets.prototype.setAllowShowAll = function(boolvalue) {
   this.allowShowAll = boolvalue;
 };
 
+/**
+ * Adds a facet selection (click) listener to this widget
+ * 
+ * @param {function(facetSelectionJSON)} sl - Selection listener function
+ */
 com.marklogic.widgets.searchfacets.prototype.addSelectionListener = function(sl) {
   this.selectionPublisher.subscribe(sl);
 };
 
+/**
+ * Remove a facet selection listener from this widget
+ * 
+ * @param {function(facetSelectionJSON)} sl - Selection listener function
+ */
 com.marklogic.widgets.searchfacets.prototype.removeSelectionListener = function(sl) {
   this.selectionPublisher.unsubscribe(sl);
 };
 
+/**
+ * Event Target. Link to a search bar (or advanced search)'s addResultListener function (NOT addFacetListener)
+ * 
+ * @param {JSON} results - The REST API search results JSON object. See GET /v1/search.
+ */
 com.marklogic.widgets.searchfacets.prototype.updateFacets = function(results) {
   if ("boolean" == typeof results) {
     return;
@@ -679,6 +822,11 @@ com.marklogic.widgets.searchfacets.prototype.updateFacets = function(results) {
   this._refresh();
 };
 
+/**
+ * Event Target. Used if another widget updates the facets via the search bar. E.g. manually type a facet value.
+ * 
+ * @param {JSON[]} facets - The JSON facet objects that are currently selected.
+ */
 com.marklogic.widgets.searchfacets.prototype.updateSelectedFacets = function(facets) {
   mldb.defaultconnection.logger.debug("In updateSelectedFacets(facets): " + JSON.stringify(facets));
   this.selected = facets;
@@ -700,6 +848,15 @@ com.marklogic.widgets.searchfacets.prototype.updateSelectedFacets = function(fac
 
 // SEARCH RESULTS ELEMENT
 
+/**
+ * Displays a list of search results, rendered appropriately for the content. Supports custom renderers. 
+ * These could render content in the search result or use the URI to fetch more information on the document.
+ * Supports both JSON and XML (likely XHTML) content display by default.
+ * Also allows making the entire result clickable, to navigate to another application page, supporting dynamic URL creation.
+ * 
+ * @constructor
+ * @param {string} container - HTML ID of the element in which to draw this widget's content
+ */
 com.marklogic.widgets.searchresults = function(container) {
   this.container = container;
   
@@ -809,15 +966,28 @@ com.marklogic.widgets.searchresults = function(container) {
   this.selectionPublisher = new com.marklogic.events.Publisher();
 };
 
+/**
+ * Sets the URL specification and enables clickable result links. Replaces #URI# with the URI of the clicked document.
+ * 
+ * @param {string} urlspec - URL specification to use
+ */
 com.marklogic.widgets.searchresults.prototype.details = function(urlspec) {
   this.detailsLink = urlspec;
 };
 
+/**
+ * Clears all results from this widget.
+ */
 com.marklogic.widgets.searchresults.prototype.clear = function() {
   this.results = null;
   this._refresh();
 };
 
+/**
+ * Event target. Link to a search (or advanced search)'s addResultListener method.
+ * 
+ * @param {JSON} results - REST API JSON result object. See GET /v1/search
+ */
 com.marklogic.widgets.searchresults.prototype.updateResults = function(results) {
   this.results = results;
   
@@ -888,12 +1058,15 @@ com.marklogic.widgets.searchresults.prototype._refresh = function() {
     // now add click handlers to each result div, if required
     if (pointer) {
       var self = this;
-      for (var i = 0;i < this.results.results.length;i++) {
-        var id = this.container + "-searchresults-wrapper-" + i;
-        var result = this.results.results[i];
+      var addPointerHandler = function(id,result) {
         document.getElementById(id).onclick = function(evt) {
           self._navigateTo(result.uri);
         }
+      }
+      for (var i = 0;i < this.results.results.length;i++) {
+        var id = this.container + "-searchresults-wrapper-" + i;
+        var result = this.results.results[i];
+        addPointerHandler(id,result);
       }
     }
     
@@ -909,28 +1082,55 @@ com.marklogic.widgets.searchresults.prototype._navigateTo = function(uri) {
   window.location = go;
 };
 
+/**
+ * Adds a result selection listener to this widget.
+ * 
+ * @param {function(uri)} sl - Search listener function
+ */
 com.marklogic.widgets.searchresults.prototype.addSelectionListener = function(sl) {
   this.selectionPublisher.subscribe(sl);
 };
 
+/**
+ * Removes a result selection listener.
+ * 
+ * @param {function(uri)} sl - Search listener function
+ */
 com.marklogic.widgets.searchresults.prototype.removeSelectionListener = function(sl) {
   this.selectionPublisher.unsubscribe(sl);
 };
 
 // search results custom processing
 
+/**
+ * Adds a result processor object to this widget.
+ * 
+ * @param {string} name - Processor name reference
+ * @param {function(result)} matcher_func - Function to invoke to see if a particular result can be handled by this processor
+ * @param {function(result)} processor_func - Function to process the result to generate representative XHTML
+ */
 com.marklogic.widgets.searchresults.prototype.addProcessor = function(name,matcher_func,processor_func) {
   this.processors[name] = {matcher:matcher_func,processor:processor_func};
   this.availableProcessors.push(name);
   this.processorPriority.push(name);
 };
 
+/**
+ * Removes a named processor from the list of available processors.
+ * 
+ * @param {string} name - The processor name to remove
+ */
 com.marklogic.widgets.searchresults.prototype.removeProcessor = function(name) {
   this.processors[name] = undefined;
   this.availableProcessors.remove(name);
   this.processorPriority.remove(name);
 };
 
+/**
+ * Sets the order of checking whether a processor matches a result.
+ * 
+ * @param {string[]} procNameArray - Processor name array
+ */
 com.marklogic.widgets.searchresults.prototype.setProcessorPriority = function(procNameArray) {
   this.processorPriority = procNameArray;
 };
@@ -945,6 +1145,12 @@ com.marklogic.widgets.searchresults.prototype.setProcessorPriority = function(pr
 
 // SEARCH RESULTS PAGINATION
 
+/**
+ * Creates a search results pager widget. Show total number of pages, current page, and which results are shown, and next/previous/first/last page navigation arrows.
+ * 
+ * @constructor
+ * @param {string} container - HTML ID of the element to render this widget in to
+ */
 com.marklogic.widgets.searchpager = function(container) {
   this.container = container;
   
@@ -972,10 +1178,18 @@ com.marklogic.widgets.searchpager = function(container) {
   this._refresh();
 };
 
+/**
+ * Clears the results (and thus numbers) from this widget.
+ */
 com.marklogic.widgets.searchpager.prototype.clear = function() {
   this.updatePage(null);
 };
 
+/**
+ * Event target. Link via add addResultsListener. Updates the pager based on a new JSON results object containing a start ID and number of results per page.
+ * 
+ * @param {JSON} results - REST API JSON results object. See GET /v1/search
+ */
 com.marklogic.widgets.searchpager.prototype.updatePage = function(results) {
   mldb.defaultconnection.logger.debug("updatePage: results: " + results);
   
@@ -996,10 +1210,20 @@ com.marklogic.widgets.searchpager.prototype.updatePage = function(results) {
   this._refresh();
 };
 
+/**
+ * Adds a listener for which page to navigate to.
+ * 
+ * @param {function(positiveInteger)} l - The function to invoke with the page to navigate to
+ */
 com.marklogic.widgets.searchpager.prototype.addPageListener = function(l) {
   this.pagePublisher.subscribe(l);
 };
 
+/**
+ * Removes a page listener.
+ * 
+ * @param {function(positiveInteger)} l - The function to invoke with the page to navigate to
+ */
 com.marklogic.widgets.searchpager.prototype.removePageListener = function(l) {
   this.pagePublisher.unsubscribe(l);
 };
@@ -1095,6 +1319,12 @@ com.marklogic.widgets.searchpager.prototype._last = function() {
 
 // SEARCH SORT ELEMENT
 
+/**
+ * Shows a search sort widget. IN PROGRESS - selecting a sort option does not currently do anything.
+ * 
+ * @constructor
+ * @param {string} container - The HTML ID of the element to render this widget into.
+ */
 com.marklogic.widgets.searchsort = function(container) {
   this.container = container;
   
@@ -1133,22 +1363,39 @@ com.marklogic.widgets.searchsort.prototype._refresh = function() {
   document.getElementById(this.container).innerHTML = str;
 };
 
+/**
+ * Adds a listener for a sort word selection.
+ * 
+ * @param {function(string)} sl - Sort selection listener function
+ */
 com.marklogic.widgets.searchsort.prototype.addSelectionListener = function(sl) {
   this.selectionPublisher.subscribe(sl);
 };
 
+/**
+ * Removes a listener for a sort word selection.
+ * 
+ * @param {function(string)} sl - Sort selection listener function
+ */
 com.marklogic.widgets.searchsort.prototype.removeSelectionListener = function(sl) {
   this.selectionPublisher.unsubscribe(sl);
 };
 
 /**
- * Invoked from search bar if sort manually typed in
+ * Event target. Link to a search's addSortSelectionListener function. Occurs if the sort word is manually changed in the search bar.
+ *
+ * @param {string} sortSelection - The sort word selected.
  */
 com.marklogic.widgets.searchsort.prototype.updateSort = function(sortSelection) {
   // NB do NOT fire results update event here - we've likely been called by it
   
 };
 
+/**
+ * Sets the search options to use to determine sort word choices in this control.
+ * 
+ * @param {JSON} options - REST API JSON options object. See PUT /v1/config/query
+ */
 com.marklogic.widgets.searchsort.prototype.setOptions = function(options) {
   // parse options object for sort settings
   var so = options.options["sort-order"];
@@ -1176,6 +1423,12 @@ com.marklogic.widgets.searchsort.prototype.setOptions = function(options) {
 
 // SEARCH PAGE ELEMENT (combines others)
 
+/**
+ * Creates a new search page widget, containing a search bar, search pager, search sorter, search results and search facets widget.
+ * 
+ * @constructor
+ * @param {string} container - The HTML ID of the container within which to render this widget.
+ */
 com.marklogic.widgets.searchpage = function(container) {
   this.container = container;
   
@@ -1226,7 +1479,14 @@ com.marklogic.widgets.searchpage = function(container) {
   this.db = mldb.defaultconnection;
 };
 
-com.marklogic.widgets.searchpage.prototype.setOptions = function(name,options,disable_options_check) {
+/**
+ * Sets the options to be used by all the search page widgets
+ * 
+ * @param {string} name - The search options name
+ * @param {JSON} options - The REST API JSON options object
+ * @param {boolean} check_options_exist - Whether to check if the options already exist on the server
+ */
+com.marklogic.widgets.searchpage.prototype.setOptions = function(name,options,check_options_exist) {
   // set widgets with those provided
   this.bar.setOptionsName(name);
   this.bar.setOptions(options);
@@ -1234,7 +1494,7 @@ com.marklogic.widgets.searchpage.prototype.setOptions = function(name,options,di
   
   // check if options exist
   var self = this;
-  if (undefined != disable_options_check && true == disable_options_check) {
+  if (undefined != check_options_exist && true == check_options_exist) {
     mldb.defaultconnection.searchoptions(name,function(result) {
       console.log("RESULT: " + JSON.stringify(result.doc));
       if (result.inError) {
@@ -1250,16 +1510,27 @@ com.marklogic.widgets.searchpage.prototype.setOptions = function(name,options,di
   }
 };
 
+/**
+ * Execute the search in the input box
+ */
 com.marklogic.widgets.searchpage.prototype.execute = function() {
   this.bar.execute(); // search for all
 };
 
+/**
+ * Sets the MLDB connection object to use
+ * 
+ * @param {mldb} connection - The MLDB connection instance
+ */
 com.marklogic.widgets.searchpage.prototype.setConnection = function(connection) {
   this.db = connection;
   // update search bar connection
   this.bar.setConnection(connection);
 };
 
+/**
+ * Resets the search box input field
+ */
 com.marklogic.widgets.searchpage.reset = function() {
   this.bar.reset(); // updates other widgets through event handlers
 };

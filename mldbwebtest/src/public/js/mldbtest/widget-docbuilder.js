@@ -3,6 +3,11 @@ com = window.com || {};
 com.marklogic = window.com.marklogic || {};
 com.marklogic.widgets = window.com.marklogic.widgets || {};
 
+/**
+ * Provides a form builder widget to allow the creation of a document. Also includes file update widget and security widgets.
+ * @constructor
+ * @param {string} container - The HTML ID of the element to place this widget's content within.
+ */
 com.marklogic.widgets.create = function(container) {
   this.container = container;
   
@@ -76,6 +81,9 @@ com.marklogic.widgets.create.prototype._place = function(html,type,id) {
   }
 };
 
+/**
+ * Ends the current row run and starts a new row.
+ */
 com.marklogic.widgets.create.prototype.endRow = function() {
   // clear previous row
   document.getElementById(this.container + "-create-row-" + this.currentRow).innerHTML += "<div style='clear:both'></div>";
@@ -96,18 +104,32 @@ com.marklogic.widgets.create.prototype.endRow = function() {
 
 // Configuration methods for create widget - MUST be called before control creation methods
 
+/**
+ * Specifies the creation mode for the widget. Can be "upload", "json" or "xml". If upload, the underlying browser's mime type support determines the type to send the document to MarkLogic as.
+ * 
+ * @param {string} newMode - The new mode to use
+ */
 com.marklogic.widgets.create.prototype.mode = function(newMode) {
   this._mode = newMode;
   
   return this;
 };
 
+/**
+ * Specifies the URI prefix of the newly generated document.
+ * 
+ * @param {string} prefix - The document URI prefix to use.
+ */
 com.marklogic.widgets.create.prototype.uriprefix = function(prefix) {
   this._uriprefix = prefix;
   
   return this;
 };
 
+/**
+ * Specifies that the next created 'cell' should be to the right of the current one. Difference between a table layout and a vertical div layout.
+ * Vertical is the default.
+ */
 com.marklogic.widgets.create.prototype.horizontal = function() {
   // draw new controls horizontally, not vertically
   this.vertical = false;
@@ -115,12 +137,21 @@ com.marklogic.widgets.create.prototype.horizontal = function() {
   return this;
 };
 
+/**
+ * Specifies that the resultant document should also be added to a collection with the name 'user-USERID'.
+ * TODO will call mldb's whoami extension to determine username, if not already known.
+ */
 com.marklogic.widgets.create.prototype.collectionUser = function() {
   // add user- and this user's id to the collection list
   
   return this;
 };
 
+/**
+ * Adds the resultant document(s) to the specified collection. May be called multiple times if multiple collections are required.
+ * 
+ * @param {string} col - Collection name to add the new document(s) to.
+ */
 com.marklogic.widgets.create.prototype.collection = function(col) {
   this._collections.push(col);
   
@@ -129,6 +160,9 @@ com.marklogic.widgets.create.prototype.collection = function(col) {
 
 // FORM CONTROLS
 
+/**
+ * Places a drag and drop upload control within the current cell, and creates a new cell.
+ */
 com.marklogic.widgets.create.prototype.dnd = function() {
   // check for browser support
   if (window.File && window.FileReader && window.FileList && window.Blob) {
@@ -173,17 +207,38 @@ com.marklogic.widgets.create.prototype.dnd = function() {
   return this;
 };
 
+/**
+ * Ensures that the resultant document has the specified permission object applied, in addition to those from any embedded permissions widgets.
+ * 
+ * @param {JSON} permObject - The permission specification to use. E.g. {role: "topsecret", permission: "read"}
+ */
 com.marklogic.widgets.create.prototype.forcePermission = function(permObject) {
   this._permissions.push(permObject);
   
   return this;
 };
 
+/**
+ * Adds a permissions drop down widget to the current cell, and creates a new cell.
+ * 
+ * @param {boolean} allowMultiple - Whether to allow multiple roles to be selected. NOT SUPPORTED (i.e. always false)
+ * @param {string[]} firstRoleArray - The lists of roles to allow selection of. Lowest access first. Normally all are in the same security compartment.
+ * @param {string} title_opt - The optional title text to show next to the control. E.g. 'Role for Read'
+ * @param {string} privilege - The privliege to grant to the selected role. E.g. read, update, delete
+ */
 com.marklogic.widgets.create.prototype.permissions = function(allowMultiple,firstRoleArray,title_opt,privilege) {
+  if (undefined == privilege) {
+    privilege = title_opt;
+    title_opt = undefined;
+  }
+  
   // add permissions control
   var id = this.container + "-permissions-" + (++this.controlCount);
-  var html = "<div id='" + id + "' class='create-permissions'>" + 
-    "<select id='" + id + "-select'>";
+  var html = "<div id='" + id + "' class='create-permissions'>";
+  if (undefined != title_opt) {
+    html += "<label for='" + id + "'>" + title_opt + "</label> ";
+  }
+  html += "<select id='" + id + "-select'>";
     
   for (var i = 0;i < firstRoleArray.length;i++) {
     html += "<option value='" + firstRoleArray[i] + "'>" + firstRoleArray[i] + "</option>";
@@ -196,6 +251,9 @@ com.marklogic.widgets.create.prototype.permissions = function(allowMultiple,firs
   return this;
 };
 
+/**
+ * Generates a button bar as a full row below the current row.
+ */
 com.marklogic.widgets.create.prototype.bar = function() {
   var id = this.container + "-bar-" + ++this.controlCount;
   var html = "<div id='" + id + "' class='create-bar'></div>";
@@ -209,6 +267,9 @@ com.marklogic.widgets.create.prototype.bar = function() {
   return this;
 };
 
+/**
+ * Ends the current bar, and adds any subsequent content to a new row.
+ */
 com.marklogic.widgets.create.prototype.endBar = function() {
   this.override = false;
   this.overrideEndManual = false;
@@ -219,6 +280,11 @@ com.marklogic.widgets.create.prototype.endBar = function() {
   return this;
 };
 
+/**
+ * Generates a save button control at the current position.
+ * 
+ * @param {string} title_opt - Optional string title to show on the button. (Defaults to 'Save')
+ */
 com.marklogic.widgets.create.prototype.save = function(title_opt) {
   var id = this.container + "-create-save-" + ++this.controlCount;
   var title = "Save";
@@ -247,10 +313,20 @@ com.marklogic.widgets.create.prototype.save = function(title_opt) {
 // EVENT HANDLERS
 
 
+/**
+ * Adds a function as a listener to be called when this widget successfully generates a new document, passing in the new document's URI. If multiple documents are created, passes an array of string uris.
+ * 
+ * @param {function} lis - The listener function to add. Function should accept a string uri
+ */
 com.marklogic.widgets.create.prototype.addCompleteListener = function(lis) {
   this.completePublisher.subscribe(lis);
 };
 
+/**
+ * Removes a completion listener from this widget.
+ * 
+ * @param {function} lis - The listener function to remove. Function should accept a string uri
+ */
 com.marklogic.widgets.create.prototype.removeCompleteListener = function(lis) {
   this.completePublisher.unsubscribe(lis);
 };

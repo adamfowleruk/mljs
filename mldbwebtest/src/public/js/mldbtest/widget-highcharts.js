@@ -3,6 +3,12 @@ com = window.com || {};
 com.marklogic = window.com.marklogic || {};
 com.marklogic.widgets = window.com.marklogic.widgets || {};
 
+/**
+ * Creates a HighCharts wrapper widget. HighCharts is a commercial JavaScript graphing widget distributed with MarkLogic. 
+ * If you are using this widget against a MarkLogic application, you are licensed to use HighCharts
+ * @constructor
+ * @param {string} container - HTML ID of the element to place this widget's content within.
+ */
 com.marklogic.widgets.highcharts = function(container) {
   this.container = container;
   
@@ -60,6 +66,11 @@ com.marklogic.widgets.highcharts.prototype._updateOptions = function() {
   mldb.defaultconnection.logger.debug("highcharts.prototype._updateOptions(): Options now: " + JSON.stringify(this.options));
 };
 
+/**
+ * Specifies the client side aggregation function to apply to the search results (not the search facet results)
+ * 
+ * @param {function} fn - The aggregate function to use. Should accept a results object
+ */
 com.marklogic.widgets.highcharts.prototype.setAggregateFunction = function(fn) {
   this.aggregateFunction = fn; // TODO sanity check value
 };
@@ -73,16 +84,34 @@ com.marklogic.widgets.highcharts.prototype._refresh = function() {
   this.chart = new Highcharts.Chart(this.options);
 };
 
+/**
+ * Specifies that the widget should automatically use the categories found in the search results. 
+ * Do not use this if you want to show a category with a '0' result even if it does not exist in search results.
+ * 
+ * @param {boolean} bv - Whether to use automatic category mode (default is true)
+ */
 com.marklogic.widgets.highcharts.prototype.setAutoCategories = function(bv) {
   this.autoCategories = bv;
 };
 
+/**
+ * Sets the JSON source in Parent.Child.Accessor format of where in the search result's content: JSON parameter to use for the Series name, category name and value
+ * 
+ * @param {string} nameSource - The JSON path to use for the series name
+ * @param {string} categorySource - The JSON path to use for the category name
+ * @param {string} valueSource - The JSON path to use for values
+ */
 com.marklogic.widgets.highcharts.prototype.setSeriesSources = function(nameSource,categorySource,valueSource) {
   this.nameSource = nameSource;
   this.categorySource = categorySource;
   this.valueSource = valueSource;
 };
 
+/**
+ * Event handler. Intended as a parameter for an addResultsListener method.
+ * 
+ * @param {results} results - REST API JSON Results object, as from GET /v1/search
+ */
 com.marklogic.widgets.highcharts.prototype.updateResults = function(results) {
   // go through each results and extract name and values, grouping by name
   var seriesNames = new Array();

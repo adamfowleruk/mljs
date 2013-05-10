@@ -3,10 +3,21 @@ com = window.com || {};
 com.marklogic = window.com.marklogic || {};
 com.marklogic.widgets = window.com.marklogic.widgets || {};
 
+
+/**
+ * Creates a widget to show a list of collection URIs
+ * @constructor
+ * @param {string} container - the HTML ID of the container to place this widget in.
+ */
 com.marklogic.widgets.collectionuris = function(container) {
   this.container = container;
 };
 
+/**
+ * Uses the MLDB default connection to list the child collection URIs of the specified parent. Use blank for all.
+ * 
+ * @param {string} parenturi - The parent URI to find the children for.
+ */
 com.marklogic.widgets.collectionuris.prototype.list = function(parenturi) {
   this.parenturi = parenturi;
   var self = this;

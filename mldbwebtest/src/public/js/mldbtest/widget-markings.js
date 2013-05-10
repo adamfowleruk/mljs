@@ -3,6 +3,18 @@ com = window.com || {};
 com.marklogic = window.com.marklogic || {};
 com.marklogic.widgets = window.com.marklogic.widgets || {};
 
+/**
+ * Creates a Markings widget. This enables the splitting in to sections of any XHTML document. These individual sections are delimited by headings (h tags, or paragraphs with <6 words)
+ * followed by one or more text paragraphs. Security read rights can be added to each section. The resultant document surrounds these in div tags with a special secure-content class attribute
+ * and a read:ROLENAME class that determines the role name. This is intended to be used with search options and get transforms that always redact content being requested or returned in search results.
+ * 
+ * This widget itself respects redacted sections, but currntly does not provide any secure merge functionality.
+ * 
+ * This widget also has an option to suggest and save triples (facts about entities) based on configure XML elements embedded within the XHTML. This is intended to be used to extract and store
+ * a named graph for each secure section of each document, with the same security as that document section. This can be queried via SPARQL. 
+ *
+ * @constructor
+ */
 com.marklogic.widgets.markings = function(container) {
   this.container = container;
   
@@ -50,9 +62,9 @@ com.marklogic.widgets.markings = function(container) {
   this.nextTripleId = 1;
   
   this._iriPatterns = new Array();
-  this._iriPatterns["person"] = "http://marklogic.com/semantic/targets/person##VALUE#";
-  this._iriPatterns["organisation"] = "http://marklogic.com/semantic/targets/organisation##VALUE#";
-  this._iriPatterns["placename"] = "http://marklogic.com/semantic/targets/placename##VALUE#";
+  this._iriPatterns["person"] = "http://marklogic.com/semantic/targets/person/#VALUE#";
+  this._iriPatterns["organisation"] = "http://marklogic.com/semantic/targets/organisation/#VALUE#";
+  this._iriPatterns["placename"] = "http://marklogic.com/semantic/targets/placename/#VALUE#";
   
   this._rdfTypes = new Array();
   this._rdfTypes["person"] = "http://xmlns.com/foaf/0.1/Person";
@@ -66,6 +78,11 @@ com.marklogic.widgets.markings = function(container) {
   this._init();
 };
 
+/**
+ * Specifies the collections (named graphs) to add any resultant triples in to. Supports text replacement of #URI# for the source document and #SECTIONID# for the source section id (of the secure section)
+ * 
+ * @param {string[]} collections - String array of the collection(s), aka named graphs, to add the facts to. (NB Must result in a unique URI per document secure section)
+ */
 com.marklogic.widgets.markings.prototype.tripleCollections = function(collections) {
   this._tripleCollections = collections;
 };
@@ -79,24 +96,53 @@ com.marklogic.widgets.markings.prototype._init = function() {
   document.getElementById(this.container).innerHTML = html;
 };
 
+
+/**
+ * Specifies whether to support the suggesting and persisting of triples (default: false).
+ * 
+ * @param {boolean} bool - Allow triple extraction and editing?
+ */
 com.marklogic.widgets.markings.prototype.triples = function(bool) {
   this.tripleEditor = bool;
 };
 
+/**
+ * Specifies a URL pattern for a particular XHTML metadata field, if it exists. E.g. a meta tag with name originaldoc could map to the /documents/view?uri=#VALUE# url replacement pattern
+ * Could also be used to look up related information. E.g. to find all documents with the same Subject metadata field, or execute a search with that data
+ * 
+ * @param {string} metafield - The name attribute value for the meta tag to generate a hyperlink for
+ * @param {string} urlreplace - The URL to send the user's browser to. Supports substitution via the #VALUE# string.
+ */
 com.marklogic.widgets.markings.prototype.uriHandler = function(metafield,urlreplace) {
   this._uriHandlers[metafield] = urlreplace;
 };
 
+/**
+ * Specifies the read permission list, in ascending access level, to read the document or secure document section.
+ * 
+ * @param {string[]} list - String list of role names for a read permission. Normally part of a security compartment.
+ */
 com.marklogic.widgets.markings.prototype.permissions = function(list) {
   // we only ever do read permissions at section level, read and update at doc level
   this._permissions = list;
 };
 
+/**
+ * Specifies the update permission list for the document only, in ascending access level order.
+ * 
+ * @param {string[]} list - String list of role names for a document update permission. Normally part of a security compartment.
+ */
 com.marklogic.widgets.markings.prototype.updatePermissions = function(list) {
   // update permission (E.g. for document level)
   this._updatepermissions = list;
 };
 
+/**
+ * Loads the specified XHTML document from MarkLogic and processes it (if required) for display. This function will automatically section the 
+ * document off if no div tags with a class of secure-content exist as immediate children of the document's body tag.
+ *
+ * @param {string} uri - Document URI to load
+ */
 com.marklogic.widgets.markings.prototype.showDocument = function(uri) {
   this.docuri = uri;
   
@@ -575,13 +621,13 @@ com.marklogic.widgets.markings.prototype.__saveDocument = function() {
   // merge with existing (meta data) content
   console.log("head content: " + this.head);
   nd += this.head;
-  nd += "<body xmlns='http://www.w3.org/1999/xhtml>";
+  nd += "<body xmlns='http://www.w3.org/1999/xhtml'>";
   
   for (var s = 0;s < this.sections.length;s++) {
     var section = this.sections[s];
     
     // get our HTML div element
-    var sid = section.htmlid;
+    var sid = section.htmlid; // TODO NB Doesn't exist if loaded second+ times
     console.log("SID: " + sid);
     var sc = document.getElementById(sid);
     // create a new secure section tag

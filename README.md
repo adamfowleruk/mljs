@@ -52,13 +52,14 @@ Targets for 0.7 (May 2013 tidy up edition)
   - More... all... links in facets
   - BUG: one page too many in results if results are multiple of page size (i.e. 30 gives you 4 pages, not 3)
   - BUG: multi word facet selection causes search to be limited to first word only (no quotes) -> query parser, not facet issue
- - TEST Core: support XML returned as well as JSON
+ - IN PROGRESS Core: support XML returned as well as JSON
+  - DONE Search result content (within JSON results, not as XML results)
  - TEST Widgets: Update search samples to include one set of mixed XML and JSON documents
  - IN PROGRESS Widgets: File upload (single and multiple)
  - TEST Core: Search Options Builder
  - IN PROGRESS Core: Structured Search Builder
  - TEST Browser: prototype.js binding
- - TEST Browser: XMLHttpRequest (xhr) binding
+ - DONE Browser: XMLHttpRequest (xhr) binding
  - IN PROGRESS Browser: XmlHttpRequest2 (xhr2) binding
  - IN PROGRESS Docs: Samples for XML use, equivalent to some of the existing JSON samples (not exhaustive)
  - Tests: Test samples for xml content

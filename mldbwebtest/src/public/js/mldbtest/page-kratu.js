@@ -4,7 +4,7 @@ $(document).ready(function() {
   var db = new mldb(); // calls default configure
   db.logger.setLogLevel("debug");
   
-  var ob = db.options();
+  var ob = new db.options();
   ob.pageLength(100);
   var options = ob.toJson();
   /*
