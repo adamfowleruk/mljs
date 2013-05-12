@@ -493,6 +493,7 @@ m.__dogenid = function() {
 
 /**
  * Invokes the appropriate Browser AJAX connection wrapper. Not to be called directly.
+ * @private
  */
 mldb.prototype.__doreq_wrap = function(reqname,options,content,callback_opt) {
   this.dboptions.wrapper.request(reqname,options,content,function(result) {
@@ -502,6 +503,7 @@ mldb.prototype.__doreq_wrap = function(reqname,options,content,callback_opt) {
 
 /**
  * Invokes the appropriate Node.js connection wrapper (see DigestWrapper and BasicWrapper for more information). Not to be called directly.
+ * @private
  */
 mldb.prototype.__doreq_node = function(reqname,options,content,callback_opt) {
   var self = this;
@@ -609,6 +611,7 @@ mldb.prototype.__doreq_node = function(reqname,options,content,callback_opt) {
 
 /**
  * Handles management of all HTTP requests passed to the wrappers. Should never be invoked directly.
+ * @private
  */
 mldb.prototype.__doreq = function(reqname,options,content,callback_opt) {
   this.logger.debug("__doreq: reqname: " + reqname + ", method: " + options.method + ", uri: " + options.path);
@@ -800,6 +803,13 @@ mldb.prototype.destroy = function(callback_opt) {
  * 
  * https://docs.marklogic.com/REST/GET/v1/documents
  *
+ * options_opt currently supports these options:-
+ * <ul>
+ *  <li>transform - the name of the installed transform to use when fetching the document</li>
+ * </ul>
+ * 
+ * @param {string} docuri - The URI of the document to retrieve
+ * @param {JSON} options_opt - Additional optional options to use
  * @param {function} callback_opt - The optional callback to invoke after the method completes
  */
 mldb.prototype.get = function(docuri,options_opt,callback_opt) {
@@ -828,6 +838,7 @@ mldb.prototype.get = function(docuri,options_opt,callback_opt) {
  * 
  * https://docs.marklogic.com/REST/GET/v1/documents
  *
+ * @param {string} docuri - The URI of the document whose metadata you want to retrieve.
  * @param {function} callback_opt - The optional callback to invoke after the method completes
  */
 mldb.prototype.metadata = function(docuri,callback_opt) {
@@ -850,6 +861,17 @@ mldb.prototype.metadata = function(docuri,callback_opt) {
  *
  * https://docs.marklogic.com/REST/PUT/v1/documents
  *
+ * props_opt can be used to provide extra options. These are:-
+ * <ul>
+ *  <li>collection - The comma delimited string of the collections to add the document to</li>
+ *  <li>contentType - The content type (MIME type) of the doc. Useful for uploaded binary documents.</li>
+ *  <li>format - The format of the response. Either json (default if not specified) or xml.</li>
+ *  <li>permissions - array of permission JSON objects to apply: E.g. [{role: 'secret-write', permissions: 'update|read|delete'}, ...]</li>
+ * </ul>
+ *
+ * @param {json|xml|file} jsonXmlBinary - The document content to save
+ * @param {string} docuri_opt - The optional URI of the document to create
+ * @param {JSON} props_opt - The optional additional properties to use.
  * @param {function} callback_opt - The optional callback to invoke after the method completes
  */
 mldb.prototype.save = function(jsonXmlBinary,docuri_opt,props_opt,callback_opt) {
@@ -949,6 +971,8 @@ mldb.prototype.save = function(jsonXmlBinary,docuri_opt,props_opt,callback_opt) 
  * Updates the document with the specified uri by only modifying the passed in properties.
  * NB May not be possible in V6 REST API elegantly - may need to do a full fetch, update, save
  *
+ * @param {JSON} json - The JSON document to merge with the existing document
+ * @param {string} docuri - The URI of the document to update
  * @param {function} callback_opt - The optional callback to invoke after the method completes
  */
 mldb.prototype.merge = function(json,docuri,callback_opt) { 
@@ -997,6 +1021,7 @@ mldb.prototype.__merge = function(json1,json2) {
  * 
  * https://docs.marklogic.com/REST/DELETE/v1/documents
  *
+ * @param {string} docuri - URI of the document to delete
  * @param {function} callback_opt - The optional callback to invoke after the method completes
  */ 
 mldb.prototype.delete = function(docuri,callback_opt) { 
@@ -1020,6 +1045,8 @@ mldb.prototype.remove = mldb.prototype.delete; // Convenience method for people 
  * Returns all documents in a collection, optionally matching against the specified fields
  * http://docs.marklogic.com/REST/GET/v1/search
  *
+ * @param {string} collection - The collection to list documents from
+ * @param {string} fields_opt - Not used
  * @param {function} callback_opt - The optional callback to invoke after the method completes
  */
 mldb.prototype.collect = function(collection,fields_opt,callback_opt) {
@@ -1038,6 +1065,7 @@ mldb.prototype.collect = function(collection,fields_opt,callback_opt) {
  * Lists all documents in a directory, to the specified depth (default: 1), optionally matching the specified fields
  * http://docs.marklogic.com/REST/GET/v1/search
  *
+ * @param {string} directory - The directory URI to list documents within
  * @param {function} callback_opt - The optional callback to invoke after the method completes
  */
 mldb.prototype.list = function(directory,callback_opt) { 
@@ -1053,6 +1081,9 @@ mldb.prototype.list = function(directory,callback_opt) {
  * 
  * https://docs.marklogic.com/REST/GET/v1/keyvalue
  *
+ * @param {string} key - The JSON key to use for document retrieval
+ * @param {string} value - The value of the JSON key to match against candidate documents
+ * @param {string} keytype_opt - What type to use for the key type. Defaults to 'key'. (i.e. JSON key, not element)
  * @param {function} callback_opt - The optional callback to invoke after the method completes
  */
 mldb.prototype.keyvalue = function(key,value,keytype_opt,callback_opt) {
@@ -1082,7 +1113,19 @@ mldb.prototype.keyvalue = function(key,value,keytype_opt,callback_opt) {
  * http://docs.marklogic.com/REST/GET/v1/search
  *
  * See supported search grammar http://docs.marklogic.com/guide/search-dev/search-api#id_41745 
+ * 
+ * Supported values for sprops_opt:-
+ * <ul>
+ *  <li>collection - The collection to restrict search results from</li>
+ *  <li>directory - The directory uri to restrict search results from</li>
+ *  <li>transform - The transform to apply to the top level results object on the server</li>
+ *  <li>format - The format of the response. json or xml. json is the default if not specified</li>
+ * </ul>
  *
+ * @param {string} query_opt - The query string. Optional. (Returns all documents if not supplied, or whatever returns from the additional-query in the json options used)
+ * @param {string} options_opt - The name of the installed options to use. Optional. In 0.7+ can also be a JSON options document, if used against MarkLogic 7
+ * @param {positiveInteger} start_opt - Index of the first result to return in the page. First index is 1 (not 0). Defaults to 1 if not provided.
+ * @param {JSON} sprops_opt - Additional optional search properties
  * @param {function} callback_opt - The optional callback to invoke after the method completes
  */ 
 mldb.prototype.search = function(query_opt,options_opt,start_opt,sprops_opt,callback) { 
@@ -1172,11 +1215,14 @@ mldb.prototype.search = function(query_opt,options_opt,start_opt,sprops_opt,call
 };
 
 /**
- * Performs a search:search via REST
+ * Performs a search:search via REST. Helper method for SEARCH.
  * http://docs.marklogic.com/REST/GET/v1/search
  *
  * See supported search grammar http://docs.marklogic.com/guide/search-dev/search-api#id_41745 
  *
+ * @param {string} collection_opt - The optional collection to restrict the results to
+ * @param {string} query_opt - The optional query string
+ * @param {string} options_opt - The optional name of the installed query options to use
  * @param {function} callback - The callback to invoke after the method completes
  */ 
 mldb.prototype.searchCollection = function(collection_opt,query_opt,options_opt,callback) { 
@@ -1201,7 +1247,7 @@ mldb.prototype.searchCollection = function(collection_opt,query_opt,options_opt,
     path: url,
     method: "GET"
   };
-  this.__doreq("SEARCH",options,null,callback);
+  this.__doreq("SEARCHCOLLECTION",options,null,callback);
 };
 
 /**
@@ -1209,7 +1255,11 @@ mldb.prototype.searchCollection = function(collection_opt,query_opt,options_opt,
  * http://docs.marklogic.com/REST/GET/v1/search
  * 
  * Uses structured search instead of cts:query style searches. See http://docs.marklogic.com/guide/search-dev/search-api#id_53458
+ * 
+ * Use this method in conjunction with the Query Builder {@see mldb.prototype.query}
  *
+ * @param {string} query_opt - The optional query string to restrict the results by
+ * @param {string} options_opt - The optional name of the installed query options to use
  * @param {function} callback - The callback to invoke after the method completes
  */
 mldb.prototype.structuredSearch = function(query_opt,options_opt,callback) {
@@ -1240,8 +1290,12 @@ mldb.prototype.structuredSearch = function(query_opt,options_opt,callback) {
  * Saves search options with the given name. These are referred to by mldb.structuredSearch.
  * http://docs.marklogic.com/REST/PUT/v1/config/query/*
  *
- * For structured serch options see http://docs.marklogic.com/guide/rest-dev/search#id_48838
+ * For structured search options see http://docs.marklogic.com/guide/rest-dev/search#id_48838
+ * 
+ * Use this function in conjunction with the Search Options Builder. {@see mldb.prototype.options}
  *
+ * @param {string} name - The name to install the search options under
+ * @param {JSON} searchoptions - The search options JSON object. {@see mldb.prototype.options.prototype.toJson}
  * @param {function} callback_opt - The optional callback to invoke after the method completes
  */
 mldb.prototype.saveSearchOptions = function(name,searchoptions,callback_opt) {
@@ -1258,6 +1312,7 @@ mldb.prototype.saveSearchOptions = function(name,searchoptions,callback_opt) {
  * 
  * For structured serch options see http://docs.marklogic.com/guide/rest-dev/search#id_48838
  *
+ * @param {string} name - The name of the installed search options to retrieve as JSON
  * @param {function} callback - The callback to invoke after the method completes
  */
 mldb.prototype.searchoptions = function(name,callback) {
@@ -1272,6 +1327,9 @@ mldb.prototype.searchoptions = function(name,callback) {
  * Fetches values from a lexicon or computes 2-way co-occurence.
  * https://docs.marklogic.com/REST/GET/v1/values/*
  *
+ * @param {string|JSON} query - The query string (string) or structured query (object) to use to restrict the results
+ * @param {string} tuplesname - The name of the tuples in the installed search options to return
+ * @param {string} optionsname - The name of the installed search options to use
  * @param {function} callback_opt - The optional callback to invoke after the method completes
  */
 mldb.prototype.values = function(query,tuplesname,optionsname,callback_opt) {
@@ -1297,6 +1355,9 @@ mldb.prototype.values = function(query,tuplesname,optionsname,callback_opt) {
  * 
  * For structured serch options see http://docs.marklogic.com/guide/rest-dev/search#id_48838
  *
+ * Executes the values configuration provided. The name 'shotgun' used below is not important. {@see mldb.prototype.subcollections} for an example usage.
+ *
+ * @param {JSON} search - The JSON structured search to use
  * @param {function} callback - The callback to invoke after the method completes
  */
 mldb.prototype.valuesCombined = function(search,callback) {
@@ -1313,6 +1374,7 @@ mldb.prototype.valuesCombined = function(search,callback) {
  * Lists the collection URIS underneath the parent uri.
  * Helper method to fetch collections from the collection lexicon using mldb.valuesCombined().
  *
+ * @param {string} parenturi - The collection URI under which to retrieve the list of subcollections
  * @param {function} callback - The callback to invoke after the method completes
  */
 mldb.prototype.subcollections = function(parenturi,callback) {
@@ -1369,6 +1431,15 @@ mldb.prototype.subcollections = function(parenturi,callback) {
  * 
  * No documentation URL - still in Early Access, docs only available on internal MarkLogic wiki
  *
+ * I'm using an easy to interpret JSON triples format. This prevents the user of this function from having to know the
+ * n-triples format. Here is an example:-
+ * triples = [{subject: "http://someiri/#here", predicate: "http://someiri/#here", object: "http://someiri/#here"},... ]
+ * 
+ * Note: We assume that the 'object' if provided as JSON triples is an IRI, not a string or other primitive value.
+ * Construct your own N-triples if you need to provide raw primitive values.
+ *
+ * @param {string|JSON} triples - The raw N-triples (string) or JSON triples (object JSON array) to store
+ * @param {string} uri_opt - The graph name to replace. If not provided, the default MarkLogic graph (all triples) will be replaced.
  * @param {function} callback_opt - The optional callback to invoke after the method completes
  */
 mldb.prototype.saveGraph = function(triples,uri_opt,callback_opt) {
@@ -1404,6 +1475,8 @@ mldb.prototype.saveGraph = function(triples,uri_opt,callback_opt) {
  * 
  * No documentation URL - still in Early Access
  *
+ * @param {string|JSON} triples - The raw N-triples (string) or JSON triples (object JSON array) to store
+ * @param {string} uri_opt - The graph name to replace. If not provided, the default MarkLogic graph (all triples) will be merged.
  * @param {function} callback_opt - The optional callback to invoke after the method completes
  */
 mldb.prototype.mergeGraph = function(triples,uri_opt,callback_opt) {
@@ -1440,7 +1513,8 @@ mldb.prototype.mergeGraph = function(triples,uri_opt,callback_opt) {
  *
  * No documentation URL - still in Early Access
  *
- * @param {function} callback_opt - The optional callback to invoke after the method completes
+ * @param {string} uri_opt - The name of the grah to return. If not provided, the default MarkLogic graph (all triples, not just triples not in a named graph) will be returned.
+ * @param {function} callback_opt - The optional callback to invoke after the method completes.
  */
 mldb.prototype.graph = function(uri_opt,callback_opt) {
   if (undefined == callback_opt && "function" === typeof uri_opt) {
@@ -1487,6 +1561,7 @@ mldb.prototype.graph = function(uri_opt,callback_opt) {
  *
  * No documentation URL - still in Early Access
  *
+ * @param {string} uri - The name of the graph to delete. Required. (Cannot be 'default')
  * @param {function} callback_opt - The optional callback to invoke after the method completes
  */
 mldb.prototype.deleteGraph = function(uri,callback_opt) {
@@ -1515,6 +1590,10 @@ mldb.prototype.deleteGraph = function(uri,callback_opt) {
  * Opens a new transaction. Optionally, specify your own name.
  * http://docs.marklogic.com/REST/POST/v1/transactions
  *
+ * Note: Each mldb instance can only have one live transaction at a time. This is a limit imposed by myself by design, not by the underlying REST API. 
+ * Best to configure a connection per real user-application pair.
+ *
+ * @param {string} name_opt - The name of the transaction. If not provided, 'client-txn' will be used. Likely not safe on a multi user system.
  * @param {function} callback - The callback to invoke after the method completes
  */
 mldb.prototype.beginTransaction = function(name_opt,callback) {
@@ -1638,6 +1717,10 @@ mldb.prototype.fast = function(callback_opt) {
  * Takes a csv file and adds to the database.
  * fast aware method
  *
+ * NOT YET IMPLEMENTED - Shell function only that will never call the callback
+ * 
+ * @param {string} csvdata - The CSV text to ingest
+ * @param {string} docid_opt - The optional URI of the document to store
  * @param {function} callback_opt - The optional callback to invoke after the method completes
  */
 mldb.prototype.ingestcsv = function(csvdata,docid_opt,callback_opt) {
@@ -1647,6 +1730,8 @@ mldb.prototype.ingestcsv = function(csvdata,docid_opt,callback_opt) {
 /**
  * Inserts many JSON documents. FAST aware, TRANSACTION aware.
  *
+ * @param {Array} doc_array - The array of document data to store. {@see mldb.prototype.save} for valid values
+ * @param {Array} uri_array_opt - The optional array of URIs to store the documents as. Will generate if not provided
  * @param {function} callback_opt - The optional callback to invoke after the method completes
  */
 mldb.prototype.saveAll = function(doc_array,uri_array_opt,callback_opt) {
@@ -1723,6 +1808,10 @@ rv.prototype.callback = function(mc,result,that) {
 /**
  * Alternative saveAll function that throttles invoking MarkLogic to a maximum number of simultaneous 'parallel' requests. (JavaScript is never truly parallel)
  *
+ * NB Uses an internal rv class defined in the mldb.js file.
+ *
+ * @param {Array} doc_array - The array of document data to store. {@see mldb.prototype.save} for valid values
+ * @param {Array} uri_array_opt - The optional array of URIs to store the documents as. Will generate if not provided
  * @param {function} callback_opt - The optional callback to invoke after the method completes
  */
 mldb.prototype.saveAll2 = function(doc_array,uri_array_opt,callback_opt) {
@@ -1769,10 +1858,15 @@ mldb.prototype.saveAll2 = function(doc_array,uri_array_opt,callback_opt) {
 
 // REST API EXTENSIONS
 
-// START EXTENSION - subscribe-resource.xqy - Adam Fowler adam.fowler@marklogic.com - Save searches by name, and subscribe to alerts from them. Alerts sent to a given URL.
+// START EXTENSION 
 /**
- * Save a query using the default search grammar (see search:search) with a given name
+ * REQUIRES CUSTOM REST API EXTENSION - subscribe-resource.xqy - Adam Fowler adam.fowler@marklogic.com - Save searches by name, and subscribe to alerts from them. Alerts sent to a given URL.
+ *  
+ * Save a query as an XML document using the default search grammar (see search:search) with a given name
  *
+ * @param {string} searchname - The name of the search
+ * @param {boolean} shared - If false, the current user's username is prepended to the search name with a hyphen
+ * @param {string} query - The search:search compatible query using the default grammar to use for the search
  * @param {function} callback_opt - The optional callback to invoke after the method completes
  */
 mldb.prototype.saveBasicSearch = function(searchname,shared,query,callback_opt) {
@@ -1794,8 +1888,13 @@ mldb.prototype._doSaveBasicSearch = function(searchname,shared,query,createmode,
 };
 
 /**
+ * REQUIRES CUSTOM REST API EXTENSION - subscribe-resource.xqy - Adam Fowler adam.fowler@marklogic.com - Save searches by name, and subscribe to alerts from them. Alerts sent to a given URL.
+ *
  * Save a query that matches documents created within a collection, with a given name
  *
+ * @param {string} searchname - The name of the search
+ * @param {boolean} shared - If false, the current user's username is prepended to the search name with a hyphen
+ * @param {string} collection - The collection to restrict search results to
  * @param {function} callback_opt - The optional callback to invoke after the method completes
  */
 mldb.prototype.saveCollectionSearch = function(searchname,shared,collection,callback_opt) {
@@ -1817,9 +1916,16 @@ mldb.prototype._doSaveCollectionSearch = function(searchname,shared,collection,c
 };
 
 /**
+ * REQUIRES CUSTOM REST API EXTENSION - subscribe-resource.xqy - Adam Fowler adam.fowler@marklogic.com - Save searches by name, and subscribe to alerts from them. Alerts sent to a given URL.
+ *
  * Save a geospatial search based on a point and radius from it, with a given name
  * TODO check if we need to include an alert module name in the options
  *
+ * @param {string} searchname - The name of the search
+ * @param {boolean} shared - If false, the current user's username is prepended to the search name with a hyphen
+ * @param {decimal} latitude - The WGS84 latitude for the centre of the radius search
+ * @param {decimal} longitude - The WGS84 longitude for the centre of the radius search
+ * @param {decimal} radius - The radius in statue (nor nautical) miles
  * @param {function} callback_opt - The optional callback to invoke after the method completes
  */
 mldb.prototype.saveGeoNearSearch = function(searchname,shared,latitude,longitude,radiusmiles,callback_opt) {
@@ -1841,8 +1947,13 @@ mldb.prototype._doSaveGeoNearSearch = function(searchname,shared,latitude,longit
 };
 
 /**
+ * REQUIRES CUSTOM REST API EXTENSION - subscribe-resource.xqy - Adam Fowler adam.fowler@marklogic.com - Save searches by name, and subscribe to alerts from them. Alerts sent to a given URL.
+ *
  * Save an arbitrary search (any cts:query) already stored in the database, with a given name. Enables easy referencing and activation of alerts on this search.
  *
+ * @param {string} searchname - The name of the search
+ * @param {boolean} shared - If false, the current user's username is prepended to the search name with a hyphen
+ * @param {string} searchdocuri - The URI to copy the search document from
  * @param {function} callback_opt - The optional callback to invoke after the method completes
  */
 mldb.prototype.saveExistingSearch = function(searchname,shared,searchdocuri,callback_opt) {
@@ -1868,8 +1979,14 @@ mldb.prototype._doSaveExistingSearch = function(searchname,shared,searchdocuri,c
  */
 
 /**
+ * REQUIRES CUSTOM REST API EXTENSION - subscribe-resource.xqy - Adam Fowler adam.fowler@marklogic.com - Save searches by name, and subscribe to alerts from them. Alerts sent to a given URL.
+ *
  * Uses Adam Fowler's (me!) REST API extension for subscribing to searches. RESTful HTTP calls are sent with the new information to the specified url.
  *
+ * @param {string} notificationurl - The RESTful URL to invoke with a PUT to send the matching document to
+ * @param {string} searchname - The name of the search
+ * @param {object} detail - The extra details to pass to the alert handler
+ * @param {string} contenttype - Either json (default) or xml. If JSON, uses a basic V6 JSON configuration to convert all documents to.
  * @param {function} callback_opt - The optional callback to invoke after the method completes
  */
 mldb.prototype.subscribe = function(notificationurl,searchname,detail,contenttype,callback_opt) {
@@ -1884,8 +2001,12 @@ mldb.prototype.subscribe = function(notificationurl,searchname,detail,contenttyp
 };
 
 /**
+ * REQUIRES CUSTOM REST API EXTENSION - subscribe-resource.xqy - Adam Fowler adam.fowler@marklogic.com - Save searches by name, and subscribe to alerts from them. Alerts sent to a given URL.
+ *
  * Unsubscribe a notificationurl from a named search. Uses Adam Fowler's (me!) REST API extension.
  *
+ * @param {string} notificationurl - The RESTful URL to invoke with a PUT to send the matching document to
+ * @param {string} searchname - The name of the search
  * @param {function} callback_opt - The optional callback to invoke after the method completes
  */
 mldb.prototype.unsubscribe = function(notificationurl,searchname,callback_opt) {
@@ -1899,8 +2020,12 @@ mldb.prototype.unsubscribe = function(notificationurl,searchname,callback_opt) {
 };
 
 /**
+ * REQUIRES CUSTOM REST API EXTENSION - subscribe-resource.xqy - Adam Fowler adam.fowler@marklogic.com - Save searches by name, and subscribe to alerts from them. Alerts sent to a given URL.
+ *
  * Unsubscribe from an alert and delete the underlying saved search. Convenience method.
  *
+ * @param {string} notificationurl - The RESTful URL to invoke with a PUT to send the matching document to
+ * @param {string} searchname - The name of the search
  * @param {function} callback_opt - The optional callback to invoke after the method completes
  */
 mldb.prototype.unsubscribeAndDelete = function(notificationurl,searchname,callback_opt) {
@@ -1914,8 +2039,11 @@ mldb.prototype.unsubscribeAndDelete = function(notificationurl,searchname,callba
 };
 
 /**
+ * REQUIRES CUSTOM REST API EXTENSION - subscribe-resource.xqy - Adam Fowler adam.fowler@marklogic.com - Save searches by name, and subscribe to alerts from them. Alerts sent to a given URL.
+ *
  * Delete the saved search. Assumes already unsubscribed from alerts used by it. (If not, alerts will still fire!)
  *
+ * @param {string} searchname - The name of the search
  * @param {function} callback_opt - The optional callback to invoke after the method completes
  */
 mldb.prototype.deleteSavedSearch = function(searchname,callback_opt) {
@@ -1932,6 +2060,8 @@ mldb.prototype.deleteSavedSearch = function(searchname,callback_opt) {
 
 
 /**
+ * REQUIRES CUSTOM REST API EXTENSION - whoami.xqy - Adam Fowler adam.fowler@marklogic.com - Fetches information on the name and roles of the currently logged in client api user.
+ *
  * Fetches information about the user behind the current session.
  *
  * Useful is your webapp performs the login so your javascript doesn't know your username. Also looks up roles.
@@ -2061,6 +2191,8 @@ mldb.prototype.options.prototype.toJson = function() {
 
 /**
  * Specifies the additional query to use to filter any search results
+ * 
+ * @param {string} str - The additional query string (search:search grammar) to use
  */
 mldb.prototype.options.prototype.additionalQuery = function(str) {
   this._includeSearchDefaults();
@@ -2070,6 +2202,8 @@ mldb.prototype.options.prototype.additionalQuery = function(str) {
 
 /**
  * Specified the concurrency level option
+ * 
+ * @param {string} level - REST API concurrency level to use
  */
 mldb.prototype.options.prototype.concurrencyLevel = function(level) {
   this.options["concurrency-level"] = level;
@@ -2078,6 +2212,8 @@ mldb.prototype.options.prototype.concurrencyLevel = function(level) {
 
 /**
  * Specified the debug level for the search
+ * 
+ * @param {string} dbg - Search API debug level to use
  */
 mldb.prototype.options.prototype.debug = function(dbg) {
   this.options.debug = dbg;
@@ -2085,6 +2221,8 @@ mldb.prototype.options.prototype.debug = function(dbg) {
 
 /**
  * Specified the forest to search within
+ * 
+ * @param {positiveInteger|Array} - Which forest(s) to use. (Note: MarkLogic internal IDs can overload JavaScript's numeric types so must be used with caution.)
  */
 mldb.prototype.options.prototype.forest = function(forests) {
   if (Array.isArray(forests)) {
@@ -2098,6 +2236,8 @@ mldb.prototype.options.prototype.forest = function(forests) {
 
 /**
  * Specified the fragment scope
+ * 
+ * @param {string} scope - Function scope to use
  */
 mldb.prototype.options.prototype.fragmentScope = function(scope) {
   this.options["fragment-scope"] = scope;
@@ -2106,6 +2246,8 @@ mldb.prototype.options.prototype.fragmentScope = function(scope) {
 
 /**
  * Specified the quality weight
+ * 
+ * @param {double} weight - Default search weight to use.
  */
 mldb.prototype.options.prototype.qualityWeight = function(weight) {
   this.options["quality-weight"] = weight;
@@ -2114,6 +2256,8 @@ mldb.prototype.options.prototype.qualityWeight = function(weight) {
 
 /**
  * Specified whether to return aggregates
+ * 
+ * @param {boolean} ret - Whether to return aggregate values.
  */
 mldb.prototype.options.prototype.returnAggregates = function(ret) {
   if (undefined == ret) {
@@ -2125,6 +2269,8 @@ mldb.prototype.options.prototype.returnAggregates = function(ret) {
 
 /**
  * Specified whether to return constraints
+ * 
+ * @param {boolean} ret - Whether to return query constraint settings in the response.
  */
 mldb.prototype.options.prototype.returnConstraints = function(ret) {
   if (undefined == ret) {
@@ -2136,6 +2282,8 @@ mldb.prototype.options.prototype.returnConstraints = function(ret) {
 
 /**
  * Specified whether to return facets
+ * 
+ * @param {boolean} ret - Whether to return facets
  */
 mldb.prototype.options.prototype.returnFacets = function(ret) {
   if (undefined == ret) {
@@ -2147,6 +2295,8 @@ mldb.prototype.options.prototype.returnFacets = function(ret) {
 
 /**
  * Specified whether to return frequencies
+ * 
+ * @param {boolean} ret - Whether to return Frequencies
  */
 mldb.prototype.options.prototype.returnFrequencies = function(ret) {
   if (undefined == ret) {
@@ -2158,6 +2308,8 @@ mldb.prototype.options.prototype.returnFrequencies = function(ret) {
 
 /**
  * Specified whether to return search metrics
+ * 
+ * @param {boolean} ret - Whether to return search metrics.
  */
 mldb.prototype.options.prototype.returnMetrics = function(ret) {
   if (undefined == ret) {
@@ -2169,6 +2321,8 @@ mldb.prototype.options.prototype.returnMetrics = function(ret) {
 
 /**
  * Specifies whether to return the internal search plan generated by the search query (Useful to debug poorly performing queries)
+ * 
+ * @param {boolean} ret - Whether to return the internal search API plan. Useful to debug search performance issues.
  */
 mldb.prototype.options.prototype.returnPlan = function(ret) {
   if (undefined == ret) {
@@ -2180,6 +2334,8 @@ mldb.prototype.options.prototype.returnPlan = function(ret) {
 
 /**
  * Specifies whether to return the query text with the search results
+ * 
+ * @param {boolean} ret - Whether to returnthe query text with the response.
  */
 mldb.prototype.options.prototype.returnQtext = function(ret) {
   if (undefined == ret) {
@@ -2191,6 +2347,8 @@ mldb.prototype.options.prototype.returnQtext = function(ret) {
 
 /**
  * Specifies whether to return the entire query with the search results
+ * 
+ * @param {boolean} ret - Whether to return th query with the response.
  */
 mldb.prototype.options.prototype.returnQuery = function(ret) {
   if (undefined == ret) {
@@ -2202,6 +2360,8 @@ mldb.prototype.options.prototype.returnQuery = function(ret) {
 
 /**
  * Specifies whether to return search result documents (or snippets thereof)
+ * 
+ * @param {boolean} ret - Whether to return search results. (Useful if you're just doing a values() co-occurence or lexicon lookup)
  */
 mldb.prototype.options.prototype.returnResults = function(ret) {
   if (undefined == ret) {
@@ -2213,6 +2373,8 @@ mldb.prototype.options.prototype.returnResults = function(ret) {
 
 /**
  * Specifies whether to return cts:similar documents to those in the search results
+ * 
+ * @param {boolean} ret - Whether to return cts:similar documents for each search match.
  */
 mldb.prototype.options.prototype.returnSimilar = function(ret) {
   if (undefined == ret) {
@@ -2224,6 +2386,8 @@ mldb.prototype.options.prototype.returnSimilar = function(ret) {
 
 /**
  * Specifies whether to return values objects
+ * 
+ * @param {boolean} ret - Whether to return values (co-occurence) matches with the response.
  */
 mldb.prototype.options.prototype.returnValues = function(ret) {
   if (undefined == ret) {
@@ -2235,6 +2399,8 @@ mldb.prototype.options.prototype.returnValues = function(ret) {
 
 /**
  * Specifies the default collation applies to all string constraints and sorts, if not specified on constraint definition
+ * 
+ * @param {string} col - The default collation URL spec to use
  */
 mldb.prototype.options.prototype.defaultCollation = function(col) {
   this.defaults.collation = col;
@@ -2243,6 +2409,8 @@ mldb.prototype.options.prototype.defaultCollation = function(col) {
 
 /**
  * Specifies the default sort order
+ * 
+ * @param {string} sort - The default sort order. 'ascending' (default) or 'descending'.
  */
 mldb.prototype.options.prototype.defaultSortOrder = function(sort) {
   this.defaults.sortDirection = sort;
@@ -2251,6 +2419,8 @@ mldb.prototype.options.prototype.defaultSortOrder = function(sort) {
 
 /**
  * Specifies the default constraint type
+ * 
+ * @param {string} type - Sets the default type (default is xs:string)
  */
 mldb.prototype.options.prototype.defaultType = function(type) {
   this.defaults.type = type;
@@ -2259,6 +2429,8 @@ mldb.prototype.options.prototype.defaultType = function(type) {
 
 /**
  * Specifies the default element namespace to use
+ * 
+ * @param {string} ns - Sets the default namespace value
  */
 mldb.prototype.options.prototype.defaultNamespace = function(ns) {
   this.defaults.namespace = ns;
@@ -2276,6 +2448,15 @@ mldb.prototype.options.prototype.path = mldb.prototype.options.prototype.pathCon
 
 /**
  * Creates a new element attribute range constraint, and adds it to the search options object
+ * 
+ * @param {string} constraint_name - Constraint name to use.
+ * @param {string} elment - Element name to use
+ * @param {string} namespace - Namespace to use.
+ * @param {string} attr - Element attribute to use
+ * @param {string} type_opt - XML Schema type. E.g. "xs:string". Optional. If not specified, default type is used.
+ * @param {string} collation_opt - The optional string collation to used. If not specified, default collation is used (if of xs:string type)
+ * @param {JSON} facet_opt - The optional facet JSON to use.
+ * @param {JSON} facet_options_opt - The optional facet configuration JSON to use.
  */
 mldb.prototype.options.prototype.elemattrRangeConstraint = function(constraint_name,element,namespace,attr,type_opt,collation_opt,facet_opt,facet_options_opt) {
   var range = {name: constraint_name,
@@ -2308,6 +2489,14 @@ mldb.prototype.options.prototype.elemattrRangeConstraint = function(constraint_n
 
 /**
  * Specifies a new range constraint, and adds it to the search options object
+ * 
+ * @param {string} constraint_name_opt - Optional constraint name to use. Defaults to NULL
+ * @param {string} name_or_key - Element name or JSON key to use
+ * @param {string} ns_opt - Namespace to use. Optional. If not specified, default namespace is used. (If type is XML element)
+ * @param {string} type_opt - Whether to use 'json' (default) or 'xml' element matching
+ * @param {string} collation_opt - The optional string collation to used. If not specified, default collation is used
+ * @param {JSON} facet_opt - The optional facet JSON to use.
+ * @param {JSON} facet_options_opt - The optional facet configuration JSON to use.
  */
 mldb.prototype.options.prototype.rangeConstraint = function(constraint_name_opt,name_or_key,ns_opt,type_opt,collation_opt,facet_opt,facet_options_opt) {
   this._includeSearchDefaults();
@@ -2399,7 +2588,10 @@ mldb.prototype.options.prototype.rangeConstraint = function(constraint_name_opt,
 mldb.prototype.options.prototype.range = mldb.prototype.options.prototype.rangeConstraint;
 
 /**
- * Adds any new constraint JSON to the search options object
+ * Adds any new constraint JSON to the search options object. Always called by the *Constraint methods themselves anyway. 
+ * This is for any constraints you wish to add that don't have their own method here.
+ * 
+ * @param {JSON} con - Constraint JSON to add to these options.
  */
 mldb.prototype.options.prototype.addConstraint = function(con) {
   this.options.constraint.push(con);
@@ -2407,6 +2599,10 @@ mldb.prototype.options.prototype.addConstraint = function(con) {
 
 /**
  * Create a collection constraint, and adds it to the search options object
+ * 
+ * @param {string} constraint_name_opt - Optional constraint name to use. Defaults to 'collection'
+ * @param {string} prefix - Optional prefix (base collection) to use. Defaults to blank ''. I.e. all collections
+ * @param {JSON} facet_option_opt - Optional JSON facet configureation. If not configured, will use the default facet configuration
  */
 mldb.prototype.options.prototype.collectionConstraint = function(constraint_name_opt,prefix_opt,facet_option_opt) {
   this._includeSearchDefaults();
@@ -2428,6 +2624,12 @@ mldb.prototype.options.prototype.collection = mldb.prototype.options.prototype.c
 
 /**
  * Create a geospatial element pair constraint, and adds it to the search options object
+ * 
+ * @param {string} constraint_name - Name of the constraint to create
+ * @param {string} parent - Parent element name
+ * @param {string} ns_opt - Optional namespace of the parent element. If not provided, uses the default namespace
+ * @param {string} element - Element name of the geospatial pair element
+ * @param {string} ns_el_opt - Optional namespace of the child geospatial element. If not configured will use the default namespace
  */
 mldb.prototype.options.prototype.geoelemConstraint = function(constraint_name_opt,parent,ns_opt,element,ns_el_opt) {
   if (undefined == element) {
@@ -2476,6 +2678,8 @@ mldb.prototype.options.prototype.geoelempair = mldb.prototype.options.prototype.
 
 /**
  * Specifies the number of search results to return on each page
+ * 
+ * @param {positiveInteger} length - Page length to use. If not specified, uses the default (10).
  */
 mldb.prototype.options.prototype.pageLength = function(length) {
   this._includeSearchDefaults();
@@ -2485,6 +2689,10 @@ mldb.prototype.options.prototype.pageLength = function(length) {
 
 /**
  * Specifies the results transformation options. Defaults to raw (full document returned).
+ * 
+ * @param {string} apply - The XQuery function name
+ * @param {string} ns_opt - The optional XQuery namespace of the module to invoke
+ * @param {string} at_opt - The relative location in the REST modules database to find the transform to invoke
  */
 mldb.prototype.options.prototype.transformResults = function(apply,ns_opt,at_opt) {
   this._includeSearchDefaults();
@@ -2518,6 +2726,11 @@ mldb.prototype.options.prototype.sortOrderScore = function() {
 
 /**
  * Specifies the sort order. Automatically called for any of the range constraint constructor functions.
+ * 
+ * @param {string} direction_opt - The direction (ascending or descending) to use. If not specified, uses the default direction.
+ * @param {string} type_opt - The type of the sort element. If not specified uses the default type.
+ * @param {string} key - The key (JSON key or element name) to use.
+ * @param {string} collation_opt - The optional collation to use. Uses the default collation if not specified.
  */
 mldb.prototype.options.prototype.sortOrder = function(direction_opt,type_opt,key,collation_opt) {
   this._includeSearchDefaults();
@@ -2566,6 +2779,10 @@ mldb.prototype.options.prototype._quickRange = function(el) {
 
 /**
  * Creates a tuples definition for returning co-occurence values
+ * 
+ * @param {string} name - The name of the tuples configuration to create
+ * @param {string|JSON} el - The first element for a co-occurence. Either an element/json key name (string) or a full REST API range type object (JSON)
+ * @param {string|JSON} el - The second element for a co-occurence. Either an element/json key name (string) or a full REST API range type object (JSON)
  */
 mldb.prototype.options.prototype.tuples = function(name,el,el2) { // TODO handle infinite tuple definitions (think /v1/ only does 2 at the moment anyway)
   var tuples = {name: name,range: new Array()};
@@ -2580,6 +2797,10 @@ mldb.prototype.options.prototype.tuples = function(name,el,el2) { // TODO handle
 
 /**
  * Creates a values definition for returning lexicon values
+ * 
+ * @param {string} name - The name of the values configuration to create
+ * @param {string|JSON} el - The first element for a co-occurence. Either an element/json key name (string) or a full REST API range type object (JSON)
+ * @param {string|JSON} el - The second element for a co-occurence. Either an element/json key name (string) or a full REST API range type object (JSON)
  */
 mldb.prototype.options.prototype.values = function(name,el,el2) {
   var values = {name: name,range: new Array()};
@@ -2637,6 +2858,8 @@ mldb.prototype.query.prototype.toJson = function() {
 
 /**
  * Copies an existing query options object in to this object (pass a JSON structure query, not an mldb.query object)
+ * 
+ * @param {JSON} query_opt - The query to copy child values of to this query
  */
 mldb.prototype.query.prototype.query = function(query_opt) {
   for (var name in query_opt) {
@@ -2650,6 +2873,8 @@ mldb.prototype.query.prototype.query = function(query_opt) {
 
 /**
  * Creates an and query, and returns it
+ * 
+ * @param {JSON} query - The query, or array of queries, to use within the constructed and query
  */
 mldb.prototype.query.prototype.and = function(query_opt) {
   if (Array.isArray(query_opt)) {
@@ -2663,6 +2888,8 @@ mldb.prototype.query.prototype.and = function(query_opt) {
 
 /**
  * Creates an or query, and returns it
+ * 
+ * @param {JSON} query - The query, or array of queries, to use within the constructed or query
  */
 mldb.prototype.query.prototype.or = function(query_opt) {
   if (Array.isArray(query_opt)) {
@@ -2675,6 +2902,9 @@ mldb.prototype.query.prototype.or = function(query_opt) {
 
 /**
  * Creates a collection query, and returns it
+ * 
+ * @param {string} uri_opt - The optional URI to use as the base. If not specified a blank '' value is used (i.e. all collections returned to the specified depth)
+ * @param {integer} depth_opt - What depth in the child collections to include (defaults to infinite if not specified)
  */
 mldb.prototype.query.prototype.collection = function(uri_opt,depth_opt) {
   if (undefined == uri_opt) {
@@ -2717,6 +2947,12 @@ mldb.prototype.query.prototype.collection = function(uri_opt,depth_opt) {
 */
 /**
  * Creates a geospatial circle query and returns it
+ * 
+ * @param {string} constraint_name - Name of the matching constraint to restrict by these values
+ * @param {integer} lat - WGS84 latitude
+ * @param {integer} lon - WGS84 Longitude
+ * @param {positiveInteger} radiusmiles - The radius from the circle centre to use. Defaults to statute (not nautical) miles
+ * @param {string} radiusmeasure_opt - The units used. Default is status miles. m=metres, km=kilometres, nm=nautical miles, degrees=degrees of rotation of the Earth
  */
 mldb.prototype.query.prototype.georadius = function(constraint_name,lat,lon,radiusmiles,radiusmeasure_opt) {
   var radiusactual = radiusmiles;
@@ -2742,6 +2978,9 @@ mldb.prototype.query.prototype.georadius = function(constraint_name,lat,lon,radi
 
 /**
  * Creates a range constraint query and returns it
+ * 
+ * @param {string} constraint_name - The constraint name from the search options for this constraint
+ * @param {string} val - The value that matching documents must match
  */
 mldb.prototype.query.prototype.range = function(constraint_name,val) {
   return {

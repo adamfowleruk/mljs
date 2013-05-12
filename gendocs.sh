@@ -2,6 +2,7 @@
 
 JSDOC=/Users/adamfowler/Documents/marklogic/git/jsdoc/jsdoc
 
+P=../mldb-pages/apidocs
 D=./dist/docs
 mkdir $D
 mkdir $D/core
@@ -13,6 +14,9 @@ echo "...done."
 echo "Generating widget documentation..."
 $JSDOC -u ./tutorials -c jsdoc-conf.json -d $D/widgets ./mldbwebtest/src/public/js/mldbtest/mldb-*.js ./mldbwebtest/src/public/js/mldbtest/widget*.js browser.md
 echo "...done."
+
+cp -R $D/core $P/core
+cp -R $D/widgets $P/widgets
 
 #tar czf jsdoc-core.tar.gz $D/core
 #tar czf jsdoc-widgets.tar.gz $D/widgets

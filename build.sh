@@ -16,6 +16,7 @@ mkdir dist/mldb/browser-minified/js
 mkdir dist/mldb/browser-minified/css
 mkdir dist/mldb/browser-minified/test
 
+P=../mldb-pages/apidocs
 S=./mldbwebtest/src/public/js/mldbtest
 L=./lib
 D=./dist/mldb/browser-minified
