@@ -9,12 +9,11 @@ This library provides a convenient JavaScript wrapper for common operations on M
  - Browser widgets provided so you can quickly get an application running
  
 ## Get the code
- - NodeJS install - npm install mldb
- - NodeJS download - [\[raw tar.gz\]] [[raw zip]] [[minified tar.gz]] [[minified-zip]]
- - Browser download - [\[raw tar.gz\]](someurl)
-
+ - NodeJS remote install - Install with `npm install mldb`
+ - NodeJS download - [\[raw tar.gz\]]https://github.com/adamfowleruk/mldb/blob/master/dist/mldb-nodejs.tar.gz [\[raw zip\]](https://github.com/adamfowleruk/mldb/blob/master/dist/mldb-nodejs.zip) [\[minified tar.gz\]](https://github.com/adamfowleruk/mldb/blob/master/dist/mldb-nodejs-minified.tar.gz) [\[minified-zip\]](https://github.com/adamfowleruk/mldb/blob/master/dist/mldb-nodejs-minified.zip)
+ - Browser download - [\[raw tar.gz\]](https://github.com/adamfowleruk/mldb/blob/master/dist/mldb-browser.tar.gz) [\[raw zip\]](https://github.com/adamfowleruk/mldb/blob/master/dist/mldb-browser.zip) [[minified tar.gz]](https://github.com/adamfowleruk/mldb/blob/master/dist/mldb-browser-minified.tar.gz) [\[minified-zip\]](https://github.com/adamfowleruk/mldb/blob/master/dist/mldb-browser-minified.zip)
+ - API Docs - [\[Online TODO\]] [\[tar.gz\]](https://github.com/adamfowleruk/mldb/blob/master/dist/mldb-docs.tar.gz) [\[zip\]](https://github.com/adamfowleruk/mldb/blob/master/dist/mldb-docs.zip)
 ## Further information
- - Install with `npm install mldb`
  - Read the [API documentation](https://github.com/adamfowleruk/mldb/wiki/Api)
  - And the rest of the [WIKI](https://github.com/adamfowleruk/mldb/wiki)
  - And perhaps the [design principles document](https://github.com/adamfowleruk/mldb/wiki/Design)
