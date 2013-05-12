@@ -8,10 +8,10 @@ mkdir ./jsdocs/core
 mkdir ./jsdocs/widgets
 
 echo "Generating core documentation..."
-$JSDOC -d ./jsdocs/core mldb.js ./lib/basic-wrapper.js ./lib/digest-wrapper.js ./lib/noop.js ./lib/passthrough-wrapper.js 
+$JSDOC -u ./tutorials -c jsdoc-conf.json -d ./jsdocs/core mldb.js ./lib/basic-wrapper.js ./lib/digest-wrapper.js ./lib/noop.js ./lib/passthrough-wrapper.js core.md
 echo "...done."
 echo "Generating widget documentation..."
-$JSDOC -d ./jsdocs/widgets ./mldbwebtest/src/public/js/mldbtest/mldb-*.js ./mldbwebtest/src/public/js/mldbtest/widget*.js  
+$JSDOC -u ./tutorials -c jsdoc-conf.json -d ./jsdocs/widgets ./mldbwebtest/src/public/js/mldbtest/mldb-*.js ./mldbwebtest/src/public/js/mldbtest/widget*.js browser.md
 echo "...done."
 
 tar czf jsdoc-core.tar.gz jsdocs/core

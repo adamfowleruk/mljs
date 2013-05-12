@@ -1,10 +1,10 @@
 var basic = null, digest = null, thru = null, noop = null, winston = null;
 var logger = null;
-if (typeof window === 'undefined') {
-  basic = require("./lib/basic-wrapper"),
-  digest = require("./lib/digest-wrapper"),
-  thru = require("./lib/passthrough-wrapper"),
-  noop = require("./lib/noop"),
+if (window === undefined) {
+  basic = require("./lib/basic-wrapper");
+  digest = require("./lib/digest-wrapper");
+  thru = require("./lib/passthrough-wrapper");
+  noop = require("./lib/noop");
   winston = require('winston');
 
   logger = new (winston.Logger)({
@@ -21,7 +21,7 @@ if (typeof window === 'undefined') {
   };
   var cl = function() {
     // do nothing
-    this.loglevels = ["debug","info","warn","error"];
+    this.loglevels = ["debug", "info", "warn", "error"];
     this.loglevel = 0;
   };
   cl.prototype.setLogLevel = function(levelstring) {
@@ -184,7 +184,7 @@ function xmlToJson(xml) {
  * @param {string} xml - The XML Document to transform to JSON
  */
 function xmlToJsonSearchResults(xml) {
-  if (null == xml || undefined == xml) {
+  if (null == xml || xml == undefined) {
     return {};
   }
   
@@ -357,6 +357,9 @@ var self;
 /**
  * Creates an MLDB instance. Aliased to new mldb().
  * @constructor
+ *
+ * @tutorial browser-create-app
+ * @tutorial samples
  */
 var mldb = function() {
   this.configure();
