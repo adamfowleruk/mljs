@@ -19,5 +19,6 @@ This library provides a convenient JavaScript wrapper for common operations on M
  - Read the old online samples (included within main docs now) [API documentation](https://github.com/adamfowleruk/mldb/wiki/Api)
  - And the rest of the [WIKI](https://github.com/adamfowleruk/mldb/wiki)
  - And perhaps the [design principles document](https://github.com/adamfowleruk/mldb/wiki/Design)
- - See the [future feature planning](https://github.com/adamfowleruk/mldb)
+ - See the [future feature planning](https://github.com/adamfowleruk/mldb/blob/master/planning.md)
+ - To determine maturity of each feature, read [test plan progress](https://github.com/adamfowleruk/mldb/blob/master/progress.md)
  
