@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: widgets.js</title>
+    
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+    
+    <h1 class="page-title">Source: widgets.js</h1>
+    
+    
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source"><code>
+
+com = window.com || {};
+com.marklogic = window.com.marklogic || {};
+com.marklogic.widgets = window.com.marklogic.widgets || {};
+
+/**
+ * Provides objects for generic event publish-subscribe workflows
+ */
+
+com.marklogic.events = {};
+
+// EVENT
+
+com.marklogic.events.Event = function(type,data) {
+  this.type = type;
+  this.data = data;
+};
+
+// PUBLISHER
+
+com.marklogic.events.Publisher = function() {
+  this.listeners = new Array();
+};
+
+com.marklogic.events.Publisher.prototype.subscribe = function(listener) {
+  this.listeners.push(listener);
+};
+
+com.marklogic.events.Publisher.prototype.unsubscribe = function(listener) {
+  var newArr = new Array();
+  for (var i = 0;i &lt; this.listeners.length;i++) {
+    if (listener != this.listeners[i]) {
+      newArr.push(this.listeners[i]);
+    }
+  }
+  this.listeners = newArr;
+};
+
+
+com.marklogic.events.Publisher.prototype.publish = function(event) {
+  for (var i = 0;i &lt; this.listeners.length;i++) {
+    this.listeners[i](event);
+  }
+};
+
+
+
+
+// generic useful functions (not namespaced)
+
+function bubbleSort(a,jsonPath)
+{
+    var swapped;
+    do {
+        swapped = false;
+        for (var i=0; i &lt; a.length-1; i++) {
+	  var leftValue = 0;
+	  var rightValue = 0;
+	  if (typeof a[i] == "object" && undefined != jsonPath) {
+	    leftValue = jsonExtractValue(a[i],jsonPath);
+	  } else {
+	    leftValue = a[i];
+	  }
+	  if (typeof a[i+1] == "object" && undefined != jsonPath) {
+	    rightValue = jsonExtractValue(a[i+1],jsonPath);
+	  } else {
+	    rightValue = a[i+1];
+	  }
+            if (leftValue &lt; rightValue) {
+                var temp = a[i];
+                a[i] = a[i+1];
+                a[i+1] = temp;
+                swapped = true;
+            }
+        }
+    } while (swapped);
+}
+
+
+
+
+function msort(array, begin, end, comparisonValue)
+{
+	var size=end-begin;
+	if(size&lt;2) return;
+
+	var begin_right=begin+Math.floor(size/2);
+
+	msort(array, begin, begin_right, comparisonValue);
+	msort(array, begin_right, end, comparisonValue);
+	//merge_inplace(array, begin, begin_right, end, comparisonValue);
+	array = merge_sort(array,function(left,right) {
+	  var leftValue = 0;
+	  var rightValue = 0;
+	  if (typeof left == "object" && undefined != comparisonValue) {
+	    leftValue = jsonExtractValue(left,comparisonValue);
+	  } else {
+	    leftValue = left;
+	  }
+	  if (typeof right == "object" && undefined != comparisonValue) {
+	    rightValue = jsonExtractValue(right,comparisonValue);
+	  } else {
+	    rightValue = right;
+	  }
+	  leftValue = 1 * leftValue;
+	  rightValue = 1 * rightValue; // numeric conversion - read from JSON as string TODO check for errors (e.g. actually a string)
+    console.log("msort_inline_function-sort(): left value: " + leftValue + ", rightValue: " + rightValue);
+	  if (leftValue == rightValue) {
+	    console.log("returning 0");
+	    return 0;
+	  } else {
+	    if (leftValue &lt; rightValue) {
+	      console.log("returning -1");
+	      return -1;
+	    } else if (rightValue &lt; leftValue ){
+	      console.log("returning 1");
+	      return 1;
+	    } else {
+	      console.log("Typeof leftValue: " + (typeof leftValue));
+	      console.log("Typeof rightValue: " + (typeof rightValue));
+	      return -2;
+	    }
+	  }
+	});
+}
+
+function merge_sort_inplace(array,comparison)
+{
+	msort(array, 0, array.length,comparison);
+}
+
+function merge_inplace(array, begin, begin_right, end, comparisonValue)
+{
+  console.log("merge_inplace(): array: " + JSON.stringify({array: array}));
+  var leftValue, rightValue;
+	for(;begin &lt; begin_right; ++begin) {
+	  leftValue = 0;
+	  rightValue = 0;
+	  if (typeof array[begin] == "object" && undefined != comparisonValue) {
+	    leftValue = jsonExtractValue(array[begin],comparisonValue);
+	  } else {
+	    leftValue = array[begin];
+	  }
+	  if (typeof array[begin_right] == "object" && undefined != comparisonValue) {
+	    rightValue = jsonExtractValue(array[begin_right],comparisonValue);
+	  } else {
+	    rightValue = array[begin_right];
+	  }
+    console.log("merge_inplace(): left value: " + leftValue + ", rightValue: " + rightValue);
+	  
+		if(leftValue &lt; rightValue) {
+			var v=array[begin];
+			array[begin]=array[begin_right];
+			insert(array, begin_right, end, v);
+		}
+	}
+  console.log("merge_inplace(): array NOW: " + JSON.stringify({array: array}));
+}
+
+function merge_sort(array,comparison)
+{
+	if(array.length &lt; 2)
+		return array;
+	var middle = Math.ceil(array.length/2);
+	return merge(merge_sort(array.slice(0,middle),comparison),
+			merge_sort(array.slice(middle),comparison),
+			comparison);
+}
+
+function merge(left,right,comparison)
+{
+	var result = new Array();
+	while((left.length > 0) && (right.length > 0))
+	{
+		if(comparison(left[0],right[0]) &lt;= 0)
+			result.push(left.shift());
+		else
+			result.push(right.shift());
+	}
+	while(left.length > 0)
+		result.push(left.shift());
+	while(right.length > 0)
+		result.push(right.shift());
+	return result;
+}
+
+function insert(array, begin, end, v)
+{
+	while(begin+1&lt;end && array[begin+1]&lt;v) {
+		array.swap(begin, begin+1);
+		++begin;
+	}
+	array[begin]=v;
+}
+
+
+function jsonExtractValue(json,namePath) {
+  var paths = namePath.split(".");
+  var obj = json;
+  for (var i = 0;undefined != obj && i &lt; paths.length;i++) {
+    obj = obj[paths[i]]; // TODO handle documents with multiple result container elements (arrays of results within same doc)
+  }
+  //mldb.defaultconnection.logger.debug("jsonExtractValue(): Returning value: " + obj);
+  return obj;
+};
+
+
+// EXTRA ARRAY FUNCTIONS
+
+if (undefined == Array.prototype.swap) {
+  Array.prototype.swap=function(a, b)
+  {
+	  var tmp=this[a];
+	  this[a]=this[b];
+	  this[b]=tmp;
+  };
+}
+
+// TODO remove the below and replace with sensible default / check
+if (undefined == Array.prototype.contains) {
+  Array.prototype.contains = function(obj) {
+    var i = this.length;
+    while (i--) {
+      if (this[i] === obj) {
+        return true;
+      }
+    }
+    return false;
+  };
+}
+
+Array.prototype.position = function(value) {
+  for (var i = 0;i &lt; this.length;i++) {
+    if (this[i] == value) {
+      return i;
+    }
+  }
+  return -1;
+};
+
+
+
+
+// our own global widgets here
+com.marklogic.widgets.error = function(container) {
+  this.container = container;
+  
+  this.error = null;
+  
+  this.allowDetails = false; // shows 'show details' button
+  this.showFirstCodefile = false; // shows first file name,line number and column
+  
+  this._refresh();
+};
+
+com.marklogic.widgets.error.prototype.show = function(message) {
+  this.error = message;
+  this._refresh();
+};
+
+com.marklogic.widgets.error.prototype.updateError = com.marklogic.widgets.error.prototype.show;
+
+com.marklogic.widgets.error.prototype.clear = function() {
+  this.show(null);
+};
+
+com.marklogic.widgets.error.prototype._refresh = function() {
+  if (null != this.error && "object" == typeof this.error) {
+    // check if a result object or a error frame set, or an XML document
+    if (undefined != this.error.inError) {
+      // mldb results object
+      if (this.error.inError) {
+        if (this.error.format == "json") {
+          mldb.defaultconnection.logger.debug("Error object is result, and json");
+          this._genhtml(this.error);
+        } else {
+          mldb.defaultconnection.logger.debug("Error object is result, and xml");
+          this._genhtml(xmlToJson(this.error.doc));
+        }
+        return true;
+      } else {
+        mldb.defaultconnection.logger.debug("Error object is result, and not in error");
+        return false; // doing this allows you to do one if statement rather than if and call
+      }
+    } else {
+      mldb.defaultconnection.logger.debug("Error document is not an MLDB response document");
+        if (undefined == this.error.nodeType) {
+          mldb.defaultconnection.logger.debug("Error object is error doc, and json");
+          this._genhtml(this.error);
+        } else {
+          mldb.defaultconnection.logger.debug("Error object is error doc, and xml");
+          this._genhtml(xmlToJson(this.error.doc));
+        }
+      //this._genhtml(this.error);
+    }
+    // display pretty print JSON error
+  } else {
+    mldb.defaultconnection.logger.debug("Error object is simple string");
+    // assume string
+    if (null != this.error && undefined != error) {
+      var str = "&lt;div class='error-inner hidden' id='" + this.container + "-error-inner'>&lt;div class='error-message'>" + this.error + "&lt;/div>";
+      str += "&lt;/div>";
+      var el = document.getElementById(this.container);
+      el.innerHTML = str;
+    } else {
+      document.getElementById(this.container).innerHTML = "";
+    }
+  }
+};
+
+com.marklogic.widgets.error.prototype._genhtml = function(obj) {
+  var str = "&lt;div class='error-inner' id='" + this.container + "-error-inner'>";
+  // do header
+  str += "&lt;div class='error-title'>" + obj.error["format-string"] + "&lt;/div>";
+  // further details, line num, etc
+  if (this.showFirstCodefile) {
+    if (undefined != obj.error.stack.frame[0]) {
+      var frame = obj.error.stack.frame[0];
+      str += "&lt;div class='error-pointer'>" + frame.uri + ":" + frame.line + " column " + frame.column + " - operation " + frame.operation + "&lt;/div>";
+    }
+  }
+  // then provide link for more details (if allowDetails is true)
+  if (this.allowDetails) {
+    str += "&lt;div id='" + this.container + "-frame-details'>&lt;a class='error-show' id='" + this.container + "-frame-show' href='#'>Show Details&lt;/a>&lt;a class='hidden error-hide' id='" + this.container + "-frame-hide' href='#'>Hide Details&lt;/a>&lt;/div>";
+  }
+  str += "&lt;/div>";
+  document.getElementById(this.container).innerHTML = str;
+  var self = this;
+  if (this.allowDetails) {
+    document.getElementById(this.container + "-frame-show").onclick = function(evt) {
+      self._showDetails();
+    };
+  }
+};
+
+com.marklogic.widgets.error.prototype._showDetails = function() {
+  var details = document.getElementById(this.container + "-error-details-frames");
+  if (undefined == details) {
+    // generate HTML
+    var str = "&lt;div id='" + this.container + "-error-details-frames'>";
+    for (var f = 0;f &lt; this.error.error.stack.frame.length;f++) {
+      var frame = this.error.error.stack.frame[f];
+      str += "&lt;div class='error-frame'>";
+      
+      // show frame details
+      str += frame.uri + ":" + frame.line + "." + frame.column;
+      if (undefined != frame.operation) {
+        str += " " + frame.operation; 
+      }
+      
+      str += "&lt;/div>";
+    }
+    str += "&lt;/div>";
+    var parent = document.getElementById(this.container + "-frame-details");
+    parent.innerHTML = parent.innerHTML + str;
+    
+    details = document.getElementById(this.container + "-error-details-frames");
+  }
+  console.log("setting details class");
+  details.setAttribute("class","error-details-frames");
+  
+  console.log("setting show to invisible")
+  var show = document.getElementById(this.container + "-frame-show");
+  show.setAttribute("class","error-show hidden");
+  console.log("setting hide to visible");
+  var hide = document.getElementById(this.container + "-frame-hide");
+  hide.setAttribute("class","error-hide");
+  var self = this;
+  document.getElementById(this.container + "-frame-hide").onclick = function(evt) {
+    console.log("hide clicked");
+    self._hideDetails();
+    console.log("hide clicked complete");
+  };
+};
+
+com.marklogic.widgets.error.prototype._hideDetails = function() {
+  var details = document.getElementById(this.container + "-error-details-frames");
+  details.setAttribute("class","error-details-frames hidden");
+  
+  var show = document.getElementById(this.container + "-frame-show");
+  show.setAttribute("class","error-show");
+  var hide = document.getElementById(this.container + "-frame-hide");
+  hide.setAttribute("class","error-hide hidden");
+  var self = this;
+  document.getElementById(this.container + "-frame-show").onclick = function(evt) {
+    self._showDetails();
+  };
+};
+
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Index</a></h2><h3>Classes</h3><ul><li><a href="com.marklogic.widgets.collectionuris.html">collectionuris</a></li><li><a href="com.marklogic.widgets.cooccurence.html">cooccurence</a></li><li><a href="com.marklogic.widgets.create.html">create</a></li><li><a href="com.marklogic.widgets.highcharts.html">highcharts</a></li><li><a href="com.marklogic.widgets.kratu.html">kratu</a></li><li><a href="com.marklogic.widgets.markings.html">markings</a></li><li><a href="com.marklogic.widgets.searchbar.html">searchbar</a></li><li><a href="com.marklogic.widgets.searchpage.html">searchpage</a></li><li><a href="com.marklogic.widgets.searchpager.html">searchpager</a></li><li><a href="com.marklogic.widgets.searchresults.html">searchresults</a></li><li><a href="com.marklogic.widgets.searchsort.html">searchsort</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-all.html">all</a></li><li><a href="tutorial-browser-create-app.html">browser-create-app</a></li><li><a href="tutorial-samples.html">samples</a></li></ul>
+</nav>
+
+<br clear="both">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Sun May 12 2013 17:57:55 GMT+0100 (BST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
