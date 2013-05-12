@@ -1,26 +1,29 @@
 #!/bin/sh
 
-./cpjs.sh
+echo "Replaced with build.sh"
+exit 0
 
-mkdir ./build
-T=./build/mldb-browser
-mkdir $T
-mkdir $T/js
-mkdir $T/jstest
-mkdir $T/css
-D=./mldbwebtest/src/public/js/mldbtest
-cp $D/mldb*.js $T/js/
-cp $D/widget*.js $T/js/
-cp $D/widgets.css $T/css/
-cp $D/page*.js $T/jstest/
+#./cpjs.sh
 
-cp BROWSER.md $T/README.txt
+#mkdir ./build
+#T=./build/mldb-browser
+#mkdir $T
+#mkdir $T/js
+#mkdir $T/jstest
+#mkdir $T/css
+#D=./mldbwebtest/src/public/js/mldbtest
+#cp $D/mldb*.js $T/js/
+#cp $D/widget*.js $T/js/
+#cp $D/widgets.css $T/css/
+#cp $D/page*.js $T/jstest/
 
-cd ./build
-tar czf ../mldb-browser.tar.gz mldb-browser
-zip -vr ../mldb-browser.zip mldb-browser/
-cd ..
+#cp browser.md $T/README.md
 
-rm -rf ./build
+#cd ./build
+#tar czf ../mldb-browser.tar.gz mldb-browser
+#zip -vr ../mldb-browser.zip mldb-browser/
+#cd ..
 
-echo "Done."
+#rm -rf ./build
+
+#echo "Done."

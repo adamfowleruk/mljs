@@ -1,4 +1,31 @@
-var basic = null, digest = null, thru = null, noop = null, winston = null;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: mldb.js</title>
+    
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+    
+    <h1 class="page-title">Source: mldb.js</h1>
+    
+    
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source"><code>var basic = null, digest = null, thru = null, noop = null, winston = null;
 var logger = null;
 if (window === undefined) {
   basic = require("./lib/basic-wrapper");
@@ -26,7 +53,7 @@ if (window === undefined) {
   };
   cl.prototype.setLogLevel = function(levelstring) {
     var l = 0;
-    for (;l < this.loglevels.length;l++) {
+    for (;l &lt; this.loglevels.length;l++) {
       if (this.loglevels[l] == levelstring) {
         this.loglevel = l;
         l = this.loglevels.length;
@@ -39,17 +66,17 @@ if (window === undefined) {
     }
   };
   cl.prototype.info = function(msg) {
-    if (this.loglevel <= 1) {
+    if (this.loglevel &lt;= 1) {
       console.log("INFO:  " + msg);
     }
   };
   cl.prototype.warn = function(msg) {
-    if (this.loglevel <= 2) {
+    if (this.loglevel &lt;= 2) {
       console.log("WARN:  " + msg);
     }
   };
   cl.prototype.error = function(msg) {
-    if (this.loglevel <= 3) {
+    if (this.loglevel &lt;= 3) {
       console.log("ERROR: " + msg);
     }
   };
@@ -94,7 +121,7 @@ function xmlToJson(xml) {
   if (xml.nodeType == 1) {                
     if (xml.attributes.length > 0) {
       //obj["@attributes"] = {};
-      for (var j = 0; j < xml.attributes.length; j++) {
+      for (var j = 0; j &lt; xml.attributes.length; j++) {
         var attribute = xml.attributes.item(j);
         var nodeName = attribute.nodeName;
         var pos = nodeName.indexOf(":");
@@ -109,7 +136,7 @@ function xmlToJson(xml) {
   }            
   if (undefined != xml.childNodes) {
     var justText = true;
-    for (var i = 0; i < xml.childNodes.length; i++) {
+    for (var i = 0; i &lt; xml.childNodes.length; i++) {
       var item = xml.childNodes.item(i);
       var nodeName = item.nodeName;
       var pos = nodeName.indexOf(":");
@@ -130,7 +157,7 @@ function xmlToJson(xml) {
       if (("#text" == nodeName)) {
         if (Array.isArray(obj[nodeName])) {
           var text = "";
-          for (var a = 0;a < obj[nodeName].length;a++) {
+          for (var a = 0;a &lt; obj[nodeName].length;a++) {
             text += obj[nodeName][a];
           }
           text = text.replace("\n","").replace("\t","").replace("\r","").trim();
@@ -159,7 +186,7 @@ function xmlToJson(xml) {
     // now replace #text child with just the merged text value
     if (justText && undefined != obj[nodeName]) {
       var text = "";
-      for (var i = 0; i < obj[nodeName].length; i++) {
+      for (var i = 0; i &lt; obj[nodeName].length; i++) {
         if ("string" == typeof obj[nodeName][i]) {
           text += obj[nodeName][i];
         } else if (Array.isArray(obj[nodeName][i])) {
@@ -193,7 +220,7 @@ function xmlToJsonSearchResults(xml) {
   if (xml.nodeType == 1) {                
     if (xml.attributes.length > 0) {
       //obj["@attributes"] = {};
-      for (var j = 0; j < xml.attributes.length; j++) {
+      for (var j = 0; j &lt; xml.attributes.length; j++) {
         var attribute = xml.attributes.item(j);
         var nodeName = attribute.nodeName;
         var pos = nodeName.indexOf(":");
@@ -228,7 +255,7 @@ function xmlToJsonSearchResults(xml) {
         console.log("GOT RESULT");
         /*
         var s = "";
-        for (var i = 0; i < xml.childNodes.length; i++) {
+        for (var i = 0; i &lt; xml.childNodes.length; i++) {
           s += (new XMLSerializer()).serializeToString(xml.childNodes.item(i));
         }
         obj.content = s;
@@ -236,7 +263,7 @@ function xmlToJsonSearchResults(xml) {
         obj.content = (new XMLSerializer()).serializeToString(xml);
     } else {
   
-    for (var i = 0; i < xml.childNodes.length; i++) {
+    for (var i = 0; i &lt; xml.childNodes.length; i++) {
       var item = xml.childNodes.item(i);
       var nodeName = item.nodeName;
       if (typeof (obj[nodeName]) == "undefined") {
@@ -253,7 +280,7 @@ function xmlToJsonSearchResults(xml) {
       if (("#text" == nodeName)) {
         if (Array.isArray(obj[nodeName])) {
           var text = "";
-          for (var a = 0;a < obj[nodeName].length;a++) {
+          for (var a = 0;a &lt; obj[nodeName].length;a++) {
             text += obj[nodeName][a];
           }
           text = text.replace("\n","").replace("\t","").replace("\r","").trim();
@@ -283,7 +310,7 @@ function xmlToJsonSearchResults(xml) {
     // now replace #text child with just the merged text value
     if (justText && undefined != obj[nodeName]) {
       var text = "";
-      for (var i = 0; i < obj[nodeName].length; i++) {
+      for (var i = 0; i &lt; obj[nodeName].length; i++) {
         if ("string" == typeof obj[nodeName][i]) {
           text += obj[nodeName][i];
         } else if (Array.isArray(obj[nodeName][i])) {
@@ -316,7 +343,7 @@ function xmlToJsonStrict(xml) {
   if (xml.nodeType == 1) {                
     if (xml.attributes.length > 0) {
       obj["@attributes"] = {};
-      for (var j = 0; j < xml.attributes.length; j++) {
+      for (var j = 0; j &lt; xml.attributes.length; j++) {
         var attribute = xml.attributes.item(j);
         obj["@attributes"][attribute.nodeName] = attribute.value;
       }
@@ -325,7 +352,7 @@ function xmlToJsonStrict(xml) {
     obj = xml.nodeValue;
   }            
   if (xml.hasChildNodes()) {
-    for (var i = 0; i < xml.childNodes.length; i++) {
+    for (var i = 0; i &lt; xml.childNodes.length; i++) {
       var item = xml.childNodes.item(i);
       var nodeName = item.nodeName;
       if (typeof (obj[nodeName]) == "undefined") {
@@ -918,7 +945,7 @@ mldb.prototype.save = function(jsonXmlBinary,docuri_opt,props_opt,callback_opt) 
     }
     if (props_opt.permissions) {
       // array of {role: name, permission: read|update|execute} objects
-      for (var p = 0;p < props_opt.permissions.length;p++) {
+      for (var p = 0;p &lt; props_opt.permissions.length;p++) {
         url += "&perm:" + props_opt.permissions[p].role + "=" + props_opt.permissions[p].permission;
       }
     }
@@ -1160,7 +1187,7 @@ mldb.prototype.search = function(query_opt,options_opt,start_opt,sprops_opt,call
         result.doc.results = result.doc.result;
         result.doc.result = undefined;
         /*
-        for (var i = 0;i < result.doc.results.length;i++) {
+        for (var i = 0;i &lt; result.doc.results.length;i++) {
           result.doc.results[i].content = {html: result.doc.results[i].html};
           result.doc.results[i].html = undefined;
         }*/
@@ -1351,7 +1378,7 @@ mldb.prototype.subcollections = function(parenturi,callback) {
       // extract just the values collection and return that for simplicity
       var list = result["values-response"].value;
       var values = new Array();
-      for (var i = 0;i < list.length;i++) {
+      for (var i = 0;i &lt; list.length;i++) {
         values.push(list[i][0]._value);
       }
       result.doc = {values: values};
@@ -1390,8 +1417,8 @@ mldb.prototype.saveGraph = function(triples,uri_opt,callback_opt) {
   // create a graph doc
   var graphdoc = "";
   if ("object" === typeof triples) {
-    for (var i = 0;i < triples.length;i++) {
-      graphdoc += "<" + triples[i].subject + "> <" + triples[i].predicate + "> <" + triples[i].object + "> .\n";
+    for (var i = 0;i &lt; triples.length;i++) {
+      graphdoc += "&lt;" + triples[i].subject + "> &lt;" + triples[i].predicate + "> &lt;" + triples[i].object + "> .\n";
     }
   } else {
     graphdoc = triples; // raw text in n-triples format
@@ -1425,8 +1452,8 @@ mldb.prototype.mergeGraph = function(triples,uri_opt,callback_opt) {
   // create a graph doc
   var graphdoc = "";
   if ("object" === typeof triples) {
-    for (var i = 0;i < triples.length;i++) {
-      graphdoc += "<" + triples[i].subject + "> <" + triples[i].predicate + "> <" + triples[i].object + "> .\n";
+    for (var i = 0;i &lt; triples.length;i++) {
+      graphdoc += "&lt;" + triples[i].subject + "> &lt;" + triples[i].predicate + "> &lt;" + triples[i].object + "> .\n";
     }
   } else {
     graphdoc = triples; // raw text in n-triples format
@@ -1466,13 +1493,13 @@ mldb.prototype.graph = function(uri_opt,callback_opt) {
       var lines = result.doc.split("\n");
       var triples = new Array();
       var spos,ppos,opos,send,pend,oend,line;
-      for (var l = 0;l < lines.length;l++) {
+      for (var l = 0;l &lt; lines.length;l++) {
         line = lines[l];
-        spos = line.indexOf("<");
+        spos = line.indexOf("&lt;");
         send = line.indexOf(">",spos + 1);
-        ppos = line.indexOf("<",send + 1);
+        ppos = line.indexOf("&lt;",send + 1);
         pend = line.indexOf(">",ppos + 1);
-        opos = line.indexOf("<",pend + 1);
+        opos = line.indexOf("&lt;",pend + 1);
         oend = line.indexOf(">",opos + 1);
         triples.push({subject: line.substring(spos + 1,send), predicate: line.substring(ppos + 1,pend), object: line.substring(opos + 1,oend)});
       }
@@ -1656,7 +1683,7 @@ mldb.prototype.saveAll = function(doc_array,uri_array_opt,callback_opt) {
   }
   if (undefined == uri_array_opt) {
     uri_array_opt = new Array();
-    for (var i = 0;i < doc_array.length;i++) {
+    for (var i = 0;i &lt; doc_array.length;i++) {
       uri_array_opt[i] = this.__genid();
     }
   }
@@ -1664,7 +1691,7 @@ mldb.prototype.saveAll = function(doc_array,uri_array_opt,callback_opt) {
   // TODO make fast aware
   // TODO make transaction aware (auto by using save - need to check for error on return. pass error up for auto rollback)
   var error = null;
-  for (var i = 0;null == error && i < doc_array.length;i++) {
+  for (var i = 0;null == error && i &lt; doc_array.length;i++) {
     this.save(doc_array[i],uri_array_opt[i],function(result) {
       if (result.inError) {
         error = result;
@@ -1691,7 +1718,7 @@ var rv = function(totalruns,maxrunning,start_func,finish_func,complete_func) {
 
 rv.prototype.run = function() {
   this.cancelled = false;
-  for (var i = 0;i < this.maxrunning;i++) {
+  for (var i = 0;i &lt; this.maxrunning;i++) {
     this._start();
   }
 };
@@ -1715,7 +1742,7 @@ rv.prototype.callback = function(mc,result,that) {
   if (that.runnercount == that.totalruns) {
     that.cf();
     that.runnercount++; // should never happen, but just ensuring an infinite loop does not happen if this is coded wrong somewhere
-  } else if (!that.cancelled && that.running < that.maxrunning && that.runnercount < that.totalruns) {
+  } else if (!that.cancelled && that.running &lt; that.maxrunning && that.runnercount &lt; that.totalruns) {
     that._start();
   }
 };
@@ -1732,7 +1759,7 @@ mldb.prototype.saveAll2 = function(doc_array,uri_array_opt,callback_opt) {
   }
   if (undefined == uri_array_opt) {
     uri_array_opt = new Array();
-    for (var i = 0;i < doc_array.length;i++) {
+    for (var i = 0;i &lt; doc_array.length;i++) {
       uri_array_opt[i] = this.__genid();
     }
   }
@@ -1740,7 +1767,7 @@ mldb.prototype.saveAll2 = function(doc_array,uri_array_opt,callback_opt) {
   // TODO make fast aware
   // TODO make transaction aware (auto by using save - need to check for error on return. pass error up for auto rollback)
   var error = null;
-  //for (var i = 0;null == error && i < doc_array.length;i++) {
+  //for (var i = 0;null == error && i &lt; doc_array.length;i++) {
   var that = this;
   var start_func = function(mc,callback) {
     that.save(doc_array[mc],uri_array_opt[mc],callback);
@@ -1959,20 +1986,20 @@ com.marklogic = {};
  ****/
  
 /**
- * <p>Creates a new search options builder connected to this client database connection mldb instance. Each function returns a reference to the option builder object to support chaining.
- * </p><p><b>Note: I believe all search options are covered in the methods. If you find anything missing, or want a helper function, let me know.</b></p><p>
- * Applies the following sensible defaults:-</p>
- <ul>
- <li>  type = "xs:string"</li>
-  <li> collation = "http://marklogic.com/collation/"</li>
-  <li> namespace = "http://marklogic.com/xdmp/json/basic"</li>
-  <li> sortDirection = "ascending"</li>
-  <li> transform-results = "raw" (Note: Default elsewhere in marklogic is 'snippet' instead)</li>
-  <li> page-length = 10</li>
- </ul>
+ * &lt;p>Creates a new search options builder connected to this client database connection mldb instance. Each function returns a reference to the option builder object to support chaining.
+ * &lt;/p>&lt;p>&lt;b>Note: I believe all search options are covered in the methods. If you find anything missing, or want a helper function, let me know.&lt;/b>&lt;/p>&lt;p>
+ * Applies the following sensible defaults:-&lt;/p>
+ &lt;ul>
+ &lt;li>  type = "xs:string"&lt;/li>
+  &lt;li> collation = "http://marklogic.com/collation/"&lt;/li>
+  &lt;li> namespace = "http://marklogic.com/xdmp/json/basic"&lt;/li>
+  &lt;li> sortDirection = "ascending"&lt;/li>
+  &lt;li> transform-results = "raw" (Note: Default elsewhere in marklogic is 'snippet' instead)&lt;/li>
+  &lt;li> page-length = 10&lt;/li>
+ &lt;/ul>
  * 
-  <h3>Sample usage 1: page-search.js:- (and page-chartsearch except without .pageLength(100) )</h3>
- <pre>
+  &lt;h3>Sample usage 1: page-search.js:- (and page-chartsearch except without .pageLength(100) )&lt;/h3>
+ &lt;pre>
   var ob = new db.options();
   ob.defaultCollation("http://marklogic.com/collation/en")
     //.defaultType("xs:string"); // this should be the default anyway 
@@ -1984,15 +2011,15 @@ com.marklogic = {};
     .collectionConstraint() // default constraint name of 'collection' 
     .rangeConstraint("animal",["item-order"]) // constraint name defaults to that of the range element name 
     .rangeConstraint("family",["item-frequency"]); // constraint name defaults to that of the range element name 
- </pre>
+ &lt;/pre>
  *
-  <h3>Sample usage 2: page-movies.js</h3>
-  <pre>
+  &lt;h3>Sample usage 2: page-movies.js&lt;/h3>
+  &lt;pre>
   var ob = new db.options();
   ob.tuples("coag","actor","genre"); // first is tuple name. defaults to string, json namespace
   var ob2 = new db.options();
   ob2.tuples("coay","actor","year"); // first is tuple name. defaults to string, json namespace
-  </pre>
+  &lt;/pre>
  *
  * @constructor
  */
@@ -2342,10 +2369,10 @@ mldb.prototype.options.prototype.rangeConstraint = function(constraint_name_opt,
     }
   }
   if (undefined ==  collation_opt) {
-    if (undefined !=  type_opt && "string" === typeof type_opt && (type_opt.length < 4 || "xs:" != type_opt.substring(0,3))) {
+    if (undefined !=  type_opt && "string" === typeof type_opt && (type_opt.length &lt; 4 || "xs:" != type_opt.substring(0,3))) {
       collation_opt = type_opt;
       type_opt = undefined;
-    } else if (undefined !=  ns_opt && "string" === typeof ns_opt && (ns_opt.length < 4 || "xs:" != ns_opt.substring(0,3))) {
+    } else if (undefined !=  ns_opt && "string" === typeof ns_opt && (ns_opt.length &lt; 4 || "xs:" != ns_opt.substring(0,3))) {
       collation_opt = ns_opt;
       ns_opt = undefined;
     } 
@@ -2760,4 +2787,26 @@ mldb.prototype.query.prototype.range = function(constraint_name,val) {
 /*
 mldb.prototype.query = function() {
   return new mldb.prototype.query();
-};*/
+};*/</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Index</a></h2><h3>Classes</h3><ul><li><a href="BasicWrapper.html">BasicWrapper</a></li><li><a href="DigestWrapper.html">DigestWrapper</a></li><li><a href="mldb.html">mldb</a></li><li><a href="options.html">options</a></li><li><a href="query.html">query</a></li><li><a href="PassThroughWrapper.html">PassThroughWrapper</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-all.html">all</a></li><li><a href="tutorial-browser-create-app.html">browser-create-app</a></li><li><a href="tutorial-samples.html">samples</a></li></ul><h3>Global</h3><ul><li><a href="global.html#padNC">padNC</a></li><li><a href="global.html#parseDigest">parseDigest</a></li><li><a href="global.html#textToXML">textToXML</a></li><li><a href="global.html#xmlToJson">xmlToJson</a></li><li><a href="global.html#xmlToJsonSearchResults">xmlToJsonSearchResults</a></li><li><a href="global.html#xmlToJsonStrict">xmlToJsonStrict</a></li></ul>
+</nav>
+
+<br clear="both">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Sun May 12 2013 10:15:58 GMT+0100 (BST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

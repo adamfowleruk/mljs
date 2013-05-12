@@ -1,0 +1,5 @@
+
+com=window.com||{};com.marklogic=window.com.marklogic||{};com.marklogic.widgets=window.com.marklogic.widgets||{};com.marklogic.widgets.kratu=function(container){this.container=container;this.results=null;this.kratu=new Kratu();this.kratu.setRenderElement(document.getElementById(this.container));this.render="content";this._refresh();};com.marklogic.widgets.kratu.prototype.render=function(render){this.render=render;};com.marklogic.widgets.kratu.prototype.updateResults=function(results){this.results=results;if("content"==this.render){var content=new Array();for(var i=0;i<this.results.results.length;i++){content.push(this.results.results[i].content);}
+this.kratu.setEntities(content);}else{this.kratu.setEntities(this.results.results);}
+this._refresh();};com.marklogic.widgets.kratu.prototype._refresh=function(){if(null==this.results||undefined==this.results||"boolean"==this.results){return;}
+this.kratu.renderReport();};

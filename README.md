@@ -7,6 +7,11 @@ This library provides a convenient JavaScript wrapper for common operations on M
  - Provides sensible defaults so you can get started quickly
  - Minimum prior knowledge of how MarkLogic works required
  - Browser widgets provided so you can quickly get an application running
+ 
+## Get the code
+ - NodeJS install - npm install mldb
+ - NodeJS download - [\[raw tar.gz\]] [[raw zip]] [[minified tar.gz]] [[minified-zip]]
+ - Browser download - [\[raw tar.gz\]](someurl)
 
 ## Further information
  - Install with `npm install mldb`
