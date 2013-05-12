@@ -88,8 +88,8 @@ tar czf ./dist/mldb-docs.tar.gz ./dist/docs
 zip -vr ./dist/mldb-docs.zip ./dist/docs
 
 # cleanup
-#rm -rf dist/mldb
-#rm -rf dist/docs
+rm -rf dist/mldb
+rm -rf dist/docs
 
 echo "Done."
 exit 0 
