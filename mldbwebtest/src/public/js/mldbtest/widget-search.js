@@ -375,10 +375,11 @@ com.marklogic.widgets.searchbar.prototype.__doquery = function(q,start) {
   
   // check for options existance
   if (!this.optionsExists) {
+    this.db.logger.debug("searchbar: Saving search options prior to query");
     this.db.saveSearchOptions(this.optionsName,this.options,function(result) {
       if (result.inError) {
         // TODO log error somewhere sensible on screen
-        mldb.defaultconnection.logger.debug(result.error);
+        mldb.defaultconnection.logger.debug("Exception saving results: " + result.details);
       } else {
         self.optionsExists = true; // to stop overwriting on subsequent requests
         dos();

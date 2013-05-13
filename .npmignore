@@ -8,3 +8,9 @@ logs
 mldb-browser.tar.gz
 mldb-browser.zip
 mldbwebtest/*
+dist
+*.md
+build-lib
+jsdoc-conf.json
+tutorials
+delete-configtest.js

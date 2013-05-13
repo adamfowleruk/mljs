@@ -48,6 +48,7 @@ b.xhr2.prototype.request = function(reqname,options,content,callback) {
   
   // binary data hack XHR2
   //if (null != content && undefined != content && -1 != options.path.indexOf("&format=binary")) {
+    try {
     var xhr = new XMLHttpRequest();
     xhr.open(options.method, options.path, true); // TODO include username and password too
     xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
@@ -64,6 +65,8 @@ b.xhr2.prototype.request = function(reqname,options,content,callback) {
       console.log("XHR typeof responseXML: " + typeof xhr.responseXML);
       console.log("XHR typeof responseText: " + typeof xhr.responseText);
       console.log("XHR typeof response: " + typeof xhr.response);
+      
+      // TODO handle 304 etc responses (don't assume a non 200 is a 400/500)
       
      if (("" + xhr.status).indexOf("2")==0) {
         // success
@@ -139,95 +142,26 @@ b.xhr2.prototype.request = function(reqname,options,content,callback) {
       // now supports XML returned too
       callback(res);
     };
-    xhr.send(content);
-  /*} else {
-  
-  
-  $.ajax(options.path,{
-    contentType: ct,
-    type: options.method.toLowerCase(), 
-    data: data,
-    processData: false,
-    dataType: dataType,
-    converters: {"* text": window.String, "text html": true, "text json": window.String, "text xml": jQuery.parseXML},
-    success: function(data,textStatus,xhr) {
-      console.log("jquery success");
-      var res = {};
-      res.inError = false;
-      res.statusCode = xhr.status;
-      var wibble;
-      if (undefined != data && null != data) {
-        self.logger.debug("Data type: " + (typeof data));
-        self.logger.debug("Data value: " + data);
-        var xml = xhr.responseXML;
-        if (undefined != xml) {
-          res.format = "xml";
-          res.doc = xml;
-        } else {
-          self.logger.debug("response text: " + xhr.responseText);
-          try {
-            self.logger.debug("parsing xhr.responseText");
-            wibble = $.parseJSON(xhr.responseText); // successes are JSON text (needs parsing)
-            res.format = "json";
-            self.logger.debug("js raw: " + wibble);
-            self.logger.debug("json str: " + JSON.stringify(wibble));
-            self.logger.debug("Parsed JSON successfully");
-          } catch (ex) {
-            self.logger.debug("JSON parsing failed. Trying XML parsing.");
-            // try XML conversion now
-            try {
-              wibble = textToXML(xhr.responseText);
-              res.format = "xml";
-            } catch (ex2) {
-              // do nothing - likely a blank document
-              self.logger.debug("Not JSON or XML. Exception: " + ex2);
-            }
-          }
-        }
-      }
-      res.doc = wibble;
-      //self.logger.debug("json final str: " + JSON.stringify(res.doc));
-      // now supports XML returned too
-      callback(res);
-    } , error: function(xhr,textStatus,errorThrown) {
-      console.log("jquery error");
-      // get failure code to determine what to do next
-      var res = {};
-      if (xhr.status == 303) {
-        res.location = xhr.getResponseHeader("location"); // for newly created document / upload
-      }
-      res.inError = true;
-      res.statusCode = xhr.status;
-      res.doc = xhr.responseXML; // failures are returned in XML
-      if (undefined == res.doc) {
-        res.doc = xhr.responseText;
-        res.format = "text"; // TODO handle binary content
-        try {
-          self.logger.debug("parsing xhr.responseText");
-          var wibble = $.parseJSON(xhr.responseText); // successes are JSON text (needs parsing)
-          res.format = "json";
-          self.logger.debug("js raw: " + wibble);
-          self.logger.debug("json str: " + JSON.stringify(wibble));
-          self.logger.debug("Parsed JSON successfully");
-          res.doc = wibble;
-        } catch (ex) {
-          // do nothing - likely a blank XML document
-          self.logger.debug("Exception: " + ex);
-        }
-      } else {
-        res.format = "xml";
-      }
-      res.details = res.doc;
-      if ("string" == typeof res.details) { // TODO add response content type check (document could be plain text!)
-        res.details = textToXML(res.details);
-      }
-      if (undefined != res.details.nodeType) { // must be an XML document
-        res.details = xmlToJson(res.details); // convert text in res.doc to XML first
-      } 
-      callback(res);
+    var contentText = "";
+    if (typeof content == "string") {
+      contentText = content;
+    } else if (ct == "application/xml") {
+      contentText = (new XMLSerializer()).serializeToString(content);
+    } else if (ct == "application/json") {
+      // json
+      contentText = JSON.stringify(content);
+    } else {
+      // binary, file, etc.
+      contextText = content;
     }
-  });
- } */
+    self.logger.debug("Sending content: " + contentText);
+    xhr.send(contentText);
+    
+  } catch (ex) {
+    self.logger.debug("EXCEPTION in XHR2 send() call: " + ex);
+    var res = {inError:true,details: ex};
+    callback(res);
+  }
   
 };
 
