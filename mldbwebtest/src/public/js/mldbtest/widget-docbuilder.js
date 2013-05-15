@@ -475,10 +475,10 @@ com.marklogic.widgets.create.prototype._onSave = function() {
         console.log("calling mldb save");
           /*
           var arrBuff = new ArrayBuffer(evt.target.result.length);
-var writer = new Uint8Array(arrBuff);
-for (var i = 0, len = evt.target.result.length; i < len; i++) {
-    writer[i] = evt.target.result.charCodeAt(i);
-}*/
+          var writer = new Uint8Array(arrBuff);
+          for (var i = 0, len = evt.target.result.length; i < len; i++) {
+              writer[i] = evt.target.result.charCodeAt(i);
+          }*/
           
           mldb.defaultconnection.save(file,self._uriprefix + file.name,props,function(result) {
             if (result.inError) {

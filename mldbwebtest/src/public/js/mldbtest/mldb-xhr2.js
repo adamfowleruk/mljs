@@ -142,20 +142,18 @@ b.xhr2.prototype.request = function(reqname,options,content,callback) {
       // now supports XML returned too
       callback(res);
     };
-    var contentText = "";
-    if (typeof content == "string") {
-      contentText = content;
-    } else if (ct == "application/xml") {
-      contentText = (new XMLSerializer()).serializeToString(content);
+    
+    if (ct == "application/xml") {
+      content = (new XMLSerializer()).serializeToString(content);
     } else if (ct == "application/json") {
       // json
-      contentText = JSON.stringify(content);
+      content = JSON.stringify(content);
     } else {
-      // binary, file, etc.
-      contextText = content;
+      // binary, file, json string, etc. - do nothing
     }
-    self.logger.debug("Sending content: " + contentText);
-    xhr.send(contentText);
+    self.logger.debug("Sending content: " + content);
+    
+    xhr.send(content);
     
   } catch (ex) {
     self.logger.debug("EXCEPTION in XHR2 send() call: " + ex);
