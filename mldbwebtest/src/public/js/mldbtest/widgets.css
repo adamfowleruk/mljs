@@ -393,3 +393,16 @@ span.person {
 .secure-section-triples {
   display: none;
 }
+
+/** V7 triples widgets **/
+.sparqlbar-term {
+  padding-left: 20px;
+}
+
+.sparqlbar-term select {
+  padding-left: 0px;
+}
+
+.sparqlbar-button {
+  margin-top: 20px;
+}

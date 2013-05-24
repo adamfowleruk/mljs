@@ -1570,13 +1570,36 @@ mldb.prototype.deleteGraph = function(uri,callback_opt) {
   var options = {
     path: "/v1/graph?graph=" + encodeURI(uri),
     method: "DELETE"
-  }
+  };
   
   this.__doreq("DELETEGRAPH",options,null,callback_opt);
 };
 
-
-
+/**
+ * <p>Executes the specified sparql query.
+ *</p><p>
+ * No documentation URL - still in Early Access
+ *</p>
+ *
+ * @param {string} sparql - The sparql query text
+ * @param {function} callback - The callback to invoke after the method completes.
+ */
+mldb.prototype.sparql = function(sparql,callback) {
+  var options = {
+    path: "/v1/graphs/sparql",
+    method: "POST",
+    contentType: "text/plain",
+    headers: []
+    /*
+    path: "/v1/graphs/sparql?query=" + encodeURI(sparql),
+    method: "GET"
+    */
+  };
+  options.headers["Accept"] = "application/sparql-results+json";
+  //options.headers["Content-Type"] = "text/plain";
+  
+  this.__doreq("SPARQL",options,sparql,callback);
+};
 
 
 

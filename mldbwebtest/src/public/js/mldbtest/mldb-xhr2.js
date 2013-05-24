@@ -36,6 +36,7 @@ b.xhr2.prototype.request = function(reqname,options,content,callback) {
   }*/
   var ct = options.contentType;
   if (undefined == ct) {
+    self.logger.debug("*********** CT UNDEFINED *************");
     ct = "application/json";
   }
   /*
@@ -53,6 +54,15 @@ b.xhr2.prototype.request = function(reqname,options,content,callback) {
     xhr.open(options.method, options.path, true); // TODO include username and password too
     xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
     xhr.setRequestHeader('Content-Type', ct);
+    if (options.headers) {
+      for (var h in options.headers) {
+        if (typeof options.headers[h] == "string" && h != "Content-type") {
+        console.log("header: " + h);
+        console.log("header value: " + options.headers[h]);
+        xhr.setRequestHeader(h,options.headers[h]);
+        }
+      }
+    }
     
     xhr.onload = function(e) {
       var res = {};
