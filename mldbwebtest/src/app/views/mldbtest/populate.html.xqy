@@ -25,5 +25,5 @@ declare option xdmp:mapping "false";
 <script type="text/javascript" src="/js/mldbtest/mldb-jquery.js"></script>
 <script type="text/javascript" src="/js/mldbtest/page-populate.js"></script>
 
-  <p id="log">Log info goes here</p>
+  <div id="log">Log info goes here</div>
 </div>

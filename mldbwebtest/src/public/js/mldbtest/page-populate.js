@@ -21,8 +21,13 @@ $(document).ready(function() {
   ];
   
   for (var i = 0;i < docs.length;i++) {
+    var index = i;
     db.save(docs[i],"/animals/" + i,{collection: "animals"}, function(result) {
       // do something
+      document.getElementById("log").innerHTML += "<p>Added result: " + index + " of " + docs.length + "</p>";
+      if (index == docs.length - 1) {
+        document.getElementById("log").innerHTML += "<p>Populate completed</p>";
+      }
     });
   }
 });

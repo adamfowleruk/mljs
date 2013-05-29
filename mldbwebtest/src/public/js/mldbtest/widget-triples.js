@@ -127,6 +127,14 @@ com.marklogic.widgets.tripleconfig.prototype.getValidPredicates = function(from,
   return new Array();
 };
 
+com.marklogic.widgets.tripleconfig.prototype.getNameProperty = function(entity) {
+  mldb.defaultconnection.logger.debug("getNameProperty: entity=" + entity);
+  for (var i = 0;i < this._newentities[entity].properties.length;i++) {
+    if ("name" == this._newentities[entity].properties[i].name) {
+      return this._newentities[entity].properties[i];
+    }
+  }
+};
 
 
 
@@ -153,6 +161,8 @@ com.marklogic.widgets.sparqlbar = function(container) {
   this._hierarchy = new Array(); // [{tid: 1, children: [{tid: 2, children:[]}, ...]}, ....]
   this._allterms = new Array(); // plain array, [tid] => JSON as above
   this._parentterms = new Array(); // [childid] = parentid
+  
+  this.resultsPublisher = new com.marklogic.events.Publisher();
   
   this.refresh();
 };
@@ -514,11 +524,241 @@ com.marklogic.widgets.sparqlbar.prototype._buildTerms = function(termArray,paddi
 
 com.marklogic.widgets.sparqlbar.prototype._doQuery = function() {
   var sparql = this._buildQuery();
+  var self = this;
   mldb.defaultconnection.sparql(sparql,function(result) {
     mldb.defaultconnection.logger.debug("RESPONSE: " + JSON.stringify(result.doc));
+    if (result.inError) {
+      // TODO publish error
+    } else {
+      self.resultsPublisher.publish(result.doc);
+    }
   });
 };
 
 com.marklogic.widgets.sparqlbar.prototype.addResultsListener = function(lis) {
-  // TODO add results listener
+  // add results listener
+  this.resultsPublisher.subscribe(lis);
 };
+
+com.marklogic.widgets.sparqlbar.prototype.removeResultsListener = function(lis) {
+  // remove results listener
+  this.resultsPublisher.unsubscribe(lis);
+};
+
+
+
+
+
+
+
+
+
+
+// SPARQL RESULTS widget
+
+com.marklogic.widgets.sparqlresults = function(container) {
+  this.container = container;
+  
+  this.results = null; // JSON results object:- 
+  // {"head":{"vars":["person"]},"results":{"bindings":[
+  //    {"person":{"type":"uri","value":"http://marklogic.com/semantic/targets/person/Nathan%20Olavsky"}},
+  //    {"person":{"type":"uri","value":"http://marklogic.com/semantic/targets/person/Abraham%20Troublemaker"}}
+  // ]}}
+  
+  this._iriHandler = null;
+  
+  this._refresh();
+};
+
+com.marklogic.widgets.sparqlresults.prototype.iriHandler = function(handler) {
+  this._iriHandler = handler;
+};
+
+com.marklogic.widgets.sparqlresults.prototype._refresh = function() {
+  var s = "<div id='" + this.container + "-sparqlresults' class='sparqlresults'>";
+  s += "<h2>Fact Search Results</h2>";
+  
+  if (undefined != this.results && undefined != this.results.head && undefined != this.results.head.vars && undefined != this.results.results) {
+    // get list of entities returned in search
+    var entities = this.results.head.vars; // E.g. person, organisation - these are the returned variable bindings from the query
+    
+    // process results, showing common information where appropriate
+    //for (var i = 0;i < this.results.results.length;i++) {
+      // title - get name eventually
+      for (var b = 0;b < this.results.results.bindings.length;b++) {
+        s += "<div id='" + this.container + "-sparqlresults-result-" + b + "' class='sparqlresults";
+        if (null != this._iriHandler) {
+          s += " sparqlresults-navigable";
+        }
+        s += "'><h3>" + (b + 1) + ". ";
+        for (var et = 0;et < entities.length;et++) {
+          var entityValue = this.results.results.bindings[b][entities[et]];
+          s += entities[et] + " (" + entityValue.type + "): " + entityValue.value;
+        }
+        s += "</h3></div>";
+      }
+    //}
+  } else {
+    s += "<i>No results</i>";
+  }
+  
+  s += "</div>";
+  
+  document.getElementById(this.container).innerHTML = s;
+  
+  // click handlers
+  var self = this;
+  if (null != this._iriHandler) {
+    for (var b = 0;b < this.results.results.bindings.length;b++) {
+      var iri = null;
+      for (var et = 0;et < entities.length;et++) {
+        var entityValue = this.results.results.bindings[b][entities[et]];
+        if (undefined != entityValue) {
+          if (undefined != entityValue.type && entityValue.type == "uri") { // TODO support full entity type too when required
+            iri = entityValue.value;
+          }
+        }
+      }
+      
+      if (null != iri) {
+        var el = document.getElementById(this.container + "-sparqlresults-result-" + b);
+        el.onclick = function(event) {
+          self._iriHandler(iri);
+        };
+      }
+    }
+  }
+};
+
+com.marklogic.widgets.sparqlresults.prototype.updateResults = function(results) {
+  this.results = results;
+  
+  this._refresh();
+};
+
+
+
+
+
+
+
+
+
+// fact listing widget for an IRI
+com.marklogic.widgets.entityfacts = function(container) {
+  this.container = container;
+  
+  this.loading = false;
+  
+  this.results = null;
+  
+  this._config = new com.marklogic.widgets.tripleconfig();
+  
+  this._iriHandler = null;
+  
+  this._refresh();
+};
+
+com.marklogic.widgets.entityfacts.prototype.iriHandler = function(handler) {
+  this._iriHandler = handler;
+};
+
+com.marklogic.widgets.entityfacts.prototype._refresh = function() {
+  var s = "<div id='" + this.container + "-entityfacts' class='entityfacts'>";
+  s += "<h2>Entity Facts</h2>";
+  s += "<div id='" + this.container + "-entityfacts-facts'>";
+  if (this.loading == true) {
+    s += "Loading...";
+  }
+  
+  var irilinks = new Array();
+  
+  if (this.results != null && this.results != undefined) {
+    // get type: http://www.w3.org/1999/02/22-rdf-syntax-ns#type
+    var type = null;
+    for (var b = 0;(null == type) && (b < this.results.results.bindings.length);b++) {
+      var predicate = this.results.results.bindings[b].predicate;
+      var object = this.results.results.bindings[b].object;
+      
+      if (predicate.value == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type") {
+        type = object.value;
+      }
+    }
+    mldb.defaultconnection.logger.debug("Got type: " + type);
+    
+    var entityInfo = null;
+    var entityName = null;
+    for (var entname in this._config._newentities) {
+      if (this._config._newentities[entname].rdfTypeIri == type) {
+        // found our entity
+        entityInfo = this._config._newentities[entname];
+        entityName = entname;
+      }
+    }
+    mldb.defaultconnection.logger.debug("Got entity name: " + entityName);
+    
+    // get common name from config
+    var namepredicate = this._config.getNameProperty(entityName).iri;
+    mldb.defaultconnection.logger.debug("Got name predicate: " + namepredicate);
+    var namevalue = null;
+    for (var b = 0;(null == namevalue) && (b < this.results.results.bindings.length);b++) {
+      var predicate = this.results.results.bindings[b].predicate;
+      var object = this.results.results.bindings[b].object;
+      
+      if (predicate.value == namepredicate) {
+        namevalue = object.value;
+      }
+    }
+    mldb.defaultconnection.logger.debug("Got name value: " + namevalue);
+    
+    s += "<h3>" + type + ": " + namevalue + "</h3>";
+    
+    // TODO publish non IRIs first
+    // TODO publish IRIs as links
+    for (var b = 0;(b < this.results.results.bindings.length);b++) {
+      var predicate = this.results.results.bindings[b].predicate;
+      var object = this.results.results.bindings[b].object;
+      
+      if (predicate.value != namepredicate && predicate.value != "http://www.w3.org/1999/02/22-rdf-syntax-ns#type") {
+        s += "<p>" + predicate.value + ": ";
+        if (undefined != object["xml:lang"]) {
+          // string literal
+          s += object.value;
+        } else {
+          irilinks.push({iri: object.value, elid: this.container + "-entityfacts-fact-" + b});
+          s += "<a href='#' id='" + this.container + "-entityfacts-fact-" + b + ">" + object.value + "</a>";
+        }
+        
+        s += "</p>";
+      }
+    }
+  }
+  s += "</div>";
+  
+  document.getElementById(this.container).innerHTML = s;
+};
+
+com.marklogic.widgets.entityfacts.prototype.updateEntity = function(iri) {
+  this.iri = iri;
+  this.loading = true;
+  this._refresh();
+  
+  var self = this;
+  
+  var sparql = "SELECT * WHERE {<" + iri + "> ?predicate ?object .}";
+  
+  // fetch info and refresh again
+  mldb.defaultconnection.sparql(sparql,function(result) {
+    mldb.defaultconnection.logger.debug("RESPONSE: " + JSON.stringify(result.doc));
+    self.loading = false;
+    if (result.inError) {
+      // TODO publish error
+    } else {
+      self.results = result.doc;
+    }
+    self._refresh();
+  });
+  
+};
+
+

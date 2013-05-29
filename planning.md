@@ -8,53 +8,45 @@ Targets for 0.7 (May 2013 tidy up edition)
   - More... all... links in facets
   - BUG: one page too many in results if results are multiple of page size (i.e. 30 gives you 4 pages, not 3)
   - BUG: multi word facet selection causes search to be limited to first word only (no quotes) -> query parser, not facet issue
- - IN PROGRESS Core: support XML returned as well as JSON
+ - DONE Core: support XML returned as well as JSON
   - DONE Search result content (within JSON results, not as XML results)
- - TEST Widgets: Update search samples to include one set of mixed XML and JSON documents
- - IN PROGRESS Widgets: File upload (single and multiple)
- - TEST Core: Search Options Builder
- - IN PROGRESS Core: Structured Search Builder
- - TEST Browser: prototype.js binding
+ - DONE Widgets: Update search samples to include one set of mixed XML and JSON documents
+ - DONE Widgets: File upload (single)
+ - DONE Core: Search Options Builder
  - DONE Browser: XMLHttpRequest (xhr) binding
- - IN PROGRESS Browser: XmlHttpRequest2 (xhr2) binding
- - IN PROGRESS Docs: Samples for XML use, equivalent to some of the existing JSON samples (not exhaustive)
+ - DONE Browser: XmlHttpRequest2 (xhr2) binding
  - Tests: Test samples for xml content
- - TEST Core: Return and add binary documents
- - TEST Core: Return and add plain text documents
- - Widgets: (multi) Upload progress bar
- - TEST Support for binary and plain text file save/get/search
+ - Tests: Refactor to use alternate testing framework
+ - DONE Core: Return and add binary documents
+ - DONE Core: Return and add plain text documents
  - EA 1 support
   - TEST Add/delete/modify/replace named graphs
-  - Interactive SPARQL query builder and result handler (including paging, linking to document search, restrict by collection, other document search criteria)
+  - IN PROGRESS Interactive SPARQL query builder and result handler (including paging, linking to document search, restrict by collection, other document search criteria)
  - IN PROGRESS REST extensions
-  - TEST DLS declare document as a record
+  - DONE DLS declare document as a record
   - DLS list all documents in a record collection
-  - DLS list all DLS collections
+  - DONE DLS list all DLS collections
   - DLS list all retention rules
   - DLS get document history
   - DLS get document version
   - DLS add retention rule
   - Browser: DLS add retention rule widget
-  - TEST Browser: DLS declare search results as record widget
- - TEST Get collections starting with a URI (values query helper method)
- 
+  - DONE Browser: DLS declare search results as record widget
+ - DONE Get collections starting with a URI (values query helper method)
+
 Targets for 0.8 (Jun 2013)
+ - IN PROGRESS Docs: Samples for XML use, equivalent to some of the existing JSON samples (not exhaustive)
+ - Rename all to MLJS form MLDB
  - Widgets: D3.js network diagram
+ - Widgets: Charts widget to support aggregations via search options
+ - Widgets: Charts widget to support extraction of XML info via XPath
  - Widgets: XML/JSON document creation-by-example (via HTML form generator)
- - Widgets: Support for using widgets in non ML 6 REST webapps, and embedding widgets remotely, via W3C CORS support (i.e. cross site support)
- - Widgets: Create search context object, and make search widgets responsible for registering themselves with it. Refactor search execution code in to here.
- - Widgets: Navigable charts / co-occurence - clicking sets facet value
- - Widgets: Abstract enough to plug in Version 5 REST Wrapper results, as required (Corona?)
  - Widgets: Support array children in aggregations for graphs
  - Browser: Lazy loading on search results (E.g. when requesting page 2 result 3 (result 13), make http request for re-search transparent) - Also for graphing when all search results need loading
  - Easy geospatial search
  - Widgets: Google maps (via OpenLayers?)
  - Support all search functions not currently provided
  - Complete support for /v1/values REST function
- - More support for server management (namespaces, indexes, service extensions, update REST instance configuration, XSLT transform management)
- - Widgets: Administration widgets (mainly aimed at pre-sales developers, not sysadmins)
- - Support nested cts:search (if possible)
- - CSV and TSV utilities
  - NodeJS: Support SSL
  - NodeJS: SSL with Basic
  - NodeJS: SSL with Digest
@@ -62,6 +54,21 @@ Targets for 0.8 (Jun 2013)
  - NodeJS: SSL Basic + Digest
  - NodeJS: SSL no auth (default user)
  - NodeJS: Support 'anyauth' option, much like curl (i.e. auth method auto detection)
+
+Targets for 1.0 (Aug 2013)
+ - Support current functionality against MarkLogic V7
+ - New V7 functionality (as and when required)
+  - Dynamic search options
+  - Alerting
+ - Widgets: Support for using widgets in non ML 6 REST webapps, and embedding widgets remotely, via W3C CORS support (i.e. cross site support)
+ - Widgets: Create search context object, and make search widgets responsible for registering themselves with it. Refactor search execution code in to here.
+ - Widgets: Navigable charts / co-occurence - clicking sets facet value
+ - More support for server management (namespaces, indexes, service extensions, update REST instance configuration, XSLT transform management)
+ - Widgets: Administration widgets (mainly aimed at pre-sales developers, not sysadmins)
+ - Support nested cts:search (if possible)
+ - CSV and TSV utilities
+
+Targets for 1.2 (Oct 2013)
  - support arbitrary XPath for searches (if possible)
  - allow upload and use of XSLT for result transform
  - Widget: Table - allow binding of JSON search results to jQuery table (for example)
@@ -69,14 +76,14 @@ Targets for 0.8 (Jun 2013)
  - Widget: Tree - browse JSON/XML documents in search results as a tree
  - Widget: Timeline (point in time and start / stop dates)
  - Widget: Rose - direction (N, S etc) and time (12 and 24 hour) - arbitrary categories
+ - Widget: Situational awareness and search renderer app (from BF sim)
  - NodeJS: Provide REST API proxy within NodeJS wrapper
  - Browser: Support REST API proxy within general javascript and nodejs javascript code
-
-Targets for 1.0 (Aug 2013)
- - Support current functionality against MarkLogic V7
- - New V7 functionality (as and when required)
-  - Dynamic search options
-  - Alerting
+ - Widgets: File upload (multiple)
+ - Widgets: (multi) Upload progress bar
+ - Widgets: Abstract enough to plug in Version 5 REST Wrapper results, as required (Corona?)
+ - IN PROGRESS Core: Structured Search Builder
+ - TEST Browser: prototype.js binding
 
 Not applicable / dropped / postponed targets
  - N/A sensible to/from json settings (Default on &format=json on server)
