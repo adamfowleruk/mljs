@@ -62,6 +62,17 @@ com.marklogic.widgets.tripleconfig.prototype.addPlaces = function() {
   this._rdfTypesShort["placename"] = "so:Place"; // geonames features are an extension of Place
   this._commonNamePredicates["placename"] = "http://www.geonames.org/ontology#name";
   this._properties["placename"] = [{name: "name", iri: "http://www.geonames.org/ontology#name", shortiri: "geonames:name"}];
+  
+  
+  this._newentities["place"] = {name: "place", title: "Place", prefix: "http://www.geonames.org/ontology#", iriPattern: "http://marklogic.com/semantic/targets/organisation/#VALUE#", 
+    rdfTypeIri: "http://schema.org/Place", rdfTypeIriShort: "foaf:Organization", commonNamePredicate: "http://www.geonames.org/ontology#name",
+    properties: [{name: "name", iri: "http://www.geonames.org/ontology#name", shortiri: "geonames:name"}]};
+  
+  this._newPredicates["studies_at"] = {name: "studies_at", title: "Studies at", iri: "http://www.marklogic.com/ontology/0.1/studies_at", shortiri: "ml:studies_at"};
+  this._newPredicates["affiliated_with"] = {name: "affiliated_with", title: "Affiliated with", iri: "http://www.marklogic.com/ontology/0.1/affiliated_with", shortiri: "ml:affiliated_with"};
+  this._newPredicates["has_meetings_near"] = {name: "has_meetings_near", title: "Meets near", iri: "http://www.marklogic.com/ontology/0.1/has_meetings_near", shortiri: "ml:has_meetings_near"};
+  this._newPredicates["located_within"] = {name: "located_within", title: "Located within", iri: "http://www.marklogic.com/ontology/0.1/located_within", shortiri: "ml:located_within"};
+  this._newPredicates["contains_location"] = {name: "contains_location", title: "Contains", iri: "http://www.marklogic.com/ontology/0.1/contains_location", shortiri: "ml:contains_location"};
 };
 
 com.marklogic.widgets.tripleconfig.prototype.addFoafPlaces = function() {
@@ -115,6 +126,14 @@ com.marklogic.widgets.tripleconfig.prototype.addFoaf = function() {
     rdfTypeIri: "http://xmlns.com/foaf/0.1/Organization", rdfTypeIriShort: "foaf:Organization", commonNamePredicate: "http://xmlns.com/foaf/0.1/name",
     properties: [{name: "name", iri: "http://xmlns.com/foaf/0.1/name", shortiri: "foaf:name"}]};
   
+  this._newPredicates["knows"] = {name: "knows", title: "Knows", iri: "http://xmlns.com/foaf/0.1/knows", shortiri: "foaf:knows"};
+  this._newPredicates["friendOf"] = {name: "friendOf", title: "Friend", iri: "http://xmlns.com/foaf/0.1/friendOf", shortiri: "foaf:friendOf"};
+  this._newPredicates["enemyOf"] = {name: "enemyOf", title: "Enemy", iri: "http://xmlns.com/foaf/0.1/enemyOf", shortiri: "foaf:enemyOf"};
+  this._newPredicates["childOf"] = {name: "childOf", title: "Is a child of", iri: "http://xmlns.com/foaf/0.1/childOf", shortiri: "foaf:childOf"};
+  this._newPredicates["parentOf"] = {name: "parentOf", title: "Is a parent of", iri: "http://xmlns.com/foaf/0.1/parentOf", shortiri: "foaf:parentOf"};
+  this._newPredicates["fundedBy"] = {name: "fundedBy", title: "Funded by", iri: "http://xmlns.com/foaf/0.1/fundedBy", shortiri: "foaf:fundedBy"};
+  this._newPredicates["member"] = {name: "member", title: "Is a member of", iri: "http://xmlns.com/foaf/0.1/member", shortiri: "foaf:member"};
+  this._newPredicates["based_near"] = {name: "based_near", title: "Is based near", iri: "http://xmlns.com/foaf/0.1/based_near", shortiri: "foaf:based_near"};
   
 };
 
@@ -136,9 +155,70 @@ com.marklogic.widgets.tripleconfig.prototype.getNameProperty = function(entity) 
   }
 };
 
+com.marklogic.widgets.tripleconfig.prototype.getEntityFromIRI = function(iri) {
+  for (var cn in this._newentities) {
+    var p = this._newentities[cn];
+    if (p.rdfTypeIri == iri) {
+      return p;
+    }
+  }
+};
 
+com.marklogic.widgets.tripleconfig.prototype.getPredicateFromIRI = function(iri) {
+  for (var cn in this._newPredicates) {
+    var p = this._newPredicates[cn];
+    if (p.iri == iri) {
+      return p;
+    }
+  }
+};
 
-
+com.marklogic.widgets.tripleconfig.prototype.summariseInto = function(iri,elid,iriHandler) {
+  var self = this;
+  // load type IRI for entity
+  var ts = "SELECT ?rdftype WHERE {<" + iri + "> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?rdftype . } LIMIT 1";
+  mldb.defaultconnection.logger.debug("TS: " + ts);
+  mldb.defaultconnection.sparql(ts,function(result) {
+    if (result.inError) {
+      // TODO publish error
+    } else {
+      // load common name for this type
+      var entityinfo = self.getEntityFromIRI(result.doc.results.bindings[0].rdftype.value);
+      var ns = "SELECT ?name WHERE {<" + iri + "> <" + self.getNameProperty(entityinfo.name).iri  + "> ?name . } LIMIT 1";
+      mldb.defaultconnection.logger.debug("NS: " + ns);
+      
+      mldb.defaultconnection.sparql(ns,function(result) {
+        if (result.inError) {
+          // TODO publish error
+        } else {
+          var cn = result.doc.results.bindings[0].name.value;
+          // display in appropriate element
+          var s = "";
+          if (null != iriHandler) {
+            s += "<a href='#' id='" + elid + "-link'>";
+          }
+          s += cn + " (" + entityinfo.title + ")";
+          
+          if (null != iriHandler) {
+            s += "</a>";
+          }
+          document.getElementById(elid).innerHTML = s;
+          
+          // add click handler function here to elid-link
+          if (null != iriHandler) {
+            var addClickHandler = function(el,iri) {
+              el.onclick = function(event) {
+                iriHandler(iri);
+              }
+            }
+            var el = document.getElementById(elid + "-link");
+            addClickHandler(el,iri);
+          }
+        }
+      });
+    }
+  });
+};
 
 
 
@@ -535,11 +615,21 @@ com.marklogic.widgets.sparqlbar.prototype._doQuery = function() {
   });
 };
 
+/**
+ * Adds a function as a results listener
+ * 
+ * @param {function} lis - The function handler. Passed the JSON results object.
+ **/
 com.marklogic.widgets.sparqlbar.prototype.addResultsListener = function(lis) {
   // add results listener
   this.resultsPublisher.subscribe(lis);
 };
 
+/**
+ * Removes a results listener function
+ * 
+ * @param {function} lis - The function handler. 
+ **/
 com.marklogic.widgets.sparqlbar.prototype.removeResultsListener = function(lis) {
   // remove results listener
   this.resultsPublisher.unsubscribe(lis);
@@ -555,7 +645,12 @@ com.marklogic.widgets.sparqlbar.prototype.removeResultsListener = function(lis) 
 
 
 // SPARQL RESULTS widget
-
+/**
+ * Lists results from a SPARQL results JSON object.
+ * 
+ * @constructor
+ * @param {string} container - The ID of the HTML element this widget draws itself within
+ **/
 com.marklogic.widgets.sparqlresults = function(container) {
   this.container = container;
   
@@ -567,9 +662,16 @@ com.marklogic.widgets.sparqlresults = function(container) {
   
   this._iriHandler = null;
   
+  this._config = new com.marklogic.widgets.tripleconfig();
+  
   this._refresh();
 };
 
+/**
+ * Provides a function that receives a string iri of the clicked on result.
+ * 
+ * @param {function} handler - The event handler function
+ **/
 com.marklogic.widgets.sparqlresults.prototype.iriHandler = function(handler) {
   this._iriHandler = handler;
 };
@@ -577,6 +679,8 @@ com.marklogic.widgets.sparqlresults.prototype.iriHandler = function(handler) {
 com.marklogic.widgets.sparqlresults.prototype._refresh = function() {
   var s = "<div id='" + this.container + "-sparqlresults' class='sparqlresults'>";
   s += "<h2>Fact Search Results</h2>";
+  
+  var irilinks = new Array();
   
   if (undefined != this.results && undefined != this.results.head && undefined != this.results.head.vars && undefined != this.results.results) {
     // get list of entities returned in search
@@ -593,7 +697,9 @@ com.marklogic.widgets.sparqlresults.prototype._refresh = function() {
         s += "'><h3>" + (b + 1) + ". ";
         for (var et = 0;et < entities.length;et++) {
           var entityValue = this.results.results.bindings[b][entities[et]];
-          s += entities[et] + " (" + entityValue.type + "): " + entityValue.value;
+          //s += entities[et] + " (" + entityValue.type + "): " + entityValue.value;
+          s += "<span id='" + this.container + "-sparqlresults-result-" + b + "-summary'><i>Loading...</i></span>";
+          irilinks.push({iri: entityValue.value, elid: this.container + "-sparqlresults-result-" + b + "-summary"});
         }
         s += "</h3></div>";
       }
@@ -607,29 +713,17 @@ com.marklogic.widgets.sparqlresults.prototype._refresh = function() {
   document.getElementById(this.container).innerHTML = s;
   
   // click handlers
-  var self = this;
-  if (null != this._iriHandler) {
-    for (var b = 0;b < this.results.results.bindings.length;b++) {
-      var iri = null;
-      for (var et = 0;et < entities.length;et++) {
-        var entityValue = this.results.results.bindings[b][entities[et]];
-        if (undefined != entityValue) {
-          if (undefined != entityValue.type && entityValue.type == "uri") { // TODO support full entity type too when required
-            iri = entityValue.value;
-          }
-        }
-      }
-      
-      if (null != iri) {
-        var el = document.getElementById(this.container + "-sparqlresults-result-" + b);
-        el.onclick = function(event) {
-          self._iriHandler(iri);
-        };
-      }
-    }
+  for (var i = 0; i < irilinks.length;i++) {
+    var link = irilinks[i];
+    this._config.summariseInto(link.iri,link.elid,this._iriHandler);
   }
 };
 
+/**
+ * Event target. Receives the SPARQL JSON results object from a linked SPARQLBAR (or other) widget.
+ *
+ * @param {JSON} results - The JSON SPARQL results object
+ */
 com.marklogic.widgets.sparqlresults.prototype.updateResults = function(results) {
   this.results = results;
   
@@ -645,6 +739,12 @@ com.marklogic.widgets.sparqlresults.prototype.updateResults = function(results) 
 
 
 // fact listing widget for an IRI
+/**
+ * Lists facts about an IRI from the triple store. Provides links to other related IRIs.
+ * 
+ * @constructor
+ * @param {string} container - The HTML ID of this widgets container
+ **/
 com.marklogic.widgets.entityfacts = function(container) {
   this.container = container;
   
@@ -659,6 +759,11 @@ com.marklogic.widgets.entityfacts = function(container) {
   this._refresh();
 };
 
+/**
+ * Provides a function that receives a string iri of the clicked on related IRI object. (Could be linked to this widget's own updateEntity function)
+ * 
+ * @param {function} handler - The event handler function
+ **/
 com.marklogic.widgets.entityfacts.prototype.iriHandler = function(handler) {
   this._iriHandler = handler;
 };
@@ -711,22 +816,25 @@ com.marklogic.widgets.entityfacts.prototype._refresh = function() {
     }
     mldb.defaultconnection.logger.debug("Got name value: " + namevalue);
     
-    s += "<h3>" + type + ": " + namevalue + "</h3>";
+    var objectinfo = this._config.getEntityFromIRI(type);
+    s += "<h3>" + objectinfo.title + ": " + namevalue + "</h3>";
     
     // TODO publish non IRIs first
     // TODO publish IRIs as links
     for (var b = 0;(b < this.results.results.bindings.length);b++) {
       var predicate = this.results.results.bindings[b].predicate;
-      var object = this.results.results.bindings[b].object;
+      var pinfo = this._config.getPredicateFromIRI(predicate.value);
+      var obj = this.results.results.bindings[b].object;
       
       if (predicate.value != namepredicate && predicate.value != "http://www.w3.org/1999/02/22-rdf-syntax-ns#type") {
-        s += "<p>" + predicate.value + ": ";
-        if (undefined != object["xml:lang"]) {
+        s += "<p><b>" + pinfo.title + ":</b> ";
+        // TODO replace the following entirely
+        if (undefined != obj["xml:lang"] /*|| null == this._iriHandler*/) {
           // string literal
-          s += object.value;
+          s += obj.value;
         } else {
-          irilinks.push({iri: object.value, elid: this.container + "-entityfacts-fact-" + b});
-          s += "<a href='#' id='" + this.container + "-entityfacts-fact-" + b + ">" + object.value + "</a>";
+          irilinks.push({iri: obj.value, elid: this.container + "-entityfacts-fact-" + b + "-summary"});
+          s += "<span id='" + this.container + "-entityfacts-fact-" + b + "-summary'><i>Loading...</i></span>";
         }
         
         s += "</p>";
@@ -736,8 +844,23 @@ com.marklogic.widgets.entityfacts.prototype._refresh = function() {
   s += "</div>";
   
   document.getElementById(this.container).innerHTML = s;
+  
+  // event handlers and lazy loading
+  // lazy load related entity summaries
+  for (var i = 0;i < irilinks.length ;i++) {
+    this._summariseInto(irilinks[i].iri,irilinks[i].elid);
+  }
 };
 
+com.marklogic.widgets.entityfacts.prototype._summariseInto = function(iri,elid) {
+  this._config.summariseInto(iri,elid,this._iriHandler);
+};
+
+/**
+ * Updates the information shown about the entity with the specified IRI (executes a SPARQL query)
+ *
+ * @param {string} iri - The IRI of the object to show facts about
+ **/
 com.marklogic.widgets.entityfacts.prototype.updateEntity = function(iri) {
   this.iri = iri;
   this.loading = true;
