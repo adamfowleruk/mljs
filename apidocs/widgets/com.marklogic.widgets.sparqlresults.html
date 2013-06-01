@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Class: collectionuris</title>
+    <title>JSDoc: Class: sparqlresults</title>
     
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
     
-    <h1 class="page-title">Class: collectionuris</h1>
+    <h1 class="page-title">Class: sparqlresults</h1>
     
     
 
@@ -27,7 +27,7 @@
     
 <header>
     <h2>
-    collectionuris
+    sparqlresults
     </h2>
     
 </header>  
@@ -39,7 +39,7 @@
     
         
 <dt>
-    <h4 class="name" id="collectionuris"><span class="type-signature"></span>new collectionuris<span class="signature">(container)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="sparqlresults"><span class="type-signature"></span>new sparqlresults<span class="signature">(container)</span><span class="type-signature"></span></h4>
     
     
 </dt>
@@ -47,7 +47,7 @@
     
     
     <div class="description">
-        <p>Creates a widget to show a list of collection URIs</p>
+        <p>Lists results from a SPARQL results JSON object.</p>
     </div>
     
 
@@ -97,7 +97,7 @@
             
             
             
-            <td class="description last"><p>the HTML ID of the container to place this widget in.</p></td>
+            <td class="description last"><p>The ID of the HTML element this widget draws itself within</p></td>
         </tr>
 	
 	
@@ -128,7 +128,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="widget-collections.js.html">widget-collections.js</a>, <a href="widget-collections.js.html#line12">line 12</a>
+        <a href="widget-triples.js.html">widget-triples.js</a>, <a href="widget-triples.js.html#line654">line 654</a>
     </li></ul></dd>
     
     
@@ -174,7 +174,7 @@
         <dl>
             
 <dt>
-    <h4 class="name" id="list"><span class="type-signature"></span>list<span class="signature">(parenturi)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="iriHandler"><span class="type-signature"></span>iriHandler<span class="signature">(handler)</span><span class="type-signature"></span></h4>
     
     
 </dt>
@@ -182,7 +182,7 @@
     
     
     <div class="description">
-        <p>Uses the MLDB default connection to list the child collection URIs of the specified parent. Use blank for all.</p>
+        <p>Provides a function that receives a string iri of the clicked on result.</p>
     </div>
     
 
@@ -216,13 +216,13 @@
 	
         <tr>
             
-                <td class="name"><code>parenturi</code></td>
+                <td class="name"><code>handler</code></td>
             
             
             <td class="type">
             
                 
-<span class="param-type">string</span>
+<span class="param-type">function</span>
 
 
             
@@ -232,7 +232,7 @@
             
             
             
-            <td class="description last"><p>The parent URI to find the children for.</p></td>
+            <td class="description last"><p>The event handler function</p></td>
         </tr>
 	
 	
@@ -263,7 +263,124 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="widget-collections.js.html">widget-collections.js</a>, <a href="widget-collections.js.html#line21">line 21</a>
+        <a href="widget-triples.js.html">widget-triples.js</a>, <a href="widget-triples.js.html#line675">line 675</a>
+    </li></ul></dd>
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="updateResults"><span class="type-signature"></span>updateResults<span class="signature">(results)</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        <p>Event target. Receives the SPARQL JSON results object from a linked SPARQLBAR (or other) widget.</p>
+    </div>
+    
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+		
+		<th>Type</th>
+		
+		
+		
+		
+		
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+	
+	<tbody>
+	
+	
+        <tr>
+            
+                <td class="name"><code>results</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">JSON</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last"><p>The JSON SPARQL results object</p></td>
+        </tr>
+	
+	
+	</tbody>
+</table>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="widget-triples.js.html">widget-triples.js</a>, <a href="widget-triples.js.html#line727">line 727</a>
     </li></ul></dd>
     
     
@@ -310,7 +427,7 @@
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Sat Jun 01 2013 01:37:29 GMT+0100 (BST)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Sat Jun 01 2013 01:37:30 GMT+0100 (BST)
 </footer>
 
 <script> prettyPrint(); </script>
