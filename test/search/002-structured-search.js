@@ -5,10 +5,10 @@ var mldb = require("../../mldb"),
 
 var logger = new (winston.Logger)({
   transports: [
-    new winston.transports.File({ filename: 'logs/003-search-query.log' })
+    new winston.transports.File({ filename: 'logs/002-structured-query.log' })
   ],
   exceptionHandlers: [
-    new winston.transports.File({ filename: 'logs/003-search-query.log' })
+    new winston.transports.File({ filename: 'logs/002-structured-query.log' })
   ]
 });
 

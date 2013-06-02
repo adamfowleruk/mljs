@@ -51,7 +51,8 @@ describe("001-basic-trans",function() {
               db.delete(uri, function(result) {
                 logger.debug("TEST: COMMIT: Doc deleted");
                 logger.debug("----------------");
-                callback(false==result.inError);
+                assert(false==result.inError);
+                done();
               });
             } else {
               logger.debug("TEST: COMMIT: ERROR: Retrieved document is not same as that saved");

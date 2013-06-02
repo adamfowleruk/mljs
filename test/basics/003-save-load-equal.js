@@ -14,10 +14,9 @@ var logger = new (winston.Logger)({
 
 
 describe("003-save-load-equal",function() {
-  it("Should complete entirely",function(done){
+  it.skip("Should complete entirely",function(done){
     
   var db = new mldb(); // default options
-  logger.setLogLevel("debug");
   db.setLogger(logger);
   
   logger.debug("Testing basic json equal");

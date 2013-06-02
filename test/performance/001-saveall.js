@@ -26,7 +26,7 @@ describe("001-saveall",function() {
   var dc = 0;
   
   var alldocs = new Array();
-  var numdocs = 10000;
+  var numdocs = 100;
   for (var i = 0;i < numdocs;i++) {
     alldocs.push(docs[dc++ % 4]);
   }

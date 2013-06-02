@@ -12,7 +12,7 @@ var logger = new (winston.Logger)({
   ]
 });
 
-describe("002-do",function() {
+describe("001-do",function() {
   it("Should complete entirely",function(done){
   var db = new mldb(); // default options
   db.setLogger(logger);

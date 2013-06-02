@@ -16,7 +16,7 @@ Targets for 0.7 (May 2013 tidy up edition)
  - DONE Browser: XMLHttpRequest (xhr) binding
  - DONE Browser: XmlHttpRequest2 (xhr2) binding
  - Tests: Test samples for xml content
- - Tests: Refactor to use alternate testing framework
+ - DONE Tests: Refactor to use alternate testing framework
  - DONE Core: Return and add binary documents
  - DONE Core: Return and add plain text documents
  - EA 1 support
