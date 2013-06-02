@@ -6,3 +6,5 @@ logs/*
 dist/docs/core
 dist/docs/widgets
 jsdocs/*
+
+test-results.html

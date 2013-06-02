@@ -1,6 +1,5 @@
 var mldb = require("../../mldb"),
     tests = exports,
-    ensure = require('ensure'), 
     assert = require('assert'),
     winston = require('winston');
 
@@ -13,7 +12,8 @@ var mldb = require("../../mldb"),
        ]
      });
 
-tests.exists = function(callback) {
+describe("008-exists",function() {
+  it("Should complete entirely",function(done){
   var db = new mldb(); // default options
   db.setLogger(logger);
   
@@ -22,12 +22,8 @@ tests.exists = function(callback) {
     assert(!result.inError,"Error checking if db exists");
     logger.debug("TEST: EXISTS: exists result: " + JSON.stringify(result));
     assert(true==result.exists,"Database exists, but reports it does not");
-    callback(true);
+    done();
   });
-};
-
-tests.exists_ok = function(t) {
-  assert.ok(t);
-};
-
-ensure(__filename, tests, module,process.argv[2]);
+  
+});
+});

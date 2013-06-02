@@ -1,4 +1,4 @@
-var basic = null, digest = null, thru = null, noop = null, winston = null;
+var basic = null, digest = null, thru = null, noop = null, winston = null, jsdom = null;
 var logger = null;
 if (typeof(window) === 'undefined') {
   basic = require("./lib/basic-wrapper");
@@ -6,6 +6,7 @@ if (typeof(window) === 'undefined') {
   thru = require("./lib/passthrough-wrapper");
   noop = require("./lib/noop");
   winston = require('winston');
+  jsdom = require('jsdom');
 
   logger = new (winston.Logger)({
     transports: [
@@ -68,14 +69,19 @@ var defaultdboptions = {
  */
 function textToXML(text){
   var doc = null;
-	if (window.ActiveXObject){
-    doc=new ActiveXObject('Microsoft.XMLDOM');
-    doc.async='false';
-    doc.loadXML(text);
+  if (typeof window === "undefined") {
+    // return plain text in nodejs
+    doc = jsdom.jsdom(text, null, { FetchExternalResources: false, ProcessExternalResources: false });
   } else {
-    var parser=new DOMParser();
-    doc=parser.parseFromString(text,'text/xml');
-	}
+	  if (window.ActiveXObject){
+      doc=new ActiveXObject('Microsoft.XMLDOM');
+      doc.async='false';
+      doc.loadXML(text);
+    } else {
+      var parser=new DOMParser();
+      doc=parser.parseFromString(text,'text/xml');
+	  }
+  }
 	return doc;
 };
 

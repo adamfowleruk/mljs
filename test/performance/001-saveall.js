@@ -1,6 +1,5 @@
 var mldb = require("../../mldb"),
     tests = exports,
-    ensure = require('ensure'), 
     assert = require('assert'),
     winston = require('winston');
 
@@ -13,7 +12,8 @@ var mldb = require("../../mldb"),
        ]
      });
 
-tests.perf = function(callback) {
+describe("001-saveall",function() {
+  it("Should complete entirely",function(done){
   var db = new mldb(); // default options
   db.setLogger(logger);
   
@@ -40,13 +40,7 @@ tests.perf = function(callback) {
     logger.debug("****** ALL Docs created in " + tt + " seconds at a rate of " + (numdocs/tt) + " docs per second.");
     //logger.debug("****** Doc URIs: " + result.docuris);
     logger.debug("Result: " + JSON.stringify(result));
-    callback(!result.inError);
+    done();
   });
-};
-
-tests.perf_ok = function(t) {
-  assert.ok(t);
-};
-
-
-ensure(__filename, tests, module,process.argv[2]);
+  
+});});

@@ -1,6 +1,5 @@
 var mldb = require("../../mldb"),
     tests = exports,
-    ensure = require('ensure'), 
     assert = require('assert'),
     winston = require('winston');
 
@@ -12,8 +11,9 @@ var mldb = require("../../mldb"),
           new winston.transports.File({ filename: 'logs/004-create-destroy.log' })
        ]
      });
-
-tests.createDestroy = function(callback) {
+     
+describe("004-create-destroy",function() {
+  it("Should complete entirely",function(done){
   var db = new mldb(); // default options
   db.setLogger(logger);
   var dodestroy = function() {
@@ -56,10 +56,14 @@ tests.createDestroy = function(callback) {
 
                 db.save({first: "isfirst"},uri,function(result) {
                   assert(!result.inError,"Should be able to save new document if db is created.");
-                  callback(true);
+                  
+                  done();
+                  
                 });
               });
             });
+          } else {
+            throw new Exception(result.inError);
           }
         });
         
@@ -90,10 +94,5 @@ tests.createDestroy = function(callback) {
       }
     }
   });
-};
-
-  tests.createDestroy_ok = function(t) {
-    assert.ok(t);
-  };
-
-ensure(__filename, tests, module,process.argv[2]);
+  });
+});

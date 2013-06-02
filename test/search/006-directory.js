@@ -1,6 +1,5 @@
 var mldb = require("../../mldb"),
     tests = exports,
-    ensure = require('ensure'), 
     assert = require('assert'),
     winston = require('winston');
 
@@ -13,7 +12,8 @@ var logger = new (winston.Logger)({
   ]
 });
 
-tests.list = function(callback) {
+describe("006-directory",function() {
+  it("Should complete entirely",function(done){
   var db = new mldb(); // default options
   db.setLogger(logger);
   
@@ -47,7 +47,7 @@ tests.list = function(callback) {
                   db.delete(uris[2],function(result) {
                     assert(!result.inError,"Error deleting doc 3");
                     logger.debug("TEST: list() returning true for success");
-                    callback(true);
+                    done();
                   });
                 });
               });
@@ -57,10 +57,4 @@ tests.list = function(callback) {
       });
     });
   });
-};
-
-tests.list_ok = function(t) {
-  assert.ok(t);
-};
-
-ensure(__filename, tests, module,process.argv[2]);
+});});

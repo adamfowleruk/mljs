@@ -1,6 +1,5 @@
 var mldb = require("../../mldb"),
     tests = exports,
-    ensure = require('ensure'), 
     assert = require('assert'),
     winston = require('winston');
 
@@ -14,7 +13,8 @@ var mldb = require("../../mldb"),
      });
 
 
-tests.rollback = function(callback) {
+describe("003-rollback",function() {
+  it("Should complete entirely",function(done){
   var db = new mldb(); // default options
   db.setLogger(logger);
   
@@ -44,22 +44,17 @@ tests.rollback = function(callback) {
             if (result.inError) {
               // this is a good thing here
               logger.debug("TEST: ROLLBACK: get in error: " + JSON.stringify(result.error));
-              callback(true);
+              done();
             } else {
               // now print it
               logger.debug("TEST: ROLLBACK: Doc content: " + JSON.stringify(result.doc));
               assert(false,"Document should not exist after rollback");
-              callback(false);
+              done();
             } // end else inError
           });
         }
       });
     });
   });
-};
-
-tests.rollback_ok = function(t) {
-  assert.ok(t);
-};
-
-ensure(__filename, tests, module,process.argv[2]);
+  
+});});

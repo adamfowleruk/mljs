@@ -1,6 +1,5 @@
 var mldb = require("../../mldb"),
     tests = exports,
-    ensure = require('ensure'), 
     assert = require('assert'),
     winston = require('winston');
 
@@ -13,7 +12,8 @@ var mldb = require("../../mldb"),
        ]
      });
 
-tests.basics = function(callback) {
+describe("001-save-get-delete",function() {
+  it("Should complete entirely",function(done){
   var db = new mldb(); // default options
   db.setLogger(logger);
   
@@ -30,15 +30,10 @@ tests.basics = function(callback) {
       db.delete("/messages/1", function(result) {
         logger.debug("****** Doc deleted");
         //assert.isNull(result.doc);
-        callback(!result.inError);
+        assert(!result.inError,"db delete should not error");
+        
+        done();
       });
     });
   });
-};
-
-tests.basics_ok = function(t) {
-  assert.ok(t);
-};
-
-
-ensure(__filename, tests, module,process.argv[2]);
+});});

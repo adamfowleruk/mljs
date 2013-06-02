@@ -1,6 +1,5 @@
 var mldb = require("../../mldb"),
     tests = exports,
-    ensure = require('ensure'), 
     assert = require('assert'),
     winston = require('winston');
 
@@ -13,7 +12,8 @@ var logger = new (winston.Logger)({
   ]
 });
 
-tests.merge = function(callback) {
+describe("005-merge",function() {
+  it("Should complete entirely",function(done){
   var db = new mldb(); // default options
   db.setLogger(logger);
   
@@ -33,15 +33,9 @@ tests.merge = function(callback) {
         assert((json1.name==result.doc.name && json2.weight == result.doc.weight),"Result should have name and weight: " + JSON.stringify(result.doc))
         db.delete(uris[0],function(result) {
           assert(!result.inError,"Error deleting doc");
-          callback(true);
+          done();
         });
       });
     });
   });
-};
-
-tests.merge_ok = function(t) {
-  assert.ok(t);
-};
-
-ensure(__filename, tests, module,process.argv[2]);
+});});

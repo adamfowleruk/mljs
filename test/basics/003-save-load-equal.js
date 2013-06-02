@@ -1,6 +1,5 @@
 var mldb = require("../../mldb"),
     tests = exports,
-    ensure = require('ensure'), 
     assert = require('assert'),
     winston = require('winston');
 
@@ -14,8 +13,11 @@ var logger = new (winston.Logger)({
 });
 
 
-tests.equal = function(callback) {
+describe("003-save-load-equal",function() {
+  it("Should complete entirely",function(done){
+    
   var db = new mldb(); // default options
+  logger.setLogLevel("debug");
   db.setLogger(logger);
   
   logger.debug("Testing basic json equal");
@@ -27,18 +29,9 @@ tests.equal = function(callback) {
       // now print it
       logger.debug("Doc content: " + JSON.stringify(result.doc));
       //assert.equal(undefined,result.doc,"/messages/1 exists, should not be found in DB.");
-      callback(JSON.stringify(json) == JSON.stringify(result.doc));
-    });
-  });
-};
-
-tests.equal_ok = function(t) {
-  assert.ok(t);
-};
-
-tests.equal_complex = function(callback) {
- var db = new mldb(); // default options
-
+      assert(JSON.stringify(json) == JSON.stringify(result.doc),"JSON objects should be equal");
+      
+      
  logger.debug("Testing basic json equal");
 
  var json = {first: 1, second: "two", third: 0.2345, fourth: ["1","2","3"], fifth: { fivedotone: 9, fivedottwo: 8}};
@@ -48,14 +41,15 @@ tests.equal_complex = function(callback) {
      // now print it
      logger.debug("Doc content: " + JSON.stringify(result.doc));
      //assert.equal(undefined,result.doc,"/messages/1 exists, should not be found in DB.");
-     callback(JSON.stringify(json) == JSON.stringify(result.doc));
+     assert(JSON.stringify(json) == JSON.stringify(result.doc),"JSON objects should be equal 2");
+     
+     done();
    });
  });
-};
-
-tests.equal_complex_ok = function(t) {
-  assert.ok(t);
-};
-
-
-ensure(__filename, tests, module,process.argv[2]);
+      
+      
+    });
+  });
+  
+  
+});});

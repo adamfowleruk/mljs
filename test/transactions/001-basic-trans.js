@@ -1,6 +1,5 @@
 var mldb = require("../../mldb"),
     tests = exports,
-    ensure = require('ensure'), 
     assert = require('assert'),
     winston = require('winston');
 
@@ -13,7 +12,8 @@ var mldb = require("../../mldb"),
        ]
      });
 
-tests.commit = function(callback) {
+describe("001-basic-trans",function() {
+  it("Should complete entirely",function(done){
   var db = new mldb(); // default options
   db.setLogger(logger);
   
@@ -55,18 +55,12 @@ tests.commit = function(callback) {
               });
             } else {
               logger.debug("TEST: COMMIT: ERROR: Retrieved document is not same as that saved");
-              callback(false);
+              done();
             }
           });
         }
       });
     });
   });
-};
-
-tests.commit_ok = function(t) {
-  assert.ok(t);
-};
-
-
-ensure(__filename, tests, module,process.argv[2]);
+  
+});});

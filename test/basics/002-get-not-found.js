@@ -1,6 +1,5 @@
 var mldb = require("../../mldb"),
     tests = exports,
-    ensure = require('ensure'), 
     assert = require('assert'),
     winston = require('winston');
 
@@ -14,23 +13,20 @@ var mldb = require("../../mldb"),
  });
 
 
-tests.notfound = function(callback) {
+describe("002-get-not-found",function() {
+  it("Should complete entirely",function(done){
   var db = new mldb(); // default options
   db.setLogger(logger);
 
   logger.debug("Testing digest get");
 
-  var doc = db.get("/messages/1", function(result) {
+  var doc = db.get("/messages/flibble", function(result) {
     // now print it
     logger.debug("Doc content: " + JSON.stringify(result.doc));
     //assert.equal(undefined,result.doc,"/messages/1 exists, should not be found in DB.");
-    callback(undefined == result.doc);
+    assert(result.inError,"Result should be in error (it doesn't exist)");
+    
+    done();
   });
-};
-
-tests.notfound_ok = function(t) {
-  assert.ok(t);
-};
-
-
-ensure(__filename, tests, module,process.argv[2]);
+  
+});});

@@ -1,6 +1,5 @@
 var mldb = require("../../mldb"),
     tests = exports,
-    ensure = require('ensure'), 
     assert = require('assert'),
     winston = require('winston');
 
@@ -13,7 +12,8 @@ var mldb = require("../../mldb"),
        ]
      });
 
-tests.uri = function(callback) {
+describe("010-save-auto-uri",function() {
+  it("Should complete entirely",function(done){
   var db = new mldb(); // default options
   db.setLogger(logger);
   
@@ -33,15 +33,10 @@ tests.uri = function(callback) {
       db.delete(uri, function(result) {
         logger.debug("****** Doc deleted");
         //assert.isNull(result.doc);
-        callback(undefined == result.doc);
+        assert(undefined == result.doc,"result doc should not be undefined");
+        done();
       });
     });
   });
-};
-
-tests.uri_ok = function(t) {
-  assert.ok(t);
-};
-
-
-ensure(__filename, tests, module,process.argv[2]);
+  
+});});

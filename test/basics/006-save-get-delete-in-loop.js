@@ -1,6 +1,5 @@
 var mldb = require("../../mldb"),
     tests = exports,
-    ensure = require('ensure'), 
     assert = require('assert'),
     winston = require('winston');
 
@@ -13,7 +12,8 @@ var mldb = require("../../mldb"),
        ]
      });
 
-tests.basics = function(callback) {
+describe("006-save-get-delete-in-loop",function() {
+  it.skip("Should complete entirely",function(done){
   var db = new mldb(); // default options
   db.setLogger(logger);
   
@@ -56,13 +56,6 @@ tests.basics = function(callback) {
     }
   }
   logger.debug("Complete truecount: " + truecount);
-  callback(result);
+  done();
   
-};
-
-tests.basics_ok = function(t) {
-  assert.ok(t);
-};
-
-
-ensure(__filename, tests, module,process.argv[2]);
+});});

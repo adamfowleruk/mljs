@@ -1,6 +1,5 @@
 var mldb = require("../../mldb"),
     tests = exports,
-    ensure = require('ensure'), 
     assert = require('assert'),
     winston = require('winston');
 
@@ -13,7 +12,8 @@ var logger = new (winston.Logger)({
   ]
 });
 
-tests.do = function(callback) {
+describe("002-do",function() {
+  it("Should complete entirely",function(done){
   var db = new mldb(); // default options
   db.setLogger(logger);
   
@@ -24,13 +24,6 @@ tests.do = function(callback) {
   
   db.do(options,function(result) {
     assert(!result.inError,"result should not be in error: " + JSON.stringify(result.error));
-    callback(!result.inError);
+    done();
   });
-          
-};
-
-tests.do_ok = function(t) {
-  assert.ok(t);
-};
-
-ensure(__filename, tests, module,process.argv[2]);
+});});

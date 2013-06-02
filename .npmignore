@@ -14,3 +14,4 @@ build-lib
 jsdoc-conf.json
 tutorials
 delete-configtest.js
+test-results.html

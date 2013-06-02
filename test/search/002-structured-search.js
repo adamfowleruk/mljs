@@ -1,6 +1,5 @@
 var mldb = require("../../mldb"),
     tests = exports,
-    ensure = require('ensure'), 
     assert = require('assert'),
     winston = require('winston');
 
@@ -13,7 +12,8 @@ var logger = new (winston.Logger)({
   ]
 });
 
-tests.search = function(callback) {
+describe("002-structured-search",function() {
+  it("Should complete entirely",function(done){
   var db = new mldb(); // default options
   db.setLogger(logger);
   
@@ -55,7 +55,7 @@ tests.search = function(callback) {
                   db.delete(uris[2],function(result) {
                     assert(!result.inError,"Error deleting doc 3");
                     logger.debug("TEST: STRUCTUREDSEARCH returning true for success");
-                    callback(true);
+                    done();
                   });
                 });
               });
@@ -65,10 +65,4 @@ tests.search = function(callback) {
       });
     });
   });
-};
-
-tests.search_ok = function(t) {
-  assert.ok(t);
-};
-
-ensure(__filename, tests, module,process.argv[2]);
+});});

@@ -1,6 +1,5 @@
 var mldb = require("../../mldb"),
     tests = exports,
-    ensure = require('ensure'), 
     assert = require('assert'),
     winston = require('winston');
 
@@ -13,24 +12,23 @@ var logger = new (winston.Logger)({
   ]
 });
 
-tests.configure = function(callback) {
+describe("009-configure",function() {
+  it("Should complete entirely",function(done){
   var db = new mldb(); // default options
+  logger.setLogLevel("debug");
   db.setLogger(logger);
   
   var config = {database: "configtest",port: 9095};
   db.configure(config);
   
   db.create(function(result) {
+    logger.debug("****** Error: " + JSON.stringify(result.doc));
     assert(!result.inError,"Create should not be in error");
     db.destroy(function(result) {
+    logger.debug("****** Error: " + JSON.stringify(result.doc));
       assert(!result.inError,"Destroy should not be in error");
-      callback(!result.inError);
+      done();
     });
   });
-};
-
-tests.configure_ok = function(t) {
-  assert.ok(t);
-};
-
-ensure(__filename, tests, module,process.argv[2]);
+  
+});});

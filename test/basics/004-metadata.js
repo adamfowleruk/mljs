@@ -1,6 +1,5 @@
 var mldb = require("../../mldb"),
     tests = exports,
-    ensure = require('ensure'), 
     assert = require('assert'),
     winston = require('winston');
 
@@ -13,7 +12,8 @@ var mldb = require("../../mldb"),
        ]
      });
 
-tests.metadata = function(callback) {
+describe("004-metadata",function() {
+  it("Should complete entirely",function(done){
   var db = new mldb(); // default options
   db.setLogger(logger);
   
@@ -36,15 +36,9 @@ tests.metadata = function(callback) {
         assert(!result.inError,"Delete should not be in error: " + JSON.stringify(result.error));
         logger.debug("****** Doc deleted");
         //assert.isNull(result.doc);
-        callback(!result.inError);
+        done();
       });
     });
   });
-};
-
-tests.metadata_ok = function(t) {
-  assert.ok(t);
-};
-
-
-ensure(__filename, tests, module,process.argv[2]);
+  
+});});
