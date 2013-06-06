@@ -179,9 +179,12 @@ com.marklogic.widgets.markings.prototype.showDocument = function(uri) {
   
   // show loading messages
   var hid = this.container + "-markings-docinfo";
-  document.getElementById(hid).innerHTML = "Loading...";
+  document.getElementById(hid).innerHTML = "&lt;h2 class='markings-meta-title'>Document Extracted Metadata&lt;/h2>" + com.marklogic.widgets.bits.loading(hid + "-loading1") +
+    "&lt;h2 class='markings-security-title'>Document Security Information&lt;/h2>" + com.marklogic.widgets.bits.loading(hid + "-loading2");
   var cid = this.container + "-markings-doccontent";
-  document.getElementById(cid).innerHTML = "Loading...";
+  document.getElementById(cid).innerHTML = "&lt;h2 class='markings-content-title'>Document Secure Content&lt;/h2>" + com.marklogic.widgets.bits.loading(cid + "-loading");
+  
+  
   
   // fetch document as XML, applying XSLT controls to it, and render
   var self = this;
@@ -566,7 +569,8 @@ com.marklogic.widgets.markings.prototype.showDocument = function(uri) {
     }
     content += "&lt;/table>";
   }
-    content += "&lt;div class='markings-actionbar'>&lt;form id='" + self.container + "-markings-docsubmit'>&lt;input type='submit' value='Publish Changes' />&lt;/form>&lt;/div>";
+    content += "&lt;div class='markings-actionbar'>&lt;form id='" + self.container + "-markings-docsubmit'>&lt;input type='submit' value='Publish Changes' />" +
+      "&lt;span id='" + self.container + "-done'>&lt;/span>&lt;/form>&lt;/div>";
     
     document.getElementById(cid).innerHTML = content;
     
@@ -690,6 +694,7 @@ com.marklogic.widgets.markings.prototype.__saveDocument = function() {
     // TODO update document saved message on screen
     var completeFunc = function(result) {
       mldb.defaultconnection.logger.debug("ADDED ALL TRIPLE GRAPHS! Result: " + JSON.stringify(result.doc));
+      document.getElementById(self.container + "-done").innerHTML = com.marklogic.widgets.bits.done(self.container + "-done-msg");
     }
     
     var graphsAdded = 0;
@@ -769,6 +774,10 @@ com.marklogic.widgets.markings.prototype.__saveDocument = function() {
       }
     }
     
+    // provenance
+    var graphURI = self._tripleCollections[0].replace("#SECTIONID#","secure-content-" + d).replace("#URI#",self.docuri); // TODO verify d == c in above, even when reloaded from DB
+    triples += "&lt;" + graphURI + "> &lt;http://marklogic.com/semantics/ontology/derived_from> &lt;" + self.docuri + "> .";
+    
     // define any classes we need to add
     var classess = "";
     for (var cl = 0;cl &lt; classes.length;cl++) {
@@ -779,7 +788,6 @@ com.marklogic.widgets.markings.prototype.__saveDocument = function() {
     // add triples graphs for each section
     var graphData = classess + triples;
     // TODO do this for each named graph too
-    var graphURI = self._tripleCollections[0].replace("#SECTIONID#","secure-content-" + d).replace("#URI#",self.docuri); // TODO verify d == c in above, even when reloaded from DB
     mldb.defaultconnection.logger.debug("Setting graph URI: " + graphURI + " to data: " + graphData);
     
     // message on triples complete
@@ -805,13 +813,13 @@ com.marklogic.widgets.markings.prototype.__saveDocument = function() {
 </div>
 
 <nav>
-    <h2><a href="index.html">Index</a></h2><h3>Classes</h3><ul><li><a href="com.marklogic.widgets.collectionuris.html">collectionuris</a></li><li><a href="com.marklogic.widgets.cooccurence.html">cooccurence</a></li><li><a href="com.marklogic.widgets.create.html">create</a></li><li><a href="com.marklogic.widgets.entityfacts.html">entityfacts</a></li><li><a href="com.marklogic.widgets.highcharts.html">highcharts</a></li><li><a href="com.marklogic.widgets.kratu.html">kratu</a></li><li><a href="com.marklogic.widgets.markings.html">markings</a></li><li><a href="com.marklogic.widgets.searchbar.html">searchbar</a></li><li><a href="com.marklogic.widgets.searchpage.html">searchpage</a></li><li><a href="com.marklogic.widgets.searchpager.html">searchpager</a></li><li><a href="com.marklogic.widgets.searchresults.html">searchresults</a></li><li><a href="com.marklogic.widgets.searchsort.html">searchsort</a></li><li><a href="com.marklogic.widgets.sparqlbar.html">sparqlbar</a></li><li><a href="com.marklogic.widgets.sparqlresults.html">sparqlresults</a></li><li><a href="com.marklogic.widgets.tripleconfig.html">tripleconfig</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-all.html">all</a></li><li><a href="tutorial-browser-create-app.html">browser-create-app</a></li><li><a href="tutorial-samples.html">samples</a></li></ul>
+    <h2><a href="index.html">Index</a></h2><h3>Classes</h3><ul><li><a href="com.marklogic.widgets.collectionuris.html">collectionuris</a></li><li><a href="com.marklogic.widgets.cooccurence.html">cooccurence</a></li><li><a href="com.marklogic.widgets.create.html">create</a></li><li><a href="com.marklogic.widgets.entityfacts.html">entityfacts</a></li><li><a href="com.marklogic.widgets.highcharts.html">highcharts</a></li><li><a href="com.marklogic.widgets.kratu.html">kratu</a></li><li><a href="com.marklogic.widgets.markings.html">markings</a></li><li><a href="com.marklogic.widgets.searchbar.html">searchbar</a></li><li><a href="com.marklogic.widgets.searchpage.html">searchpage</a></li><li><a href="com.marklogic.widgets.searchpager.html">searchpager</a></li><li><a href="com.marklogic.widgets.searchresults.html">searchresults</a></li><li><a href="com.marklogic.widgets.searchsort.html">searchsort</a></li><li><a href="com.marklogic.widgets.sparqlbar.html">sparqlbar</a></li><li><a href="com.marklogic.widgets.sparqlresults.html">sparqlresults</a></li><li><a href="com.marklogic.widgets.tripleconfig.html">tripleconfig</a></li></ul><h3>Namespaces</h3><ul><li><a href="com.marklogic.widgets.bits.html">bits</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-all.html">all</a></li><li><a href="tutorial-browser-create-app.html">browser-create-app</a></li><li><a href="tutorial-samples.html">samples</a></li></ul>
 </nav>
 
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Sun Jun 02 2013 02:26:36 GMT+0100 (BST)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Thu Jun 06 2013 16:12:36 GMT+0100 (BST)
 </footer>
 
 <script> prettyPrint(); </script>

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Class: collectionuris</title>
+    <title>JSDoc: Namespace: bits</title>
     
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
     
-    <h1 class="page-title">Class: collectionuris</h1>
+    <h1 class="page-title">Namespace: bits</h1>
     
     
 
@@ -27,7 +27,7 @@
     
 <header>
     <h2>
-    collectionuris
+    bits
     </h2>
     
 </header>  
@@ -38,8 +38,67 @@
     
     
         
+            <div class="description"><p>Static functions that provide other widgets with useful, consistent elements.</p></div>
+        
+        
+        
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="widgets.js.html">widgets.js</a>, <a href="widgets.js.html#line396">line 396</a>
+    </li></ul></dd>
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+        
+        
+    
+    </div>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+        <h3 class="subsection-title">Methods</h3>
+        
+        <dl>
+            
 <dt>
-    <h4 class="name" id="collectionuris"><span class="type-signature"></span>new collectionuris<span class="signature">(container)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="done"><span class="type-signature">&lt;static> </span>done<span class="signature">(elid)</span><span class="type-signature"></span></h4>
     
     
 </dt>
@@ -47,7 +106,7 @@
     
     
     <div class="description">
-        <p>Creates a widget to show a list of collection URIs</p>
+        <p>Creates a complete message</p>
     </div>
     
 
@@ -81,7 +140,7 @@
 	
         <tr>
             
-                <td class="name"><code>container</code></td>
+                <td class="name"><code>elid</code></td>
             
             
             <td class="type">
@@ -97,7 +156,7 @@
             
             
             
-            <td class="description last"><p>the HTML ID of the container to place this widget in.</p></td>
+            <td class="description last"><p>The element for this widget's top level container</p></td>
         </tr>
 	
 	
@@ -128,7 +187,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="widget-collections.js.html">widget-collections.js</a>, <a href="widget-collections.js.html#line12">line 12</a>
+        <a href="widgets.js.html">widgets.js</a>, <a href="widgets.js.html#line431">line 431</a>
     </li></ul></dd>
     
     
@@ -153,28 +212,10 @@
     
 </dd>
 
-    
-    </div>
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-        <h3 class="subsection-title">Methods</h3>
         
-        <dl>
             
 <dt>
-    <h4 class="name" id="list"><span class="type-signature"></span>list<span class="signature">(parenturi)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="failure"><span class="type-signature">&lt;static> </span>failure<span class="signature">(elid)</span><span class="type-signature"></span></h4>
     
     
 </dt>
@@ -182,7 +223,7 @@
     
     
     <div class="description">
-        <p>Uses the MLDB default connection to list the child collection URIs of the specified parent. Use blank for all.</p>
+        <p>Creates a failure message or image</p>
     </div>
     
 
@@ -216,7 +257,7 @@
 	
         <tr>
             
-                <td class="name"><code>parenturi</code></td>
+                <td class="name"><code>elid</code></td>
             
             
             <td class="type">
@@ -232,7 +273,7 @@
             
             
             
-            <td class="description last"><p>The parent URI to find the children for.</p></td>
+            <td class="description last"><p>The element for this widget's top level container</p></td>
         </tr>
 	
 	
@@ -263,7 +304,124 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="widget-collections.js.html">widget-collections.js</a>, <a href="widget-collections.js.html#line21">line 21</a>
+        <a href="widgets.js.html">widgets.js</a>, <a href="widgets.js.html#line420">line 420</a>
+    </li></ul></dd>
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="loading"><span class="type-signature">&lt;static> </span>loading<span class="signature">(elid)</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        <p>Creates a loading message or image</p>
+    </div>
+    
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+		
+		<th>Type</th>
+		
+		
+		
+		
+		
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+	
+	<tbody>
+	
+	
+        <tr>
+            
+                <td class="name"><code>elid</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last"><p>The element for this widget's top level container</p></td>
+        </tr>
+	
+	
+	</tbody>
+</table>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="widgets.js.html">widgets.js</a>, <a href="widgets.js.html#line409">line 409</a>
     </li></ul></dd>
     
     

@@ -285,35 +285,45 @@ com.marklogic.widgets.searchbar.prototype._parseQuery = function(q) {
   var text = "";
   var facets = new Array();
   var sort = null;
-  var parts = q.split(" "); // TODO handler spaces in facet values
+  var parts = q.split(" "); // TODO handle spaces in facet values
   for (var i = 0;i &lt; parts.length;i++) {
-    if (0 == parts[i].indexOf(this.sortWord + ":")) {
-      sort = parts[i].substring(5);
-    } else if (-1 != parts[i].indexOf(":")) {
-      mldb.defaultconnection.logger.debug("FOUND A FACET IN QUERY: " + parts[i]);
-      var fv = parts[i].split(":");
-      mldb.defaultconnection.logger.debug("Facet name: " + fv[0] + " value: " + fv[1]);
-      if (0 == fv[1].indexOf("\"")) {
-        fv[1] = fv[1].substring(1);
-        if ((fv[1].length - 1) == fv[1].indexOf("\"")) {
-          fv[1] = fv[1].substring(0,fv[1].length-1);
+    var newIdx = i;
+    if (-1 != parts[i].indexOf(":\"")) {
+      // find end of quote
+      do {
+        newIdx++;
+        parts[i] = parts[i] + " " + parts[newIdx];
+      } while (parts[newIdx].indexOf("\"") != parts[newIdx].length - 1 && newIdx &lt; parts.length);
+    }
+      if (0 == parts[i].indexOf(this.sortWord + ":")) {
+        sort = parts[i].substring(5);
+      } else if (-1 != parts[i].indexOf(":")) {
+        mldb.defaultconnection.logger.debug("FOUND A FACET IN QUERY: " + parts[i]);
+        var fv = parts[i].split(":");
+        mldb.defaultconnection.logger.debug("Facet name: " + fv[0] + " value: " + fv[1]);
+        if (0 == fv[1].indexOf("\"")) {
+          fv[1] = fv[1].substring(1);
+          if ((fv[1].length - 1) == fv[1].indexOf("\"")) {
+            fv[1] = fv[1].substring(0,fv[1].length-1);
+          }
         }
-      }
-      mldb.defaultconnection.logger.debug("Facet info now name: " + fv[0] + " value: " + fv[1]);
-      var found = false;
-      for (var f = 0;f &lt; facets.length;f++) {
-        if (facets[f].name == fv[0]) {
-          // replace value
-          facets[f].value = fv[1];
-          found = true;
+        mldb.defaultconnection.logger.debug("Facet info now name: " + fv[0] + " value: " + fv[1]);
+        var found = false;
+        for (var f = 0;f &lt; facets.length;f++) {
+          if (facets[f].name == fv[0]) {
+            // replace value
+            facets[f].value = fv[1];
+            found = true;
+          }
         }
-      }
-      if (!found) {
-        facets.push({name: fv[0], value: fv[1]});
-      }
+        if (!found) {
+          facets.push({name: fv[0], value: fv[1]});
+        }
+      
     } else {
       text += " " + parts[i];
     }
+    i = newIdx;
   }
   return {q: text.trim(),facets: facets,sort: sort};
 };
@@ -1026,6 +1036,15 @@ com.marklogic.widgets.searchresults.prototype._refresh = function() {
   // update results
   if (typeof this.results == "boolean" ) {
     // TODO show/hide refresh image based on value of this.results (true|false)
+    if (true == this.results) {
+      document.getElementById(this.container).innerHTML = "&lt;div class='searchresults-inner'>" +
+        "&lt;div class='searchresults-title'>Results&lt;/div>&lt;div class='searchresults-results'>" + 
+        com.marklogic.widgets.bits.loading(this.container + "-loading") + "&lt;/div>&lt;/div>";
+    } else {
+      document.getElementById(this.container).innerHTML = "&lt;div class='searchresults-inner'>" +
+        "&lt;div class='searchresults-title'>Results&lt;/div>&lt;div class='searchresults-results'>" + 
+        com.marklogic.widgets.bits.failure(this.container + "-failure") + "&lt;/div>&lt;/div>";
+    }
     return;
   }
   if (null == this.results || undefined == this.results.results || this.results.results.length == 0) {
@@ -1274,8 +1293,8 @@ com.marklogic.widgets.searchpager.prototype._refresh = function() {
   }
   
   // calculate our page number
-  var page = 1 + Math.floor(st / this.perPage);
-  var maxpage = 1 + Math.floor(this.total / this.perPage);
+  var page = Math.ceil(st / this.perPage);
+  var maxpage = Math.ceil(this.total / this.perPage);
   if (0 == st) {
     page = 0;
     maxpage = 0;
@@ -1574,13 +1593,13 @@ com.marklogic.widgets.searchpage.reset = function() {
 </div>
 
 <nav>
-    <h2><a href="index.html">Index</a></h2><h3>Classes</h3><ul><li><a href="com.marklogic.widgets.collectionuris.html">collectionuris</a></li><li><a href="com.marklogic.widgets.cooccurence.html">cooccurence</a></li><li><a href="com.marklogic.widgets.create.html">create</a></li><li><a href="com.marklogic.widgets.entityfacts.html">entityfacts</a></li><li><a href="com.marklogic.widgets.highcharts.html">highcharts</a></li><li><a href="com.marklogic.widgets.kratu.html">kratu</a></li><li><a href="com.marklogic.widgets.markings.html">markings</a></li><li><a href="com.marklogic.widgets.searchbar.html">searchbar</a></li><li><a href="com.marklogic.widgets.searchpage.html">searchpage</a></li><li><a href="com.marklogic.widgets.searchpager.html">searchpager</a></li><li><a href="com.marklogic.widgets.searchresults.html">searchresults</a></li><li><a href="com.marklogic.widgets.searchsort.html">searchsort</a></li><li><a href="com.marklogic.widgets.sparqlbar.html">sparqlbar</a></li><li><a href="com.marklogic.widgets.sparqlresults.html">sparqlresults</a></li><li><a href="com.marklogic.widgets.tripleconfig.html">tripleconfig</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-all.html">all</a></li><li><a href="tutorial-browser-create-app.html">browser-create-app</a></li><li><a href="tutorial-samples.html">samples</a></li></ul>
+    <h2><a href="index.html">Index</a></h2><h3>Classes</h3><ul><li><a href="com.marklogic.widgets.collectionuris.html">collectionuris</a></li><li><a href="com.marklogic.widgets.cooccurence.html">cooccurence</a></li><li><a href="com.marklogic.widgets.create.html">create</a></li><li><a href="com.marklogic.widgets.entityfacts.html">entityfacts</a></li><li><a href="com.marklogic.widgets.highcharts.html">highcharts</a></li><li><a href="com.marklogic.widgets.kratu.html">kratu</a></li><li><a href="com.marklogic.widgets.markings.html">markings</a></li><li><a href="com.marklogic.widgets.searchbar.html">searchbar</a></li><li><a href="com.marklogic.widgets.searchpage.html">searchpage</a></li><li><a href="com.marklogic.widgets.searchpager.html">searchpager</a></li><li><a href="com.marklogic.widgets.searchresults.html">searchresults</a></li><li><a href="com.marklogic.widgets.searchsort.html">searchsort</a></li><li><a href="com.marklogic.widgets.sparqlbar.html">sparqlbar</a></li><li><a href="com.marklogic.widgets.sparqlresults.html">sparqlresults</a></li><li><a href="com.marklogic.widgets.tripleconfig.html">tripleconfig</a></li></ul><h3>Namespaces</h3><ul><li><a href="com.marklogic.widgets.bits.html">bits</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-all.html">all</a></li><li><a href="tutorial-browser-create-app.html">browser-create-app</a></li><li><a href="tutorial-samples.html">samples</a></li></ul>
 </nav>
 
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Sun Jun 02 2013 02:26:36 GMT+0100 (BST)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Thu Jun 06 2013 16:12:36 GMT+0100 (BST)
 </footer>
 
 <script> prettyPrint(); </script>
