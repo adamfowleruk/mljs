@@ -258,35 +258,45 @@ com.marklogic.widgets.searchbar.prototype._parseQuery = function(q) {
   var text = "";
   var facets = new Array();
   var sort = null;
-  var parts = q.split(" "); // TODO handler spaces in facet values
+  var parts = q.split(" "); // TODO handle spaces in facet values
   for (var i = 0;i < parts.length;i++) {
-    if (0 == parts[i].indexOf(this.sortWord + ":")) {
-      sort = parts[i].substring(5);
-    } else if (-1 != parts[i].indexOf(":")) {
-      mldb.defaultconnection.logger.debug("FOUND A FACET IN QUERY: " + parts[i]);
-      var fv = parts[i].split(":");
-      mldb.defaultconnection.logger.debug("Facet name: " + fv[0] + " value: " + fv[1]);
-      if (0 == fv[1].indexOf("\"")) {
-        fv[1] = fv[1].substring(1);
-        if ((fv[1].length - 1) == fv[1].indexOf("\"")) {
-          fv[1] = fv[1].substring(0,fv[1].length-1);
+    var newIdx = i;
+    if (-1 != parts[i].indexOf(":\"")) {
+      // find end of quote
+      do {
+        newIdx++;
+        parts[i] = parts[i] + " " + parts[newIdx];
+      } while (parts[newIdx].indexOf("\"") != parts[newIdx].length - 1 && newIdx < parts.length);
+    }
+      if (0 == parts[i].indexOf(this.sortWord + ":")) {
+        sort = parts[i].substring(5);
+      } else if (-1 != parts[i].indexOf(":")) {
+        mldb.defaultconnection.logger.debug("FOUND A FACET IN QUERY: " + parts[i]);
+        var fv = parts[i].split(":");
+        mldb.defaultconnection.logger.debug("Facet name: " + fv[0] + " value: " + fv[1]);
+        if (0 == fv[1].indexOf("\"")) {
+          fv[1] = fv[1].substring(1);
+          if ((fv[1].length - 1) == fv[1].indexOf("\"")) {
+            fv[1] = fv[1].substring(0,fv[1].length-1);
+          }
         }
-      }
-      mldb.defaultconnection.logger.debug("Facet info now name: " + fv[0] + " value: " + fv[1]);
-      var found = false;
-      for (var f = 0;f < facets.length;f++) {
-        if (facets[f].name == fv[0]) {
-          // replace value
-          facets[f].value = fv[1];
-          found = true;
+        mldb.defaultconnection.logger.debug("Facet info now name: " + fv[0] + " value: " + fv[1]);
+        var found = false;
+        for (var f = 0;f < facets.length;f++) {
+          if (facets[f].name == fv[0]) {
+            // replace value
+            facets[f].value = fv[1];
+            found = true;
+          }
         }
-      }
-      if (!found) {
-        facets.push({name: fv[0], value: fv[1]});
-      }
+        if (!found) {
+          facets.push({name: fv[0], value: fv[1]});
+        }
+      
     } else {
       text += " " + parts[i];
     }
+    i = newIdx;
   }
   return {q: text.trim(),facets: facets,sort: sort};
 };
@@ -999,6 +1009,15 @@ com.marklogic.widgets.searchresults.prototype._refresh = function() {
   // update results
   if (typeof this.results == "boolean" ) {
     // TODO show/hide refresh image based on value of this.results (true|false)
+    if (true == this.results) {
+      document.getElementById(this.container).innerHTML = "<div class='searchresults-inner'>" +
+        "<div class='searchresults-title'>Results</div><div class='searchresults-results'>" + 
+        com.marklogic.widgets.bits.loading(this.container + "-loading") + "</div></div>";
+    } else {
+      document.getElementById(this.container).innerHTML = "<div class='searchresults-inner'>" +
+        "<div class='searchresults-title'>Results</div><div class='searchresults-results'>" + 
+        com.marklogic.widgets.bits.failure(this.container + "-failure") + "</div></div>";
+    }
     return;
   }
   if (null == this.results || undefined == this.results.results || this.results.results.length == 0) {
@@ -1247,8 +1266,8 @@ com.marklogic.widgets.searchpager.prototype._refresh = function() {
   }
   
   // calculate our page number
-  var page = 1 + Math.floor(st / this.perPage);
-  var maxpage = 1 + Math.floor(this.total / this.perPage);
+  var page = Math.ceil(st / this.perPage);
+  var maxpage = Math.ceil(this.total / this.perPage);
   if (0 == st) {
     page = 0;
     maxpage = 0;

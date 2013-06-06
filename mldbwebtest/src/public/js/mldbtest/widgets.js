@@ -388,3 +388,53 @@ com.marklogic.widgets.error.prototype._hideDetails = function() {
   };
 };
 
+/**
+ *  Static functions that provide other widgets with useful, consistent elements.
+ *
+ * @namespace
+ */
+com.marklogic.widgets.bits = {
+  _base: "/images"
+};
+
+com.marklogic.widgets.bits.base = function(newbase) {
+  com.marklogic.widgets.bits._base = newbase;
+}
+
+/**
+ * Creates a loading message or image
+ * 
+ * @param {string} elid - The element for this widget's top level container
+ */
+com.marklogic.widgets.bits.loading = function(elid) {
+  var s = "<img id='" + elid + "' class='bits-loading' src='" + com.marklogic.widgets.bits._base + "/mldb/loading.png' alt='Loading...' title='Loading...' /> Loading...";
+  
+  return s;
+};
+
+/**
+ * Creates a failure message or image
+ * 
+ * @param {string} elid - The element for this widget's top level container
+ */
+com.marklogic.widgets.bits.failure = function(elid) {
+  var s = "<img id='" + elid + "' class='bits-failure' src='" + com.marklogic.widgets.bits._base + "/mldb/failure.png' alt='Failed to complete operation' title='Failed to complete operation' /> Failed to complete operation";
+  
+  return s;
+};
+
+/**
+ * Creates a complete message
+ * 
+ * @param {string} elid - The element for this widget's top level container
+ */
+com.marklogic.widgets.bits.done = function(elid,message_opt) {
+  var s = "<span id='" + elid + "' class='bits-done'>";
+  if (undefined == message_opt) {
+    s += "Done.";
+  } else {
+    s += message_opt;
+  }
+  s += "</span>";
+  return s;
+};

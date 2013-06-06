@@ -636,7 +636,14 @@ mldb.prototype.__doreq = function(reqname,options,content,callback_opt) {
   var pos = options.path.indexOf("format=json");
   if (-1 != pos) {
     //options.path = options.path.substring(0,pos - 1) + options.path.substring(pos+11);
-    options.headers["Content-type"] = "application/json";
+    if (options.method !== "GET") {
+      if (undefined !== typeof options.headers["Content-type"]) {
+        options.headers["Content-type"] = "application/json";
+      }
+    }
+    if (undefined !== typeof options.headers["Accept"]) {
+      options.headers["Accept"] = "application/json"; // NB check this is not explicitly defined by calling method first
+    }
     this.logger.debug("Converted format=json to Content-Type header. Path now: " + options.path + " , headers now: " + JSON.stringify(options.headers));
   }
   
@@ -2148,7 +2155,22 @@ mldb.prototype.dlscollection = function(collection,callback) {
 
 
 
+mldb.prototype.dlsrules = function(callback) {
+  var options = {
+    path: "/v1/resources/dlsrules",
+    method: "GET"
+  };
+  this.__doreq("DLSRULES",options,null,callback);
+};
 
+
+mldb.prototype.dlsrule = function(name,callback) {
+  var options = {
+    path: "/v1/resources/dlsrules?rs:rulename=" + encodeURI(name),
+    method: "GET"
+  };
+  this.__doreq("DLSRULE",options,null,callback);
+};
 
 
 
@@ -3075,6 +3097,14 @@ mldb.prototype.query.prototype.range = function(constraint_name,val) {
               "value": val,
               "constraint-name": constraint_name
             }
+  }
+};
+
+mldb.prototype.query.prototype.uris = function(constraint_name,uris) {
+  return {
+    "document-query": {
+      "uri": uris
+    }
   }
 };
 

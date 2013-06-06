@@ -395,6 +395,16 @@ span.person {
 }
 
 /** V7 triples widgets **/
+.sparqlpage-bar {
+  width: auto;
+  background-color: #D2D2D2;
+  color: #4B4B4B;
+}
+
+.sparqlbar-inner {
+  padding-left: 10px;
+}
+
 .sparqlbar-term {
   padding-left: 20px;
 }
@@ -405,4 +415,39 @@ span.person {
 
 .sparqlbar-button {
   margin-top: 20px;
+}
+
+.sparqlresults-title {
+  font-weight: bold;
+  font-size: 1.2em;
+  color: #4B4B4B;
+  margin-bottom: 15px;
+}
+
+.entityfacts-title {
+  font-weight: bold;
+  font-size: 1.2em;
+  color: #4B4B4B;
+  margin-bottom: 15px;
+}
+
+
+/** Bits **/
+.bits-done {
+  border: 2px solid blue;
+  margin: 2px;
+  padding: 5px;
+  color: blue;
+}
+
+.bits-loading {
+  font-style: italic;
+}
+
+.bits-failure {
+  border: 2px solid red;
+  margin: 2px;
+  padding: 5px;
+  color: red;
+  font-style: bold;
 }

@@ -2155,7 +2155,22 @@ mldb.prototype.dlscollection = function(collection,callback) {
 
 
 
+mldb.prototype.dlsrules = function(callback) {
+  var options = {
+    path: "/v1/resources/dlsrules",
+    method: "GET"
+  };
+  this.__doreq("DLSRULES",options,null,callback);
+};
 
+
+mldb.prototype.dlsrule = function(name,callback) {
+  var options = {
+    path: "/v1/resources/dlsrules?rs:rulename=" + encodeURI(name),
+    method: "GET"
+  };
+  this.__doreq("DLSRULE",options,null,callback);
+};
 
 
 
@@ -3082,6 +3097,14 @@ mldb.prototype.query.prototype.range = function(constraint_name,val) {
               "value": val,
               "constraint-name": constraint_name
             }
+  }
+};
+
+mldb.prototype.query.prototype.uris = function(constraint_name,uris) {
+  return {
+    "document-query": {
+      "uri": uris
+    }
   }
 };
 

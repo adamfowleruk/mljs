@@ -152,9 +152,12 @@ com.marklogic.widgets.markings.prototype.showDocument = function(uri) {
   
   // show loading messages
   var hid = this.container + "-markings-docinfo";
-  document.getElementById(hid).innerHTML = "Loading...";
+  document.getElementById(hid).innerHTML = "<h2 class='markings-meta-title'>Document Extracted Metadata</h2>" + com.marklogic.widgets.bits.loading(hid + "-loading1") +
+    "<h2 class='markings-security-title'>Document Security Information</h2>" + com.marklogic.widgets.bits.loading(hid + "-loading2");
   var cid = this.container + "-markings-doccontent";
-  document.getElementById(cid).innerHTML = "Loading...";
+  document.getElementById(cid).innerHTML = "<h2 class='markings-content-title'>Document Secure Content</h2>" + com.marklogic.widgets.bits.loading(cid + "-loading");
+  
+  
   
   // fetch document as XML, applying XSLT controls to it, and render
   var self = this;
@@ -539,7 +542,8 @@ com.marklogic.widgets.markings.prototype.showDocument = function(uri) {
     }
     content += "</table>";
   }
-    content += "<div class='markings-actionbar'><form id='" + self.container + "-markings-docsubmit'><input type='submit' value='Publish Changes' /></form></div>";
+    content += "<div class='markings-actionbar'><form id='" + self.container + "-markings-docsubmit'><input type='submit' value='Publish Changes' />" +
+      "<span id='" + self.container + "-done'></span></form></div>";
     
     document.getElementById(cid).innerHTML = content;
     
@@ -663,6 +667,7 @@ com.marklogic.widgets.markings.prototype.__saveDocument = function() {
     // TODO update document saved message on screen
     var completeFunc = function(result) {
       mldb.defaultconnection.logger.debug("ADDED ALL TRIPLE GRAPHS! Result: " + JSON.stringify(result.doc));
+      document.getElementById(self.container + "-done").innerHTML = com.marklogic.widgets.bits.done(self.container + "-done-msg");
     }
     
     var graphsAdded = 0;
@@ -742,6 +747,10 @@ com.marklogic.widgets.markings.prototype.__saveDocument = function() {
       }
     }
     
+    // provenance
+    var graphURI = self._tripleCollections[0].replace("#SECTIONID#","secure-content-" + d).replace("#URI#",self.docuri); // TODO verify d == c in above, even when reloaded from DB
+    triples += "<" + graphURI + "> <http://marklogic.com/semantics/ontology/derived_from> <" + self.docuri + "> .";
+    
     // define any classes we need to add
     var classess = "";
     for (var cl = 0;cl < classes.length;cl++) {
@@ -752,7 +761,6 @@ com.marklogic.widgets.markings.prototype.__saveDocument = function() {
     // add triples graphs for each section
     var graphData = classess + triples;
     // TODO do this for each named graph too
-    var graphURI = self._tripleCollections[0].replace("#SECTIONID#","secure-content-" + d).replace("#URI#",self.docuri); // TODO verify d == c in above, even when reloaded from DB
     mldb.defaultconnection.logger.debug("Setting graph URI: " + graphURI + " to data: " + graphData);
     
     // message on triples complete
