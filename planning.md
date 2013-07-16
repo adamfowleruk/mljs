@@ -6,7 +6,7 @@ Targets for 0.7 (May 2013 tidy up edition)
  - IN PROGRESS Widgets: Search widgets, and overarching search page widget UI layer over MLDB in browser, including custom result rendering plugins (search bar, facets, results, paging, sorting)
   - Sorting widget actions
   - More... all... links in facets
-  - BUG: one page too many in results if results are multiple of page size (i.e. 30 gives you 4 pages, not 3)
+  - DONE BUG: one page too many in results if results are multiple of page size (i.e. 30 gives you 4 pages, not 3)
   - BUG: multi word facet selection causes search to be limited to first word only (no quotes) -> query parser, not facet issue
  - DONE Core: support XML returned as well as JSON
   - DONE Search result content (within JSON results, not as XML results)
@@ -44,7 +44,7 @@ Targets for 0.8 (Jun 2013)
  - Widgets: Support array children in aggregations for graphs
  - Browser: Lazy loading on search results (E.g. when requesting page 2 result 3 (result 13), make http request for re-search transparent) - Also for graphing when all search results need loading
  - Easy geospatial search
- - Widgets: Google maps (via OpenLayers?)
+ - IN PROGRESS Widgets: Google maps (via OpenLayers?)
  - Support all search functions not currently provided
  - Complete support for /v1/values REST function
  - NodeJS: Support SSL
