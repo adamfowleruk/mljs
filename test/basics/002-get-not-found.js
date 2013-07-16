@@ -1,4 +1,4 @@
-var mldb = require("../../mldb"),
+var mljs = require("../../mljs"),
     tests = exports,
     assert = require('assert'),
     winston = require('winston');
@@ -15,7 +15,7 @@ var mldb = require("../../mldb"),
 
 describe("002-get-not-found",function() {
   it("Should complete entirely",function(done){
-  var db = new mldb(); // default options
+  var db = new mljs(); // default options
   db.setLogger(logger);
 
   logger.debug("Testing digest get");

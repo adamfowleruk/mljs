@@ -1,6 +1,6 @@
 $(document).ready(function() {
-  // initialise MLDB
-  var db = new mldb(); // calls default configure
+  // initialise mljs
+  var db = new mljs(); // calls default configure
   db.logger.setLogLevel("debug");
   
   var optionsName = "page-charts-search";

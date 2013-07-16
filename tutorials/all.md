@@ -1,16 +1,16 @@
-# All tutorials available for MLDB
+# All tutorials available for mljs
 
-## MLDB Core tutorials
+## mljs Core tutorials
 <ul>
   <li><a href=tutorial-samples.html>Samples</a></li>
 </ul>
 
-## MLDB Browser tutorials
+## mljs Browser tutorials
 <ul>
   <li><a href=tutorial-browser-create-app.html>Creating a new application</a></li>
 </ul>
 
-## MLDB Node.js tutorials
+## mljs Node.js tutorials
 <ul>
   <li>TODO</li>
 </ul>

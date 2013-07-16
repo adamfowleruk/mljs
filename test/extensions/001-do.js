@@ -1,4 +1,4 @@
-var mldb = require("../../mldb"),
+var mljs = require("../../mljs"),
     tests = exports,
     assert = require('assert'),
     winston = require('winston');
@@ -14,7 +14,7 @@ var logger = new (winston.Logger)({
 
 describe("001-do",function() {
   it("Should complete entirely",function(done){
-  var db = new mldb(); // default options
+  var db = new mljs(); // default options
   db.setLogger(logger);
   
   var options = {

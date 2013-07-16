@@ -14,7 +14,7 @@ com.marklogic.widgets.collectionuris = function(container) {
 };
 
 /**
- * Uses the MLDB default connection to list the child collection URIs of the specified parent. Use blank for all.
+ * Uses the mljs default connection to list the child collection URIs of the specified parent. Use blank for all.
  * 
  * @param {string} parenturi - The parent URI to find the children for.
  */
@@ -23,7 +23,7 @@ com.marklogic.widgets.collectionuris.prototype.list = function(parenturi) {
   var self = this;
   
   // load results as simple list
-  mldb.defaultconnection.subcollections(parenturi,function(result) {
+  mljs.defaultconnection.subcollections(parenturi,function(result) {
     // TODO handle error condition
     var el = document.getElementById(self.container);
     

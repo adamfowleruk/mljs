@@ -2,46 +2,46 @@
     Function                                      Test                  Status
 Driver configuration
 
-    mldb Constructor                              all                   PASS
-    mldb.configure                                009-configure         PASS
-    mldb.setLogger                                all                   PASS
+    mljs Constructor                              all                   PASS
+    mljs.configure                                009-configure         PASS
+    mljs.setLogger                                all                   PASS
 
 Database Management
 
-    mldb.exists (aka mldb.test)                   004-create-destroy    PASS
-    mldb.create                                   004-create-destroy    PASS
-    mldb.destroy                                  004-create-destroy    PASS
+    mljs.exists (aka mljs.test)                   004-create-destroy    PASS
+    mljs.create                                   004-create-destroy    PASS
+    mljs.destroy                                  004-create-destroy    PASS
 
 Document management
 
-    mldb.get                                      001-save-get-delete   PASS    006-save-get-delete-in-loop   ???
-    mldb.metadata                                 004-metadata          PASS
-    mldb.save                                     001-save-get-delete   PASS
-    mldb.merge                                    005-merge             PASS
-    mldb.delete (aka mldb.remove)                 001-save-get-delete   PASS
+    mljs.get                                      001-save-get-delete   PASS    006-save-get-delete-in-loop   ???
+    mljs.metadata                                 004-metadata          PASS
+    mljs.save                                     001-save-get-delete   PASS
+    mljs.merge                                    005-merge             PASS
+    mljs.delete (aka mljs.remove)                 001-save-get-delete   PASS
 
 Search
 
-    mldb.collect                                  005-collections       PASS
-    mldb.list                                     006-directory         PASS
-    mldb.keyvalue                                 001-keyvalue          PASS
-    mldb.search                                   003-search-query      PASS
-    mldb.structuredSearch                         002-structured-search PASS
+    mljs.collect                                  005-collections       PASS
+    mljs.list                                     006-directory         PASS
+    mljs.keyvalue                                 001-keyvalue          PASS
+    mljs.search                                   003-search-query      PASS
+    mljs.structuredSearch                         002-structured-search PASS
 
 ACID Transactions
 
-    mldb.beginTransaction (aka mldb.begin)        001-basic-trans       PASS
-    mldb.commitTransaction (aka mldb.commit)      001-basic-trans       PASS
-    mldb.rollbackTransaction (aka mldb.rollback)  003-rollback          PASS
+    mljs.beginTransaction (aka mljs.begin)        001-basic-trans       PASS
+    mljs.commitTransaction (aka mljs.commit)      001-basic-trans       PASS
+    mljs.rollbackTransaction (aka mljs.rollback)  003-rollback          PASS
 
 REST API Extensions
 
-    mldb.do                                       001-do                PASS
-    mldb.subscribe                                NOT STARTED
-    mldb.unsubscribe                              NOT STARTED
+    mljs.do                                       001-do                PASS
+    mljs.subscribe                                NOT STARTED
+    mljs.unsubscribe                              NOT STARTED
 
 Utility functions
 
-    mldb.fast                                     TEST - with saveAll
-    mldb.ingestcsv                                NOT STARTED
-    mldb.saveAll                                  NOT STARTED
+    mljs.fast                                     TEST - with saveAll
+    mljs.ingestcsv                                NOT STARTED
+    mljs.saveAll                                  NOT STARTED

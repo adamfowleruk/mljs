@@ -63,7 +63,7 @@ com.marklogic.widgets.highcharts.prototype._updateOptions = function() {
             },
     series: this.series
   };
-  mldb.defaultconnection.logger.debug("highcharts.prototype._updateOptions(): Options now: " + JSON.stringify(this.options));
+  mljs.defaultconnection.logger.debug("highcharts.prototype._updateOptions(): Options now: " + JSON.stringify(this.options));
 };
 
 /**
@@ -78,7 +78,7 @@ com.marklogic.widgets.highcharts.prototype.setAggregateFunction = function(fn) {
 com.marklogic.widgets.highcharts.prototype._refresh = function() {
   // draw data points
   
-  mldb.defaultconnection.logger.debug("Options: " + JSON.stringify(this.options));
+  mljs.defaultconnection.logger.debug("Options: " + JSON.stringify(this.options));
   
   //$("#" + this.container).highcharts(this.options);
   this.chart = new Highcharts.Chart(this.options);
@@ -159,13 +159,13 @@ com.marklogic.widgets.highcharts.prototype.updateResults = function(results) {
   }
   
   if (this.autoCategories) {
-    mldb.defaultconnection.logger.debug("updateResults(): Auto categories enabled");
+    mljs.defaultconnection.logger.debug("updateResults(): Auto categories enabled");
     this.categories = allCategories;
     // TODO sort categories alphabetically
   }
   
-  mldb.defaultconnection.logger.debug("Series names: " + JSON.stringify(seriesNames));
-  mldb.defaultconnection.logger.debug("Series Values: " + JSON.stringify(seriesValues));
+  mljs.defaultconnection.logger.debug("Series names: " + JSON.stringify(seriesNames));
+  mljs.defaultconnection.logger.debug("Series Values: " + JSON.stringify(seriesValues));
   
   // now aggregate by looping through each name then each category, applying appropriate function
   var sum = function(arr) {

@@ -161,7 +161,7 @@ com.marklogic.widgets.markings.prototype.showDocument = function(uri) {
   
   // fetch document as XML, applying XSLT controls to it, and render
   var self = this;
-  mldb.defaultconnection.get(uri,{transform: "redaction"},function(result) { // TODO remove hardcoded transform - set as default get transform on server for XML content
+  mljs.defaultconnection.get(uri,{transform: "redaction"},function(result) { // TODO remove hardcoded transform - set as default get transform on server for XML content
     var xml = result.doc;
     
     // TODO insert doc metadata fetch here too
@@ -661,12 +661,12 @@ com.marklogic.widgets.markings.prototype.__saveDocument = function() {
   var self = this;
   
   // save document to server
-  mldb.defaultconnection.save(ndx,this.docuri,{contentType: "application/xml", format: "xml"}, function(result) {
+  mljs.defaultconnection.save(ndx,this.docuri,{contentType: "application/xml", format: "xml"}, function(result) {
     console.log("DOC SAVE RESULT: " + JSON.stringify(result));
     
     // TODO update document saved message on screen
     var completeFunc = function(result) {
-      mldb.defaultconnection.logger.debug("ADDED ALL TRIPLE GRAPHS! Result: " + JSON.stringify(result.doc));
+      mljs.defaultconnection.logger.debug("ADDED ALL TRIPLE GRAPHS! Result: " + JSON.stringify(result.doc));
       document.getElementById(self.container + "-done").innerHTML = com.marklogic.widgets.bits.done(self.container + "-done-msg");
     }
     
@@ -699,7 +699,7 @@ com.marklogic.widgets.markings.prototype.__saveDocument = function() {
     for (var t = 0;t < self._tripleIDs.length;t++) {
       // only match triples defined within the current section of the document
       var tripId = self._tripleIDs[t];
-      mldb.defaultconnection.logger.debug("Processing Triple ID: " + tripId);
+      mljs.defaultconnection.logger.debug("Processing Triple ID: " + tripId);
       var section = self._tripleSection[tripId];
       if (d == section) {
         var hp = document.getElementById(tripId);
@@ -761,11 +761,11 @@ com.marklogic.widgets.markings.prototype.__saveDocument = function() {
     // add triples graphs for each section
     var graphData = classess + triples;
     // TODO do this for each named graph too
-    mldb.defaultconnection.logger.debug("Setting graph URI: " + graphURI + " to data: " + graphData);
+    mljs.defaultconnection.logger.debug("Setting graph URI: " + graphURI + " to data: " + graphData);
     
     // message on triples complete
     if (graphData.trim().length > 0) {
-      mldb.defaultconnection.saveGraph(graphData,graphURI,function(result) {
+      mljs.defaultconnection.saveGraph(graphData,graphURI,function(result) {
         completeCheck(result);
       });
     } else {

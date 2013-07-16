@@ -1,4 +1,4 @@
-var mldb = require("../../mldb"),
+var mljs = require("../../mljs"),
     tests = exports,
     assert = require('assert'),
     winston = require('winston');
@@ -15,7 +15,7 @@ var mldb = require("../../mldb"),
 
 describe("003-rollback",function() {
   it("Should complete entirely",function(done){
-  var db = new mldb(); // default options
+  var db = new mljs(); // default options
   db.setLogger(logger);
   
   logger.debug("----------------");

@@ -1,7 +1,7 @@
 
 $(document).ready(function() {
-  // initialise MLDB
-  var db = new mldb(); 
+  // initialise mljs
+  var db = new mljs(); 
   
   var classes = new Array();
   classes.push("unclassified");
@@ -28,5 +28,5 @@ $(document).ready(function() {
     document.getElementById("upload").innerHTML = "<p>Created doc with uri: " + evt + "</p>";
   });
   
-  mldb.defaultconnection.logger.debug("Done widget initialisation");
+  mljs.defaultconnection.logger.debug("Done widget initialisation");
 });

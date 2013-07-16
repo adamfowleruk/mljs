@@ -139,7 +139,7 @@ com.marklogic.widgets.create.prototype.horizontal = function() {
 
 /**
  * Specifies that the resultant document should also be added to a collection with the name 'user-USERID'.
- * TODO will call mldb's whoami extension to determine username, if not already known.
+ * TODO will call mljs's whoami extension to determine username, if not already known.
  */
 com.marklogic.widgets.create.prototype.collectionUser = function() {
   // add user- and this user's id to the collection list
@@ -406,7 +406,7 @@ com.marklogic.widgets.create.prototype._onSave = function() {
             cols += self._collections[i];
           }
           // send as octet stream, filename for after URI prefix
-          console.log("calling mldb save");
+          console.log("calling mljs save");
           var props = {
             contentType: file.type,
             collection: cols,
@@ -414,7 +414,7 @@ com.marklogic.widgets.create.prototype._onSave = function() {
           }
           console.log("mime type: " + file.type);
           console.log("Request properties: " + JSON.stringify(props));
-          mldb.defaultconnection.save(res,self._uriprefix + file.name,props,function(result) {
+          mljs.defaultconnection.save(res,self._uriprefix + file.name,props,function(result) {
             if (result.inError) {
               console.log("ERROR: " + result.doc);
             } else {
@@ -472,7 +472,7 @@ com.marklogic.widgets.create.prototype._onSave = function() {
         
         // save to ML
         
-        console.log("calling mldb save");
+        console.log("calling mljs save");
           /*
           var arrBuff = new ArrayBuffer(evt.target.result.length);
           var writer = new Uint8Array(arrBuff);
@@ -480,7 +480,7 @@ com.marklogic.widgets.create.prototype._onSave = function() {
               writer[i] = evt.target.result.charCodeAt(i);
           }*/
           
-          mldb.defaultconnection.save(file,self._uriprefix + file.name,props,function(result) {
+          mljs.defaultconnection.save(file,self._uriprefix + file.name,props,function(result) {
             if (result.inError) {
               console.log("ERROR: " + result.doc);
             } else {

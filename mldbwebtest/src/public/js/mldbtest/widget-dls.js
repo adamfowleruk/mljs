@@ -29,7 +29,7 @@ com.marklogic.widgets.dlscollections.prototype.uriHandler = function(handler) {
 
 com.marklogic.widgets.dlscollections.prototype.refresh = function() {
   var self = this;
-  mldb.defaultconnection.dlscollections(function(result) {
+  mljs.defaultconnection.dlscollections(function(result) {
     var s = "";
     if (0 == result.doc.collections) {
       s += "<p><i>No results</i></p>";
@@ -76,7 +76,7 @@ com.marklogic.widgets.dlscollection.prototype.uriInfoHandler = function(handler)
 
 com.marklogic.widgets.dlscollection.prototype.loadCollection = function(collection) {
   var self = this;
-  mldb.defaultconnection.dlscollection(collection,function(result) {
+  mljs.defaultconnection.dlscollection(collection,function(result) {
     var s = "";
     s += "<p><b>Contents of collection: " + collection + "</b></p>";
     if (0 == result.doc.uris) {
@@ -120,7 +120,7 @@ com.marklogic.widgets.dlsrules.prototype.uriHandler = function(handler) {
 
 com.marklogic.widgets.dlsrules.prototype.refresh = function() {
   var self = this;
-  mldb.defaultconnection.dlsrules(function(result) {
+  mljs.defaultconnection.dlsrules(function(result) {
     var s = "";
     if (0 == result.doc.rules.length) {
       s += "<p><i>No rules exist</i></p>";
@@ -165,7 +165,7 @@ com.marklogic.widgets.dlsruleinfo = function(container) {
 com.marklogic.widgets.dlsruleinfo.prototype.refresh = function() {
   if (null != this.name) {
     var self = this;
-    mldb.defaultconnection.dlsrule(this.name,function(result) {
+    mljs.defaultconnection.dlsrule(this.name,function(result) {
       console.log("doc content: " + JSON.stringify(result.doc));
       var s = "<h2>DLS Rule Details</h2>";
       s += "<b>Name: </b>" + result.doc["retentionRule"].name;

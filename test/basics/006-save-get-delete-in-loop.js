@@ -1,4 +1,4 @@
-var mldb = require("../../mldb"),
+var mljs = require("../../mljs"),
     tests = exports,
     assert = require('assert'),
     winston = require('winston');
@@ -14,7 +14,7 @@ var mldb = require("../../mldb"),
 
 describe("006-save-get-delete-in-loop",function() {
   it.skip("Should complete entirely",function(done){
-  var db = new mldb(); // default options
+  var db = new mljs(); // default options
   db.setLogger(logger);
   
   var results = new Array();

@@ -1,7 +1,7 @@
 
 $(document).ready(function() {
-  // initialise MLDB
-  var db = new mldb(); // calls default configure
+  // initialise mljs
+  var db = new mljs(); // calls default configure
   
   // save then get doc
   var docs = [

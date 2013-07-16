@@ -1,5 +1,5 @@
 $(document).ready(function() {
-  var db = new mldb(); 
+  var db = new mljs(); 
   
   var wgt = new com.marklogic.widgets.searchpage("search-page");
   wgt.results.addProcessor("animals", function(result) {
@@ -26,8 +26,8 @@ $(document).ready(function() {
     }
     if (null != xml) {
       // check namespace and root element
-      mldb.defaultconnection.logger.debug("Potential SVG nodeName: " + xml.childNodes[0].nodeName);
-      mldb.defaultconnection.logger.debug("Potential SVG nodeType: " + xml.childNodes[0].nodeType);
+      mljs.defaultconnection.logger.debug("Potential SVG nodeName: " + xml.childNodes[0].nodeName);
+      mljs.defaultconnection.logger.debug("Potential SVG nodeType: " + xml.childNodes[0].nodeType);
       if (xml.childNodes[0].nodeName == "svg") {
         return true;
       } else {
@@ -51,7 +51,7 @@ $(document).ready(function() {
     .rangeConstraint("month",["item-order"],"http://marklogic.com/collation/");
   var options = ob.toJson();
   
-  wgt.setOptions("mldbtest-page-search-options",options);
+  wgt.setOptions("mljstest-page-search-options",options);
   wgt.execute();
   
 });

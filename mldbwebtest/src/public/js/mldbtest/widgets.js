@@ -201,7 +201,7 @@ function jsonExtractValue(json,namePath) {
   for (var i = 0;undefined != obj && i < paths.length;i++) {
     obj = obj[paths[i]]; // TODO handle documents with multiple result container elements (arrays of results within same doc)
   }
-  //mldb.defaultconnection.logger.debug("jsonExtractValue(): Returning value: " + obj);
+  //mljs.defaultconnection.logger.debug("jsonExtractValue(): Returning value: " + obj);
   return obj;
 };
 
@@ -269,34 +269,34 @@ com.marklogic.widgets.error.prototype._refresh = function() {
   if (null != this.error && "object" == typeof this.error) {
     // check if a result object or a error frame set, or an XML document
     if (undefined != this.error.inError) {
-      // mldb results object
+      // mljs results object
       if (this.error.inError) {
         if (this.error.format == "json") {
-          mldb.defaultconnection.logger.debug("Error object is result, and json");
+          mljs.defaultconnection.logger.debug("Error object is result, and json");
           this._genhtml(this.error);
         } else {
-          mldb.defaultconnection.logger.debug("Error object is result, and xml");
+          mljs.defaultconnection.logger.debug("Error object is result, and xml");
           this._genhtml(xmlToJson(this.error.doc));
         }
         return true;
       } else {
-        mldb.defaultconnection.logger.debug("Error object is result, and not in error");
+        mljs.defaultconnection.logger.debug("Error object is result, and not in error");
         return false; // doing this allows you to do one if statement rather than if and call
       }
     } else {
-      mldb.defaultconnection.logger.debug("Error document is not an MLDB response document");
+      mljs.defaultconnection.logger.debug("Error document is not an mljs response document");
         if (undefined == this.error.nodeType) {
-          mldb.defaultconnection.logger.debug("Error object is error doc, and json");
+          mljs.defaultconnection.logger.debug("Error object is error doc, and json");
           this._genhtml(this.error);
         } else {
-          mldb.defaultconnection.logger.debug("Error object is error doc, and xml");
+          mljs.defaultconnection.logger.debug("Error object is error doc, and xml");
           this._genhtml(xmlToJson(this.error.doc));
         }
       //this._genhtml(this.error);
     }
     // display pretty print JSON error
   } else {
-    mldb.defaultconnection.logger.debug("Error object is simple string");
+    mljs.defaultconnection.logger.debug("Error object is simple string");
     // assume string
     if (null != this.error && undefined != error) {
       var str = "<div class='error-inner hidden' id='" + this.container + "-error-inner'><div class='error-message'>" + this.error + "</div>";
@@ -407,7 +407,7 @@ com.marklogic.widgets.bits.base = function(newbase) {
  * @param {string} elid - The element for this widget's top level container
  */
 com.marklogic.widgets.bits.loading = function(elid) {
-  var s = "<img id='" + elid + "' class='bits-loading' src='" + com.marklogic.widgets.bits._base + "/mldb/loading.png' alt='Loading...' title='Loading...' /> Loading...";
+  var s = "<img id='" + elid + "' class='bits-loading' src='" + com.marklogic.widgets.bits._base + "/mljs/loading.png' alt='Loading...' title='Loading...' /> Loading...";
   
   return s;
 };
@@ -418,7 +418,7 @@ com.marklogic.widgets.bits.loading = function(elid) {
  * @param {string} elid - The element for this widget's top level container
  */
 com.marklogic.widgets.bits.failure = function(elid) {
-  var s = "<img id='" + elid + "' class='bits-failure' src='" + com.marklogic.widgets.bits._base + "/mldb/failure.png' alt='Failed to complete operation' title='Failed to complete operation' /> Failed to complete operation";
+  var s = "<img id='" + elid + "' class='bits-failure' src='" + com.marklogic.widgets.bits._base + "/mljs/failure.png' alt='Failed to complete operation' title='Failed to complete operation' /> Failed to complete operation";
   
   return s;
 };

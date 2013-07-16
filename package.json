@@ -1,4 +1,4 @@
-{ "name": "mldb"
+{ "name": "mljs"
 , "description": "MarkLogic V6 REST API Driver for Node.js"
 , "homepage": "http://developer.marklogic.com"
 , "version": "0.7.5"
@@ -7,6 +7,6 @@
 , "dependencies": { "request": "~2.1.1", "underscore": "~1.1.7", "winston": "~0.6.2", "jsdom": "~0.6.5" }
 , "devDependencies": { "async": "~0.1.9", "ensure": "0.3.0", "sleep": "1.1.0" }
 , "scripts": { "test": "./runtests.sh" }
-, "main": "./mldb.js"
+, "main": "./mljs.js"
 , "engines" : { "node" : ">=0.4.8" }
 }

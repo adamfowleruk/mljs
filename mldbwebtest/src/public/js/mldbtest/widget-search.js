@@ -42,16 +42,16 @@ com.marklogic.widgets.searchhelper.processValue = function(str,mode) {
 
 com.marklogic.widgets.searchhelper.splitdash = function(value,mode) {
   if (value == undefined || value == null) {
-    mldb.defaultconnection.logger.warn("WARNING: splitdash(): value is " + value);
+    mljs.defaultconnection.logger.warn("WARNING: splitdash(): value is " + value);
     return "";
   }
   if ("string" != typeof value) {
-    mldb.defaultconnection.logger.warn("WARNING: splitdash(): value is not of type string, but of type '" + (typeof value) + "'");
+    mljs.defaultconnection.logger.warn("WARNING: splitdash(): value is not of type string, but of type '" + (typeof value) + "'");
     return "";
   }
   var name = value;
   if ("all" == mode || "splitdash" == mode) {
-    //mldb.defaultconnection.logger.debug("Apply splitdash transform to " + name);
+    //mljs.defaultconnection.logger.debug("Apply splitdash transform to " + name);
     var parts = name.split("-");
     var nn = "";
     for (var i = 0;i < parts.length;i++) {
@@ -65,7 +65,7 @@ com.marklogic.widgets.searchhelper.splitdash = function(value,mode) {
 com.marklogic.widgets.searchhelper.splitunderscore = function(value,mode) {
   var name = value;
   if ("all" == mode || "splitunderscore" == mode) {
-    //mldb.defaultconnection.logger.debug("Apply splitunderscore transform to " + name);
+    //mljs.defaultconnection.logger.debug("Apply splitunderscore transform to " + name);
     var parts = name.split("_");
     var nn = "";
     for (var i = 0;i < parts.length;i++) {
@@ -79,7 +79,7 @@ com.marklogic.widgets.searchhelper.splitunderscore = function(value,mode) {
 com.marklogic.widgets.searchhelper.camelcase = function(value,mode) {
   var name = value;
   if ("all" == mode || "camelcase" == mode) {
-    //mldb.defaultconnection.logger.debug("Apply camelcase transform to " + name);
+    //mljs.defaultconnection.logger.debug("Apply camelcase transform to " + name);
     var parts = name.split(" ");
     var nn = "";
     for (var i = 0;i < parts.length;i++) {
@@ -112,7 +112,7 @@ com.marklogic.widgets.searchbar = function(container) {
   this.sortWord = "sort";
   this.defaultQuery = ""; // should be set E.g. to "sort:relevance"
   
-  this.optionsName = mldb.__dogenid();
+  this.optionsName = mljs.__dogenid();
   this.optionsExists = false;
   
   this.collection = null;
@@ -145,7 +145,7 @@ com.marklogic.widgets.searchbar = function(container) {
   this.errorPublisher = new com.marklogic.events.Publisher(); // errors occuring at search time
   
   // draw widget within container
-  mldb.defaultconnection.logger.debug("adding search bar html");
+  mljs.defaultconnection.logger.debug("adding search bar html");
   document.getElementById(container).innerHTML = 
     "<div class='searchbar-inner'>" +
       "<div class='searchbar-queryrow'>" +
@@ -154,13 +154,13 @@ com.marklogic.widgets.searchbar = function(container) {
         "<input class='searchbar-submit' type='submit' id='" + container + "-submit' value='Search' />" +
       "</div><div class='searchbar-errorrow hidden'></div>";
     "</div>";
-  mldb.defaultconnection.logger.debug("adding submit click handler");
+  mljs.defaultconnection.logger.debug("adding submit click handler");
   var self = this;
   document.getElementById(container + "-submit").onclick = function() {self._dosearch(self);}; // TODO Check this is valid
-  mldb.defaultconnection.logger.debug("added submit click handler");
+  mljs.defaultconnection.logger.debug("added submit click handler");
   
   // set default connection
-  this.db = mldb.defaultconnection;
+  this.db = mljs.defaultconnection;
 };
 
 /**
@@ -232,9 +232,9 @@ com.marklogic.widgets.searchbar.prototype.setDefaultQuery = function(defQuery) {
 };
 
 /**
- * Sets the underlying MLDB connection to use
+ * Sets the underlying mljs connection to use
  * 
- * @param {mldb} connection - The MLDB connection instance to use.
+ * @param {mljs} connection - The mljs connection instance to use.
  */
 com.marklogic.widgets.searchbar.prototype.setConnection = function(connection) {
   this.db = connection;
@@ -248,7 +248,7 @@ com.marklogic.widgets.searchbar.__dosearch = function(submitelement) {
   // execute it's dosearch method
   var bar = com.marklogic.widgets.searchbar.list[id];
   if (null == id) {
-    mldb.defaultconnection.logger.debug("searchbar.__dosearch - search bar instance does not exist: " + id);
+    mljs.defaultconnection.logger.debug("searchbar.__dosearch - search bar instance does not exist: " + id);
   } else {
     bar._dosearch();
   }
@@ -271,16 +271,16 @@ com.marklogic.widgets.searchbar.prototype._parseQuery = function(q) {
       if (0 == parts[i].indexOf(this.sortWord + ":")) {
         sort = parts[i].substring(5);
       } else if (-1 != parts[i].indexOf(":")) {
-        mldb.defaultconnection.logger.debug("FOUND A FACET IN QUERY: " + parts[i]);
+        mljs.defaultconnection.logger.debug("FOUND A FACET IN QUERY: " + parts[i]);
         var fv = parts[i].split(":");
-        mldb.defaultconnection.logger.debug("Facet name: " + fv[0] + " value: " + fv[1]);
+        mljs.defaultconnection.logger.debug("Facet name: " + fv[0] + " value: " + fv[1]);
         if (0 == fv[1].indexOf("\"")) {
           fv[1] = fv[1].substring(1);
           if ((fv[1].length - 1) == fv[1].indexOf("\"")) {
             fv[1] = fv[1].substring(0,fv[1].length-1);
           }
         }
-        mldb.defaultconnection.logger.debug("Facet info now name: " + fv[0] + " value: " + fv[1]);
+        mljs.defaultconnection.logger.debug("Facet info now name: " + fv[0] + " value: " + fv[1]);
         var found = false;
         for (var f = 0;f < facets.length;f++) {
           if (facets[f].name == fv[0]) {
@@ -346,12 +346,12 @@ com.marklogic.widgets.searchbar.prototype.__doquery = function(q,start) {
   }
   
   // cleanse query value first
-  mldb.defaultconnection.logger.debug("Query before: " + q);
+  mljs.defaultconnection.logger.debug("Query before: " + q);
   var parsed = self._parseQuery(q);
-  mldb.defaultconnection.logger.debug("Query parsed: " + JSON.stringify(parsed));
+  mljs.defaultconnection.logger.debug("Query parsed: " + JSON.stringify(parsed));
   var cq = self._queryToText(parsed);
   q = cq;
-  mldb.defaultconnection.logger.debug("Query after: " + cq);
+  mljs.defaultconnection.logger.debug("Query after: " + cq);
   document.getElementById(this.container + "-searchinput").value = cq;
   
   self.facetsPublisher.publish(parsed.facets);
@@ -374,7 +374,7 @@ com.marklogic.widgets.searchbar.prototype.__doquery = function(q,start) {
    self.db.search(q,self.optionsName,ourstart,sprops,function(result) { // TODO pass start position through, if defined
     if (result.inError) {
       // report error on screen somewhere sensible (e.g. under search bar)
-      mldb.defaultconnection.logger.debug(result.error);
+      mljs.defaultconnection.logger.debug(result.error);
       // TODO show error div below search div with message
       self.resultsPublisher.publish(false); // hides refresh glyth on error
     } else {
@@ -389,7 +389,7 @@ com.marklogic.widgets.searchbar.prototype.__doquery = function(q,start) {
     this.db.saveSearchOptions(this.optionsName,this.options,function(result) {
       if (result.inError) {
         // TODO log error somewhere sensible on screen
-        mldb.defaultconnection.logger.debug("Exception saving results: " + result.details);
+        mljs.defaultconnection.logger.debug("Exception saving results: " + result.details);
       } else {
         self.optionsExists = true; // to stop overwriting on subsequent requests
         dos();
@@ -728,7 +728,7 @@ com.marklogic.widgets.searchfacets.prototype._refresh = function() {
 };
 
 com.marklogic.widgets.searchfacets.prototype._selectFacet = function(facetName,value) {
-  mldb.defaultconnection.logger.debug("Selecting " + facetName + ":" + value);
+  mljs.defaultconnection.logger.debug("Selecting " + facetName + ":" + value);
   this.selected.push({name: facetName,value: value});
   // draw selection
   this._refresh();
@@ -737,7 +737,7 @@ com.marklogic.widgets.searchfacets.prototype._selectFacet = function(facetName,v
 };
 
 com.marklogic.widgets.searchfacets.prototype._deselectFacet = function(facetName,value) {
-  mldb.defaultconnection.logger.debug("Deselecting " + facetName + ":" + value);
+  mljs.defaultconnection.logger.debug("Deselecting " + facetName + ":" + value);
   var newsel = new Array();
   for (var i = 0;i < this.selected.length;i++) {
     var el = this.selected[i];
@@ -839,7 +839,7 @@ com.marklogic.widgets.searchfacets.prototype.updateFacets = function(results) {
  * @param {JSON[]} facets - The JSON facet objects that are currently selected.
  */
 com.marklogic.widgets.searchfacets.prototype.updateSelectedFacets = function(facets) {
-  mldb.defaultconnection.logger.debug("In updateSelectedFacets(facets): " + JSON.stringify(facets));
+  mljs.defaultconnection.logger.debug("In updateSelectedFacets(facets): " + JSON.stringify(facets));
   this.selected = facets;
   this._refresh();
 };
@@ -1026,7 +1026,7 @@ com.marklogic.widgets.searchresults.prototype._refresh = function() {
         "<div class='searchresults-title'>Results</div><div class='searchresults-results'>No Results</div>" +
       "</div>";
   } else {
-    mldb.defaultconnection.logger.debug("RESULTS OBJECT: " + JSON.stringify(this.results));
+    mljs.defaultconnection.logger.debug("RESULTS OBJECT: " + JSON.stringify(this.results));
     
     var resStr = 
       "<div class='searchresults-inner'><div class='searchresults-title'>Results</div><div class='searchresults-results'>";
@@ -1049,10 +1049,10 @@ com.marklogic.widgets.searchresults.prototype._refresh = function() {
       var found = false;
       for (var p = 0;!found && p < this.processorPriority.length;p++) {
         var pname = this.processorPriority[p];
-        mldb.defaultconnection.logger.debug("checking applicability of processor: " + pname);
+        mljs.defaultconnection.logger.debug("checking applicability of processor: " + pname);
         if (this.processors[pname].matcher(result)) {
           found = true;
-          mldb.defaultconnection.logger.debug("found processor: " + pname);
+          mljs.defaultconnection.logger.debug("found processor: " + pname);
           var returned = this.processors[pname].processor(result);
           if (undefined != returned.nodeType) {
             var id = (uureplace++);
@@ -1064,14 +1064,14 @@ com.marklogic.widgets.searchresults.prototype._refresh = function() {
         }
       }
       if (!found) {
-        mldb.defaultconnection.logger.debug("No processor found, using default");
+        mljs.defaultconnection.logger.debug("No processor found, using default");
         resStr += this.defaultProcessor.processor(result);
       }
       
       resStr += "</div>";
     }
     resStr += "</div></div>"; // end of results container div and results inner
-    mldb.defaultconnection.logger.debug("RES STR: " + resStr);
+    mljs.defaultconnection.logger.debug("RES STR: " + resStr);
     
     document.getElementById(this.container).innerHTML = resStr;
     
@@ -1211,7 +1211,7 @@ com.marklogic.widgets.searchpager.prototype.clear = function() {
  * @param {JSON} results - REST API JSON results object. See GET /v1/search
  */
 com.marklogic.widgets.searchpager.prototype.updatePage = function(results) {
-  mldb.defaultconnection.logger.debug("updatePage: results: " + results);
+  mljs.defaultconnection.logger.debug("updatePage: results: " + results);
   
   if ("boolean" == typeof results) {
     // TODO show/hide refresh image based on value of this.results (true|false)
@@ -1249,7 +1249,7 @@ com.marklogic.widgets.searchpager.prototype.removePageListener = function(l) {
 };
 
 com.marklogic.widgets.searchpager.prototype._refresh = function() {
-  mldb.defaultconnection.logger.debug("REFRESH: start: " + this.start + ", total: " + this.total + ", perPage: " + this.perPage);
+  mljs.defaultconnection.logger.debug("REFRESH: start: " + this.start + ", total: " + this.total + ", perPage: " + this.perPage);
   var last = (this.start + this.perPage - 1);
   if (last > this.total) {
     last = this.total;
@@ -1312,11 +1312,11 @@ com.marklogic.widgets.searchpager.prototype._previous = function() {
 com.marklogic.widgets.searchpager.prototype._next = function() {
   this.start = this.start + this.perPage;
   var lastpage = 1 + Math.floor(this.total / this.perPage);
-  mldb.defaultconnection.logger.debug("start now: " + this.start + ", lastpage: " + lastpage);
+  mljs.defaultconnection.logger.debug("start now: " + this.start + ", lastpage: " + lastpage);
   if (Math.floor(this.start / this.perPage) > lastpage) {
-    mldb.defaultconnection.logger.debug("new page greater than maxpage");
+    mljs.defaultconnection.logger.debug("new page greater than maxpage");
     this.start = 1 + Math.floor(this.perPage * (lastpage - 1));
-    mldb.defaultconnection.logger.debug("start now now: " + this.start);
+    mljs.defaultconnection.logger.debug("start now now: " + this.start);
   }
   this._fire();
 };
@@ -1496,7 +1496,7 @@ com.marklogic.widgets.searchpage = function(container) {
   });
   
   // set default connection
-  this.db = mldb.defaultconnection;
+  this.db = mljs.defaultconnection;
 };
 
 /**
@@ -1517,7 +1517,7 @@ com.marklogic.widgets.searchpage.prototype.setOptions = function(name,options,ch
   // check if options exist
   var self = this;
   if (undefined != check_options_exist && true == check_options_exist) {
-    mldb.defaultconnection.searchoptions(name,function(result) {
+    mljs.defaultconnection.searchoptions(name,function(result) {
       console.log("RESULT: " + JSON.stringify(result.doc));
       if (result.inError) {
         console.log("Search options " + name + " do not exist on the server. Search bar widget will auto create them on next search.");
@@ -1540,9 +1540,9 @@ com.marklogic.widgets.searchpage.prototype.execute = function() {
 };
 
 /**
- * Sets the MLDB connection object to use
+ * Sets the mljs connection object to use
  * 
- * @param {mldb} connection - The MLDB connection instance
+ * @param {mljs} connection - The mljs connection instance
  */
 com.marklogic.widgets.searchpage.prototype.setConnection = function(connection) {
   this.db = connection;

@@ -20,7 +20,7 @@ com.marklogic.ingest.Ingester = function(collection,path) {
   this.listeners = new com.marklogic.events.Publisher();
   
   // set default connection
-  this.db = mldb.defaultconnection;
+  this.db = mljs.defaultconnection;
 };
 
 com.marklogic.setConnection = function(connection) {

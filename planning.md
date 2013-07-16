@@ -3,7 +3,7 @@
 ## Upcoming releases
 
 Targets for 0.7 (May 2013 tidy up edition) 
- - IN PROGRESS Widgets: Search widgets, and overarching search page widget UI layer over MLDB in browser, including custom result rendering plugins (search bar, facets, results, paging, sorting)
+ - IN PROGRESS Widgets: Search widgets, and overarching search page widget UI layer over mljs in browser, including custom result rendering plugins (search bar, facets, results, paging, sorting)
   - Sorting widget actions
   - More... all... links in facets
   - DONE BUG: one page too many in results if results are multiple of page size (i.e. 30 gives you 4 pages, not 3)
@@ -36,7 +36,7 @@ Targets for 0.7 (May 2013 tidy up edition)
 
 Targets for 0.8 (Jun 2013)
  - IN PROGRESS Docs: Samples for XML use, equivalent to some of the existing JSON samples (not exhaustive)
- - Rename all to MLJS form MLDB
+ - Rename all to MLJS form mljs
  - Widgets: D3.js network diagram
  - Widgets: Charts widget to support aggregations via search options
  - Widgets: Charts widget to support extraction of XML info via XPath
@@ -95,8 +95,8 @@ Targets for V 0.2 (Dec 2012) in descending order of importance
  - DONE abstract authentication (digest and basic) 
  - DONE support creation of database and rest api on the fly
  - DONE provide document save, get, update
- - DONE access all documents within a directory (mldb.list)
- - DONE access all documents within a collection (mldb.collect)
+ - DONE access all documents within a directory (mljs.list)
+ - DONE access all documents within a collection (mljs.collect)
  - DONE add ACID transaction support across calls to the db
  - DONE provide access to document properties fragment (all metadata)
  - DONE basic searching (aka search:search), with facets
@@ -106,7 +106,7 @@ Targets for V 0.2 (Dec 2012) in descending order of importance
  - DONE generic do function to invoke any REST API functionality I've not created a comprehensive helper method for
  - DONE Complete testing of all core functionality
 
-For more information [See the wiki.](/adamfowleruk/mldb/wiki)
+For more information [See the wiki.](/adamfowleruk/mljs/wiki)
 
 Targets for 0.4 (Feb 2013)
  - DONE Utility function to save many docs in one go. (TODO: make transaction and fast aware)
@@ -115,7 +115,7 @@ Targets for 0.4 (Feb 2013)
  - TEST no auth (default user)
  
 Targets for 0.6 (Apr 2013) - for MarkLogic World 2013
- - DONE Browser: Execute mldb from within general JavaScript, not just NodeJS (requires many wrappers, refactoring, extra tests)
+ - DONE Browser: Execute mljs from within general JavaScript, not just NodeJS (requires many wrappers, refactoring, extra tests)
  - DONE Core: search options persistence support
  - DONE Core: structured search support
  - DONE Widgets: basic demonstration samples for graphs based on MarkLogic data (Highcharts - shipped with MarkLogic)

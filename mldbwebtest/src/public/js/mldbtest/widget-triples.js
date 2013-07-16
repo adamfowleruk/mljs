@@ -147,7 +147,7 @@ com.marklogic.widgets.tripleconfig.prototype.getValidPredicates = function(from,
 };
 
 com.marklogic.widgets.tripleconfig.prototype.getNameProperty = function(entity) {
-  mldb.defaultconnection.logger.debug("getNameProperty: entity=" + entity);
+  mljs.defaultconnection.logger.debug("getNameProperty: entity=" + entity);
   for (var i = 0;i < this._newentities[entity].properties.length;i++) {
     if ("name" == this._newentities[entity].properties[i].name) {
       return this._newentities[entity].properties[i];
@@ -177,17 +177,17 @@ com.marklogic.widgets.tripleconfig.prototype.summariseInto = function(iri,elid,i
   var self = this;
   // load type IRI for entity
   var ts = "SELECT ?rdftype WHERE {<" + iri + "> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?rdftype . } LIMIT 1";
-  mldb.defaultconnection.logger.debug("TS: " + ts);
-  mldb.defaultconnection.sparql(ts,function(result) {
+  mljs.defaultconnection.logger.debug("TS: " + ts);
+  mljs.defaultconnection.sparql(ts,function(result) {
     if (result.inError) {
       // TODO publish error
     } else {
       // load common name for this type
       var entityinfo = self.getEntityFromIRI(result.doc.results.bindings[0].rdftype.value);
       var ns = "SELECT ?name WHERE {<" + iri + "> <" + self.getNameProperty(entityinfo.name).iri  + "> ?name . } LIMIT 1";
-      mldb.defaultconnection.logger.debug("NS: " + ns);
+      mljs.defaultconnection.logger.debug("NS: " + ns);
       
-      mldb.defaultconnection.sparql(ns,function(result) {
+      mljs.defaultconnection.sparql(ns,function(result) {
         if (result.inError) {
           // TODO publish error
         } else {
@@ -554,7 +554,7 @@ com.marklogic.widgets.sparqlbar.prototype._buildQuery = function() {
   
   s += "} LIMIT 20"; // TODO remove/change limit
   
-  mldb.defaultconnection.logger.debug("Generated SPARQL: " + s);
+  mljs.defaultconnection.logger.debug("Generated SPARQL: " + s);
   return s;
 };
 
@@ -613,8 +613,8 @@ com.marklogic.widgets.sparqlbar.prototype._doQuery = function() {
   self.resultsPublisher.publish(true);
   var sparql = this._buildQuery();
   var self = this;
-  mldb.defaultconnection.sparql(sparql,function(result) {
-    mldb.defaultconnection.logger.debug("RESPONSE: " + JSON.stringify(result.doc));
+  mljs.defaultconnection.sparql(sparql,function(result) {
+    mljs.defaultconnection.logger.debug("RESPONSE: " + JSON.stringify(result.doc));
     if (result.inError) {
       self.resultsPublisher.publish(false);
       self.errorPublisher.publish(result.error);
@@ -846,7 +846,7 @@ com.marklogic.widgets.entityfacts.prototype._refresh = function() {
         type = object.value;
       }
     }
-    mldb.defaultconnection.logger.debug("Got type: " + type);
+    mljs.defaultconnection.logger.debug("Got type: " + type);
     
     var entityInfo = null;
     var entityName = null;
@@ -857,11 +857,11 @@ com.marklogic.widgets.entityfacts.prototype._refresh = function() {
         entityName = entname;
       }
     }
-    mldb.defaultconnection.logger.debug("Got entity name: " + entityName);
+    mljs.defaultconnection.logger.debug("Got entity name: " + entityName);
     
     // get common name from config
     var namepredicate = this._config.getNameProperty(entityName).iri;
-    mldb.defaultconnection.logger.debug("Got name predicate: " + namepredicate);
+    mljs.defaultconnection.logger.debug("Got name predicate: " + namepredicate);
     var namevalue = null;
     for (var b = 0;(null == namevalue) && (b < this.results.results.bindings.length);b++) {
       var predicate = this.results.results.bindings[b].predicate;
@@ -871,7 +871,7 @@ com.marklogic.widgets.entityfacts.prototype._refresh = function() {
         namevalue = object.value;
       }
     }
-    mldb.defaultconnection.logger.debug("Got name value: " + namevalue);
+    mljs.defaultconnection.logger.debug("Got name value: " + namevalue);
     
     var objectinfo = this._config.getEntityFromIRI(type);
     s += "<h3>" + objectinfo.title + ": " + namevalue + "</h3>";
@@ -940,8 +940,8 @@ com.marklogic.widgets.entityfacts.prototype.updateEntity = function(iri) {
   var sparql = "SELECT * WHERE {<" + iri + "> ?predicate ?object .}";
   
   // fetch info and refresh again
-  mldb.defaultconnection.sparql(sparql,function(result) {
-    mldb.defaultconnection.logger.debug("RESPONSE: " + JSON.stringify(result.doc));
+  mljs.defaultconnection.sparql(sparql,function(result) {
+    mljs.defaultconnection.logger.debug("RESPONSE: " + JSON.stringify(result.doc));
     self.loading = false;
     if (result.inError) {
       // TODO publish error
@@ -1000,13 +1000,13 @@ com.marklogic.widgets.entityfacts.prototype._provenance = function() {
     
     sparql += "\n  }\n  ?graph <http://marklogic.com/semantics/ontology/derived_from> ?docuri .\n" + 
       "} LIMIT 10";
-    mldb.defaultconnection.sparql(sparql,function(result) {
+    mljs.defaultconnection.sparql(sparql,function(result) {
         if (result.inError) {
           self._contentWidget.updateResults(false);
           self.errorPublisher.publish(result.error);
         } else {
       // use docuris as a shotgun or structured search
-      var qb = new mldb.defaultconnection.query();
+      var qb = new mljs.defaultconnection.query();
       var uris = new Array();
       for (var b = 0;b < result.doc.results.bindings.length;b++) {
         var res = result.doc.results.bindings[b];
@@ -1015,7 +1015,7 @@ com.marklogic.widgets.entityfacts.prototype._provenance = function() {
       qb.query(qb.uris("uris",uris));
       var queryjson = qb.toJson();
       
-      mldb.defaultconnection.structuredSearch(queryjson,self._options,function(result) {
+      mljs.defaultconnection.structuredSearch(queryjson,self._options,function(result) {
         if (result.inError) {
           self._contentWidget.updateResults(false);
           self.errorPublisher.publish(result.error);

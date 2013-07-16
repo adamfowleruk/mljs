@@ -1,5 +1,5 @@
 $(document).ready(function() {
-  var db = new mldb();
+  var db = new mljs();
   
   var optionsName = "page-charts-tempchart";
   var ob = new db.options();

@@ -1,5 +1,5 @@
 
-var m = window.mldb || {};
+var m = window.mljs || {};
 var b = m.bindings || {};
 b.prototypejs = function() {
   // constructor

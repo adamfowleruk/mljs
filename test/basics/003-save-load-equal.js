@@ -1,4 +1,4 @@
-var mldb = require("../../mldb"),
+var mljs = require("../../mljs"),
     tests = exports,
     assert = require('assert'),
     winston = require('winston');
@@ -16,7 +16,7 @@ var logger = new (winston.Logger)({
 describe("003-save-load-equal",function() {
   it.skip("Should complete entirely",function(done){
     
-  var db = new mldb(); // default options
+  var db = new mljs(); // default options
   db.setLogger(logger);
   
   logger.debug("Testing basic json equal");
