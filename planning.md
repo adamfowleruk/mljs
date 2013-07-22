@@ -2,12 +2,13 @@
 
 ## Upcoming releases
 
-Targets for 0.7 (May 2013 tidy up edition) 
+Targets for 0.8 (Jul 2013)
  - IN PROGRESS Widgets: Search widgets, and overarching search page widget UI layer over mljs in browser, including custom result rendering plugins (search bar, facets, results, paging, sorting)
   - Sorting widget actions
   - More... all... links in facets
   - DONE BUG: one page too many in results if results are multiple of page size (i.e. 30 gives you 4 pages, not 3)
-  - BUG: multi word facet selection causes search to be limited to first word only (no quotes) -> query parser, not facet issue
+  - DONE BUG: multi word facet selection causes search to be limited to first word only (no quotes) -> query parser, not facet issue
+  - Get snippeting mode working by default
  - DONE Core: support XML returned as well as JSON
   - DONE Search result content (within JSON results, not as XML results)
  - DONE Widgets: Update search samples to include one set of mixed XML and JSON documents
@@ -19,9 +20,13 @@ Targets for 0.7 (May 2013 tidy up edition)
  - DONE Tests: Refactor to use alternate testing framework
  - DONE Core: Return and add binary documents
  - DONE Core: Return and add plain text documents
- - EA 1 support
-  - TEST Add/delete/modify/replace named graphs
-  - IN PROGRESS Interactive SPARQL query builder and result handler (including paging, linking to document search, restrict by collection, other document search criteria)
+ - DONE EA 1 support
+  - DONE TEST Add/delete/modify/replace named graphs
+  - DONE IN PROGRESS Interactive SPARQL query builder and result handler (including paging, linking to document search, restrict by collection, other document search criteria)
+ - DONE Get collections starting with a URI (values query helper method)
+ - DONE Rename all to MLJS form mldb
+  
+Floating as and when
  - IN PROGRESS REST extensions
   - DONE DLS declare document as a record
   - DLS list all documents in a record collection
@@ -32,11 +37,8 @@ Targets for 0.7 (May 2013 tidy up edition)
   - DLS add retention rule
   - Browser: DLS add retention rule widget
   - DONE Browser: DLS declare search results as record widget
- - DONE Get collections starting with a URI (values query helper method)
-
-Targets for 0.8 (Jun 2013)
- - IN PROGRESS Docs: Samples for XML use, equivalent to some of the existing JSON samples (not exhaustive)
- - Rename all to MLJS form mljs
+ 
+Targets for 1.0 (Aug 2013)
  - Widgets: D3.js network diagram
  - Widgets: Charts widget to support aggregations via search options
  - Widgets: Charts widget to support extraction of XML info via XPath
@@ -54,8 +56,6 @@ Targets for 0.8 (Jun 2013)
  - NodeJS: SSL Basic + Digest
  - NodeJS: SSL no auth (default user)
  - NodeJS: Support 'anyauth' option, much like curl (i.e. auth method auto detection)
-
-Targets for 1.0 (Aug 2013)
  - Support current functionality against MarkLogic V7
  - New V7 functionality (as and when required)
   - Dynamic search options
@@ -63,12 +63,11 @@ Targets for 1.0 (Aug 2013)
  - Widgets: Support for using widgets in non ML 6 REST webapps, and embedding widgets remotely, via W3C CORS support (i.e. cross site support)
  - Widgets: Create search context object, and make search widgets responsible for registering themselves with it. Refactor search execution code in to here.
  - Widgets: Navigable charts / co-occurence - clicking sets facet value
- - More support for server management (namespaces, indexes, service extensions, update REST instance configuration, XSLT transform management)
- - Widgets: Administration widgets (mainly aimed at pre-sales developers, not sysadmins)
- - Support nested cts:search (if possible)
- - CSV and TSV utilities
 
 Targets for 1.2 (Oct 2013)
+ - More support for server management (namespaces, indexes, service extensions, update REST instance configuration, XSLT transform management)
+ - Widgets: Administration widgets (mainly aimed at pre-sales developers, not sysadmins)
+ - CSV and TSV utilities
  - support arbitrary XPath for searches (if possible)
  - allow upload and use of XSLT for result transform
  - Widget: Table - allow binding of JSON search results to jQuery table (for example)
@@ -88,6 +87,8 @@ Targets for 1.2 (Oct 2013)
 Not applicable / dropped / postponed targets
  - N/A sensible to/from json settings (Default on &format=json on server)
  - N/A documented on WIKI - Generate JavaScript API docs and publish somewhere browseable on the web
+ - N/A Support nested cts:search (if possible)
+ - N/A (We use JSON EXCLUSIVELY for configuration, XML only appears in errors and search result content) - Samples for XML use, equivalent to some of the existing JSON samples (not exhaustive)
  
 ## Past Releases
 
