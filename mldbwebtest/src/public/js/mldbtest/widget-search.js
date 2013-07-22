@@ -258,15 +258,21 @@ com.marklogic.widgets.searchbar.prototype._parseQuery = function(q) {
   var text = "";
   var facets = new Array();
   var sort = null;
-  var parts = q.split(" "); // TODO handle spaces in facet values
+  var parts = q.trim().split(" "); // TODO handle spaces in facet values
   for (var i = 0;i < parts.length;i++) {
+    mljs.defaultconnection.logger.debug("searchbar._parseQuery: parts[" + i + "]: " + parts[i]);
     var newIdx = i;
-    if (-1 != parts[i].indexOf(":\"")) {
-      // find end of quote
+    var colonQuote = parts[i].indexOf(":\"");
+    var finalQuote = parts[i].indexOf("\"",colonQuote + 2);
+    mljs.defaultconnection.logger.debug("searchbar._parseQuery: colonQuote: " + colonQuote + ", finalQuote: " + finalQuote);
+    if (-1 != colonQuote && -1 == finalQuote) { // found first quote without end quote
       do {
         newIdx++;
-        parts[i] = parts[i] + " " + parts[newIdx];
-      } while (parts[newIdx].indexOf("\"") != parts[newIdx].length - 1 && newIdx < parts.length);
+        if (undefined != parts[newIdx]) {
+          parts[i] = parts[i] + " " + parts[newIdx];
+        }
+      } while (newIdx < parts.length && parts[newIdx].indexOf("\"") != parts[newIdx].length - 1);
+      mljs.defaultconnection.logger.debug("searchbar._parseQuery: parts[" + i + "] now: " + parts[i]);
     }
       if (0 == parts[i].indexOf(this.sortWord + ":")) {
         sort = parts[i].substring(5);
@@ -346,12 +352,12 @@ com.marklogic.widgets.searchbar.prototype.__doquery = function(q,start) {
   }
   
   // cleanse query value first
-  mljs.defaultconnection.logger.debug("Query before: " + q);
+  mljs.defaultconnection.logger.debug("Query before: '" + q + "'");
   var parsed = self._parseQuery(q);
-  mljs.defaultconnection.logger.debug("Query parsed: " + JSON.stringify(parsed));
+  mljs.defaultconnection.logger.debug("Query parsed: '" + JSON.stringify(parsed) + "'");
   var cq = self._queryToText(parsed);
   q = cq;
-  mljs.defaultconnection.logger.debug("Query after: " + cq);
+  mljs.defaultconnection.logger.debug("Query after: '" + cq + "'");
   document.getElementById(this.container + "-searchinput").value = cq;
   
   self.facetsPublisher.publish(parsed.facets);

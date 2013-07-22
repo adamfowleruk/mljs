@@ -19,11 +19,6 @@ declare option xdmp:mapping "false";
   let $stuff := vh:get("stuff")
 :)
 
-<div xmlns="http://www.w3.org/1999/xhtml" class="mldbtest popmovies">
-<script type="text/javascript" src="/js/lib/jquery-1.7.1.min.js"></script>
-<script type="text/javascript" src="/js/mldbtest/mljs.js"></script>
-<script type="text/javascript" src="/js/mldbtest/mljs-xhr2.js"></script>
-<script type="text/javascript" src="/js/mldbtest/page-populate-movies.js"></script>
-
-  <p id="log">Log info goes here</p>
+<div xmlns="http://www.w3.org/1999/xhtml" class="mldbtest main">
+  <p>This Controller gives you many test functions for the MLJS library. Use the navigation above to try out the tests.</p>
 </div>

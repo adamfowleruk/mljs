@@ -21,8 +21,8 @@ declare option xdmp:mapping "false";
 
 <div xmlns="http://www.w3.org/1999/xhtml" class="mldbtest start">
 <script type="text/javascript" src="/js/lib/jquery-1.7.1.min.js"></script>
-<script type="text/javascript" src="/js/mldbtest/mldb.js"></script>
-<script type="text/javascript" src="/js/mldbtest/mldb-jquery.js"></script>
+<script type="text/javascript" src="/js/mldbtest/mljs.js"></script>
+<script type="text/javascript" src="/js/mldbtest/mljs-xhr2.js"></script>
 <script type="text/javascript" src="/js/mldbtest/page-start.js"></script>
 
   <p id="log">Log info goes here</p>

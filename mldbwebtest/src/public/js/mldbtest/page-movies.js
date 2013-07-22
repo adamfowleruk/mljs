@@ -41,7 +41,7 @@ $(document).ready(function() {
 */
   var coag = new com.marklogic.widgets.cooccurence("coag");
   coag.title = "Actor vs. Movie Genre";
-  coag.setOptions(ag);
+  //coag.setOptions(ag);
 /*
   var ay = {
     "options": {
@@ -71,7 +71,7 @@ $(document).ready(function() {
 
   var coay = new com.marklogic.widgets.cooccurence("coay");
   coay.title = "Actor vs. Movie Year";
-  coay.setOptions(ag);
+  //coay.setOptions(ag);
   
   var query = {
     query: {

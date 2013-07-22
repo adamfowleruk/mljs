@@ -23,8 +23,8 @@ declare option xdmp:mapping "false";
 
 <link rel="stylesheet" type="text/css" href="/js/mldbtest/widgets.css" />
 <script type="text/javascript" src="/js/lib/jquery-1.7.1.min.js"></script>
-<script type="text/javascript" src="/js/mldbtest/mldb.js"></script>
-<script type="text/javascript" src="/js/mldbtest/mldb-jquery.js"></script>
+<script type="text/javascript" src="/js/mldbtest/mljs.js"></script>
+<script type="text/javascript" src="/js/mldbtest/mljs-xhr2.js"></script>
 
 <script type="text/javascript" src="/js/mldbtest/widgets.js"></script>
 <script type="text/javascript" src="/js/mldbtest/highcharts.js"></script>

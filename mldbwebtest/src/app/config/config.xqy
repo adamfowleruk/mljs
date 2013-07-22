@@ -52,6 +52,13 @@ declare variable $c:ROXY-OPTIONS :=
  :)
 declare variable $c:ROXY-ROUTES :=
   <routes xmlns="http://marklogic.com/appservices/rest">
+  	      <request uri="^/$" endpoint="/roxy/query-router.xqy">
+  	        <uri-param name="controller">mldbtest</uri-param>
+  	        <uri-param name="func">main</uri-param>
+  	        <uri-param name="format">html</uri-param>
+  	        <http method="GET"/>
+  	        <http method="HEAD"/>
+  	      </request>
     <request uri="^/my/awesome/route" />
     {
       $def:ROXY-ROUTES/rest:request
