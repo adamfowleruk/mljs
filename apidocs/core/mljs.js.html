@@ -3142,7 +3142,513 @@ mljs.prototype.query.prototype.uris = function(constraint_name,uris) {
 /*
 mljs.prototype.query = function() {
   return new mljs.prototype.query();
-};*/</code></pre>
+};*/
+
+
+
+
+/**
+ * Provides objects for generic event publish-subscribe workflows
+ */
+
+com = window.com || {};
+com.marklogic = window.com.marklogic || {};
+com.marklogic.events = {};
+
+// EVENT
+
+com.marklogic.events.Event = function(type,data) {
+  this.type = type;
+  this.data = data;
+};
+
+// PUBLISHER
+
+com.marklogic.events.Publisher = function() {
+  this.listeners = new Array();
+};
+
+com.marklogic.events.Publisher.prototype.subscribe = function(listener) {
+  this.listeners.push(listener);
+};
+
+com.marklogic.events.Publisher.prototype.unsubscribe = function(listener) {
+  var newArr = new Array();
+  for (var i = 0;i &lt; this.listeners.length;i++) {
+    if (listener != this.listeners[i]) {
+      newArr.push(this.listeners[i]);
+    }
+  }
+  this.listeners = newArr;
+};
+
+
+com.marklogic.events.Publisher.prototype.publish = function(event) {
+  for (var i = 0;i &lt; this.listeners.length;i++) {
+    this.listeners[i](event);
+  }
+};
+
+
+
+
+
+
+
+
+mljs.prototype.searchcontext = function() {
+  this._optionsbuilder = new mljs.prototype.options();
+  
+  this._querybuilder = new mljs.prototype.query();
+  
+  this._query = {};
+  this.simplequery = "";
+  
+  this.sortWord = "sort";
+  this.defaultQuery = ""; // should be set E.g. to "sort:relevance"
+  
+  this.optionsName = mljs.__dogenid();
+  this.optionsExists = false;
+  this.optionssavemode = "persist"; // persist or dynamic (v7 only)
+  
+  this.collection = null;
+  this.directory = null;
+  this.transform = null;
+  this.format = null;
+  
+  this._options = {
+                      options: {
+                        "return-results": true,
+                        "page-length": 10,
+                        "transform-results": {
+                          apply: "raw"/*, ns: "http://marklogic.com/rest-api/transform/transformresultsjson", at: "/modules/transform-results-json.xqy"*/
+                        },
+                        constraint: [
+                        {
+        "name": "collection",
+        "collection": {
+          "prefix": ""
+        }
+      } // other constraints here
+      ]
+                      }
+  };
+  
+  // set up event handlers
+  this.optionsPublisher = new com.marklogic.events.Publisher(); // updated search options JSON object, for parsing not storing a copy
+  this.resultsPublisher = new com.marklogic.events.Publisher(); // publishes search results (including facet values)
+  this.facetsPublisher = new com.marklogic.events.Publisher(); // publishese facets selection changes
+  this.sortPublisher = new com.marklogic.events.Publisher(); // publishes sort changes (from query bar)
+  this.errorPublisher = new com.marklogic.events.Publisher(); // errors occuring at search time
+  this.simpleQueryPublisher = new com.marklogic.events.Publisher(); // simple query text
+  
+  
+  // set default connection
+  this.db = mljs.defaultconnection;
+};
+
+
+/**
+ * Sets the name of the search transform to use. See GET /v1/search
+ * @param {string} t - The transform name to use
+ */
+mljs.prototype.searchcontext.prototype.setTransform = function(t) {
+  this.transform = t;
+};
+
+/**
+ * Sets the format to use. If not specified, defaults to json
+ * 
+ * @param {string} format - The format to use (json or xml)
+ */
+mljs.prototype.searchcontext.prototype.setFormat = function(f) {
+  this.format = f;
+};
+
+/**
+ * Sets the collection to restrict search results by on the fly. See GET /v1/search
+ * 
+ * @param {string} col - the collection name, or comma delimited collection names, to restrict the search results to
+ */
+mljs.prototype.searchcontext.prototype.setCollection = function(col) {
+  this.collection = col;
+};
+
+/**
+ * Restricts search results by the directory a document is within. See GET /v1/search
+ * 
+ * @param {string} dir - Directory base uri
+ */
+mljs.prototype.searchcontext.prototype.setDirectory = function(dir) {
+  this.directory = dir;
+};
+
+/**
+ * Sets to options object to use. By default on V6 this will be persisted to the server. 
+ * In V7 this will be passed on the fly to MarkLogic.
+ * 
+ * @param {JSON} options - The REST API JSON search options object to use
+ */
+mljs.prototype.searchcontext.prototype.setOptions = function(name,options) {
+  this.optionsName = name;
+  this.options = options;
+  this.optionsExists = false;
+  
+  this.optionsPublisher.publish(this.options);
+  
+  // TODO support V7 dynamic query options capability rather than always saving
+  
+  // check if options exist
+  var self = this;
+  if ("persist" == this.optionssavemode) {
+    self.db.searchoptions(name,function(result) {
+      self.db.logger.debug("RESULT: " + JSON.stringify(result.doc));
+      if (result.inError) {
+        self.db.logger.debug("Search options " + name + " do not exist on the server. Search bar widget will auto create them on next search.");
+        self.db.logger.debug("ERROR: " + JSON.stringify(result.details));
+      } else {
+        // no error, do nothing (dependant objects fetch options dynamically)
+      }
+    });
+  }
+};
+
+/**
+ * Sets the default query. Should be set to non blank, E.g. "sort:relevance"
+ * @param {string} defQuery - Default string query to use
+ */
+mljs.prototype.searchcontext.prototype.setDefaultQuery = function(defQuery) {
+  this.defaultQuery = defQuery;
+  if (null == this.simplequery || undefined == this.simplequery || "".equals(this.simplequery.trim())) {
+    this.simpleQueryPublisher.publish(this.defaultQuery); // don't search yet though
+  } else {
+    this.simpleQueryPublisher.publish(this.simplequery);
+  }
+};
+
+/**
+ * Sets the underlying mljs connection to use
+ * 
+ * @param {mljs} connection - The mljs connection instance to use.
+ */
+mljs.prototype.searchcontext.prototype.setConnection = function(connection) {
+  this.db = connection;
+};
+
+mljs.prototype.searchcontext.prototype.register = function(searchWidget) {
+  // TODO introspect widget for update functions
+  if ('function' === typeof(searchWidget.setContext)) {
+    searchWidget.setContext(this);
+  }
+  if ('function' === typeof(searchWidget.updatePage)) {
+    this.resultsPublisher.subscribe(function (results) {searchWidget.updatePage(results);});
+  }
+  if ('function' === typeof(searchWidget.updateResults)) {
+    this.resultsPublisher.subscribe(function (results) {searchWidget.updateResults(results);});
+  }
+  if ('function' === typeof(searchWidget.updateSort)) {
+    this.sortPublisher.subscribe(function (sort) {searchWidget.updateSort(sort);});
+  }
+  if ('function' === typeof(searchWidget.updateSimpleQuery)) {
+    this.simpleQueryPublisher.subscribe(function (q) {searchWidget.updateSimpleQuery(q);});
+  }
+  if ('function' === typeof(searchWidget.updateFacets)) {
+    this.resultsPublisher.subscribe(function (results) {searchWidget.updateFacets(results);});
+  }
+  if ('function' === typeof(searchWidget.updateOptions)) {
+    this.optionsPublisher.subscribe(function (options) {searchWidget.updateOptions(options);});
+  }
+  var self = this;
+  if ('function' === typeof(searchWidget.addSortListener)) {
+    searchWidget.addSortListener(function (sort) {self.updateSort(sort);});
+  }
+  if ('function' === typeof(searchWidget.addFacetSelectionListener)) {
+    searchWidget.addFacetSelectionListener(function (facet) {self.updateFacets(facet);});
+  }
+  if ('function' === typeof(searchWidget.addPageListener)) {
+    searchWidget.addPageListener(function (page) {self.updatePage(page);});
+  }
+};
+
+mljs.prototype.searchcontext.prototype._parseQuery = function(q) {
+  var text = "";
+  var facets = new Array();
+  var sort = null;
+  var parts = q.trim().split(" "); // TODO handle spaces in facet values
+  for (var i = 0;i &lt; parts.length;i++) {
+    this.db.logger.debug("searchbar._parseQuery: parts[" + i + "]: " + parts[i]);
+    var newIdx = i;
+    var colonQuote = parts[i].indexOf(":\"");
+    var finalQuote = parts[i].indexOf("\"",colonQuote + 2);
+    this.db.logger.debug("searchbar._parseQuery: colonQuote: " + colonQuote + ", finalQuote: " + finalQuote);
+    if (-1 != colonQuote && -1 == finalQuote) { // found first quote without end quote
+      do {
+        newIdx++;
+        if (undefined != parts[newIdx]) {
+          parts[i] = parts[i] + " " + parts[newIdx];
+        }
+      } while (newIdx &lt; parts.length && parts[newIdx].indexOf("\"") != parts[newIdx].length - 1);
+      this.db.logger.debug("searchbar._parseQuery: parts[" + i + "] now: " + parts[i]);
+    }
+      if (0 == parts[i].indexOf(this.sortWord + ":")) {
+        sort = parts[i].substring(5);
+      } else if (-1 != parts[i].indexOf(":")) {
+        this.db.logger.debug("FOUND A FACET IN QUERY: " + parts[i]);
+        var fv = parts[i].split(":");
+        this.db.logger.debug("Facet name: " + fv[0] + " value: " + fv[1]);
+        if (0 == fv[1].indexOf("\"")) {
+          fv[1] = fv[1].substring(1);
+          if ((fv[1].length - 1) == fv[1].indexOf("\"")) {
+            fv[1] = fv[1].substring(0,fv[1].length-1);
+          }
+        }
+        this.db.logger.debug("Facet info now name: " + fv[0] + " value: " + fv[1]);
+        var found = false;
+        for (var f = 0;f &lt; facets.length;f++) {
+          if (facets[f].name == fv[0]) {
+            // replace value
+            facets[f].value = fv[1];
+            found = true;
+          }
+        }
+        if (!found) {
+          facets.push({name: fv[0], value: fv[1]});
+        }
+      
+    } else {
+      text += " " + parts[i];
+    }
+    i = newIdx;
+  }
+  return {q: text.trim(),facets: facets,sort: sort};
+};
+
+
+mljs.prototype.searchcontext.prototype._queryToText = function(parsed) {
+  var q = parsed.q;
+  if (null != parsed.sort) {
+    q += " " + this.sortWord + ":" + parsed.sort;
+  }
+  for (var i = 0;i &lt; parsed.facets.length;i++) {
+    q += " " + parsed.facets[i].name + ":\"" + parsed.facets[i].value + "\"";
+  }
+  return q;
+};
+
+mljs.prototype.searchcontext.prototype.dosimplequery = function(q,start) {
+  if (null == q || undefined == q) {
+    q = "";
+  }
+  
+  
+  var self = this;
+  self.resultsPublisher.publish(true); // forces refresh glyph to show
+  self.facetsPublisher.publish(true);
+  var ourstart = 1;
+  if (0 != start && undefined != start) {
+    ourstart = start;
+  }
+  
+  // cleanse query value first
+  this.db.logger.debug("Query before: '" + q + "'");
+  
+  var parsed = self._parseQuery(q);
+  
+  this.db.logger.debug("Query parsed: '" + JSON.stringify(parsed) + "'");
+  var cq = self._queryToText(parsed);
+  q = cq;
+  this.db.logger.debug("Query after: '" + cq + "'");
+  
+  // check for blank
+  if ("" == cq.trim()) {
+    this.simplequery = this.defaultQuery;
+  } else {
+    this.simplequery = cq;
+  }
+  
+  this.simpleQueryPublisher.publish(this.simplequery);
+  
+  self.facetsPublisher.publish(parsed.facets);
+  
+  var dos = function() {
+   // fetch results (and update facets, sort)
+   var sprops = {};
+   if (null != self.collection) {
+     sprops.collection = self.collection;
+   }
+   if (null != self.directory) {
+     sprops.directory = self.directory;
+   }
+   if (null != self.transform) {
+     sprops.transform = self.transform;
+   }
+   if (null != self.format) {
+     sprops.format = self.format;
+   }
+   self.db.search(q,self.optionsName,ourstart,sprops,function(result) { 
+    if (result.inError) {
+      // report error on screen somewhere sensible (e.g. under search bar)
+      self.db.logger.debug(result.error);
+      // TODO show error div below search div with message
+      self.resultsPublisher.publish(false); // hides refresh glyth on error
+    } else {
+      self.resultsPublisher.publish(result.doc);
+    }
+   });
+  };
+  
+  // check for options existance
+  if (!this.optionsExists) {
+    this.db.logger.debug("searchbar: Saving search options prior to query");
+    this.db.saveSearchOptions(this.optionsName,this.options,function(result) {
+      if (result.inError) {
+        // TODO log error somewhere sensible on screen
+        self.db.logger.debug("Exception saving results: " + result.details);
+      } else {
+        self.optionsExists = true; // to stop overwriting on subsequent requests
+        dos();
+      }
+    });
+  } else {
+    dos();
+  }
+  
+};
+
+/**
+ * Specifies the sort word from the search options to use to sort the results on the next search
+ * 
+ * @param {string} word - The sort option to use
+ */
+mljs.prototype.searchcontext.prototype.setSortWord = function(word) {
+  this.sortWord = word;
+};
+
+/**
+ * Add a results listener.
+ * 
+ * @param {function(results)} rl - Results listener to add
+ */
+mljs.prototype.searchcontext.prototype.addResultsListener = function(rl) {
+  this.resultsPublisher.subscribe(rl);
+};
+
+/**
+ * Remove a results listener
+ * 
+ * @param {function(results)} rl - The result listener function to remove.
+ */
+mljs.prototype.searchcontext.prototype.removeResultsListener = function(rl) {
+  this.resultsPublisher.unsubscribe(rl);
+};
+
+/**
+ * Adds a sort listener to this widget.
+ * 
+ * @param {function(string)} sl - The sort listener to add
+ */
+mljs.prototype.searchcontext.prototype.addSortListener = function(sl) {
+  this.sortPublisher.subscribe(sl);
+};
+
+/**
+ * Removes a sort listener
+ * 
+ * @param {function(string)} sl - The sort listener to remove
+ */
+mljs.prototype.searchcontext.prototype.removeSortListener = function(sl) {
+  this.sortPublisher.unsubscribe(sl);
+};
+
+/**
+ * Adds a facet listener to this widget. Normally you'd use a results listener instead in order to get more context.
+ * 
+ * @param {function(facetValues)} fl - The Facet Listener to add
+ */
+mljs.prototype.searchcontext.prototype.addFacetsListener = function(fl) {
+  this.facetsPublisher.subscribe(fl);
+};
+
+/**
+ * Removes a facet listener
+ * 
+ * @param {function(facetValues)} fl - The Facet Listener to remove
+ */
+mljs.prototype.searchcontext.prototype.removeFacetsListener = function(fl) {
+  this.facetsPublisher.unsubscribe(fl);
+};
+
+/**
+ * Adds an error listener to this widget
+ * 
+ * @param {function(error)} fl - The error listener to add
+ */
+mljs.prototype.searchcontext.prototype.addErrorListener = function(fl) {
+  this.errorPublisher.subscribe(fl);
+};
+
+/**
+ * Removes an error listener
+ * 
+ * @param {function(error)} fl - The error listener to remove
+ */
+mljs.prototype.searchcontext.prototype.removeErrorListener = function(fl) {
+  this.errorPublisher.unsubscribe(fl);
+};
+
+/**
+ * Event target. Useful to call directly from a Search Facets widget upon selection of a facet value. Executes a new search.
+ * facetSelection = {name: facetName, value: facetValue}
+ * @param {facetSelection} facetSelection - The facet value to restrict the search results by. 
+ */
+mljs.prototype.searchcontext.prototype.updateFacets = function(facetSelection) {
+  var parsed = this._parseQuery(this.simplequery);
+  parsed.facets = facetSelection;
+  
+  var q = this._queryToText(parsed);
+  
+  this.dosimplequery(q);
+};
+
+/**
+ * Event target. Useful to call directly from a search pager widget. Executes a new search
+ * json = {show: number, start: number}
+ * @param {JSON} json - JSON representing the start result and the number of results to return per page.
+ */
+mljs.prototype.searchcontext.prototype.updatePage = function(json) {
+  // example: {start: this.start, show: this.perPage}
+  if (this.options.options["page-length"] != json.show) {
+    this.optionsExists = false; // force re save of options
+    this.options.options["page-length"] = json.show;
+  }
+  this.dosimplequery(this.simplequery,json.start);
+};
+
+/**
+ * Event Target. Useful for linking to a search sorter. Updates the sort word and executes a search.
+ * 
+ * @param {string} sortSelection - The sort word. Relates to the search options used.
+ */
+mljs.prototype.searchcontext.prototype.updateSort = function(sortSelection) {
+  // TODO remove any existing sort
+  this.simplequery += " " + this.sortWord + ":\"" + sortSelection + "\"";
+  
+  this.dosimplequery(this.simplequery);
+};
+
+/**
+ * Resets the search bar input box. Resets all dependant search results/facets/pager/sorters too.
+ */
+mljs.prototype.searchcontext.prototype.reset = function() {
+  // clear search bar text
+  // send update to results and facets and sort
+  this.resultsPublisher.publish(null);
+  this.facetsPublisher.publish(null); // TODO verify this is the right element to send
+  this.sortPublisher.publish(null); // order default sort
+  this.simpleQueryPublisher.publish(this.defaultQuery);
+};
+
+</code></pre>
         </article>
     </section>
 
@@ -3152,13 +3658,13 @@ mljs.prototype.query = function() {
 </div>
 
 <nav>
-    <h2><a href="index.html">Index</a></h2><h3>Classes</h3><ul><li><a href="BasicWrapper.html">BasicWrapper</a></li><li><a href="DigestWrapper.html">DigestWrapper</a></li><li><a href="mljs.html">mljs</a></li><li><a href="options.html">options</a></li><li><a href="query.html">query</a></li><li><a href="PassThroughWrapper.html">PassThroughWrapper</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-all.html">all</a></li><li><a href="tutorial-browser-create-app.html">browser-create-app</a></li><li><a href="tutorial-samples.html">samples</a></li></ul><h3>Global</h3><ul><li><a href="global.html#padNC">padNC</a></li><li><a href="global.html#parseDigest">parseDigest</a></li><li><a href="global.html#textToXML">textToXML</a></li><li><a href="global.html#xmlToJson">xmlToJson</a></li><li><a href="global.html#xmlToJsonSearchResults">xmlToJsonSearchResults</a></li><li><a href="global.html#xmlToJsonStrict">xmlToJsonStrict</a></li></ul>
+    <h2><a href="index.html">Index</a></h2><h3>Classes</h3><ul><li><a href="BasicWrapper.html">BasicWrapper</a></li><li><a href="DigestWrapper.html">DigestWrapper</a></li><li><a href="mljs.html">mljs</a></li><li><a href="options.html">options</a></li><li><a href="query.html">query</a></li><li><a href="PassThroughWrapper.html">PassThroughWrapper</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-all.html">all</a></li><li><a href="tutorial-browser-create-app.html">browser-create-app</a></li><li><a href="tutorial-samples.html">samples</a></li></ul><h3>Global</h3><ul><li><a href="global.html#com">com</a></li><li><a href="global.html#padNC">padNC</a></li><li><a href="global.html#parseDigest">parseDigest</a></li><li><a href="global.html#textToXML">textToXML</a></li><li><a href="global.html#xmlToJson">xmlToJson</a></li><li><a href="global.html#xmlToJsonSearchResults">xmlToJsonSearchResults</a></li><li><a href="global.html#xmlToJsonStrict">xmlToJsonStrict</a></li></ul>
 </nav>
 
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Mon Jul 22 2013 22:02:29 GMT+0100 (BST)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Tue Jul 23 2013 02:52:38 GMT+0100 (BST)
 </footer>
 
 <script> prettyPrint(); </script>
