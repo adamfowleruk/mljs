@@ -3,12 +3,13 @@
 ## Upcoming releases
 
 Targets for 0.8 (Jul 2013)
+ - DONE Core+Widgets: Create search context object, and make search widgets responsible for registering themselves with it. Refactor search execution code in to here. (Required for Sort widget)
  - IN PROGRESS Widgets: Search widgets, and overarching search page widget UI layer over mljs in browser, including custom result rendering plugins (search bar, facets, results, paging, sorting)
-  - Sorting widget actions
-  - More... all... links in facets
+  - IN PROGRESS Widgets: Sorting widget actions
+  - IN PROGRESS Widgets: More... all... links in facets
   - DONE BUG: one page too many in results if results are multiple of page size (i.e. 30 gives you 4 pages, not 3)
   - DONE BUG: multi word facet selection causes search to be limited to first word only (no quotes) -> query parser, not facet issue
-  - Get snippeting mode working by default
+  - Widgets: Get snippeting mode working by default
  - DONE Core: support XML returned as well as JSON
   - DONE Search result content (within JSON results, not as XML results)
  - DONE Widgets: Update search samples to include one set of mixed XML and JSON documents
@@ -17,6 +18,7 @@ Targets for 0.8 (Jul 2013)
  - DONE Browser: XMLHttpRequest (xhr) binding
  - DONE Browser: XmlHttpRequest2 (xhr2) binding
  - Tests: Test samples for xml content
+ - Integrate error widget on each demo page
  - DONE Tests: Refactor to use alternate testing framework
  - DONE Core: Return and add binary documents
  - DONE Core: Return and add plain text documents
@@ -61,7 +63,6 @@ Targets for 1.0 (Aug 2013)
   - Dynamic search options
   - Alerting
  - Widgets: Support for using widgets in non ML 6 REST webapps, and embedding widgets remotely, via W3C CORS support (i.e. cross site support)
- - Widgets: Create search context object, and make search widgets responsible for registering themselves with it. Refactor search execution code in to here.
  - Widgets: Navigable charts / co-occurence - clicking sets facet value
 
 Targets for 1.2 (Oct 2013)

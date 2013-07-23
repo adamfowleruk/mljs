@@ -98,6 +98,9 @@ com.marklogic.widgets.searchhelper.camelcase = function(value,mode) {
 
 
 
+
+
+
 // SEARCH BAR ELEMENT
 
 /**
@@ -109,40 +112,8 @@ com.marklogic.widgets.searchbar = function(container) {
     com.marklogic.widgets.searchbar.list = new Array(); // [containerID] -> searchbar widget
   }
   this.container = container;
-  this.sortWord = "sort";
-  this.defaultQuery = ""; // should be set E.g. to "sort:relevance"
   
-  this.optionsName = mljs.__dogenid();
-  this.optionsExists = false;
-  
-  this.collection = null;
-  this.directory = null;
-  this.transform = null;
-  this.format = null;
-  
-  this.options = {
-                      options: {
-                        "return-results": true,
-                        "page-length": 10,
-                        "transform-results": {
-                          apply: "raw"/*, ns: "http://marklogic.com/rest-api/transform/transformresultsjson", at: "/modules/transform-results-json.xqy"*/
-                        },
-                        constraint: [
-                        {
-        "name": "collection",
-        "collection": {
-          "prefix": ""
-        }
-      } // other constraints here
-      ]
-                      }
-  };
-  
-  // set up event handlers
-  this.resultsPublisher = new com.marklogic.events.Publisher(); // publishes search results (including facet values)
-  this.facetsPublisher = new com.marklogic.events.Publisher(); // publishese facets selection changes
-  this.sortPublisher = new com.marklogic.events.Publisher(); // publishes sort changes (from query bar)
-  this.errorPublisher = new com.marklogic.events.Publisher(); // errors occuring at search time
+  this.ctx = new mljs.prototype.searchcontext();
   
   // draw widget within container
   mljs.defaultconnection.logger.debug("adding search bar html");
@@ -158,86 +129,6 @@ com.marklogic.widgets.searchbar = function(container) {
   var self = this;
   document.getElementById(container + "-submit").onclick = function() {self._dosearch(self);}; // TODO Check this is valid
   mljs.defaultconnection.logger.debug("added submit click handler");
-  
-  // set default connection
-  this.db = mljs.defaultconnection;
-};
-
-/**
- * Sets the name of the search transform to use. See GET /v1/search
- * @param {string} t - The transform name to use
- */
-com.marklogic.widgets.searchbar.prototype.setTransform = function(t) {
-  this.transform = t;
-};
-
-/**
- * Sets the format to use. If not specified, defaults to json
- * 
- * @param {string} format - The format to use (json or xml)
- */
-com.marklogic.widgets.searchbar.prototype.setFormat = function(f) {
-  this.format = f;
-};
-
-/**
- * Sets the collection to restrict search results by on the fly. See GET /v1/search
- * 
- * @param {string} col - the collection name, or comma delimited collection names, to restrict the search results to
- */
-com.marklogic.widgets.searchbar.prototype.setCollection = function(col) {
-  this.collection = col;
-};
-
-/**
- * Restricts search results by the directory a document is within. See GET /v1/search
- * 
- * @param {string} dir - Directory base uri
- */
-com.marklogic.widgets.searchbar.prototype.setDirectory = function(dir) {
-  this.directory = dir;
-};
-
-/**
- * Sets to options object to use. By default on V6 this will be persisted to the server. 
- * In V7 this will be passed on the fly to MarkLogic.
- * 
- * @param {JSON} options - The REST API JSON search options object to use
- */
-com.marklogic.widgets.searchbar.prototype.setOptions = function(options) {
-  this.options = options;
-  this.optionsExists = false;
-};
-
-/**
- * Sets the name of the options object to refer to. This will be used by every search in this widget.
- * 
- * @param {string} name - Search options object's name
- */
-com.marklogic.widgets.searchbar.prototype.setOptionsName = function(name) {
-  this.optionsName = name;
-};
-
-/**
- * Sets the default query. Should be set to non blank, E.g. "sort:relevance"
- * @param {string} defQuery - Default string query to use
- */
-com.marklogic.widgets.searchbar.prototype.setDefaultQuery = function(defQuery) {
-  this.defaultQuery = defQuery;
-  var qel = document.getElementById(this.container + "-searchinput");
-  var q = qel.getAttribute("value");
-  if (null == q || undefined == q || "".equals(q.trim())) {
-    qel.setAttribute("value",this.defaultQuery); // don't search yet though
-  }
-};
-
-/**
- * Sets the underlying mljs connection to use
- * 
- * @param {mljs} connection - The mljs connection instance to use.
- */
-com.marklogic.widgets.searchbar.prototype.setConnection = function(connection) {
-  this.db = connection;
 };
 
 com.marklogic.widgets.searchbar.__dosearch = function(submitelement) {
@@ -254,75 +145,12 @@ com.marklogic.widgets.searchbar.__dosearch = function(submitelement) {
   }
 };
 
-com.marklogic.widgets.searchbar.prototype._parseQuery = function(q) {
-  var text = "";
-  var facets = new Array();
-  var sort = null;
-  var parts = q.trim().split(" "); // TODO handle spaces in facet values
-  for (var i = 0;i < parts.length;i++) {
-    mljs.defaultconnection.logger.debug("searchbar._parseQuery: parts[" + i + "]: " + parts[i]);
-    var newIdx = i;
-    var colonQuote = parts[i].indexOf(":\"");
-    var finalQuote = parts[i].indexOf("\"",colonQuote + 2);
-    mljs.defaultconnection.logger.debug("searchbar._parseQuery: colonQuote: " + colonQuote + ", finalQuote: " + finalQuote);
-    if (-1 != colonQuote && -1 == finalQuote) { // found first quote without end quote
-      do {
-        newIdx++;
-        if (undefined != parts[newIdx]) {
-          parts[i] = parts[i] + " " + parts[newIdx];
-        }
-      } while (newIdx < parts.length && parts[newIdx].indexOf("\"") != parts[newIdx].length - 1);
-      mljs.defaultconnection.logger.debug("searchbar._parseQuery: parts[" + i + "] now: " + parts[i]);
-    }
-      if (0 == parts[i].indexOf(this.sortWord + ":")) {
-        sort = parts[i].substring(5);
-      } else if (-1 != parts[i].indexOf(":")) {
-        mljs.defaultconnection.logger.debug("FOUND A FACET IN QUERY: " + parts[i]);
-        var fv = parts[i].split(":");
-        mljs.defaultconnection.logger.debug("Facet name: " + fv[0] + " value: " + fv[1]);
-        if (0 == fv[1].indexOf("\"")) {
-          fv[1] = fv[1].substring(1);
-          if ((fv[1].length - 1) == fv[1].indexOf("\"")) {
-            fv[1] = fv[1].substring(0,fv[1].length-1);
-          }
-        }
-        mljs.defaultconnection.logger.debug("Facet info now name: " + fv[0] + " value: " + fv[1]);
-        var found = false;
-        for (var f = 0;f < facets.length;f++) {
-          if (facets[f].name == fv[0]) {
-            // replace value
-            facets[f].value = fv[1];
-            found = true;
-          }
-        }
-        if (!found) {
-          facets.push({name: fv[0], value: fv[1]});
-        }
-      
-    } else {
-      text += " " + parts[i];
-    }
-    i = newIdx;
-  }
-  return {q: text.trim(),facets: facets,sort: sort};
-};
-
-com.marklogic.widgets.searchbar.prototype._queryToText = function(parsed) {
-  var q = parsed.q;
-  if (null != parsed.sort) {
-    q += " " + this.sortWord + ":" + parsed.sort;
-  }
-  for (var i = 0;i < parsed.facets.length;i++) {
-    q += " " + parsed.facets[i].name + ":\"" + parsed.facets[i].value + "\"";
-  }
-  return q;
-};
-
 /**
  * Clears the search string in the input box of this widget
  */
 com.marklogic.widgets.searchbar.prototype.clear = function() {
   document.getElementById(this.container + "-searchinput").value = "";
+  this.ctx.reset();
 };
 
 /**
@@ -330,7 +158,7 @@ com.marklogic.widgets.searchbar.prototype.clear = function() {
  */
 com.marklogic.widgets.searchbar.prototype.execute = function() {
   var q = document.getElementById(this.container + "-searchinput").value;
-  this.__doquery(q);
+  this.ctx.dosimplequery(q);
 };
 
 com.marklogic.widgets.searchbar.prototype._dosearch = function(self) {
@@ -339,215 +167,16 @@ com.marklogic.widgets.searchbar.prototype._dosearch = function(self) {
   
   // TODO parse for Sort and Facets values, and update listeners accordingly (user may remove facets/sort by hand)
   
-  self.__doquery(q);
+  self.ctx.dosimplequery(q);
 };
 
-com.marklogic.widgets.searchbar.prototype.__doquery = function(q,start) {
-  var self = this;
-  self.resultsPublisher.publish(true); // forces refresh glyph to show
-  self.facetsPublisher.publish(true);
-  var ourstart = 1;
-  if (0 != start && undefined != start) {
-    ourstart = start;
-  }
-  
-  // cleanse query value first
-  mljs.defaultconnection.logger.debug("Query before: '" + q + "'");
-  var parsed = self._parseQuery(q);
-  mljs.defaultconnection.logger.debug("Query parsed: '" + JSON.stringify(parsed) + "'");
-  var cq = self._queryToText(parsed);
-  q = cq;
-  mljs.defaultconnection.logger.debug("Query after: '" + cq + "'");
-  document.getElementById(this.container + "-searchinput").value = cq;
-  
-  self.facetsPublisher.publish(parsed.facets);
-  
-  var dos = function() {
-   // fetch results (and update facets, sort)
-   var sprops = {};
-   if (null != self.collection) {
-     sprops.collection = self.collection;
-   }
-   if (null != self.directory) {
-     sprops.directory = self.directory;
-   }
-   if (null != self.transform) {
-     sprops.transform = self.transform;
-   }
-   if (null != self.format) {
-     sprops.format = self.format;
-   }
-   self.db.search(q,self.optionsName,ourstart,sprops,function(result) { // TODO pass start position through, if defined
-    if (result.inError) {
-      // report error on screen somewhere sensible (e.g. under search bar)
-      mljs.defaultconnection.logger.debug(result.error);
-      // TODO show error div below search div with message
-      self.resultsPublisher.publish(false); // hides refresh glyth on error
-    } else {
-      self.resultsPublisher.publish(result.doc);
-    }
-   });
-  };
-  
-  // check for options existance
-  if (!this.optionsExists) {
-    this.db.logger.debug("searchbar: Saving search options prior to query");
-    this.db.saveSearchOptions(this.optionsName,this.options,function(result) {
-      if (result.inError) {
-        // TODO log error somewhere sensible on screen
-        mljs.defaultconnection.logger.debug("Exception saving results: " + result.details);
-      } else {
-        self.optionsExists = true; // to stop overwriting on subsequent requests
-        dos();
-      }
-    });
-  } else {
-    dos();
-  }
-  
+com.marklogic.widgets.searchbar.prototype.updateSimpleQuery = function(q) {
+  document.getElementById(this.container + "-searchinput").setAttribute("value",q);
 };
 
-/**
- * Specifies the sort word from the search options to use to sort the results on the next search
- * 
- * @param {string} word - The sort option to use
- */
-com.marklogic.widgets.searchbar.prototype.setSortWord = function(word) {
-  this.sortWord = word;
+com.marklogic.widgets.searchbar.prototype.setContext = function(context) {
+  this.ctx = context;
 };
-
-/**
- * Add a results listener.
- * 
- * @param {function(results)} rl - Results listener to add
- */
-com.marklogic.widgets.searchbar.prototype.addResultsListener = function(rl) {
-  this.resultsPublisher.subscribe(rl);
-};
-
-/**
- * Remove a results listener
- * 
- * @param {function(results)} rl - The result listener function to remove.
- */
-com.marklogic.widgets.searchbar.prototype.removeResultsListener = function(rl) {
-  this.resultsPublisher.unsubscribe(rl);
-};
-
-/**
- * Adds a sort listener to this widget.
- * 
- * @param {function(string)} sl - The sort listener to add
- */
-com.marklogic.widgets.searchbar.prototype.addSortListener = function(sl) {
-  this.sortPublisher.subscribe(sl);
-};
-
-/**
- * Removes a sort listener
- * 
- * @param {function(string)} sl - The sort listener to remove
- */
-com.marklogic.widgets.searchbar.prototype.removeSortListener = function(sl) {
-  this.sortPublisher.unsubscribe(sl);
-};
-
-/**
- * Adds a facet listener to this widget. Normally you'd use a results listener instead in order to get more context.
- * 
- * @param {function(facetValues)} fl - The Facet Listener to add
- */
-com.marklogic.widgets.searchbar.prototype.addFacetsListener = function(fl) {
-  this.facetsPublisher.subscribe(fl);
-};
-
-/**
- * Removes a facet listener
- * 
- * @param {function(facetValues)} fl - The Facet Listener to remove
- */
-com.marklogic.widgets.searchbar.prototype.removeFacetsListener = function(fl) {
-  this.facetsPublisher.unsubscribe(fl);
-};
-
-/**
- * Adds an error listener to this widget
- * 
- * @param {function(error)} fl - The error listener to add
- */
-com.marklogic.widgets.searchbar.prototype.addErrorListener = function(fl) {
-  this.errorPublisher.subscribe(fl);
-};
-
-/**
- * Removes an error listener
- * 
- * @param {function(error)} fl - The error listener to remove
- */
-com.marklogic.widgets.searchbar.prototype.removeErrorListener = function(fl) {
-  this.errorPublisher.unsubscribe(fl);
-};
-
-/**
- * Event target. Useful to call directly from a Search Facets widget upon selection of a facet value. Executes a new search.
- * facetSelection = {name: facetName, value: facetValue}
- * @param {facetSelection} facetSelection - The facet value to restrict the search results by. 
- */
-com.marklogic.widgets.searchbar.prototype.updateFacets = function(facetSelection) {
-  var q = document.getElementById(this.container + "-searchinput").value;
-  
-  var parsed = this._parseQuery(q);
-  parsed.facets = facetSelection;
-  
-  q = this._queryToText(parsed);
-  
-  this.__doquery(q);
-};
-
-/**
- * Event target. Useful to call directly from a search pager widget. Executes a new search
- * json = {show: number, start: number}
- * @param {JSON} json - JSON representing the start result and the number of results to return per page.
- */
-com.marklogic.widgets.searchbar.prototype.updatePage = function(json) {
-  // example: {start: this.start, show: this.perPage}
-  if (this.options.options["page-length"] != json.show) {
-    this.optionsExists = false; // force re save of options
-    this.options.options["page-length"] = json.show;
-  }
-  var q = document.getElementById(this.container + "-searchinput").value;
-  this.__doquery(q,json.start);
-};
-
-/**
- * Event Target. Useful for linking to a search sorter. Updates the sort word and executes a search.
- * 
- * @param {string} sortSelection - The sort word. Relates to the search options used.
- */
-com.marklogic.widgets.searchbar.prototype.updateSort = function(sortSelection) {
-  // update sort selection, and perform search
-  var q = document.getElementById(this.container + "-searchinput").value;
-  // TODO remove any existing sort
-  q += " " + this.sortWord + ":" + sortSelection;
-  
-  this.__doquery(q);
-};
-
-/**
- * Resets the search bar input box. Resets all dependant search results/facets/pager/sorters too.
- */
-com.marklogic.widgets.searchbar.prototype.reset = function() {
-  // clear search bar text
-  // send update to results and facets and sort
-  this.resultsPublisher.publish(null);
-  this.facetsPublisher.publish(null); // TODO verify this is the right element to send
-  this.sortPublisher.publish(null); // order default sort
-  document.getElementById(this.container + "-searchinput").setAttribute("value",this.defaultQuery);
-};
-
-
-
-
 
 
 
@@ -575,6 +204,8 @@ com.marklogic.widgets.searchfacets = function(container) {
   
   this.results = null;
   
+  this.ctx = new mljs.defaultconnection.searchcontext();
+  
   this.selected = new Array();
   
   this.facetNameTransform = "all"; // This is camelcase and splitdash and splitunderscore
@@ -586,6 +217,11 @@ com.marklogic.widgets.searchfacets = function(container) {
   // html
   this._refresh();
 };
+
+com.marklogic.widgets.searchfacets.prototype.setContext = function(context) {
+  this.ctx = context;
+};
+
 
 com.marklogic.widgets.searchfacets.prototype._setFacetSettings = function(facetName,extended,showall) {
   var json = {extended: extended, showAll: showAll};
@@ -813,7 +449,7 @@ com.marklogic.widgets.searchfacets.prototype.setAllowShowAll = function(boolvalu
  * 
  * @param {function(facetSelectionJSON)} sl - Selection listener function
  */
-com.marklogic.widgets.searchfacets.prototype.addSelectionListener = function(sl) {
+com.marklogic.widgets.searchfacets.prototype.addFacetSelectionListener = function(sl) {
   this.selectionPublisher.subscribe(sl);
 };
 
@@ -822,7 +458,7 @@ com.marklogic.widgets.searchfacets.prototype.addSelectionListener = function(sl)
  * 
  * @param {function(facetSelectionJSON)} sl - Selection listener function
  */
-com.marklogic.widgets.searchfacets.prototype.removeSelectionListener = function(sl) {
+com.marklogic.widgets.searchfacets.prototype.removeFacetSelectionListener = function(sl) {
   this.selectionPublisher.unsubscribe(sl);
 };
 
@@ -877,7 +513,7 @@ com.marklogic.widgets.searchfacets.prototype.updateSelectedFacets = function(fac
 com.marklogic.widgets.searchresults = function(container) {
   this.container = container;
   
-  this.results = null;
+  this.ctx = new mljs.defaultconnection.searchcontext();
   
   this.processors = new Array();
   this.availableProcessors = new Array();
@@ -982,6 +618,11 @@ com.marklogic.widgets.searchresults = function(container) {
   // event handlers
   this.selectionPublisher = new com.marklogic.events.Publisher();
 };
+
+com.marklogic.widgets.searchresults.prototype.setContext = function(context) {
+  this.ctx = context;
+};
+
 
 /**
  * Sets the URL specification and enables clickable result links. Replaces #URI# with the URI of the clicked document.
@@ -1184,6 +825,8 @@ com.marklogic.widgets.searchpager = function(container) {
   this.start = 0;
   this.total = 0;
   
+  this.ctx = new mljs.defaultconnection.searchcontext();
+  
   // event handlers
   this.pagePublisher = new com.marklogic.events.Publisher();
   
@@ -1202,6 +845,11 @@ com.marklogic.widgets.searchpager = function(container) {
   document.getElementById(container + "-searchpager-last-a").onclick = function() {self._last();};
   
   this._refresh();
+};
+
+
+com.marklogic.widgets.searchpager.prototype.setContext = function(context) {
+  this.ctx = context;
 };
 
 /**
@@ -1354,6 +1002,8 @@ com.marklogic.widgets.searchpager.prototype._last = function() {
 com.marklogic.widgets.searchsort = function(container) {
   this.container = container;
   
+  this.ctx = new mljs.defaultconnection.searchcontext();
+  
   // event handlers
   this.selectionPublisher = new com.marklogic.events.Publisher();
   this.sortOptions = new Array();
@@ -1364,10 +1014,16 @@ com.marklogic.widgets.searchsort = function(container) {
   this._refresh();
 };
 
+com.marklogic.widgets.searchsort.prototype.setContext = function(context) {
+  this.ctx = context;
+};
+
+
 com.marklogic.widgets.searchsort.prototype._refresh = function() {
+  var selid =  this.container + "-searchsort-select";
   var str = 
     "<span class='searchsort-text'>Sort: </span>" +
-    "<select class='searchsort-select'>";
+    "<select class='searchsort-select' id='" + selid + "'>";
 //      "<option value='relevance'>Relevance</option>" +
   for (var i = 0;i < this.sortOptions.length;i++) {
     var o = this.sortOptions[i];
@@ -1387,6 +1043,18 @@ com.marklogic.widgets.searchsort.prototype._refresh = function() {
   }
   str += "</select>";
   document.getElementById(this.container).innerHTML = str;
+  
+  // add event handlers
+  var self = this;
+  var sel = document.getElementById(selid);
+  sel.onchange = function(evt) {
+    self._updateSortSelect(sel.value);
+  }
+};
+
+com.marklogic.widgets.searchsort.prototype._updateSortSelect = function(value) {
+  // fire sort changed event
+  this.selectionPublisher.publish(value);
 };
 
 /**
@@ -1422,7 +1090,7 @@ com.marklogic.widgets.searchsort.prototype.updateSort = function(sortSelection) 
  * 
  * @param {JSON} options - REST API JSON options object. See PUT /v1/config/query
  */
-com.marklogic.widgets.searchsort.prototype.setOptions = function(options) {
+com.marklogic.widgets.searchsort.prototype.updateOptions = function(options) {
   // parse options object for sort settings
   var so = options.options["sort-order"];
   this.sortOptions = new Array();
@@ -1473,6 +1141,8 @@ com.marklogic.widgets.searchpage = function(container) {
       "<div id='" + container + "-results' class='grid_8 searchpage-results'></div>" +
       "<div id='" + container + "-results-actions' class='grid_8 searchpage-results-actions'></div>" +
     "</div></div>";
+    
+  this.context = new mljs.defaultconnection.searchcontext();
   
   // NB these simple names allow direct access via mypage.bar in order for page creator to set config defaults (E.g. facet size)
   this.bar = new com.marklogic.widgets.searchbar(container + "-bar");
@@ -1484,6 +1154,7 @@ com.marklogic.widgets.searchpage = function(container) {
   
   // cross register handlers
   var self = this;
+  /*
   this.bar.addResultsListener(function(res) {self.results.updateResults(res);});
   this.bar.addResultsListener(function(res) {self.pager.updatePage(res);});
   this.bar.addResultsListener(function(obj) {self.facets.updateFacets(obj);});
@@ -1493,13 +1164,22 @@ com.marklogic.widgets.searchpage = function(container) {
   this.sort.addSelectionListener(function(obj) {self.bar.updateSort(obj);});
   this.facets.addSelectionListener(function(obj) {self.bar.updateFacets(obj);});
   this.pager.addPageListener(function(obj) {self.bar.updatePage(obj);});
+  */
   
+  this.context.register(this.bar);
+  this.context.register(this.sort);
+  this.context.register(this.facets);
+  this.context.register(this.pager);
+  this.context.register(this.results);
+  
+  /*
   this.bar.addErrorListener(function(obj) {
     this.error.updateError(obj);
     this.facets.clear();
     this.results.clear();
     this.page.clear();
-  });
+    this.context.reset();
+  });*/
   
   // set default connection
   this.db = mljs.defaultconnection;
@@ -1515,34 +1195,20 @@ com.marklogic.widgets.searchpage = function(container) {
  * @param {boolean} check_options_exist - Whether to check if the options already exist on the server
  */
 com.marklogic.widgets.searchpage.prototype.setOptions = function(name,options,check_options_exist) {
+  this.context.setOptions(name,options);
+  /*
   // set widgets with those provided
   this.bar.setOptionsName(name);
   this.bar.setOptions(options);
   this.sort.setOptions(options);
-  
-  // check if options exist
-  var self = this;
-  if (undefined != check_options_exist && true == check_options_exist) {
-    mljs.defaultconnection.searchoptions(name,function(result) {
-      console.log("RESULT: " + JSON.stringify(result.doc));
-      if (result.inError) {
-        console.log("Search options " + name + " do not exist on the server. Search bar widget will auto create them on next search.");
-        console.log("ERROR: " + JSON.stringify(result.details));
-      } else {
-        // update widgets with ACTUAL options
-        self.bar.setOptions(result.doc);
-        self.sort.setOptions(result.doc);
-        self.bar.optionsExists = true;
-      }
-    });
-  }
+  */
 };
 
 /**
  * Execute the search in the input box
  */
 com.marklogic.widgets.searchpage.prototype.execute = function() {
-  this.bar.execute(); // search for all
+  this.context.dosimplequery(); // search for all
 };
 
 /**
@@ -1553,12 +1219,12 @@ com.marklogic.widgets.searchpage.prototype.execute = function() {
 com.marklogic.widgets.searchpage.prototype.setConnection = function(connection) {
   this.db = connection;
   // update search bar connection
-  this.bar.setConnection(connection);
+  this.context.setConnection(connection);
 };
 
 /**
  * Resets the search box input field
  */
 com.marklogic.widgets.searchpage.reset = function() {
-  this.bar.reset(); // updates other widgets through event handlers
+  this.context.reset(); // updates other widgets through event handlers
 };

@@ -39,17 +39,14 @@ $(document).ready(function() {
   var options = ob.toJson();
   console.log("Created options: " + JSON.stringify(options));
   
+  var context = new db.searchcontext();
+  
   var bar = new com.marklogic.widgets.searchbar("cs-bar");
-  bar.setOptionsName(optionsName);
-  bar.setCollection("animals"); // restrict all search results
+  context.register(bar);
+  context.register(tempspline);
+  context.register(tempcolumn);
+  context.setOptions(optionsName,options);
+  context.setCollection("animals"); // restrict all search results
   
-  bar.addResultsListener(function(results) {
-    tempspline.updateResults(results);
-    tempcolumn.updateResults(results);
-  });
-  
-  db.saveSearchOptions(optionsName,options,function(result) {
-    console.log("search options saved");
-    bar.execute(); // show some search results by default
-  });
+  context.dosimplequery();
 });
