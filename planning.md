@@ -29,6 +29,7 @@ Targets for 0.8 (Jul 2013)
  - DONE Rename all to MLJS form mldb
   
 Floating as and when
+ - Widgets: Document properties and view widget
  - IN PROGRESS REST extensions
   - DONE DLS declare document as a record
   - DLS list all documents in a record collection
