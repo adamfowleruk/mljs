@@ -10,6 +10,7 @@ com.marklogic.widgets = window.com.marklogic.widgets || {};
  */
 com.marklogic.widgets.kratu = function(container) {
   this.container = container;
+  this.errorPublisher = new com.marklogic.events.Publisher(); 
   
   this.results = null;
   this.kratu = new Kratu();
@@ -49,6 +50,24 @@ com.marklogic.widgets.kratu.prototype.updateResults = function(results) {
     this.kratu.setEntities(this.results.results);
   }
   this._refresh();
+};
+
+/**
+ * Adds an error listener to this widget
+ * 
+ * @param {function(error)} fl - The error listener to add
+ */
+com.marklogic.widgets.kratu.prototype.addErrorListener = function(fl) {
+  this.errorPublisher.subscribe(fl);
+};
+
+/**
+ * Removes an error listener
+ * 
+ * @param {function(error)} fl - The error listener to remove
+ */
+com.marklogic.widgets.kratu.prototype.removeErrorListener = function(fl) {
+  this.errorPublisher.unsubscribe(fl);
 };
 
 com.marklogic.widgets.kratu.prototype._refresh = function() {

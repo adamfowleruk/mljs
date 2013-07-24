@@ -29,6 +29,9 @@ declare option xdmp:mapping "false";
 <script type="text/javascript" src="/js/mldbtest/widget-docbuilder.js"></script>
 <script type="text/javascript" src="/js/mldbtest/page-upload.js"></script>
 
+ <div class="container_12">  
+  <div id="errors" class="grid_12"></div>
+ </div>
   <p id="log">Log info goes here</p>
   <div id="upload">Upload widget goes here</div>
 </div>

@@ -31,6 +31,9 @@ declare option xdmp:mapping "false";
 
 <script type="text/javascript" src="/js/mldbtest/page-collections.js"></script>
   
+ <div class="container_12">  
+  <div id="errors" class="grid_12"></div>
+ </div>
  <div class="container_12" id="collections">  
  Collection info or error goes here
  </div>

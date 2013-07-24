@@ -9,6 +9,8 @@ com.marklogic.widgets = window.com.marklogic.widgets || {};
  * @constructor
  */
 com.marklogic.widgets.tripleconfig = function() {
+  this.errorPublisher = new com.marklogic.events.Publisher();
+  
   // TODO drastically simplify this data model
   
   this.entities = new Array();
@@ -44,6 +46,24 @@ com.marklogic.widgets.tripleconfig = function() {
   this.addFoaf();
   this.addPlaces();
   this.addFoafPlaces();
+};
+
+/**
+ * Adds an error listener to this widget
+ * 
+ * @param {function(error)} fl - The error listener to add
+ */
+com.marklogic.widgets.tripleconfig.prototype.addErrorListener = function(fl) {
+  this.errorPublisher.subscribe(fl);
+};
+
+/**
+ * Removes an error listener
+ * 
+ * @param {function(error)} fl - The error listener to remove
+ */
+com.marklogic.widgets.tripleconfig.prototype.removeErrorListener = function(fl) {
+  this.errorPublisher.unsubscribe(fl);
 };
 
 com.marklogic.widgets.tripleconfig.prototype.addPlaces = function() {
@@ -683,6 +703,7 @@ com.marklogic.widgets.sparqlbar.prototype.removeErrorListener = function(lis) {
  **/
 com.marklogic.widgets.sparqlresults = function(container) {
   this.container = container;
+  this.errorPublisher = new com.marklogic.events.Publisher();
   
   this.results = null; // JSON results object:- 
   // {"head":{"vars":["person"]},"results":{"bindings":[
@@ -770,6 +791,27 @@ com.marklogic.widgets.sparqlresults.prototype.updateResults = function(results) 
   
   this._refresh();
 };
+
+/**
+ * Adds an error listener to this widget
+ * 
+ * @param {function(error)} fl - The error listener to add
+ */
+com.marklogic.widgets.sparqlresults.prototype.addErrorListener = function(fl) {
+  this.errorPublisher.subscribe(fl);
+};
+
+/**
+ * Removes an error listener
+ * 
+ * @param {function(error)} fl - The error listener to remove
+ */
+com.marklogic.widgets.sparqlresults.prototype.removeErrorListener = function(fl) {
+  this.errorPublisher.unsubscribe(fl);
+};
+
+
+
 
 
 

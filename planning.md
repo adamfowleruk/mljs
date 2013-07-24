@@ -4,6 +4,8 @@
 
 Targets for 0.8 (Jul 2013)
  - DONE Core+Widgets: Create search context object, and make search widgets responsible for registering themselves with it. Refactor search execution code in to here. (Required for Sort widget)
+ - Core: Extra query builder options (all constraints supported by options, plus sorting)
+ - Widgets: Support multiple values for save facet in facet widget and searchbar/context
  - IN PROGRESS Widgets: Search widgets, and overarching search page widget UI layer over mljs in browser, including custom result rendering plugins (search bar, facets, results, paging, sorting)
   - IN PROGRESS Widgets: Sorting widget actions
   - IN PROGRESS Widgets: More... all... links in facets
@@ -17,8 +19,16 @@ Targets for 0.8 (Jul 2013)
  - DONE Core: Search Options Builder
  - DONE Browser: XMLHttpRequest (xhr) binding
  - DONE Browser: XmlHttpRequest2 (xhr2) binding
- - Tests: Test samples for xml content
- - Integrate error widget on each demo page
+ - DONE Tests: Updated mldbwebtest project to be more obvious, and include content initialisation on main page
+ - Tutorial: Deploying the mldbwebtest roxy project (video + text)
+ - DONE Browser: Move SVG rendering code in to default search results renderer from animals sample
+ - IN PROGRESS Tests: Test samples for xml content 
+  - DONE hurt-bat svg in animals search test
+  - xhtml documents
+  - generic xml document (//title, //summary, //description, //synopsis, or first 2 elements, or xml snippet)
+ - Test: plain text documents
+ - Docs: Architecture of widgets and MLJS for developers
+ - DONE Integrate error widget on each demo page
  - DONE Tests: Refactor to use alternate testing framework
  - DONE Core: Return and add binary documents
  - DONE Core: Return and add plain text documents
@@ -42,6 +52,7 @@ Floating as and when
   - DONE Browser: DLS declare search results as record widget
  
 Targets for 1.0 (Aug 2013)
+ - Widgets: Support facet hierarchies
  - Widgets: D3.js network diagram
  - Widgets: Charts widget to support aggregations via search options
  - Widgets: Charts widget to support extraction of XML info via XPath
@@ -49,8 +60,8 @@ Targets for 1.0 (Aug 2013)
  - Widgets: Support array children in aggregations for graphs
  - Browser: Lazy loading on search results (E.g. when requesting page 2 result 3 (result 13), make http request for re-search transparent) - Also for graphing when all search results need loading
  - Easy geospatial search
- - IN PROGRESS Widgets: Google maps (via OpenLayers?)
- - Support all search functions not currently provided
+ - Widgets: Google maps (via OpenLayers?)
+ - Support all search functions not currently provided in query builder
  - Complete support for /v1/values REST function
  - NodeJS: Support SSL
  - NodeJS: SSL with Basic
@@ -60,37 +71,38 @@ Targets for 1.0 (Aug 2013)
  - NodeJS: SSL no auth (default user)
  - NodeJS: Support 'anyauth' option, much like curl (i.e. auth method auto detection)
  - Support current functionality against MarkLogic V7
- - New V7 functionality (as and when required)
+ - New V7 functionality
   - Dynamic search options
   - Alerting
- - Widgets: Support for using widgets in non ML 6 REST webapps, and embedding widgets remotely, via W3C CORS support (i.e. cross site support)
+ - Widgets: Support for using widgets in non ML 6 REST webapps, and embedding widgets remotely, via W3C CORS support (i.e. secure cross site scripting support)
  - Widgets: Navigable charts / co-occurence - clicking sets facet value
 
 Targets for 1.2 (Oct 2013)
- - More support for server management (namespaces, indexes, service extensions, update REST instance configuration, XSLT transform management)
- - Widgets: Administration widgets (mainly aimed at pre-sales developers, not sysadmins)
- - CSV and TSV utilities
- - support arbitrary XPath for searches (if possible)
- - allow upload and use of XSLT for result transform
+ - Widget: Situational awareness and search renderer app (from BF sim)
  - Widget: Table - allow binding of JSON search results to jQuery table (for example)
  - Widget: Table - allow binding of XML search results to jQuery table (for example)
  - Widget: Tree - browse JSON/XML documents in search results as a tree
  - Widget: Timeline (point in time and start / stop dates)
  - Widget: Rose - direction (N, S etc) and time (12 and 24 hour) - arbitrary categories
- - Widget: Situational awareness and search renderer app (from BF sim)
- - NodeJS: Provide REST API proxy within NodeJS wrapper
- - Browser: Support REST API proxy within general javascript and nodejs javascript code
  - Widgets: File upload (multiple)
  - Widgets: (multi) Upload progress bar
- - Widgets: Abstract enough to plug in Version 5 REST Wrapper results, as required (Corona?)
- - IN PROGRESS Core: Structured Search Builder
  - TEST Browser: prototype.js binding
+ 
+Targets for 1.4 (Dec 2013)
+ - More support for server management (namespaces, indexes, service extensions, update REST instance configuration, XSLT transform management)
+ - Widgets: Administration widgets (mainly aimed at pre-sales developers, not sysadmins)
+ - CSV and TSV utilities
+ - support arbitrary XPath for searches (if possible)
+ - allow upload and use of XSLT for result transform
 
 Not applicable / dropped / postponed targets
  - N/A sensible to/from json settings (Default on &format=json on server)
  - N/A documented on WIKI - Generate JavaScript API docs and publish somewhere browseable on the web
  - N/A Support nested cts:search (if possible)
  - N/A (We use JSON EXCLUSIVELY for configuration, XML only appears in errors and search result content) - Samples for XML use, equivalent to some of the existing JSON samples (not exhaustive)
+ - Widgets: Abstract enough to plug in Version 5 REST Wrapper results, as required (Corona?)
+ - NodeJS: Provide REST API proxy within NodeJS wrapper
+ - Browser: Support REST API proxy within general javascript and nodejs javascript code
  
 ## Past Releases
 

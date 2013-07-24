@@ -17,6 +17,7 @@ com.marklogic.widgets = window.com.marklogic.widgets || {};
  */
 com.marklogic.widgets.markings = function(container) {
   this.container = container;
+  this.errorPublisher = new com.marklogic.events.Publisher(); 
   
   this.tripleEditor = false;
   this._permissions = new Array();
@@ -76,6 +77,24 @@ com.marklogic.widgets.markings = function(container) {
   this._commonNamePredicates["organisation"] = "http://xmlns.com/foaf/0.1/name";
   this._commonNamePredicates["placename"] = "http://www.geonames.org/ontology#name";
   this._init();
+};
+
+/**
+ * Adds an error listener to this widget
+ * 
+ * @param {function(error)} fl - The error listener to add
+ */
+com.marklogic.widgets.markings.prototype.addErrorListener = function(fl) {
+  this.errorPublisher.subscribe(fl);
+};
+
+/**
+ * Removes an error listener
+ * 
+ * @param {function(error)} fl - The error listener to remove
+ */
+com.marklogic.widgets.markings.prototype.removeErrorListener = function(fl) {
+  this.errorPublisher.unsubscribe(fl);
 };
 
 /**

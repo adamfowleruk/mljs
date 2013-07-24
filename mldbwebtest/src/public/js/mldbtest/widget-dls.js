@@ -19,6 +19,7 @@ com.marklogic.widgets = window.com.marklogic.widgets || {};
 com.marklogic.widgets.dlscollections = function(container) {
   this.container = container;
   this._uriHandler = null;
+  this.errorPublisher = new com.marklogic.events.Publisher(); 
   
   document.getElementById(this.container).innerHTML = "<h2 class='dlscollections-title'>List of DLS Managed Collections</h2><div id='" + this.container + "-list'><i>Ready for load.</i></div>";
 };
@@ -50,6 +51,23 @@ com.marklogic.widgets.dlscollections.prototype.refresh = function() {
   });
 };
 
+/**
+ * Adds an error listener to this widget
+ * 
+ * @param {function(error)} fl - The error listener to add
+ */
+com.marklogic.widgets.dlscollections.prototype.addErrorListener = function(fl) {
+  this.errorPublisher.subscribe(fl);
+};
+
+/**
+ * Removes an error listener
+ * 
+ * @param {function(error)} fl - The error listener to remove
+ */
+com.marklogic.widgets.dlscollections.prototype.removeErrorListener = function(fl) {
+  this.errorPublisher.unsubscribe(fl);
+};
 
 
 
@@ -60,6 +78,7 @@ com.marklogic.widgets.dlscollections.prototype.refresh = function() {
 
 com.marklogic.widgets.dlscollection = function(container) {
   this.container = container;
+  this.errorPublisher = new com.marklogic.events.Publisher(); 
   this._uriViewHandler = null; // application document content editing/viewing handler
   this._uriInfoHandler = null; // RM / DLS view info handler
   
@@ -99,6 +118,24 @@ com.marklogic.widgets.dlscollection.prototype.loadCollection = function(collecti
 };
 
 
+/**
+ * Adds an error listener to this widget
+ * 
+ * @param {function(error)} fl - The error listener to add
+ */
+com.marklogic.widgets.dlscollection.prototype.addErrorListener = function(fl) {
+  this.errorPublisher.subscribe(fl);
+};
+
+/**
+ * Removes an error listener
+ * 
+ * @param {function(error)} fl - The error listener to remove
+ */
+com.marklogic.widgets.dlscollection.prototype.removeErrorListener = function(fl) {
+  this.errorPublisher.unsubscribe(fl);
+};
+
 
 
 
@@ -110,6 +147,7 @@ com.marklogic.widgets.dlscollection.prototype.loadCollection = function(collecti
 
 com.marklogic.widgets.dlsrules = function(container) {
   this.container = container;
+  this.errorPublisher = new com.marklogic.events.Publisher(); 
   
   document.getElementById(this.container).innerHTML = "<h2 class='dlsrules-title'>List of DLS Rules</h2><div id='" + this.container + "-list'><i>Ready for load.</i></div>";
 };
@@ -145,6 +183,24 @@ com.marklogic.widgets.dlsrules.prototype.refresh = function() {
 };
 
 
+/**
+ * Adds an error listener to this widget
+ * 
+ * @param {function(error)} fl - The error listener to add
+ */
+com.marklogic.widgets.dlsrules.prototype.addErrorListener = function(fl) {
+  this.errorPublisher.subscribe(fl);
+};
+
+/**
+ * Removes an error listener
+ * 
+ * @param {function(error)} fl - The error listener to remove
+ */
+com.marklogic.widgets.dlsrules.prototype.removeErrorListener = function(fl) {
+  this.errorPublisher.unsubscribe(fl);
+};
+
 
 
 
@@ -156,6 +212,7 @@ com.marklogic.widgets.dlsrules.prototype.refresh = function() {
 
 com.marklogic.widgets.dlsruleinfo = function(container) {
   this.container = container;
+  this.errorPublisher = new com.marklogic.events.Publisher(); 
 
   this.name = null;
   
@@ -192,5 +249,23 @@ com.marklogic.widgets.dlsruleinfo.prototype.info = function(name) {
   this.refresh();
 };
 
+
+/**
+ * Adds an error listener to this widget
+ * 
+ * @param {function(error)} fl - The error listener to add
+ */
+com.marklogic.widgets.dlsruleinfo.prototype.addErrorListener = function(fl) {
+  this.errorPublisher.subscribe(fl);
+};
+
+/**
+ * Removes an error listener
+ * 
+ * @param {function(error)} fl - The error listener to remove
+ */
+com.marklogic.widgets.dlsruleinfo.prototype.removeErrorListener = function(fl) {
+  this.errorPublisher.unsubscribe(fl);
+};
 
 

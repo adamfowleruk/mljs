@@ -166,6 +166,37 @@ function jsonExtractValue(json,namePath) {
   return obj;
 };
 
+function xmlExtractValue(xmldoc,namePath) {
+  // construct and apply XPath from namePath
+  var xpath = "/" + namePath.replaceAll(".","/");
+  
+  // TODO apply xpath to extract document value
+  return 0;
+};
+
+function extractValue(jsonOrXml,namePath) {
+  if ('object' == typeof(jsonOrXml) && undefined == jsonOrXml.nodeType) {
+    return jsonExtractValue(jsonOrXml,namePath);
+  } else if ('string' == typeof(jsonOrXml)) {
+    return xmlExtractValue(textToXML(jsonOrXml),namePath);
+  } else if (undefined == jsonOrXml) {
+    return null;
+  } else {
+    return xmlExtractValue(jsonOrXml,namePath);
+  }
+};
+
+function jsonOrXml(jsonOrXmlOrString) {
+  if ('object' == typeof(jsonOrXmlOrString) && undefined == jsonOrXml.nodeType) {
+    return jsonOrXmlOrString;
+  } else if ('string' == typeof(jsonOrXmlOrString)) {
+    return textToXML(jsonOrXmlOrString);
+  } else if (undefined == jsonOrXmlOrString) {
+    return null;
+  } else {
+    return jsonOrXmlOrString;
+  }
+};
 
 // EXTRA ARRAY FUNCTIONS
 
@@ -200,6 +231,13 @@ Array.prototype.position = function(value) {
   return -1;
 };
 
+// Following is required on Safari on the Mac (required by charts result parsing)
+if (undefined == String.prototype.startsWith) {
+  String.prototype.startsWith = function(str) {
+    if (undefined == this || this.length == 0) return false;
+    return (this.substring(0,str.length) == str);
+  };
+}
 
 
 

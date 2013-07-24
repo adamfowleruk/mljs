@@ -944,7 +944,10 @@ mljs.prototype.save = function(jsonXmlBinary,docuri_opt,props_opt,callback_opt) 
   var url = "/v1/documents?uri=" + encodeURI(docuri_opt);
   if (props_opt) {
     if (props_opt.collection) {
-      url += "&collection=" + encodeURI(props_opt.collection);
+      var cols = props_opt.collection.split(",");
+      for (var c = 0;c < cols.length;c++) {
+        url += "&collection=" + encodeURI(cols[c]);
+      }
     }
     if (props_opt.contentType) {
       format = null;
@@ -1174,7 +1177,10 @@ mljs.prototype.search = function(query_opt,options_opt,start_opt,sprops_opt,call
   var format = "&format=json";
   if (undefined != sprops_opt) {
     if (undefined != sprops_opt.collection) {
-      url += "&collection=" + sprops_opt.collection;
+      var cols = sprops_opt.collection.split(",");
+      for (var c = 0;c < cols.length;c++) {
+        url += "&collection=" + encodeURI(cols[c]);
+      }
     }
     if (undefined != sprops_opt.directory) {
       url += "&directory=" + sprops_opt.directory;
@@ -2689,7 +2695,8 @@ mljs.prototype.options.prototype.rangeConstraint = function(constraint_name_opt,
   }
   
   // Create sort orders automatically
-  this.sortOrder(this.defaultSortDirection,type_opt || this.defaults.type,name_or_key,collation_opt || this.defaults.collation); // TODO verify this works with normal XML range indexes not json keys
+  this.sortOrder("ascending",type_opt || this.defaults.type,name_or_key,collation_opt || this.defaults.collation); // TODO verify this works with normal XML range indexes not json keys
+  this.sortOrder("descending",type_opt || this.defaults.type,name_or_key,collation_opt || this.defaults.collation); // TODO verify this works with normal XML range indexes not json keys
   
   this.addConstraint(range);
   
@@ -3604,7 +3611,7 @@ mljs.prototype.searchcontext.prototype.updatePage = function(json) {
  */
 mljs.prototype.searchcontext.prototype.updateSort = function(sortSelection) {
   // TODO remove any existing sort
-  this.simplequery += " " + this.sortWord + ":\"" + sortSelection + "\"";
+  this.simplequery += " " + this.sortWord + ":\"" + sortSelection + "\""; // TODO move sort to query url param, not in grammar
   
   this.dosimplequery(this.simplequery);
 };

@@ -58,7 +58,10 @@ declare variable $q as xs:string? := vh:get("q");
         <a href="/mldbtest/movies">Co-occurence</a> | 
         <a href="/mldbtest/error">Error</a> | 
         <a href="/mldbtest/kratu">Kratu</a> | 
-        <a href="/mldbtest/docbuilder">Document Builder</a> 
+        <a href="/mldbtest/docbuilder">Document Builder</a> | 
+        <a href="/mldbtest/sparqlbar">Semantic Search</a> | 
+        <a href="/mldbtest/upload">Upload</a> | 
+        <a href="/mldbtest/collectionuris">Collection URIs</a> 
       </div>
       <div class="content">
         { $view }

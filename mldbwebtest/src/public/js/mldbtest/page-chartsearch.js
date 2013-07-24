@@ -3,9 +3,14 @@ $(document).ready(function() {
   var db = new mljs(); // calls default configure
   db.logger.setLogLevel("debug");
   
+  var error = new com.marklogic.widgets.error("errors");
+  
+  try {
+  
   var optionsName = "page-charts-search";
   
   var tempspline = new com.marklogic.widgets.highcharts("splineline");
+  tempspline.addErrorListener(error.updateError);
   tempspline.setSeriesSources("#Animals","animal","age");
   tempspline.setAggregateFunction("mean");
   tempspline.setAutoCategories(true);
@@ -19,6 +24,7 @@ $(document).ready(function() {
                 } } };
   
   var tempcolumn = new com.marklogic.widgets.highcharts("column");
+  tempcolumn.addErrorListener(error.updateError);
   tempcolumn.setSeriesSources("#Animals","animal","animal");
   tempcolumn.setAggregateFunction("count");
   tempcolumn.setAutoCategories(true);
@@ -46,7 +52,13 @@ $(document).ready(function() {
   context.register(tempspline);
   context.register(tempcolumn);
   context.setOptions(optionsName,options);
-  context.setCollection("animals"); // restrict all search results
+  context.setCollection("animals,testdata"); // restrict all search results
   
   context.dosimplequery();
+  
+  context.addErrorListener(error.updateError);
+  
+  } catch (err) {
+    error.show(err.message);
+  }
 });

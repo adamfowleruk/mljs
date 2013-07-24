@@ -37,6 +37,9 @@ declare option xdmp:mapping "false";
 
 <script type="text/javascript" src="/js/mldbtest/page-kratu.js"></script>
   
+ <div class="container_12">  
+  <div id="errors" class="grid_12"></div>
+ </div>
 <div id="el-kratu"></div>
 
 </div>

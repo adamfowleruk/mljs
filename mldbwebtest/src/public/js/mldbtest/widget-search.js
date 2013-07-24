@@ -224,7 +224,7 @@ com.marklogic.widgets.searchfacets.prototype.setContext = function(context) {
 
 
 com.marklogic.widgets.searchfacets.prototype._setFacetSettings = function(facetName,extended,showall) {
-  var json = {extended: extended, showAll: showAll};
+  var json = {extended: extended, showAll: showall};
   this.facetSettings[facetName] = json;
 };
 
@@ -291,7 +291,7 @@ com.marklogic.widgets.searchfacets.prototype._refresh = function() {
         // sort facets first by count
         bubbleSort(values, "count");
         var valuesCount = values.length;
-        if (settings.more) {
+        if (settings.extended) {
           max = this.extendedSize;
         }
         if (settings.showAll && settings.extended) {
@@ -307,12 +307,27 @@ com.marklogic.widgets.searchfacets.prototype._refresh = function() {
         }
         if (valuesCount > this.listSize) {
           // TODO less... clickable links
-          if (!settings.extended) {
             // html for 'show more'
-            facetStr += "<div class='searchfacets-more'><a href='#' id='" + this.container + "-" + name + "-more-link'>More...</a></div>";
-            more.push(name);
+            facetStr += "<div class='searchfacets-more'><a href='#' id='" + this.container + "-" + name + "-more-link'>";
+            
+          if (!settings.extended) {
+            facetStr += "More";
           } else {
-            if (valuesCount > this.extendedSize && !settings.showAll && this.allowShowAll) {
+            facetStr += "Less";
+          }
+            facetStr += "...</a></div>";
+            more.push(name);
+          
+          if (settings.extended) {
+            // show all link
+            if (valuesCount > this.extendedSize && this.allowShowAll) {
+              facetStr += "<div class='searchfacets-extended' style:'display:none;'><a href='#' id='" + this.container + "-" + name + "-extended-link'>";
+              if (settings.showAll) {
+                facetStr += "Less"
+              } else {
+                facetStr += "All";
+              }
+              facetStr += "...</a></div>";
               // html for 'show all'
               extended.push(name);
             }
@@ -358,12 +373,14 @@ com.marklogic.widgets.searchfacets.prototype._refresh = function() {
   
   // more handlers
   for (var i = 0;i < more.length;i++) {
-    document.getElementById(this.container + "-" + more[i] + "-more-link").onclick = function() {self._more(more[i]);};
+    var morei = more[i];
+    document.getElementById(this.container + "-" + morei + "-more-link").onclick = function() {self._more(morei);};
   }
   
   // extended handlers
   for (var i = 0;i < extended.length;i++) {
-    document.getElementById(this.container + "-" + extended[i] + "-extended-link").onclick = function() {self._extended(extended[i]);};
+    var exti = extended[i];
+    document.getElementById(this.container + "-" + exti + "-extended-link").onclick = function() {self._extended(exti);};
   }
   
   // TODO less handlers
@@ -415,12 +432,12 @@ com.marklogic.widgets.searchfacets.prototype._transformFacetValue = function(fac
 
 
 com.marklogic.widgets.searchfacets.prototype._more = function(facetName) {
-  this._setFacetSettings(facetName,true,false);
+  this._setFacetSettings(facetName,!this._getFacetSettings(facetName).extended,false);
   this._refresh();
 };
 
 com.marklogic.widgets.searchfacets.prototype._extended = function(facetName) {
-  this._setFacetSettings(facetName,false,true);
+  this._setFacetSettings(facetName,false,!this._getFacetSettings(facetName).showAll);
   this._refresh();
 };
 
@@ -521,6 +538,8 @@ com.marklogic.widgets.searchresults = function(container) {
   
   this.detailsLink = null;
   
+  var self = this;
+  
   var htmlRec = function(content) {
     var resStr = "";
     console.log("type of content: " + (typeof content));
@@ -556,24 +575,26 @@ com.marklogic.widgets.searchresults = function(container) {
       console.log("TYPEOF: " + (typeof result.content));
       console.log("length: " + ( result.content.length));
       console.log("html: " + ( result.content.html)); */
-      console.log("matches:" + result.matches);
-      console.log("first match: " + result.matches[0]);
-      console.log("match text: " + result.matches[0]["match-text"]);
-      console.log("match text 0: " + result.matches[0]["match-text"][0]);
+      self.ctx.db.logger.debug("matches:" + result.matches);
+      if (undefined != result.matches) {
+        self.ctx.db.logger.debug("first match: " + result.matches[0]);
+        self.ctx.db.logger.debug("match text: " + result.matches[0]["match-text"]);
+        self.ctx.db.logger.debug("match text 0: " + result.matches[0]["match-text"][0]);
+      }
       if ("object" == typeof result.content && undefined != result.content.html) {
         // is a xhtml document rendered as json
         var content = result.content.html.body;
         var resStr = htmlRec(content);
       } else if (undefined != result.matches && result.matches[0] && result.matches[0]["match-text"] && result.matches[0]["match-text"][0] && result.matches[0]["match-text"][0].indexOf("<html") == 0) {
-        console.log("GOT A SNIPPET MATCH WITH A HTML ELEMENT");
+        self.ctx.db.logger.debug("GOT A SNIPPET MATCH WITH A HTML ELEMENT");
         var xml = textToXML(result.matches[0]["match-text"][0]);
         var txt = result.matches[0]["match-text"][0];
-        console.log("RAW HTML TEXT: " + txt);
+        self.ctx.db.logger.debug("RAW HTML TEXT: " + txt);
         var strip = txt.substring(txt.indexOf(">",txt.indexOf("<body") + 5) + 1,txt.indexOf("</body>"));
-        console.log("STRIP TEXT: " + strip);
+        self.ctx.db.logger.debug("STRIP TEXT: " + strip);
         var title = null;
         var titleEl = xml.getElementsByTagName("title")[0];
-        console.log("PATH: " + result.matches[0].path);
+        self.ctx.db.logger.debug("PATH: " + result.matches[0].path);
         if (undefined != titleEl && null != titleEl && null != titleEl.nodeValue) {
           title = titleEl.nodeValue;
         } else {
@@ -612,6 +633,31 @@ com.marklogic.widgets.searchresults = function(container) {
       }
     }
   };
+  
+  this.builtinProcessors = [];
+  this.builtinProcessors["svg"] = {
+   matcher: function(result) {
+    var xml = null;
+    if ("string" == typeof result.content) {
+      xml = textToXML(result.content);
+    } else if ("object" == typeof result.content && undefined != result.content.nodeType) {
+      xml = result.content; // should never happen - always returned as string
+    }
+    if (null != xml) {
+      // check namespace and root element
+      mljs.defaultconnection.logger.debug("Potential SVG nodeName: " + xml.childNodes[0].nodeName);
+      mljs.defaultconnection.logger.debug("Potential SVG nodeType: " + xml.childNodes[0].nodeType);
+      if (xml.childNodes[0].nodeName == "svg") {
+        return true;
+      } else {
+        return false;
+      }
+    }
+    return false;
+  }, processor: function (result) {
+    return "<div class='searchresults-result'><h3>" + result.index + ". " + result.uri + "</h3>" +
+      "<div style='height: 200px;position:relative;'>" + result.content + "</div></div>"; // returns the full xml to be applied within the document as SVG
+  } };
   
   this._refresh();
   
@@ -711,8 +757,26 @@ com.marklogic.widgets.searchresults.prototype._refresh = function() {
         }
       }
       if (!found) {
-        mljs.defaultconnection.logger.debug("No processor found, using default");
-        resStr += this.defaultProcessor.processor(result);
+        mljs.defaultconnection.logger.debug("No processor found, checkin builtins");
+        for (var pname in this.builtinProcessors) {
+          if ('object' == typeof(this.builtinProcessors[pname]) && this.builtinProcessors[pname].matcher(result)) {
+            found = true;
+            mljs.defaultconnection.logger.debug("found builtin processor: " + pname);
+            var returned = this.builtinProcessors[pname].processor(result);
+            if (undefined != returned.nodeType) {
+              var id = (uureplace++);
+              resStr = "<div id='" + this.container + "-searchresults-xml-" + id + "'></div>";
+              replacements[id] = returned;
+            } else {
+              resStr += returned;
+            }
+          }
+        }
+        
+        if (!found) {
+          mljs.defaultconnection.logger.debug("No processor found, using default");
+          resStr += this.defaultProcessor.processor(result);
+        }
       }
       
       resStr += "</div>";
@@ -1034,11 +1098,11 @@ com.marklogic.widgets.searchsort.prototype._refresh = function() {
       str += com.marklogic.widgets.searchhelper.processValueAll(o.value);
     }
     //str += " (";
-    /*if (undefined != o.order) {
+    if (undefined != o.order) {
       str += " (" +com.marklogic.widgets.searchhelper.camelcase(o.order,"all") + ")";
     } else {
       // TODO not specified - default to ascending?
-    }*/
+    }
     //str += ")";
   }
   str += "</select>";
@@ -1053,6 +1117,7 @@ com.marklogic.widgets.searchsort.prototype._refresh = function() {
 };
 
 com.marklogic.widgets.searchsort.prototype._updateSortSelect = function(value) {
+  mljs.defaultconnection.logger.debug("searchsort: publishing selected sort option: " + value);
   // fire sort changed event
   this.selectionPublisher.publish(value);
 };
@@ -1062,7 +1127,7 @@ com.marklogic.widgets.searchsort.prototype._updateSortSelect = function(value) {
  * 
  * @param {function(string)} sl - Sort selection listener function
  */
-com.marklogic.widgets.searchsort.prototype.addSelectionListener = function(sl) {
+com.marklogic.widgets.searchsort.prototype.addSortListener = function(sl) {
   this.selectionPublisher.subscribe(sl);
 };
 
@@ -1071,7 +1136,7 @@ com.marklogic.widgets.searchsort.prototype.addSelectionListener = function(sl) {
  * 
  * @param {function(string)} sl - Sort selection listener function
  */
-com.marklogic.widgets.searchsort.prototype.removeSelectionListener = function(sl) {
+com.marklogic.widgets.searchsort.prototype.removeSortListener = function(sl) {
   this.selectionPublisher.unsubscribe(sl);
 };
 
@@ -1134,8 +1199,8 @@ com.marklogic.widgets.searchpage = function(container) {
       "<div id='" + container + "-error' class='searchpage-error'></div>" +
       "<div class='grid_8 searchpage-controls'>" +
         "<div class='searchpage-controls-inner'>" +
-          "<div id='" + container + "-pager' class='grid_6 alpha searchpage-pager'></div>" +
-          "<div id='" + container + "-sort' class='grid_2 omega searchpage-sort'></div>" +
+          "<div id='" + container + "-pager' class='grid_5 alpha searchpage-pager'></div>" +
+          "<div id='" + container + "-sort' class='grid_3 omega searchpage-sort'></div>" +
         "</div>" +
       "</div>" +
       "<div id='" + container + "-results' class='grid_8 searchpage-results'></div>" +

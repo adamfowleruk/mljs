@@ -451,3 +451,10 @@ span.person {
   color: red;
   font-style: bold;
 }
+
+/** Generic log div container **/
+div.log {
+  margin-top: 10px;
+  border: 1px dashed black;
+  padding: 10px;
+}

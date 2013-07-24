@@ -34,6 +34,12 @@ declare option xdmp:mapping "false";
 <script type="text/javascript" src="/js/mldbtest/page-chartsearch.js"></script>
   
  <div class="container_12">  
+  <div id="cs-hint" class="grid_12">Hint: Type 'family:pet' and click Search</div>
+ </div>
+ <div class="container_12">  
+  <div id="errors" class="grid_12"></div>
+ </div>
+ <div class="container_12">  
   <div id="cs-bar" class="grid_12">search bar</div>
  </div>
  <div class="container_12">  

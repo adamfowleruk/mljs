@@ -17,28 +17,6 @@ $(document).ready(function() {
     return "<div class='searchresults-result'><h3>" + result.index + ". " + result.content.title + "(" + result.content.year + ")</h3>" +
       "<div class='searchresults-snippet'>Starring " + result.content.actor + ". A " + result.content.genre + " film.</div></div>";
   });
-  wgt.results.addProcessor("svg", function(result) {
-    var xml = null;
-    if ("string" == typeof result.content) {
-      xml = textToXML(result.content);
-    } else if ("object" == typeof result.content && undefined != result.content.nodeType) {
-      xml = result.content; // should never happen - always returned as string
-    }
-    if (null != xml) {
-      // check namespace and root element
-      mljs.defaultconnection.logger.debug("Potential SVG nodeName: " + xml.childNodes[0].nodeName);
-      mljs.defaultconnection.logger.debug("Potential SVG nodeType: " + xml.childNodes[0].nodeType);
-      if (xml.childNodes[0].nodeName == "svg") {
-        return true;
-      } else {
-        return false;
-      }
-    }
-    return false;
-  }, function (result) {
-    return "<div class='searchresults-result'><h3>" + result.index + ". " + result.uri + "</h3>" +
-      "<div style='height: 200px;position:relative;'>" + result.content + "</div></div>"; // returns the full xml to be applied within the document as SVG
-  });
   
   var ob = new db.options();
   ob.defaultCollation("http://marklogic.com/collation/en")

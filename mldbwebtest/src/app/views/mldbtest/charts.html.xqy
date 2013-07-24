@@ -32,6 +32,9 @@ declare option xdmp:mapping "false";
 <script type="text/javascript" src="/js/mldbtest/widget-highcharts.js"></script>
 
 <script type="text/javascript" src="/js/mldbtest/page-highcharts.js"></script>
+ <div class="container_12">  
+  <div id="errors" class="grid_12"></div>
+ </div>
   
  <div class="container_12">  
   <div id="tempchart" class="grid_6">1</div>

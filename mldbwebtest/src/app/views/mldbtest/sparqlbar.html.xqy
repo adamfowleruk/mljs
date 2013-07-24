@@ -30,5 +30,8 @@ declare option xdmp:mapping "false";
 
 <script type="text/javascript" src="/js/mldbtest/page-sparqlbar.js"></script>
   
+ <div class="container_12">  
+  <div id="errors" class="grid_12"></div>
+ </div>
   <div id="sparqlbar">Sparqlbar here</div>
 </div>

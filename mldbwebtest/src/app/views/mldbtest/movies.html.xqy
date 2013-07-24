@@ -32,6 +32,9 @@ declare option xdmp:mapping "false";
 
 <script type="text/javascript" src="/js/mldbtest/page-movies.js"></script>
   
+ <div class="container_12">  
+  <div id="errors" class="grid_12"></div>
+ </div>
  <div class="container_12"> 
   <div id="coag" class="grid_6">coag</div>
   <div id="coay" class="grid_6">coay</div>

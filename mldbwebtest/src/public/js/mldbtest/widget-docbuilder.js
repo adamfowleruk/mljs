@@ -10,6 +10,7 @@ com.marklogic.widgets = window.com.marklogic.widgets || {};
  */
 com.marklogic.widgets.create = function(container) {
   this.container = container;
+  this.errorPublisher = new com.marklogic.events.Publisher(); 
   
   this.vertical = true; // vertical or horizontal first rendering
   
@@ -38,6 +39,24 @@ com.marklogic.widgets.create = function(container) {
   this._mode = "upload"; // upload or json or xml
   
   this._init();
+};
+
+/**
+ * Adds an error listener to this widget
+ * 
+ * @param {function(error)} fl - The error listener to add
+ */
+com.marklogic.widgets.create.prototype.addErrorListener = function(fl) {
+  this.errorPublisher.subscribe(fl);
+};
+
+/**
+ * Removes an error listener
+ * 
+ * @param {function(error)} fl - The error listener to remove
+ */
+com.marklogic.widgets.create.prototype.removeErrorListener = function(fl) {
+  this.errorPublisher.unsubscribe(fl);
 };
 
 com.marklogic.widgets.create.prototype._init = function() {

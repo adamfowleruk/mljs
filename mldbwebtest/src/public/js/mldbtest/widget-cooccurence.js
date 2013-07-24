@@ -10,12 +10,31 @@ com.marklogic.widgets = window.com.marklogic.widgets || {};
  */
 com.marklogic.widgets.cooccurence = function(container) {
   this.container = container;
+  this.errorPublisher = new com.marklogic.events.Publisher(); 
   
   this.title = "Co-occurence";
   
   this.values = null;
   
   this._refresh();
+};
+
+/**
+ * Adds an error listener to this widget
+ * 
+ * @param {function(error)} fl - The error listener to add
+ */
+com.marklogic.widgets.cooccurence.prototype.addErrorListener = function(fl) {
+  this.errorPublisher.subscribe(fl);
+};
+
+/**
+ * Removes an error listener
+ * 
+ * @param {function(error)} fl - The error listener to remove
+ */
+com.marklogic.widgets.cooccurence.prototype.removeErrorListener = function(fl) {
+  this.errorPublisher.unsubscribe(fl);
 };
 
 /**
