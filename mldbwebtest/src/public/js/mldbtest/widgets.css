@@ -452,6 +452,28 @@ span.person {
   font-style: bold;
 }
 
+/** JSON tree to HTML **/
+.jsonhtml {
+  padding-left: 20px;
+}
+
+.jsonproperty {
+  
+}
+
+.jsonpropertytitlewrapper {
+  
+}
+
+.jsonpropertytitle {
+  font-weight: bold;
+  padding-right: 10px;
+}
+
+.jsonpropertyvalue {
+  
+}
+
 /** Generic log div container **/
 div.log {
   margin-top: 10px;

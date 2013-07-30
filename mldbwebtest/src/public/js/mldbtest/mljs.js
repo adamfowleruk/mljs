@@ -964,13 +964,6 @@ mljs.prototype.save = function(jsonXmlBinary,docuri_opt,props_opt,callback_opt) 
       }
     }
   }
-  if (null != format) {
-    url += "&format=" + format;
-  }
-  // make transaction aware
-  if (undefined != this.__transaction_id) {
-    url += "&txid=" + encodeURI(this.__transaction_id);
-  }
   
   var options = {
     path: url,
@@ -978,6 +971,40 @@ mljs.prototype.save = function(jsonXmlBinary,docuri_opt,props_opt,callback_opt) 
   };
   if (null != contentType) {
     options.contentType = contentType;
+  } else {
+    // determine content type from object itself
+    if ("object" == typeof jsonXmlBinary) {
+      if (undefined != jsonXmlBinary.nodeType) {
+        // XML doc
+        options.contentType = "text/xml";
+        format = null; // overrides param override setting
+      } else {
+        // assume JSON, but could easily be binary too
+        options.contentType = "application/json";
+        format = null; // overrides param override setting
+        
+        // TODO binary support
+      }
+      
+    } else {
+      // check is string
+      if ("string" == typeof jsonXmlBinary) {
+        options.contentType = "text/plain";
+        format = null; // overrides param override setting
+        // text doc
+      } else {
+        // binary blob or such like???
+        throw new Exception("Unsupported file save type. Throwing error. typeof: " + (typeof(jsonXmlBinary)));
+      }
+    }
+  }
+  this.logger.debug("mljs.save(): Content Type now: " + options.contentType);
+  if (null != format) {
+    url += "&format=" + format;
+  }
+  // make transaction aware
+  if (undefined != this.__transaction_id) {
+    url += "&txid=" + encodeURI(this.__transaction_id);
   }
   
   this.__doreq("SAVE",options,jsonXmlBinary,function(result) {

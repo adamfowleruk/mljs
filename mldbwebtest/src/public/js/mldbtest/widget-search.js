@@ -90,7 +90,24 @@ com.marklogic.widgets.searchhelper.camelcase = function(value,mode) {
   return name;
 };
 
-
+com.marklogic.widgets.searchhelper.jsontohtml = function(json) {
+  var str = "<div class='jsonhtml'>";
+  for (var tag in json) {
+    if ("object" == typeof json[tag]) {
+      str += "<div class='jsonproperty'><div class='jsonpropertytitlewrapper'><span class='jsonpropertytitle'>" + com.marklogic.widgets.searchhelper.camelcase(tag) + ":- </span></div>";
+      str += com.marklogic.widgets.searchhelper.jsontohtml(json[tag]);
+      str += "</div>";
+    } else {
+      // simple value
+      str += "<div class='jsonproperty'><div class='jsonpropertytitlewrapper'>";
+      str += "<span class='jsonpropertytitle'>" + com.marklogic.widgets.searchhelper.camelcase(tag) + ": </span>";
+      str += "<span class='jsonpropertyvalue'>" + json[tag] + "</span>";
+      str += "</div></div>";
+    }
+  }
+  str += "</div>";
+  return str;
+};
 
 
 
@@ -610,11 +627,14 @@ com.marklogic.widgets.searchresults = function(container) {
         self.ctx.db.logger.debug("match text 0: " + result.matches[0]["match-text"][0]);
       }
       if ("object" == typeof result.content && undefined != result.content.html) {
+        self.ctx.db.logger.debug("defaultProcessor: Got JSON Object rendering of an HTML document");
         // is a xhtml document rendered as json
         var content = result.content.html.body;
         var resStr = htmlRec(content);
+        
       } else if (undefined != result.matches && result.matches[0] && result.matches[0]["match-text"] && result.matches[0]["match-text"][0] && result.matches[0]["match-text"][0].indexOf("<html") == 0) {
-        self.ctx.db.logger.debug("GOT A SNIPPET MATCH WITH A HTML ELEMENT");
+        self.ctx.db.logger.debug("defaultProcessor: Got a snippet match with a html element");
+        
         var xml = textToXML(result.matches[0]["match-text"][0]);
         var txt = result.matches[0]["match-text"][0];
         self.ctx.db.logger.debug("RAW HTML TEXT: " + txt);
@@ -635,7 +655,10 @@ com.marklogic.widgets.searchresults = function(container) {
         
         resStr += "</div>";
         return resStr;
-      } else {
+      } else if ("object" == typeof(result.content)) {
+        // TRY TO GUESS JSON CONTENT
+        self.ctx.db.logger.debug("defaultProcessor: Got JSON Object content");
+        
         var resStr = "";
         // parse each results and snippet / raw content
         var title = result.uri;
@@ -647,17 +670,35 @@ com.marklogic.widgets.searchresults = function(container) {
         if (undefined != result.content && undefined != result.content.summary) {
           snippet = result.content.summary;
         } else if (undefined != result.content) {
-          snippet = JSON.stringify(result.content); 
+          //snippet = JSON.stringify(result.content); 
+          snippet = com.marklogic.widgets.searchhelper.jsontohtml(result.content);
           // TODO check for XML (string not object) content in results.results[i].content
         } else {
           // no snippet available
         }
+        
+        if (null == snippet) {
+          // TODO show JSON tree structure as HTML
+          self.ctx.db.logger.debug("defaultProcessor: No JSON summary, building JSON tree HTML output - TODO");
+        }
+        
         resStr += "<div class='searchresults-result'><h3>" + result.index + ". " + title + "</h3>";
         if (null != snippet) {
           resStr += "<div class='searchresults-snippet'>" + snippet + "</div>";
         }
         resStr += "</div>";
         return resStr;
+      } else {
+        // ATTEMPT TO PARSE AS XML
+        self.ctx.db.logger.debug("defaultProcessor: Got suspected XML - last processor option anyway...");
+        try {
+          var xmlDoc = textToXML(result.content);
+          self.ctx.db.logger.debug("defaultProcessor:  - XML parse successful...");
+          
+          // TODO display tree of XML
+        } catch (err) {
+          self.ctx.db.logger.debug("defaultProcessor: XML mode: Failed to create XML document from text: " + result.content);
+        }
       }
     }
   };

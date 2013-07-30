@@ -34,4 +34,5 @@ declare option xdmp:mapping "false";
   <div id="errors" class="grid_12"></div>
  </div>
   <div id="log" class="log"><p>Checking test database for existence of test content. Please wait...</p></div>
+  <a id='forcereload' href='#'>Click here to force reload of test data</a>
 </div>

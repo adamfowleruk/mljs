@@ -26,17 +26,11 @@ $(document).ready(function() {
   qb.query(qb.collection("testdata"));
   var query = qb.toJson();
   
-  db.saveSearchOptions(optionsName,options,function(result) {
-    db.structuredSearch(query,optionsName,function(result) {
-      if (result.inError) {
-        log("Error searching for test content:-");
-      } else {
-        log("Found " + result.doc.results.length + " documents in 'testdata' collection");
-        if (result.doc.results.length == 63) {
-          log("We have testdata - not adding more data to test database. End. Click on a link above to test mljs.");
-        } else {
+  var doload = function() {
+    logel.innerHTML = "";
+    
           log("Adding test content to database...");
-          log("[1 of 4] Adding temperature test data...");
+          log("[1 of 6] Adding temperature test data...");
           
           
           // save then get doc
@@ -90,7 +84,7 @@ $(document).ready(function() {
   
           var complete1 = function() {
             log("- Done.");
-            log("[2 of 4] Adding movie test data...");
+            log("[2 of 6] Adding movie test data...");
             
             docs = [
               {title: "The Goonies",actor: "Sean Astin", genre: "Comedy", year: "1985"},
@@ -125,7 +119,7 @@ $(document).ready(function() {
   
             var complete2 = function() {
               log("- Done.");
-              log("[3 of 4] Adding animals test data...");
+              log("[3 of 6] Adding animals test data...");
               
               docs = [
                 {title: "Polly the Penguin", summary: "Penguins are awesome", animal: "penguin", family: "bird", age: 15},
@@ -160,10 +154,69 @@ $(document).ready(function() {
               var complete3 = function() {
                 log("- Done.");
               
-                log("[4 of 4] Adding semantic test data...");
+                log("[4 of 6] Adding semantic test data...");
                 log("- N/A - no semantic data adding script written yet.");
                 
-                log("ALL DONE. Click on one of the links above to use the demonstration.");
+                log("[5 of 6] Adding plain text test data...");
+              
+                docs = [
+                  "There once was a poet named Fred.",
+                  "Who wrote poems until he was dead.",
+                  "They picked up his pencil.",
+                  "And found his poem stencil.",
+                  "And realised he had ran out of lead."
+                ];
+              
+                saveCount = 0;
+                var nextSave5 = function() {
+                  if (0 == docs.length || saveCount == docs.length) {
+                    complete5();
+                  } else {
+                    db.save(docs[saveCount],"/plaintext/" + (saveCount+1),{collection: "plaintext,testdata"}, function(result) {
+                      saveCount++;
+                      nextSave5();
+                    });
+                  }
+                };
+  
+                var complete5 = function() {
+                  log("- Done.");
+                  log("[6 of 6] Adding mixed test data...");
+              
+                  docs = [
+                    "I am a plain text file",
+                    textToXML("<documentelement><title>I am an XML file</title><summary>Some XML summary</summary></documentelement>"),
+                    textToXML("<documentelement2><name>I am a generic XML file</name><desc>Generic XML description</desc></documentelement2>"),
+                    {title: "Some JSON title", summary: "Some JSON summary"},
+                    {name: "Generic JSON name", desc: "Generic JSON description"}
+                  ];
+              
+                  saveCount = 0;
+                  var nextSave6 = function() {
+                    if (0 == docs.length || saveCount == docs.length) {
+                      complete6();
+                    } else {
+                      db.save(docs[saveCount],"/mixed/" + (saveCount+1),{collection: "mixed,testdata"}, function(result) {
+                        saveCount++;
+                        nextSave6();
+                      });
+                    }
+                  };
+  
+                  var complete6 = function() {
+                    log("- Done.");
+                
+                
+                    log("ALL DONE. Click on one of the links above to use the demonstration.");
+                  };
+                
+                  log("- Saving " + docs.length + " documents...");
+                  nextSave6();
+                };
+                
+                log("- Saving " + docs.length + " documents...");
+                nextSave5();
+                
                 
               }; // end complete 3
               
@@ -181,10 +234,26 @@ $(document).ready(function() {
           log("- Saving " + docs.length + " documents...");
           nextSave1();
   
+  };
+  
+  db.saveSearchOptions(optionsName,options,function(result) {
+    db.structuredSearch(query,optionsName,function(result) {
+      if (result.inError) {
+        log("Error searching for test content:-");
+      } else {
+        log("Found " + result.doc.results.length + " documents in 'testdata' collection");
+        if (result.doc.results.length == 73) {
+          log("We have testdata - not adding more data to test database. End. Click on a link above to test mljs.");
+        } else {
+          doload();
         }
       }
     });
   });
+  
+  document.getElementById("forcereload").onclick = function(e) {
+    doload();
+  };
   
   } catch (err) {
     error.show(err.message);

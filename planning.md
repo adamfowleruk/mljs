@@ -12,9 +12,8 @@ Targets for 0.8 (Jul 2013)
   - DONE BUG: Hitting enter in search bar executes search
   - DONE BUG: one page too many in results if results are multiple of page size (i.e. 30 gives you 4 pages, not 3)
   - DONE BUG: multi word facet selection causes search to be limited to first word only (no quotes) -> query parser, not facet issue
-  - Widgets: Get snippeting mode working by default
  - DONE Core: support XML returned as well as JSON
-  - DONE Search result content (within JSON results, not as XML results)
+  - DONE Search result content (XML as text within JSON results, not as XML results)
  - DONE Widgets: Update search samples to include one set of mixed XML and JSON documents
  - DONE Widgets: File upload (single)
  - DONE Core: Search Options Builder
@@ -22,14 +21,20 @@ Targets for 0.8 (Jul 2013)
  - DONE Browser: XmlHttpRequest2 (xhr2) binding
  - DONE Tests: Updated mldbwebtest project to be more obvious, and include content initialisation on main page
  - Tutorial: Deploying the mldbwebtest roxy project (video + text)
- - DONE Browser: Move SVG rendering code in to default search results renderer from animals sample
- - IN PROGRESS Tests: Test samples for xml content 
-  - DONE hurt-bat svg in animals search test
+ - IN PROGRESS Widgets: Search results rendering default processor
+  - DONE Browser: Move SVG rendering code in to default search results renderer from animals sample
+  - Widgets: Get snippeting mode working
   - xhtml documents
   - generic xml document (//title, //summary, //description, //synopsis, or first 2 elements, or xml snippet)
- - Test: plain text documents
+  - generic xml document tree fallback
+  - DONE generic JSON document tree fallback
+  - BUG (Product 6.0-2): plain text documents
+ - DONE Tests: Test samples for xml content 
+  - DONE hurt-bat svg in animals search test
  - Docs: Architecture of widgets and MLJS for developers
  - DONE Integrate error widget on each demo page
+ - DONE Add button to allow force reload on main page
+ - Index detection and reporting on main page
  - DONE Tests: Refactor to use alternate testing framework
  - DONE Core: Return and add binary documents
  - DONE Core: Return and add plain text documents
@@ -53,6 +58,9 @@ Floating as and when
   - DONE Browser: DLS declare search results as record widget
  
 Targets for 1.0 (Aug 2013)
+ - Widgets: Geospatial facets show in maps, and not in facets widget
+ - Widgets: Facet support for buckets, sliders
+ - Widgets: Facet hierarchies at browser side
  - Widgets: Support facet hierarchies
  - Widgets: D3.js network diagram
  - Widgets: Charts widget to support aggregations via search options
