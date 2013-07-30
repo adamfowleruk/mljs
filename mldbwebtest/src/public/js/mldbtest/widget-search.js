@@ -129,6 +129,19 @@ com.marklogic.widgets.searchbar = function(container) {
   var self = this;
   document.getElementById(container + "-submit").onclick = function() {self._dosearch(self);}; // TODO Check this is valid
   mljs.defaultconnection.logger.debug("added submit click handler");
+  
+  // now do enter click handler
+  var searchKeyPress = function(e)
+    {
+        // look for window.event in case event isn't passed in
+        if (typeof e == 'undefined' && window.event) { e = window.event; }
+        if (e.keyCode == 13)
+        {
+            document.getElementById(container + "-submit").click();
+        }
+    };
+  document.getElementById(container + "-searchinput").onkeypress = searchKeyPress;
+  
 };
 
 com.marklogic.widgets.searchbar.__dosearch = function(submitelement) {
@@ -171,7 +184,17 @@ com.marklogic.widgets.searchbar.prototype._dosearch = function(self) {
 };
 
 com.marklogic.widgets.searchbar.prototype.updateSimpleQuery = function(q) {
-  document.getElementById(this.container + "-searchinput").setAttribute("value",q);
+  if (null != q && undefined != q && "" != q) {
+    mljs.defaultconnection.logger.debug(" - updateSimpleQuery: Setting query string to: " + q);
+    document.getElementById(this.container + "-searchinput").value = q;
+  }
+};
+
+com.marklogic.widgets.searchbar.prototype.updateResults = function(results) {
+  if (typeof (results) != "boolean" && undefined != results && null != results && undefined != results.qtext) {
+    mljs.defaultconnection.logger.debug(" - updateResults: Setting query string to: " + results.qtext);
+    document.getElementById(this.container + "-searchinput").value = results.qtext;
+  }
 };
 
 com.marklogic.widgets.searchbar.prototype.setContext = function(context) {
@@ -388,6 +411,7 @@ com.marklogic.widgets.searchfacets.prototype._refresh = function() {
 
 com.marklogic.widgets.searchfacets.prototype._selectFacet = function(facetName,value) {
   mljs.defaultconnection.logger.debug("Selecting " + facetName + ":" + value);
+  // TODO check that this facet value isn't already selected
   this.selected.push({name: facetName,value: value});
   // draw selection
   this._refresh();
@@ -489,6 +513,10 @@ com.marklogic.widgets.searchfacets.prototype.updateFacets = function(results) {
     return;
   }
   this.results = results;
+  
+  // extract selected facet values
+  this.selected = this.ctx.lastParsed.facets;
+  
   this._refresh();
 };
 

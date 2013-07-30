@@ -3354,7 +3354,7 @@ mljs.prototype.searchcontext.prototype._parseQuery = function(q) {
   var text = "";
   var facets = new Array();
   var sort = null;
-  var parts = q.trim().split(" "); // TODO handle spaces in facet values
+  var parts = q.trim().split(" "); // handles spaces in facet values
   for (var i = 0;i < parts.length;i++) {
     this.db.logger.debug("searchbar._parseQuery: parts[" + i + "]: " + parts[i]);
     var newIdx = i;
@@ -3385,9 +3385,10 @@ mljs.prototype.searchcontext.prototype._parseQuery = function(q) {
         this.db.logger.debug("Facet info now name: " + fv[0] + " value: " + fv[1]);
         var found = false;
         for (var f = 0;f < facets.length;f++) {
-          if (facets[f].name == fv[0]) {
-            // replace value
-            facets[f].value = fv[1];
+          this.db.logger.debug(" - testing FACET: " + facets[f].name + " = " + facets[f].value);
+          if (facets[f].name == fv[0] && facets[f].value == fv[1]) {
+            // mark as found so we don't add this again as a facet. NB multiples for same facet are allowed, but not multiples of same facet value
+            this.db.logger.debug(" - facets match, marking as found");
             found = true;
           }
         }
@@ -3400,7 +3401,9 @@ mljs.prototype.searchcontext.prototype._parseQuery = function(q) {
     }
     i = newIdx;
   }
-  return {q: text.trim(),facets: facets,sort: sort};
+  var last = {q: text.trim(),facets: facets,sort: sort};
+  this.lastParsed = last;
+  return last;
 };
 
 

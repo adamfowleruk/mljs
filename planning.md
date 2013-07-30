@@ -5,10 +5,11 @@
 Targets for 0.8 (Jul 2013)
  - DONE Core+Widgets: Create search context object, and make search widgets responsible for registering themselves with it. Refactor search execution code in to here. (Required for Sort widget)
  - Core: Extra query builder options (all constraints supported by options, plus sorting)
- - Widgets: Support multiple values for save facet in facet widget and searchbar/context
+ - DONE Widgets: Support multiple values for save facet in facet widget and searchbar/context
  - IN PROGRESS Widgets: Search widgets, and overarching search page widget UI layer over mljs in browser, including custom result rendering plugins (search bar, facets, results, paging, sorting)
   - IN PROGRESS Widgets: Sorting widget actions
-  - IN PROGRESS Widgets: More... all... links in facets
+  - IN PROGRESS Widgets: More... all... links in facets -> BUG always updating last facet, not the correct facet
+  - DONE BUG: Hitting enter in search bar executes search
   - DONE BUG: one page too many in results if results are multiple of page size (i.e. 30 gives you 4 pages, not 3)
   - DONE BUG: multi word facet selection causes search to be limited to first word only (no quotes) -> query parser, not facet issue
   - Widgets: Get snippeting mode working by default
