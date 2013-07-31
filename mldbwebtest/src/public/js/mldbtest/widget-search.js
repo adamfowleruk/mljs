@@ -109,6 +109,12 @@ com.marklogic.widgets.searchhelper.jsontohtml = function(json) {
   return str;
 };
 
+com.marklogic.widgets.searchhelper.xmltohtml = function(xml) {
+  // TODO
+};
+
+
+
 
 
 
@@ -679,7 +685,7 @@ com.marklogic.widgets.searchresults = function(container) {
         
         if (null == snippet) {
           // TODO show JSON tree structure as HTML
-          self.ctx.db.logger.debug("defaultProcessor: No JSON summary, building JSON tree HTML output - TODO");
+          self.ctx.db.logger.debug("defaultProcessor: No JSON summary, building JSON tree HTML output");
         }
         
         resStr += "<div class='searchresults-result'><h3>" + result.index + ". " + title + "</h3>";
@@ -695,7 +701,57 @@ com.marklogic.widgets.searchresults = function(container) {
           var xmlDoc = textToXML(result.content);
           self.ctx.db.logger.debug("defaultProcessor:  - XML parse successful...");
           
-          // TODO display tree of XML
+          var resStr = "";
+          // parse each results and snippet / raw content
+          var title = result.uri;
+          var snippet = null;
+          if (undefined != xmlDoc.evaluate) {
+            // check for common title names - title, name, id, h1
+            var evalResult = xmlDoc.evaluate("//title[1]",xmlDoc,null,XPathResult.STRING_TYPE,null);
+            if (undefined == evalResult) {
+              evalResult = xmlDoc.evaluate("//name[1]",xmlDoc,null,XPathResult.STRING_TYPE,null);
+              
+              if (undefined == evalResult) {
+                evalResult = xmlDoc.evaluate("//id[1]",xmlDoc,null,XPathResult.STRING_TYPE,null);
+              
+                if (undefined == evalResult) {
+                  evalResult = xmlDoc.evaluate("//h1[1]",xmlDoc,null,XPathResult.STRING_TYPE,null);
+                }
+              }
+            }
+            if (undefined != evalResult && null != evalResult) {
+              title = evalResult.stringValue;
+            }
+            // check for common snippet names - summary, synopsis, description, details
+            evalResult = xmlDoc.evaluate("//summary[1]",xmlDoc,null,XPathResult.STRING_TYPE,null);
+            if (undefined == evalResult) {
+              evalResult = xmlDoc.evaluate("//synopsis[1]",xmlDoc,null,XPathResult.STRING_TYPE,null);
+              if (undefined == evalResult) {
+                evalResult = xmlDoc.evaluate("//description[1]",xmlDoc,null,XPathResult.STRING_TYPE,null);
+                if (undefined == evalResult) {
+                  evalResult = xmlDoc.evaluate("//details[1]",xmlDoc,null,XPathResult.STRING_TYPE,null);
+                }
+              }
+            }
+            if (undefined != evalResult && null != evalResult) {
+              snippet = evalResult.stringValue;
+            }
+          }
+        
+          if (null == snippet) {
+            // show XML tree structure as HTML
+            self.ctx.db.logger.debug("defaultProcessor: No XML summary, building XML tree HTML output");
+            
+            // display tree of XML
+            snippet = com.marklogic.widgets.searchhelper.xmltohtml(xmlDoc);
+          }
+        
+          resStr += "<div class='searchresults-result'><h3>" + result.index + ". " + title + "</h3>";
+          if (null != snippet) {
+            resStr += "<div class='searchresults-snippet'>" + snippet + "</div>";
+          }
+          resStr += "</div>";
+          return resStr;
         } catch (err) {
           self.ctx.db.logger.debug("defaultProcessor: XML mode: Failed to create XML document from text: " + result.content);
         }
