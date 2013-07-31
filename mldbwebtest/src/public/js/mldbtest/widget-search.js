@@ -705,6 +705,7 @@ com.marklogic.widgets.searchresults = function(container) {
           // parse each results and snippet / raw content
           var title = result.uri;
           var snippet = null;
+          /*
           if (undefined != xmlDoc.evaluate) {
             // check for common title names - title, name, id, h1
             var evalResult = xmlDoc.evaluate("//title[1]",xmlDoc,null,XPathResult.STRING_TYPE,null);
@@ -744,6 +745,10 @@ com.marklogic.widgets.searchresults = function(container) {
             
             // display tree of XML
             snippet = com.marklogic.widgets.searchhelper.xmltohtml(xmlDoc);
+          }
+          */
+          if (null == snippet) {
+            snippet = result.content;
           }
         
           resStr += "<div class='searchresults-result'><h3>" + result.index + ". " + title + "</h3>";
