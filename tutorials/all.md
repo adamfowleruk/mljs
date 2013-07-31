@@ -1,5 +1,10 @@
 # All tutorials available for mljs
 
+## Initial learning
+<ul>
+  <li><a href=tutorial-intro.html>MLJS Intro</a></li>
+</ul>
+
 ## mljs Core tutorials
 <ul>
   <li><a href=tutorial-samples.html>Samples</a></li>

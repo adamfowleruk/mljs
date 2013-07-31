@@ -67,8 +67,9 @@ Targets for 1.0 (Aug 2013)
  - Widgets: Charts widget to support extraction of XML info via XPath
  - Widgets: XML/JSON document creation-by-example (via HTML form generator)
  - Widgets: Support array children in aggregations for graphs
- - Browser: Lazy loading on search results (E.g. when requesting page 2 result 3 (result 13), make http request for re-search transparent) - Also for graphing when all search results need loading
+ - Widgets: Lazy loading on search results (E.g. when requesting page 2 result 3 (result 13), make http request for re-search transparent) - Also for graphing when all search results need loading
  - Easy geospatial search
+ - Widgets: searchresults: Adding action bar support, with plugins for each button (applicable() and render() functions) - E.g. Download, View, Generate PDF, Delete, Properties 
  - Widgets: Google maps (via OpenLayers?)
  - Support all search functions not currently provided in query builder
  - Complete support for /v1/values REST function

@@ -4,6 +4,7 @@ JSDOC=/Users/adamfowler/Documents/marklogic/git/jsdoc/jsdoc
 
 P=../mldb-pages/apidocs
 D=./dist/docs
+MD=./documentation
 rm -rf $D
 rm -rf $P
 mkdir $P
@@ -20,6 +21,10 @@ echo "...done."
 
 cp -R $D/core $P/
 cp -R $D/widgets $P/
+mkdir $P/core/images
+mkdir $P/widgets/images
+cp $MD/*/*.png $P/core/images/
+cp $MD/*/*.png $P/widgets/images/
 
 #tar czf jsdoc-core.tar.gz $D/core
 #tar czf jsdoc-widgets.tar.gz $D/widgets
@@ -30,7 +35,7 @@ cd ../mldb-pages
 git add apidocs
 git commit -a -m "link fix"
 git push origin gh-pages
-cd ../mldb
+cd ../mljs
 
 echo "Done All."
 exit 0
