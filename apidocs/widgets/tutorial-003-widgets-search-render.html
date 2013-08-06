@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Tutorial: 001-intro</title>
+    <title>JSDoc: Tutorial: 003-widgets-search-render</title>
     
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,43 +17,39 @@
 
 <div id="main">
     
-    <h1 class="page-title">Tutorial: 001-intro</h1>
+    <h1 class="page-title">Tutorial: 003-widgets-search-render</h1>
     
     <section>
     
 <header>
     
 
-    <h2>001-intro</h2>
+    <h2>003-widgets-search-render</h2>
 </header>  
 
 <article>
     <p><a href="tutorial-all.html">Back to All Tutorials list</a></p>
-<h1>MLJS Introduction</h1>
-<p>MLJS is a JavaScript wrapper around the MarkLogic REST API in MarkLogic server versions 6 & 7. MLJS consists of
-a core API defined in mljs.js, a set of communication and security wrappers, and some browser widgets. The
-complete set of functionality can be seen in the following diagram.</p>
-<p><img src="./images/mljs-diagrams.002.png" alt="MLJS API" title="MLJS API"></p>
-<p>As you can see above, there is a core API highlighted in red. The Green boxes are communication and security 
-wrappers for Node.js. These are necessary because NodeJS does not provide Digest and Basic authentication
-out of the box. There are therefore three wrappers at the moment - no authentication, basic auth, and digest
-auth.</p>
-<p>Node.js has no visual component, so really all you'll use as an application developer is the core mljs.js file.
-MLJS has been designed so it can be used in the browser with no code changes. You can deploy this file along
-with some in-browser specific communication wrappers. These have been provided in case the basic communication
-facilities of a particular browser you need to support do not function as expected. </p>
-<p>The best tested browser communication wrapper, and
-the default, is XHR2. This uses XMLHttpRequest2. For most browsers this is safe. This is used in preference
-to the jQuery, XHR (XMLHttpRequest V1) and prototype.js libraries because it handles binary file upload more
-elegantly and with less code hacks than the other wrappers.</p>
-<p>I have also provided a set of common browser widgets that wrap MLJS. These are useful for creating applications
-in the browser. Each file may contain one or more widget. The most complete file is widgets-search.js which 
-provides a search bar, page navigation, sorting, facets and results widgets, and an overarching searchpage
-widget that contains all of these in one handy wrapper.</p>
-<p>Other widgets are available. For a complete visual listing please 
-<a href="http://adamfowlerml.wordpress.com/2013/06/03/what-web-widgets-are-now-available-for-marklogic/">visit my blog page</a> 
-that lists all the default MarkLogic Visualisation Widgets as well as all those
-I have created in MLJS.</p>
+<h1>Search Results Rendering</h1>
+<p>The com.marklogic.widgets.searchresults widget supports pluggable rendering. This means if you know how to identify a
+particular class of document and know how that should be rendered in a search results page, you can add your own
+rendering support.</p>
+<p>Out of the box is provided some default renderers. These make a best guess as to what should be used for a title or
+for a summary/snippet. </p>
+<p>For JSON Documents, the following fields are checked for use as a title: title, then uri</p>
+<p>For JSON Documents, the following fields are checked for use as a summary: summary, then tree representation of the JSON content</p>
+<p>For XML Documents, the following fields are checked for use as a title: //title[1], //name[1], //h1[1], first text() element</p>
+<p>For XML Documents, the following fields are checked for use as a summary: //summary[1], //synopsis[1], //description[1], //details[1], second text() element</p>
+<p>For plain text Documents, the URI is used for the title and the text content used as a summary</p>
+<h2>Custom renderers</h2>
+<p>A custom renderer is a pair of methods - matcher(result) and processor(result). These are both passed the result object.
+This result object is a JSON object representing all information about this single result, including URI, score, and content (xml, json or text).</p>
+<p>The matcher(result) function should return true if this renderer can be used to render the search result. Otherwise it must return false.</p>
+<p>The processor(result) function must generate HTML and return this at the end of the function. Currently no dynamic javascript event handlers are
+supported within the HTML output, but that may be added in future.</p>
+<p>To add your own renderer to a searchresults widget, simply call the addProcessor(name,matcher_func,processor_func) method.</p>
+<h2>SVG custom renderer example</h2>
+<p>An example of a custom renderer can be found in the widgets-search.js file. Search for <code>javascript 'this.builtinProcessors[&quot;svg&quot;] = '</code> to find it 
+in the code.</p>
 <hr>
 <p><a href="tutorial-all.html">Back to All Tutorials list</a></p>
 </article>
