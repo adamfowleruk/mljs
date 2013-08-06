@@ -4,6 +4,7 @@
 <ul>
   <li><a href=tutorial-001-intro.html>MLJS Intro</a></li>
   <li><a href=tutorial-002-widgets-search.html>How Search Widgets Work</a></li>
+  <li><a href=tutorial-003-widgets-search-render.html>About Search Result rendering</a></li>
 </ul>
 
 ## mljs Core tutorials
