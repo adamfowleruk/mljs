@@ -1240,24 +1240,24 @@ mljs.prototype.search = function(query_opt,options_opt,start_opt,sprops_opt,call
   var self = this;
   this.__doreq("SEARCH",options,content,function(result) {
     // Horrendous V7 EA1 workaround...
-    if ("xml" == result.format) {
-      self.logger.debug("result currently: " + JSON.stringify(result));
+    //if ("xml" == result.format) {
+      //self.logger.debug("result currently: " + JSON.stringify(result));
       // convert to json for now (quick in dirty)
       // TODO replace this with 'nice' fix for V7 transforms
-      result.doc = xmlToJsonSearchResults(result.doc);
-      result.format = "json";
+      //0result.doc = xmlToJsonSearchResults(result.doc);
+      //1result.format = "json";
       //if (undefined == result.doc.result) {
-        result.doc = result.doc.response;
-        result.doc.results = result.doc.result;
-        result.doc.result = undefined;
+        //2result.doc = result.doc.response;
+        //3result.doc.results = result.doc.result;
+        //4result.doc.result = undefined;
         /*
         for (var i = 0;i < result.doc.results.length;i++) {
           result.doc.results[i].content = {html: result.doc.results[i].html};
           result.doc.results[i].html = undefined;
         }*/
       //}
-      self.logger.debug("Result doc now: " + JSON.stringify(result.doc));
-    }
+      //self.logger.debug("Result doc now: " + JSON.stringify(result.doc));
+    //}
     (callback||noop)(result);
   });
 };
@@ -1330,7 +1330,7 @@ mljs.prototype.structuredSearch = function(query_opt,options_opt,callback) {
     method: "GET"
   };
   //console.log("OPTIONS: " + JSON.stringify(options));
-  this.__doreq("SEARCH",options,null,callback);
+  this.__doreq("STRUCTUREDSEARCH",options,null,callback);
 };
 
 

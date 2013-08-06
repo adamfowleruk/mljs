@@ -110,7 +110,8 @@ com.marklogic.widgets.searchhelper.jsontohtml = function(json) {
 };
 
 com.marklogic.widgets.searchhelper.xmltohtml = function(xml) {
-  // TODO
+  // Take first text element as title, second as snippet
+  // TODO if needed - see search results logic itself for xmlDoc.evaluate
 };
 
 
@@ -626,7 +627,7 @@ com.marklogic.widgets.searchresults = function(container) {
       console.log("TYPEOF: " + (typeof result.content));
       console.log("length: " + ( result.content.length));
       console.log("html: " + ( result.content.html)); */
-      self.ctx.db.logger.debug("matches:" + result.matches);
+      self.ctx.db.logger.debug("matches: " + result.matches);
       if (undefined != result.matches) {
         self.ctx.db.logger.debug("first match: " + result.matches[0]);
         self.ctx.db.logger.debug("match text: " + result.matches[0]["match-text"]);
@@ -705,36 +706,56 @@ com.marklogic.widgets.searchresults = function(container) {
           // parse each results and snippet / raw content
           var title = result.uri;
           var snippet = null;
-          /*
+          
           if (undefined != xmlDoc.evaluate) {
             // check for common title names - title, name, id, h1
-            var evalResult = xmlDoc.evaluate("//title[1]",xmlDoc,null,XPathResult.STRING_TYPE,null);
-            if (undefined == evalResult) {
-              evalResult = xmlDoc.evaluate("//name[1]",xmlDoc,null,XPathResult.STRING_TYPE,null);
+            var evalResult = xmlDoc.evaluate("//title[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
+            if (undefined == evalResult || "" == evalResult.stringValue) {
+              self.ctx.db.logger.debug("defaultProcessor: //title[1]/text() undefined");
+              evalResult = xmlDoc.evaluate("//name[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
               
-              if (undefined == evalResult) {
-                evalResult = xmlDoc.evaluate("//id[1]",xmlDoc,null,XPathResult.STRING_TYPE,null);
+              if (undefined == evalResult || "" == evalResult.stringValue) {
+              self.ctx.db.logger.debug("defaultProcessor: //name[1]/text() undefined");
+                evalResult = xmlDoc.evaluate("//id[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
               
-                if (undefined == evalResult) {
-                  evalResult = xmlDoc.evaluate("//h1[1]",xmlDoc,null,XPathResult.STRING_TYPE,null);
+                if (undefined == evalResult || "" == evalResult.stringValue) {
+              self.ctx.db.logger.debug("defaultProcessor: //id[1]/text() undefined");
+                  evalResult = xmlDoc.evaluate("//h1[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
+              
+                  if (undefined == evalResult || "" == evalResult.stringValue) {
+              self.ctx.db.logger.debug("defaultProcessor: //h1[1]/text() undefined");
+                    self.ctx.db.logger.debug("defaultProcessor: trying (//text())[1]");
+                    evalResult = xmlDoc.evaluate("(//text())[1]",xmlDoc,null,XPathResult.STRING_TYPE,null);
+                    self.ctx.db.logger.debug("defaultProcessor: output: " + evalResult.stringValue);
+                  }
                 }
               }
             }
-            if (undefined != evalResult && null != evalResult) {
+            if (undefined != evalResult && null != evalResult && "" != evalResult.stringValue) {
               title = evalResult.stringValue;
             }
             // check for common snippet names - summary, synopsis, description, details
-            evalResult = xmlDoc.evaluate("//summary[1]",xmlDoc,null,XPathResult.STRING_TYPE,null);
-            if (undefined == evalResult) {
-              evalResult = xmlDoc.evaluate("//synopsis[1]",xmlDoc,null,XPathResult.STRING_TYPE,null);
-              if (undefined == evalResult) {
-                evalResult = xmlDoc.evaluate("//description[1]",xmlDoc,null,XPathResult.STRING_TYPE,null);
-                if (undefined == evalResult) {
-                  evalResult = xmlDoc.evaluate("//details[1]",xmlDoc,null,XPathResult.STRING_TYPE,null);
+            evalResult = xmlDoc.evaluate("//summary[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
+            if (undefined == evalResult || "" == evalResult.stringValue) {
+              self.ctx.db.logger.debug("defaultProcessor: //summary[1]/text() undefined");
+              evalResult = xmlDoc.evaluate("//synopsis[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
+              if (undefined == evalResult || "" == evalResult.stringValue) {
+              self.ctx.db.logger.debug("defaultProcessor: //synopsis[1]/text() undefined");
+                evalResult = xmlDoc.evaluate("//description[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
+                if (undefined == evalResult || "" == evalResult.stringValue) {
+              self.ctx.db.logger.debug("defaultProcessor: //description[1]/text() undefined");
+                  evalResult = xmlDoc.evaluate("//details[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
+                  
+                  if (undefined == evalResult || "" == evalResult.stringValue) {
+              self.ctx.db.logger.debug("defaultProcessor: //details[1]/text() undefined");
+                    self.ctx.db.logger.debug("defaultProcessor: trying (//text())[2]");
+                    evalResult = xmlDoc.evaluate("(//text())[2]",xmlDoc,null,XPathResult.STRING_TYPE,null);
+                    self.ctx.db.logger.debug("defaultProcessor: output: " + evalResult.stringValue);
+                  }
                 }
               }
             }
-            if (undefined != evalResult && null != evalResult) {
+            if (undefined != evalResult && null != evalResult && "" != evalResult.stringValue) {
               snippet = evalResult.stringValue;
             }
           }
@@ -744,9 +765,9 @@ com.marklogic.widgets.searchresults = function(container) {
             self.ctx.db.logger.debug("defaultProcessor: No XML summary, building XML tree HTML output");
             
             // display tree of XML
-            snippet = com.marklogic.widgets.searchhelper.xmltohtml(xmlDoc);
+            snippet = com.marklogic.widgets.searchhelper.xmltohtml(xmlDoc); // TODO
           }
-          */
+          
           if (null == snippet) {
             snippet = result.content;
           }
@@ -775,9 +796,9 @@ com.marklogic.widgets.searchresults = function(container) {
     }
     if (null != xml) {
       // check namespace and root element
-      mljs.defaultconnection.logger.debug("Potential SVG nodeName: " + xml.childNodes[0].nodeName);
-      mljs.defaultconnection.logger.debug("Potential SVG nodeType: " + xml.childNodes[0].nodeType);
       if (xml.childNodes[0].nodeName == "svg") {
+        mljs.defaultconnection.logger.debug("Potential SVG nodeName: " + xml.childNodes[0].nodeName);
+        mljs.defaultconnection.logger.debug("Potential SVG nodeType: " + xml.childNodes[0].nodeType);
         return true;
       } else {
         return false;

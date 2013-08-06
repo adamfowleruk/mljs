@@ -17,7 +17,7 @@ $(document).ready(function() {
   
   var ob = new db.options();
   ob.pageLength(100);
-  ob.collection();
+  ob.collection().returnResults(false);
   var options = ob.toJson();
   
   var optionsName = "mldbtest-content-options";
@@ -184,9 +184,10 @@ $(document).ready(function() {
                   log("[6 of 6] Adding mixed test data...");
               
                   docs = [
-                    "I am a plain text file",
+                    /*"I am a plain text file",*/
                     textToXML("<documentelement><title>I am an XML file</title><summary>Some XML summary</summary></documentelement>"),
                     textToXML("<documentelement2><name>I am a generic XML file</name><desc>Generic XML description</desc></documentelement2>"),
+                    textToXML("<documentelement3><wibble>Generic XML wibble file</wibble><flibble>Generic XML flibble element</flibble></documentelement3>"),
                     {title: "Some JSON title", summary: "Some JSON summary"},
                     {name: "Generic JSON name", desc: "Generic JSON description"}
                   ];

@@ -24,11 +24,11 @@ Targets for 0.8 (Jul 2013)
  - IN PROGRESS Widgets: Search results rendering default processor
   - DONE Browser: Move SVG rendering code in to default search results renderer from animals sample
   - Widgets: Get snippeting mode working
-  - xhtml documents
-  - generic xml document (//title, //summary, //description, //synopsis, or first 2 elements, or xml snippet)
-  - generic xml document tree fallback
+  - TEST xhtml documents
+  - DONE generic xml document (//title, //summary, //description, //synopsis, or first 2 elements, or xml snippet)
+  - NA generic xml document tree fallback
   - DONE generic JSON document tree fallback
-  - BUG (Product 6.0-2): plain text documents
+  - BUG (Product 6.0-2): plain text documents - text content not escaped properly
  - DONE Tests: Test samples for xml content 
   - DONE hurt-bat svg in animals search test
  - Docs: Architecture of widgets and MLJS for developers
