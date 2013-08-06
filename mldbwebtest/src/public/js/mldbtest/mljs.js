@@ -365,8 +365,8 @@ var self;
  * Creates an mljs instance. Aliased to new mljs().
  * @constructor
  *
- * @tutorial browser-create-app
- * @tutorial samples
+ * @tutorial 011-browser-create-app
+ * @tutorial 999-samples
  */
 var mljs = function() {
   this.configure();
@@ -3157,9 +3157,13 @@ mljs.prototype.query = function() {
 /**
  * Provides objects for generic event publish-subscribe workflows
  */
-
-com = window.com || {};
-com.marklogic = window.com.marklogic || {};
+if (typeof(window) === 'undefined') {
+  com = {};
+  com.marklogic = {};
+} else {
+  com = window.com || {};
+  com.marklogic = window.com.marklogic || {};
+}
 com.marklogic.events = {};
 
 // EVENT

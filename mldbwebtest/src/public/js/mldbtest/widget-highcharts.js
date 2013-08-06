@@ -121,6 +121,7 @@ com.marklogic.widgets.highcharts.prototype.setAutoCategories = function(bv) {
  * @param {string} valueSource - The JSON path to use for values
  */
 com.marklogic.widgets.highcharts.prototype.setSeriesSources = function(nameSource,categorySource,valueSource) {
+  // TODO change this to addSeriesSource(nameSource,categorySource,valueSource,primaryAxis=true) - supports multiple series
   this.nameSource = nameSource;
   this.categorySource = categorySource;
   this.valueSource = valueSource;
@@ -132,7 +133,14 @@ com.marklogic.widgets.highcharts.prototype.setSeriesSources = function(nameSourc
  * @param {results} results - REST API JSON Results object, as from GET /v1/search
  */
 com.marklogic.widgets.highcharts.prototype.updateResults = function(results) {
+  if (false == results || true == results ) {
+    // TODO show/hide refresh image based on value of this.results (true|false)
+    return;
+  }
+  
   mljs.defaultconnection.logger.debug("in highcharts.updateResults()");
+  mljs.defaultconnection.logger.debug(" - results: " + JSON.stringify(results));
+  
   // go through each results and extract name and values, grouping by name
   var seriesNames = new Array();
   var seriesValues = new Array(); // name -> array(category) -> array(values)
@@ -140,9 +148,36 @@ com.marklogic.widgets.highcharts.prototype.updateResults = function(results) {
   
   var allCategories = new Array();
   
-  if (undefined != results && undefined == results.results) {
-    results = { results: results};
-  }
+  //if (undefined != results && undefined == results.results) {
+  //  results = { results: results};
+  //}
+  
+  if (this.categorySource.startsWith("!")) {
+    mljs.defaultconnection.logger.debug("Loading series data from facet");
+    this.aggregateFunction = "none";
+    
+    // Source name hardcoded, category name is facet, category value is facet name, and count is values
+    var name = this.nameSource.substring(1);
+    var facetName = this.categorySource.substring(1);
+    mljs.defaultconnection.logger.debug(" - Facet title: " + name + ", facet name: " + facetName);
+    seriesNames.push(facetName);
+    
+    var facetValues = results.facets[facetName].facetValues;
+    seriesValues[facetName] = new Array();
+    seriesCounts[facetName] = new Array();
+    
+    mljs.defaultconnection.logger.debug(" - Number of facet values: " + facetValues.length);
+    for (var i = 0;i < facetValues.length;i++) {
+      seriesValues[facetName][facetValues[i].name] = new Array();
+      seriesValues[facetName][facetValues[i].name].push(facetValues[i].count);
+      if (!allCategories.contains(facetValues[i].name)) {
+        allCategories.push(facetValues[i].name);
+      }
+      seriesCounts[facetName][facetValues[i].name] = 1;
+    }
+    
+  } else {
+    
   
   mljs.defaultconnection.logger.debug(" - looping over results");
   for (var r = 0;r < results.results.length;r++) {
@@ -188,6 +223,9 @@ com.marklogic.widgets.highcharts.prototype.updateResults = function(results) {
     mljs.defaultconnection.logger.debug(" -  - next...");
   }
   mljs.defaultconnection.logger.debug(" - finished looping over results");
+  
+  } // end if is not facet value as category source
+  
   
   if (this.autoCategories) {
     mljs.defaultconnection.logger.debug("updateResults(): Auto categories enabled");
@@ -237,6 +275,9 @@ com.marklogic.widgets.highcharts.prototype.updateResults = function(results) {
   var count = function(arr) {
     return arr.length;
   };
+  var none = function(arr) {
+    return arr[0];
+  };
   
   var func = sum;
   if ("mean" == this.aggregateFunction) {
@@ -247,6 +288,8 @@ com.marklogic.widgets.highcharts.prototype.updateResults = function(results) {
     func = max;
   } else if ("count" == this.aggregateFunction) {
     func = count;
+  } else if ("none" == this.aggregateFunction) {
+    func = none;
   }
   
   // now loop over names, categories, and create values array
@@ -255,11 +298,27 @@ com.marklogic.widgets.highcharts.prototype.updateResults = function(results) {
   for (var n = 0;n < seriesNames.length;n++) {
     var name = seriesNames[n];
     // create new categories values arrays
-    var orderedData = new Array();
-    for (var p = 0;p < this.categories.length;p++) {
-      orderedData[p] = func(seriesValues[name][this.categories[p]]);
+    if ("pie" == this.options.chart.type) {
+      var data = new Array();
+      for (var p = 0;p < this.categories.length;p++) {
+        /*
+        var arr = new Array();
+        arr.push(this.categories[p]);
+        arr.push(seriesValues[name][this.categories[p]][0]);
+        data.push(arr);
+        */
+        var json = {name: this.categories[p], y: seriesValues[name][this.categories[p]][0]};
+        data.push(json);
+      }
+      
+      series[n] = {type: "pie", name: name,data: data};
+    } else {
+      var orderedData = new Array();
+      for (var p = 0;p < this.categories.length;p++) {
+        orderedData[p] = func(seriesValues[name][this.categories[p]]);
+      }
+      series[n] = { name: name, data: orderedData};
     }
-    series[n] = { name: name, data: orderedData};
   }
   
   // now set chart's option's series values

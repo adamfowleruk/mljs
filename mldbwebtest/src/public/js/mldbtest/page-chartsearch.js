@@ -34,6 +34,18 @@ $(document).ready(function() {
   tempcolumn.options.chart.type = "column";
   tempcolumn.options.plotOptions = {column: {pointPadding: 0.2,borderWidth: 0,
     dataLabels: { enabled: true, style: { fontWeight: 'bold' } } } };
+    
+  var familypie = new com.marklogic.widgets.highcharts("pie");
+  familypie.addErrorListener(error.updateError);
+  familypie.setSeriesSources("#Family","!family");
+  familypie.setAggregateFunction("none");
+  familypie.setAutoCategories(true);
+  familypie.options.title.text = "Animal Family";
+  familypie.options.subtitle.text = "";
+  familypie.options.yAxis.title.text = "Count";
+  familypie.options.chart.type = "pie";
+  //familypie.options.plotOptions = {pie: {pointPadding: 0.2,borderWidth: 0,
+  //  dataLabels: { enabled: true, style: { fontWeight: 'bold' } } } };
   
   var ob = new db.options();
   ob.defaultCollation("http://marklogic.com/collation/en")
@@ -51,12 +63,13 @@ $(document).ready(function() {
   context.register(bar);
   context.register(tempspline);
   context.register(tempcolumn);
+  context.register(familypie);
   context.setOptions(optionsName,options);
   context.setCollection("animals,testdata"); // restrict all search results
   
-  context.dosimplequery();
-  
   context.addErrorListener(error.updateError);
+  
+  context.dosimplequery();
   
   } catch (err) {
     error.show(err.message);

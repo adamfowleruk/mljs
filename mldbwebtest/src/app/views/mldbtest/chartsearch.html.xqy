@@ -46,4 +46,8 @@ declare option xdmp:mapping "false";
   <div id="splineline" class="grid_6">splineline</div>
   <div id="column" class="grid_6">column</div>
  </div>
+ <div class="container_12">  
+  <div id="pie" class="grid_6">pie</div>
+  <div id="blank" class="grid_6">This div is intentionally blank</div>
+ </div>
 </div>

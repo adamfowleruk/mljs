@@ -297,7 +297,7 @@ com.marklogic.widgets.error.prototype._refresh = function() {
   } else {
     mljs.defaultconnection.logger.debug("Error object is simple string");
     // assume string
-    if (null != this.error && undefined != error) {
+    if (null != this.error && undefined != this.error) {
       var str = "<div class='error-inner hidden' id='" + this.container + "-error-inner'><div class='error-message'>" + this.error + "</div>";
       str += "</div>";
       var el = document.getElementById(this.container);
