@@ -5,7 +5,7 @@ MLJS is a JavaScript wrapper around the MarkLogic REST API in MarkLogic server v
 a core API defined in mljs.js, a set of communication and security wrappers, and some browser widgets. The
 complete set of functionality can be seen in the following diagram.
 
-![alt text](./images/mljs-diagams.002.png "MLJS API")
+![MLJS API](./images/mljs-diagrams.002.png "MLJS API")
 
 As you can see above, there is a core API highlighted in red. The Green boxes are communication and security 
 wrappers for Node.js. These are necessary because NodeJS does not provide Digest and Basic authentication

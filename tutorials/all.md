@@ -2,17 +2,18 @@
 
 ## Initial learning
 <ul>
-  <li><a href=tutorial-intro.html>MLJS Intro</a></li>
+  <li><a href=tutorial-001-intro.html>MLJS Intro</a></li>
+  <li><a href=tutorial-002-widgets-search.html>How Search Widgets Work</a></li>
 </ul>
 
 ## mljs Core tutorials
 <ul>
-  <li><a href=tutorial-samples.html>Samples</a></li>
+  <li><a href=tutorial-999-samples.html>Samples</a></li>
 </ul>
 
 ## mljs Browser tutorials
 <ul>
-  <li><a href=tutorial-browser-create-app.html>Creating a new application</a></li>
+  <li><a href=tutorial-011-browser-create-app.html>Creating a new application</a></li>
 </ul>
 
 ## mljs Node.js tutorials

@@ -365,8 +365,8 @@ var self;
  * Creates an mljs instance. Aliased to new mljs().
  * @constructor
  *
- * @tutorial browser-create-app
- * @tutorial samples
+ * @tutorial 011-browser-create-app
+ * @tutorial 999-samples
  */
 var mljs = function() {
   this.configure();

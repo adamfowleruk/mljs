@@ -1404,7 +1404,7 @@ com.marklogic.widgets.searchpage = function(container) {
 /**
  * Sets the options to be used by all the search page widgets
  *
- * @tutorial browser-create-app
+ * @tutorial 011-browser-create-app
  * 
  * @param {string} name - The search options name
  * @param {JSON} options - The REST API JSON options object

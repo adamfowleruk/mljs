@@ -6,6 +6,7 @@ Targets for 0.8 (Jul 2013)
  - DONE Core+Widgets: Create search context object, and make search widgets responsible for registering themselves with it. Refactor search execution code in to here. (Required for Sort widget)
  - Core: Extra query builder options (all constraints supported by options, plus sorting)
  - DONE Widgets: Support multiple values for save facet in facet widget and searchbar/context
+ - Widgets: Charts widget to support aggregations via search options
  - IN PROGRESS Widgets: Search widgets, and overarching search page widget UI layer over mljs in browser, including custom result rendering plugins (search bar, facets, results, paging, sorting)
   - IN PROGRESS Widgets: Sorting widget actions
   - IN PROGRESS Widgets: More... all... links in facets -> BUG always updating last facet, not the correct facet
@@ -32,7 +33,7 @@ Targets for 0.8 (Jul 2013)
   - BUG (Product 6.0-2): plain text documents - text content not escaped properly
  - DONE Tests: Test samples for xml content 
   - DONE hurt-bat svg in animals search test
- - Docs: Architecture of widgets and MLJS for developers -> Issue with MLJS gh-pages docs rebuild process, not linked properly
+ - DONE Docs: Architecture of widgets and MLJS for developers -> Issue with MLJS gh-pages docs rebuild process, not linked properly
  - DONE Integrate error widget on each demo page
  - DONE Add button to allow force reload on main page
  - Index detection and reporting on main page
@@ -64,7 +65,6 @@ Targets for 1.0 (Aug 2013)
  - Widgets: Facet hierarchies at browser side
  - Widgets: Support facet hierarchies
  - Widgets: D3.js network diagram
- - Widgets: Charts widget to support aggregations via search options
  - Widgets: Charts widget to support extraction of XML info via XPath
  - Widgets: XML/JSON document creation-by-example (via HTML form generator)
  - Widgets: Support array children in aggregations for graphs
