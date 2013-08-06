@@ -2,7 +2,7 @@
 
 JSDOC=/Users/adamfowler/Documents/marklogic/git/jsdoc/jsdoc
 
-P=../mldb-pages/apidocs
+P=../mljs-pages/apidocs
 D=./dist/docs
 MD=./documentation
 rm -rf $D
@@ -31,7 +31,7 @@ cp $MD/*/*.png $P/widgets/images/
 #tar czf jsdoc-all.tar.gz $D
 
 echo "Pushing docs to GitHub Pages"
-cd ../mldb-pages
+cd ../mljs-pages
 git add apidocs
 git commit -a -m "link fix"
 git push origin gh-pages
