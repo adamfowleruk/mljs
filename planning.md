@@ -7,6 +7,7 @@ Targets for 0.8 (Jul 2013)
  - Core: Extra query builder options (all constraints supported by options, plus sorting)
  - DONE Widgets: Support multiple values for save facet in facet widget and searchbar/context
  - DONE Widgets: Charts widget to support aggregations via search options (facet values)
+ - Widgets: Script to install latest MLJS in to an existing Roxy project
  - IN PROGRESS Widgets: Search widgets, and overarching search page widget UI layer over mljs in browser, including custom result rendering plugins (search bar, facets, results, paging, sorting)
   - IN PROGRESS Widgets: Sorting widget actions
   - IN PROGRESS Widgets: More... all... links in facets -> BUG always updating last facet, not the correct facet
@@ -28,7 +29,6 @@ Targets for 0.8 (Jul 2013)
   - Test: Snippet search mode test page
   - TEST xhtml documents
   - DONE generic xml document (//title, //summary, //description, //synopsis, or first 2 elements, or xml snippet)
-  - NA generic xml document tree fallback
   - DONE generic JSON document tree fallback
   - BUG (Product 6.0-2): plain text documents - text content not escaped properly
  - DONE Tests: Test samples for xml content 
@@ -62,7 +62,7 @@ Floating as and when
 Targets for 1.0 (Aug 2013)
  - Widgets: Geospatial facets show in maps, and not in facets widget
  - Widgets: Facet support for buckets, sliders
- - Widgets: Facet hierarchies at browser side
+ - Widgets: Facet hierarchies in browser sidebar
  - Widgets: Support facet hierarchies
  - Widgets: D3.js network diagram
  - Widgets: Charts widget to support extraction of XML info via XPath
@@ -73,7 +73,7 @@ Targets for 1.0 (Aug 2013)
  - Widgets: searchresults: Adding action bar support, with plugins for each button (applicable() and render() functions) - E.g. Download, View, Generate PDF, Delete, Properties 
  - Widgets: Google maps (via OpenLayers?)
  - Support all search functions not currently provided in query builder
- - Complete support for /v1/values REST function
+ - Complete support for /v1/values REST function (auto complete etc)
  - NodeJS: Support SSL
  - NodeJS: SSL with Basic
  - NodeJS: SSL with Digest
@@ -83,7 +83,7 @@ Targets for 1.0 (Aug 2013)
  - NodeJS: Support 'anyauth' option, much like curl (i.e. auth method auto detection)
  - Support current functionality against MarkLogic V7
  - New V7 functionality
-  - Dynamic search options
+  - Dynamic search options (Try this in search context, catch error if on V6 and fall back to original mode)
   - Alerting
  - Widgets: Support for using widgets in non ML 6 REST webapps, and embedding widgets remotely, via W3C CORS support (i.e. secure cross site scripting support)
  - Widgets: Navigable charts / co-occurence - clicking sets facet value
@@ -114,6 +114,7 @@ Not applicable / dropped / postponed targets
  - Widgets: Abstract enough to plug in Version 5 REST Wrapper results, as required (Corona?)
  - NodeJS: Provide REST API proxy within NodeJS wrapper
  - Browser: Support REST API proxy within general javascript and nodejs javascript code
+ - NA generic xml document tree fallback
  
 ## Past Releases
 

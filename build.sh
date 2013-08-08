@@ -8,12 +8,14 @@ mkdir dist/mljs/nodejs-raw/lib
 mkdir dist/mljs/browser-raw
 mkdir dist/mljs/browser-raw/js
 mkdir dist/mljs/browser-raw/css
+mkdir dist/mljs/browser-raw/images
 mkdir dist/mljs/browser-raw/test
 mkdir dist/mljs/nodejs-minified
 mkdir dist/mljs/nodejs-minified/lib
 mkdir dist/mljs/browser-minified
 mkdir dist/mljs/browser-minified/js
 mkdir dist/mljs/browser-minified/css
+mkdir dist/mljs/browser-minified/images
 mkdir dist/mljs/browser-minified/test
 
 P=../mljs-pages/apidocs
