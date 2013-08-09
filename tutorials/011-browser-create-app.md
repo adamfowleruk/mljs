@@ -16,3 +16,7 @@ The next tutorial is used to install mljs and the browser widgets in to a Roxy a
 [http://adamfowlerml.wordpress.com/2013/04/18/creating-a-new-roxy-rest-api-hybrid-app-video/](http://adamfowlerml.wordpress.com/2013/04/18/creating-a-new-roxy-rest-api-hybrid-app-video/)
 
 This tutorial includes video and audio, with a full set of text instructions.
+
+- - - -
+
+[Back to All Tutorials list](tutorial-all.html)

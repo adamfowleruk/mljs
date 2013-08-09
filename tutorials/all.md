@@ -16,6 +16,7 @@
 ## mljs Browser tutorials
 <ul>
   <li><a href=tutorial-011-browser-create-app.html>Creating a new application</a></li>
+  <li><a href=tutorial-012-browser-install-app.html>Installing MLJS in to an existing application</a></li>
 </ul>
 
 ## mljs Node.js tutorials

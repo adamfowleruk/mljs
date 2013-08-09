@@ -47,7 +47,6 @@ Targets for 0.8 (Jul 2013)
  - DONE Rename all to MLJS form mldb
   
 Floating as and when
- - Tutorial: Deploying the mldbwebtest roxy project (video + text)
  - Widgets: Document properties and view widget
  - IN PROGRESS REST extensions
   - DONE DLS declare document as a record
@@ -59,8 +58,12 @@ Floating as and when
   - DLS add retention rule
   - Browser: DLS add retention rule widget
   - DONE Browser: DLS declare search results as record widget
+  
+Documentation priorities
+ - Tutorial: Deploying the mldbwebtest roxy project (video + text)
  
 Targets for 1.0 (Aug 2013)
+ - All: Windows batch file versions of developer required (non build related) bash scripts, including mljsme
  - Core: Extra query builder options (all constraints supported by options, plus sorting)
  - Sample: Sample triples, linked content, working sparql query builder
  - Widgets: Geospatial facets show in maps, and not in facets widget

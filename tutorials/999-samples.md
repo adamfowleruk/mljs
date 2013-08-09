@@ -594,3 +594,5 @@ db.values(query,"movie-year-tuple","movie-search-options",function(result) {
 Links: [REST API](http://docs.marklogic.com/REST/GET/v1/values/*) 
 
 - - - -
+
+[Back to All Tutorials list](tutorial-all.html)
