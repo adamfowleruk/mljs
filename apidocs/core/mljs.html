@@ -1209,7 +1209,7 @@ Delete the saved search. Assumes already unsubscribed from alerts used by it. (I
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2120">line 2120</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2150">line 2150</a>
     </li></ul></dd>
     
     
@@ -1731,7 +1731,7 @@ akin to ML Content Pump (mlcp)'s -thread_count and -transaction_size ingestion o
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line1768">line 1768</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line1798">line 1798</a>
     </li></ul></dd>
     
     
@@ -2074,6 +2074,125 @@ No documentation URL - still in Early Access
         
             
 <dt>
+    <h4 class="name" id="indexes"><span class="type-signature"></span>indexes<span class="signature">(callback)</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        <p>&lt;p&gt;Checks whether the database contains indexes for all installed search options. &lt;/p&gt;&lt;p&gt;
+<a href="http://docs.marklogic.com/REST/GET/v1/config/indexes">http://docs.marklogic.com/REST/GET/v1/config/indexes</a>
+&lt;/p&gt;</p>
+    </div>
+    
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+		
+		<th>Type</th>
+		
+		
+		
+		
+		
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+	
+	<tbody>
+	
+	
+        <tr>
+            
+                <td class="name"><code>callback</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last"><p>The callback to invoke after the method completes</p></td>
+        </tr>
+	
+	
+	</tbody>
+</table>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line1759">line 1759</a>
+    </li></ul></dd>
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+</dd>
+
+        
+            
+<dt>
     <h4 class="name" id="ingestcsv"><span class="type-signature"></span>ingestcsv<span class="signature">(csvdata, docid_opt, callback_opt)</span><span class="type-signature"></span></h4>
     
     
@@ -2213,7 +2332,7 @@ NOT YET IMPLEMENTED - Shell function only that will never call the callback
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line1797">line 1797</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line1827">line 1827</a>
     </li></ul></dd>
     
     
@@ -3510,7 +3629,7 @@ permissions - array of permission JSON objects to apply: E.g. [{role: 'secret-wr
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line1808">line 1808</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line1838">line 1838</a>
     </li></ul></dd>
     
     
@@ -3676,7 +3795,7 @@ NB Uses an internal rv class defined in the mljs.js file.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line1888">line 1888</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line1918">line 1918</a>
     </li></ul></dd>
     
     
@@ -3865,7 +3984,7 @@ Save a query as an XML document using the default search grammar (see search:sea
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line1943">line 1943</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line1973">line 1973</a>
     </li></ul></dd>
     
     
@@ -4054,7 +4173,7 @@ Save a query that matches documents created within a collection, with a given na
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line1971">line 1971</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2001">line 2001</a>
     </li></ul></dd>
     
     
@@ -4243,7 +4362,7 @@ Save an arbitrary search (any cts:query) already stored in the database, with a 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2030">line 2030</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2060">line 2060</a>
     </li></ul></dd>
     
     
@@ -4479,7 +4598,7 @@ TODO check if we need to include an alert module name in the options
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2002">line 2002</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2032">line 2032</a>
     </li></ul></dd>
     
     
@@ -6161,7 +6280,7 @@ Uses Adam Fowler's (me!) REST API extension for subscribing to searches. RESTful
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2063">line 2063</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2093">line 2093</a>
     </li></ul></dd>
     
     
@@ -6327,7 +6446,7 @@ Unsubscribe a notificationurl from a named search. Uses Adam Fowler's (me!) REST
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2083">line 2083</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2113">line 2113</a>
     </li></ul></dd>
     
     
@@ -6493,7 +6612,7 @@ Unsubscribe from an alert and delete the underlying saved search. Convenience me
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2102">line 2102</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2132">line 2132</a>
     </li></ul></dd>
     
     
@@ -6953,7 +7072,7 @@ Useful is your webapp performs the login so your javascript doesn't know your us
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2142">line 2142</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2172">line 2172</a>
     </li></ul></dd>
     
     
@@ -7000,7 +7119,7 @@ Useful is your webapp performs the login so your javascript doesn't know your us
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Wed Aug 07 2013 00:31:42 GMT+0100 (BST)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Fri Aug 09 2013 01:30:38 GMT+0100 (BST)
 </footer>
 
 <script> prettyPrint(); </script>
