@@ -1748,6 +1748,36 @@ mljs.prototype.rollback = mljs.prototype.rollbackTransaction;
 
 
 
+// CLIENT CONFIGURATION
+
+/**
+ * <p>Checks whether the database contains indexes for all installed search options. </p><p>
+ * http://docs.marklogic.com/REST/GET/v1/config/indexes
+ * </p>
+ * @param {function} callback - The callback to invoke after the method completes
+ */
+mljs.prototype.indexes = function(callback) {
+  var options = {
+    path: "/v1/config/indexes?format=json",
+    method: "GET"
+  };  
+  this.__transaction_id = undefined;
+  this.__doreq("INDEXES",options,null,callback);
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // DRIVER HELPER FEATURES
 
 

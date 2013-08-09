@@ -7,7 +7,8 @@ Targets for 0.8 (Jul 2013)
  - Core: Extra query builder options (all constraints supported by options, plus sorting)
  - DONE Widgets: Support multiple values for save facet in facet widget and searchbar/context
  - DONE Widgets: Charts widget to support aggregations via search options (facet values)
- - Widgets: Script to install latest MLJS in to an existing Roxy project
+ - DONE Widgets: Script to install latest MLJS in to an existing Roxy project
+ - Samples: ml-config.xml to include range indexes required for sample application
  - IN PROGRESS Widgets: Search widgets, and overarching search page widget UI layer over mljs in browser, including custom result rendering plugins (search bar, facets, results, paging, sorting)
   - IN PROGRESS Widgets: Sorting widget actions
   - IN PROGRESS Widgets: More... all... links in facets -> BUG always updating last facet, not the correct facet
@@ -36,7 +37,7 @@ Targets for 0.8 (Jul 2013)
  - DONE Docs: Architecture of widgets and MLJS for developers -> Issue with MLJS gh-pages docs rebuild process, not linked properly
  - DONE Integrate error widget on each demo page
  - DONE Add button to allow force reload on main page
- - Index detection and reporting on main page
+ - DONE Index detection and reporting on main page
  - DONE Tests: Refactor to use alternate testing framework
  - DONE Core: Return and add binary documents
  - DONE Core: Return and add plain text documents

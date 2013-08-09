@@ -29,6 +29,90 @@ $(document).ready(function() {
   var doload = function() {
     logel.innerHTML = "";
     
+    log("Installing search options...");
+    var ob1 = new db.options();
+    ob1.defaultCollation("http://marklogic.com/collation/en")
+      .pageLength(100)
+      .collectionConstraint() // default constraint name of 'collection' 
+      .rangeConstraint("animal",["item-order"]) // constraint name defaults to that of the range element name 
+      .rangeConstraint("family",["item-frequency"]); // constraint name defaults to that of the range element name 
+    
+    var ob2 = new db.options();
+    ob2.tuples("actor-year","actor","year"); // first is tuple name. defaults to string, json namespace
+    var ob3 = new db.options();
+    ob3.tuples("actor-genre","actor","genre"); // first is tuple name. defaults to string, json namespace
+    var ob4 = new db.options();
+    ob4.defaultCollation("http://marklogic.com/collation/en")
+      .collectionConstraint() // default constraint name of 'collection' 
+      .rangeConstraint("animal",["item-order"]) // constraint name defaults to that of the range element name 
+      .rangeConstraint("family",["item-frequency"]) // constraint name defaults to that of the range element name 
+      .rangeConstraint("actor",["item-frequency"],"http://marklogic.com/collation/")
+      .rangeConstraint("year",["item-order"],"http://marklogic.com/collation/")
+      .rangeConstraint("city",["item-order"],"http://marklogic.com/collation/")
+      .rangeConstraint("month",["item-order"],"http://marklogic.com/collation/");
+    
+    var alloptions = [
+      "page-charts-search",ob1.toJson(),
+      "actor-genre",ob3.toJson(),
+      "actor-year",ob2.toJson(),
+      "mljstest-page-search-options",ob4.toJson()
+    ];
+    
+    var saveCount = 0;
+    var nextSave0 = function() {
+      if (saveCount == alloptions.length) {
+        complete0();
+      } else {
+        db.saveSearchOptions(alloptions[saveCount],alloptions[saveCount + 1], function(result) {
+          saveCount+=2;
+          nextSave0();
+        });
+      }
+    };
+  
+    var complete0 = function() {
+      log("- Done.");
+    
+    
+      log("Checking database for required indexes...");
+      
+      
+      var donefunc = function(result) {
+        // check result doc
+        var indexes = result.doc["index-summaries"]["index-summary"];
+        var missing = new Array();
+        for (var i = 0;i < indexes.length;i++) {
+          log("- Found index: " + JSON.stringify(indexes[i]));
+          if (indexes[i].complete == "false") {
+            missing.push(indexes[i]);
+          }
+        }
+        
+        if (missing.length > 0) {
+          for (var i = 0;i < missing.length;i++) {
+            var s = "- *** MISSING INDEX: " + JSON.stringify(missing[i]);
+            /*
+            if (undefined != missing[i].range) {
+              s += "Range: Type: " + missing[i].range.type;
+              if (undefined != missing[i].range["path-index"]) {
+                
+              }
+              if (undefined != missing[i].range["element"]) {
+                s += " Element: " + JSON
+              }
+            }
+            */
+            log(s);
+          }
+          log("Abandoning content set up. Create indexes below then refresh page.");
+          
+        } else {
+          log("- Done. All indexes present and correct");
+        
+        // if not indexes, then report index issues and stop processing
+        
+        // if indexes here, continue with checking content
+    
           log("Adding test content to database...");
           log("[1 of 6] Adding temperature test data...");
           
@@ -70,7 +154,7 @@ $(document).ready(function() {
             {city: "Derby", month: "Dec", reading: { temp: -1}}
           ];
   
-          var saveCount = 0;
+          saveCount = 0;
           var nextSave1 = function() {
             if (saveCount == docs.length) {
               complete1();
@@ -234,7 +318,16 @@ $(document).ready(function() {
   
           log("- Saving " + docs.length + " documents...");
           nextSave1();
-  
+          
+        }
+        
+      };
+      
+        
+      db.indexes(donefunc);
+    };
+    
+    nextSave0();
   };
   
   db.saveSearchOptions(optionsName,options,function(result) {
