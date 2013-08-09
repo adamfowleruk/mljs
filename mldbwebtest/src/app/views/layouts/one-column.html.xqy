@@ -59,7 +59,8 @@ declare variable $q as xs:string? := vh:get("q");
         <a href="/mldbtest/chartsearch">Chart + Search</a> | 
         <a href="/mldbtest/movies">Co-occurence</a> | 
         <a href="/mldbtest/error">Error</a> | 
-        <a href="/mldbtest/kratu">Kratu</a> 
+        <a href="/mldbtest/kratu">Kratu</a>  |
+        <a href="/mldbtest/upload">Upload</a> 
         <br/>
       V7+ (In development):
         <a href="/mldbtest/docbuilder">Document Builder</a> | 
@@ -68,8 +69,7 @@ declare variable $q as xs:string? := vh:get("q");
         <br/>
       REST Extensions: <i>None</i>
         <br/>
-      In Development: 
-        <a href="/mldbtest/upload">Upload</a> 
+      In Development:  <i>None</i>
       </div>
       
       <div class="content">

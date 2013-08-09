@@ -2,14 +2,14 @@
 $(document).ready(function() {
   // initialise mljs
   var db = new mljs(); 
-  
+  /*
   var classes = new Array();
   classes.push("unclassified");
   classes.push("protect");
   classes.push("restricted");
   classes.push("confidential");
   classes.push("secret");
-  classes.push("topsecret");
+  classes.push("topsecret");*/
   
   var wgt = new com.marklogic.widgets.create("upload");
   wgt.uriprefix("/widgets/create/")
@@ -17,7 +17,7 @@ $(document).ready(function() {
      .collection("uploads")
      .horizontal()
      .dnd()
-     .permissions(false,classes,"Classification")
+     //.permissions(false,classes,"Classification")
      .endRow()
      .bar()
      .save("Upload")
