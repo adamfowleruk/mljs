@@ -7,9 +7,9 @@ $(document).ready(function() {
   
   try {
   
-  var wgt = new com.marklogic.widgets.collectionuris("collections");
-  wgt.addErrorListener(error.updateError);
-  wgt.list("/");
+    var wgt = new com.marklogic.widgets.collectionuris("collections");
+    wgt.addErrorListener(error.updateError);
+    wgt.list("/");
   
   } catch (err) {
     error.show(err.message);

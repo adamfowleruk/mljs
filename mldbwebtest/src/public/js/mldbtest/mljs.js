@@ -2311,7 +2311,9 @@ mljs.prototype.options = function() {
 mljs.prototype.options.prototype._includeSearchDefaults = function() {
   // called by any functions that specify search features 
   if (undefined == this.options["page-length"] || undefined == this.options.constraint) { // means none of these are defined
-    this.options["transform-results"] = {apply: "raw"}; // transform-results,  
+    if (undefined == this.options["transform-results"] || undefined == this.options["transform-results"].apply) {
+      this.options["transform-results"] = {apply: "raw"}; // transform-results,  
+    }
     this.options.constraint = new Array(); // [constraint]
     this.options["default-suggestion-source"] = new Array(); // [suggestion-source]
     this.options["additional-query"] = new Array(); // [string]
@@ -2880,6 +2882,54 @@ mljs.prototype.options.prototype.transformResults = function(apply,ns_opt,at_opt
 };
 
 /**
+ * Uses RAW document snippeting mode.
+ *
+ * http://docs.marklogic.com/guide/rest-dev/appendixa#id_48012
+ */
+mljs.prototype.options.prototype.raw = function() {
+  this._includeSearchDefaults();
+  this.options["transform-results"].apply = "raw";
+  this.options["transform-results"].ns = undefined;
+  this.options["transform-results"].at = undefined;
+};
+
+/**
+ * Uses default snippeting document snippeting mode.
+ *
+ * http://docs.marklogic.com/guide/rest-dev/appendixa#id_48012
+ */
+mljs.prototype.options.prototype.snippet = function() {
+  this._includeSearchDefaults();
+  this.options["transform-results"].apply = "snippet";
+  this.options["transform-results"].ns = undefined;
+  this.options["transform-results"].at = undefined;
+};
+
+/**
+ * Uses empty snippet document snippeting mode.
+ *
+ * http://docs.marklogic.com/guide/rest-dev/appendixa#id_48012
+ */
+mljs.prototype.options.prototype.empty = function() {
+  this._includeSearchDefaults();
+  this.options["transform-results"].apply = "empty-snippet";
+  this.options["transform-results"].ns = undefined;
+  this.options["transform-results"].at = undefined;
+};
+
+/**
+ * Uses metadata-snippet document snippeting mode.
+ *
+ * http://docs.marklogic.com/guide/rest-dev/appendixa#id_48012
+ */
+mljs.prototype.options.prototype.metadata = function() {
+  this._includeSearchDefaults();
+  this.options["transform-results"].apply = "metadata-snippet";
+  this.options["transform-results"].ns = undefined;
+  this.options["transform-results"].at = undefined;
+};
+
+/**
  * Clears any default or specified sort order definitions
  */
 mljs.prototype.options.prototype.sortOrderClear = function() {
@@ -3332,26 +3382,15 @@ mljs.prototype.searchcontext.prototype.setDirectory = function(dir) {
  */
 mljs.prototype.searchcontext.prototype.setOptions = function(name,options) {
   this.optionsName = name;
-  this.options = options;
+  this._options = options;
   this.optionsExists = false;
   
-  this.optionsPublisher.publish(this.options);
+  this.optionsPublisher.publish(this._options);
   
   // TODO support V7 dynamic query options capability rather than always saving
   
   // check if options exist
   var self = this;
-  if ("persist" == this.optionssavemode) {
-    self.db.searchoptions(name,function(result) {
-      self.db.logger.debug("RESULT: " + JSON.stringify(result.doc));
-      if (result.inError) {
-        self.db.logger.debug("Search options " + name + " do not exist on the server. Search bar widget will auto create them on next search.");
-        self.db.logger.debug("ERROR: " + JSON.stringify(result.details));
-      } else {
-        // no error, do nothing (dependant objects fetch options dynamically)
-      }
-    });
-  }
 };
 
 /**
@@ -3542,9 +3581,10 @@ mljs.prototype.searchcontext.prototype.dosimplequery = function(q,start) {
   };
   
   // check for options existance
-  if (!this.optionsExists) {
+  /*
+  if (!this.optionsExists && "persist" == this.optionssavemode) {
     this.db.logger.debug("searchbar: Saving search options prior to query");
-    this.db.saveSearchOptions(this.optionsName,this.options,function(result) {
+    this.db.saveSearchOptions(this.optionsName,this._options,function(result) {
       if (result.inError) {
         // TODO log error somewhere sensible on screen
         self.db.logger.debug("Exception saving results: " + result.details);
@@ -3555,6 +3595,30 @@ mljs.prototype.searchcontext.prototype.dosimplequery = function(q,start) {
     });
   } else {
     dos();
+  }*/
+  
+  if ("persist" == this.optionssavemode) {
+    self.db.searchoptions(this.optionsName,function(result) {
+      self.db.logger.debug("RESULT: " + JSON.stringify(result.doc));
+      if (result.inError) {
+        self.db.logger.debug("Search options " + self.optionsName + " do not exist on the server. Search bar widget will auto create them on next search.");
+        self.db.logger.debug("ERROR: " + JSON.stringify(result.details));
+      } else {
+        // no error, do nothing (dependant objects fetch options dynamically)
+        // now save them
+        self.db.logger.debug("setOptions: saving search options: " + self.optionsName);
+        self.db.saveSearchOptions(self.optionsName,self._options,function(result) {
+          if (result.inError) {
+            self.db.logger.debug("Error saving Search options " + self.optionsName); 
+          } else {
+            self.optionsExists = true;
+            self.db.logger.debug("Saved Search options " + self.optionsName); 
+            
+            dos();
+          }
+        });
+      }
+    });
   }
   
 };

@@ -218,6 +218,13 @@
   cursor: pointer;
 }
 
+.searchresults-snippet {
+  
+}
+
+.searchresults-snippet-highlight {
+  font-weight: bold;
+}
 
 
 /****

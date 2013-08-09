@@ -52,17 +52,26 @@ declare variable $q as xs:string? := vh:get("q");
     }
     <div class="canvas">
       <div class="header" arcsize="5 5 0 0">
+        V6+: 
         <a href="/mldbtest/search">Search</a> | 
+        <a href="/mldbtest/snippets">Search with Snippets</a> | 
         <a href="/mldbtest/charts">Charts</a> | 
         <a href="/mldbtest/chartsearch">Chart + Search</a> | 
         <a href="/mldbtest/movies">Co-occurence</a> | 
         <a href="/mldbtest/error">Error</a> | 
         <a href="/mldbtest/kratu">Kratu</a> | 
-        <a href="/mldbtest/docbuilder">Document Builder</a> | 
-        <a href="/mldbtest/sparqlbar">Semantic Search</a> | 
-        <a href="/mldbtest/upload">Upload</a> | 
         <a href="/mldbtest/collectionuris">Collection URIs</a> 
+        <br/>
+      V7+ (In development):
+        <a href="/mldbtest/docbuilder">Document Builder</a> | 
+        <a href="/mldbtest/sparqlbar">Semantic (SPARQL) Search</a> 
+        <br/>
+      REST Extensions: <i>None</i>
+        <br/>
+      In Development: 
+        <a href="/mldbtest/upload">Upload</a> 
       </div>
+      
       <div class="content">
         { $view }
       </div>

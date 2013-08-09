@@ -639,25 +639,36 @@ com.marklogic.widgets.searchresults = function(container) {
         var content = result.content.html.body;
         var resStr = htmlRec(content);
         
-      } else if (undefined != result.matches && result.matches[0] && result.matches[0]["match-text"] && result.matches[0]["match-text"][0] && result.matches[0]["match-text"][0].indexOf("<html") == 0) {
+      } else if (undefined != result.matches && undefined != result.matches[0] && undefined != result.matches[0]["match-text"] && undefined != result.matches[0]["match-text"][0] /*&& result.matches[0]["match-text"][0].indexOf("<html") == 0*/) {
         self.ctx.db.logger.debug("defaultProcessor: Got a snippet match with a html element");
         
-        var xml = textToXML(result.matches[0]["match-text"][0]);
-        var txt = result.matches[0]["match-text"][0];
-        self.ctx.db.logger.debug("RAW HTML TEXT: " + txt);
-        var strip = txt.substring(txt.indexOf(">",txt.indexOf("<body") + 5) + 1,txt.indexOf("</body>"));
-        self.ctx.db.logger.debug("STRIP TEXT: " + strip);
+        //var xml = textToXML(result.matches[0]["match-text"][0]);
+        //var txt = result.matches[0]["match-text"][0];
+        //self.ctx.db.logger.debug("RAW HTML TEXT: " + txt);
+        //var strip = txt.substring(txt.indexOf(">",txt.indexOf("<body") + 5) + 1,txt.indexOf("</body>"));
+        //self.ctx.db.logger.debug("STRIP TEXT: " + strip);
         var title = null;
-        var titleEl = xml.getElementsByTagName("title")[0];
-        self.ctx.db.logger.debug("PATH: " + result.matches[0].path);
-        if (undefined != titleEl && null != titleEl && null != titleEl.nodeValue) {
-          title = titleEl.nodeValue;
-        } else {
-          title = result.matches[0].path.substring(8,result.matches[0].path.length - 2);
-        }
+        //var titleEl = xml.getElementsByTagName("title")[0];
+        self.ctx.db.logger.debug("PATH: " + result.path);
+        //if (undefined != titleEl && null != titleEl && null != titleEl.nodeValue) {
+        //  title = titleEl.nodeValue;
+        //} else {
+          title = result.path.substring(8,result.path.length - 2);
+        //}
         var resStr = "<div class='searchresults-result'><h3>" + result.index + ". " + title + "</h3>";
         //resStr += "<div class='searchresults-snippet'>" + (new XMLSerializer()).serializeToString(xml.getElementsByTagName("body")[0]) + "</div>";
-        resStr += "<div class='searchresults-snippet'>" + strip + "</div>";
+        for (var i = 0;i < result.matches.length;i++) {
+          resStr += "<div class='searchresults-snippet'>\"";
+          for (var m = 0;m < result.matches[i]["match-text"].length;m++) {
+            if ("string" == typeof result.matches[i]["match-text"][m]) {
+              resStr += result.matches[i]["match-text"][m] ;
+            } else {
+              resStr += "<span class='searchresults-snippet-highlight'>" + result.matches[i]["match-text"][m].highlight + "</span>";
+            }
+          }
+          resStr += "\"</div>";
+        }
+        //resStr += "<div class='searchresults-snippet'>" + /*strip*/ txt + "</div>";
         //resStr += "<div class='searchresults-snippet'><iframe scrolling='no'>" + result.matches[0]["match-text"][0] + "</iframe></div>";
         
         resStr += "</div>";

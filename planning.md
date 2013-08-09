@@ -24,8 +24,8 @@ Targets for 0.8 (Jul 2013)
  - DONE Tests: Updated mldbwebtest project to be more obvious, and include content initialisation on main page
  - IN PROGRESS Widgets: Search results rendering default processor
   - DONE Browser: Move SVG rendering code in to default search results renderer from animals sample
-  - Widgets: Get snippeting mode working
-  - Test: Snippet search mode test page
+  - DONE Widgets: Get snippeting mode working
+  - DONE Test: Snippet search mode test page
   - TEST xhtml documents
   - DONE generic xml document (//title, //summary, //description, //synopsis, or first 2 elements, or xml snippet)
   - DONE generic JSON document tree fallback
