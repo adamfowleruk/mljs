@@ -59,12 +59,12 @@ declare variable $q as xs:string? := vh:get("q");
         <a href="/mldbtest/chartsearch">Chart + Search</a> | 
         <a href="/mldbtest/movies">Co-occurence</a> | 
         <a href="/mldbtest/error">Error</a> | 
-        <a href="/mldbtest/kratu">Kratu</a> | 
-        <a href="/mldbtest/collectionuris">Collection URIs</a> 
+        <a href="/mldbtest/kratu">Kratu</a> 
         <br/>
       V7+ (In development):
         <a href="/mldbtest/docbuilder">Document Builder</a> | 
-        <a href="/mldbtest/sparqlbar">Semantic (SPARQL) Search</a> 
+        <a href="/mldbtest/sparqlbar">Semantic (SPARQL) Search</a> | 
+        <a href="/mldbtest/collectionuris">Collection URIs</a> 
         <br/>
       REST Extensions: <i>None</i>
         <br/>

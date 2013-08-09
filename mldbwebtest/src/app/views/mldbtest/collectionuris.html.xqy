@@ -32,6 +32,9 @@ declare option xdmp:mapping "false";
 <script type="text/javascript" src="/js/mldbtest/page-collections.js"></script>
   
  <div class="container_12">  
+  <div id="notes" class="grid_12">NB This widget uses V7's POST /v1/values/shotgun REST endpoint.</div>
+ </div>
+ <div class="container_12">  
   <div id="errors" class="grid_12"></div>
  </div>
  <div class="container_12" id="collections">  
