@@ -116,6 +116,118 @@
           <range-value-positions>false</range-value-positions>
         </range-element-index>
 -->
+
+        <range-element-index>
+          <scalar-type>string</scalar-type>
+          <namespace-uri>http://marklogic.com/xdmp/json/basic</namespace-uri>
+          <localname>animal</localname>
+          <collation>http://marklogic.com/collation/</collation>
+          <range-value-positions>false</range-value-positions>
+        </range-element-index>
+
+        <range-element-index>
+          <scalar-type>string</scalar-type>
+          <namespace-uri>http://marklogic.com/xdmp/json/basic</namespace-uri>
+          <localname>animal</localname>
+          <collation>http://marklogic.com/collation/en</collation>
+          <range-value-positions>false</range-value-positions>
+        </range-element-index>
+
+        <range-element-index>
+          <scalar-type>string</scalar-type>
+          <namespace-uri></namespace-uri>
+          <localname>animal</localname>
+          <collation>http://marklogic.com/collation/en</collation>
+          <range-value-positions>false</range-value-positions>
+        </range-element-index>
+
+        <range-element-index>
+          <scalar-type>string</scalar-type>
+          <namespace-uri>http://marklogic.com/xdmp/json/basic</namespace-uri>
+          <localname>family</localname>
+          <collation>http://marklogic.com/collation/</collation>
+          <range-value-positions>false</range-value-positions>
+        </range-element-index>
+
+        <range-element-index>
+          <scalar-type>string</scalar-type>
+          <namespace-uri>http://marklogic.com/xdmp/json/basic</namespace-uri>
+          <localname>family</localname>
+          <collation>http://marklogic.com/collation/en</collation>
+          <range-value-positions>false</range-value-positions>
+        </range-element-index>
+        
+        <range-element-index>
+          <scalar-type>string</scalar-type>
+          <namespace-uri></namespace-uri>
+          <localname>family</localname>
+          <collation>http://marklogic.com/collation/en</collation>
+          <range-value-positions>false</range-value-positions>
+        </range-element-index>
+
+        <range-element-index>
+          <scalar-type>string</scalar-type>
+          <namespace-uri>http://marklogic.com/xdmp/json/basic</namespace-uri>
+          <localname>actor</localname>
+          <collation>http://marklogic.com/collation/</collation>
+          <range-value-positions>false</range-value-positions>
+        </range-element-index>
+
+        <range-element-index>
+          <scalar-type>string</scalar-type>
+          <namespace-uri>http://marklogic.com/xdmp/json/basic</namespace-uri>
+          <localname>year</localname>
+          <collation>http://marklogic.com/collation/</collation>
+          <range-value-positions>false</range-value-positions>
+        </range-element-index>
+
+        <range-element-index>
+          <scalar-type>string</scalar-type>
+          <namespace-uri>http://marklogic.com/xdmp/json/basic</namespace-uri>
+          <localname>genre</localname>
+          <collation>http://marklogic.com/collation/</collation>
+          <range-value-positions>false</range-value-positions>
+        </range-element-index>
+        
+        <range-element-index>
+          <scalar-type>string</scalar-type>
+          <namespace-uri>http://marklogic.com/xdmp/json/basic</namespace-uri>
+          <localname>title</localname>
+          <collation>http://marklogic.com/collation/</collation>
+          <range-value-positions>false</range-value-positions>
+        </range-element-index>
+
+        <range-element-index>
+          <scalar-type>string</scalar-type>
+          <namespace-uri>http://marklogic.com/xdmp/json/basic</namespace-uri>
+          <localname>city</localname>
+          <collation>http://marklogic.com/collation/</collation>
+          <range-value-positions>false</range-value-positions>
+        </range-element-index>
+
+        <range-element-index>
+          <scalar-type>string</scalar-type>
+          <namespace-uri>http://marklogic.com/xdmp/json/basic</namespace-uri>
+          <localname>month</localname>
+          <collation>http://marklogic.com/collation/</collation>
+          <range-value-positions>false</range-value-positions>
+        </range-element-index>
+
+        <range-element-index>
+          <scalar-type>string</scalar-type>
+          <namespace-uri>http://marklogic.com/xdmp/json/basic</namespace-uri>
+          <localname>genre</localname>
+          <collation>http://marklogic.com/collation/</collation>
+          <range-value-positions>false</range-value-positions>
+        </range-element-index>
+
+        <range-element-index>
+          <scalar-type>string</scalar-type>
+          <namespace-uri>http://marklogic.com/xdmp/json/basic</namespace-uri>
+          <localname>genre</localname>
+          <collation>http://marklogic.com/collation/</collation>
+          <range-value-positions>false</range-value-positions>
+        </range-element-index>
       </range-element-indexes>
       <range-element-attribute-indexes>
 <!--

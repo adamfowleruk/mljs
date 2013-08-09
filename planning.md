@@ -4,11 +4,10 @@
 
 Targets for 0.8 (Jul 2013)
  - DONE Core+Widgets: Create search context object, and make search widgets responsible for registering themselves with it. Refactor search execution code in to here. (Required for Sort widget)
- - Core: Extra query builder options (all constraints supported by options, plus sorting)
  - DONE Widgets: Support multiple values for save facet in facet widget and searchbar/context
  - DONE Widgets: Charts widget to support aggregations via search options (facet values)
  - DONE Widgets: Script to install latest MLJS in to an existing Roxy project
- - Samples: ml-config.xml to include range indexes required for sample application
+ - DONE Samples: ml-config.xml to include range indexes required for sample application
  - IN PROGRESS Widgets: Search widgets, and overarching search page widget UI layer over mljs in browser, including custom result rendering plugins (search bar, facets, results, paging, sorting)
   - IN PROGRESS Widgets: Sorting widget actions
   - IN PROGRESS Widgets: More... all... links in facets -> BUG always updating last facet, not the correct facet
@@ -23,7 +22,6 @@ Targets for 0.8 (Jul 2013)
  - DONE Browser: XMLHttpRequest (xhr) binding
  - DONE Browser: XmlHttpRequest2 (xhr2) binding
  - DONE Tests: Updated mldbwebtest project to be more obvious, and include content initialisation on main page
- - Tutorial: Deploying the mldbwebtest roxy project (video + text)
  - IN PROGRESS Widgets: Search results rendering default processor
   - DONE Browser: Move SVG rendering code in to default search results renderer from animals sample
   - Widgets: Get snippeting mode working
@@ -48,6 +46,7 @@ Targets for 0.8 (Jul 2013)
  - DONE Rename all to MLJS form mldb
   
 Floating as and when
+ - Tutorial: Deploying the mldbwebtest roxy project (video + text)
  - Widgets: Document properties and view widget
  - IN PROGRESS REST extensions
   - DONE DLS declare document as a record
@@ -61,6 +60,8 @@ Floating as and when
   - DONE Browser: DLS declare search results as record widget
  
 Targets for 1.0 (Aug 2013)
+ - Core: Extra query builder options (all constraints supported by options, plus sorting)
+ - Sample: Sample triples, linked content, working sparql query builder
  - Widgets: Geospatial facets show in maps, and not in facets widget
  - Widgets: Facet support for buckets, sliders
  - Widgets: Facet hierarchies in browser sidebar

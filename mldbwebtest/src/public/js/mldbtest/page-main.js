@@ -104,7 +104,8 @@ $(document).ready(function() {
             */
             log(s);
           }
-          log("Abandoning content set up. Create indexes below then refresh page.");
+          log("- Abandoning content set up. Create indexes below then refresh page.");
+          log("- NB for json-key, create an Element Range Index with the namespace http://marklogic.com/xdmp/json/basic and the local name the same as the json-key value, and the root collation (http://marklogic.com/collation/).");
           
         } else {
           log("- Done. All indexes present and correct");
