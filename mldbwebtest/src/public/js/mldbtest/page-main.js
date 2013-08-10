@@ -273,6 +273,7 @@ $(document).ready(function() {
                     textToXML("<documentelement><title>I am an XML file</title><summary>Some XML summary</summary></documentelement>"),
                     textToXML("<documentelement2><name>I am a generic XML file</name><desc>Generic XML description</desc></documentelement2>"),
                     textToXML("<documentelement3><wibble>Generic XML wibble file</wibble><flibble>Generic XML flibble element</flibble></documentelement3>"),
+                    textToXML("<html xmlns='http://www.w3.org/1999/xhtml/'><head><title>XHTML test doc</title></head><body><h1>XHTML doc h1</h1><p>Lorem ipsum dolar sit amet</p><h2>Consecutor</h2><p>Wibble de flibble</p></body></html>"),
                     {title: "Some JSON title", summary: "Some JSON summary"},
                     {name: "Generic JSON name", desc: "Generic JSON description"}
                   ];
@@ -337,7 +338,7 @@ $(document).ready(function() {
         log("Error searching for test content:-");
       } else {
         log("Found " + result.doc.results.length + " documents in 'testdata' collection");
-        if (result.doc.results.length == 73) {
+        if (result.doc.results.length == 74) {
           log("We have testdata - not adding more data to test database. End. Click on a link above to test mljs.");
         } else {
           doload();

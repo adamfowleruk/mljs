@@ -8,6 +8,7 @@ Targets for 0.8 (Jul 2013)
  - DONE Widgets: Charts widget to support aggregations via search options (facet values)
  - DONE Widgets: Script to install latest MLJS in to an existing Roxy project
  - DONE Samples: ml-config.xml to include range indexes required for sample application
+ - Samples: Upgrade embedded Roxy to latest dev branch with ML7 EA3 nightly build deploy fix
  - IN PROGRESS Widgets: Search widgets, and overarching search page widget UI layer over mljs in browser, including custom result rendering plugins (search bar, facets, results, paging, sorting)
   - IN PROGRESS Widgets: Sorting widget actions
   - IN PROGRESS Widgets: More... all... links in facets -> BUG always updating last facet, not the correct facet
@@ -23,14 +24,13 @@ Targets for 0.8 (Jul 2013)
  - DONE Browser: XMLHttpRequest (xhr) binding
  - DONE Browser: XmlHttpRequest2 (xhr2) binding
  - DONE Tests: Updated mldbwebtest project to be more obvious, and include content initialisation on main page
- - IN PROGRESS Widgets: Search results rendering default processor
+ - DONE Widgets: Search results rendering default processor
   - DONE Browser: Move SVG rendering code in to default search results renderer from animals sample
   - DONE Widgets: Get snippeting mode working
   - DONE Test: Snippet search mode test page
-  - TEST xhtml documents
+  - DONE TEST xhtml documents
   - DONE generic xml document (//title, //summary, //description, //synopsis, or first 2 elements, or xml snippet)
   - DONE generic JSON document tree fallback
-  - BUG (Product 6.0-2): plain text documents - text content not escaped properly
  - DONE Tests: Test samples for xml content 
   - DONE hurt-bat svg in animals search test
  - DONE Docs: Architecture of widgets and MLJS for developers -> Issue with MLJS gh-pages docs rebuild process, not linked properly
@@ -47,6 +47,8 @@ Targets for 0.8 (Jul 2013)
  - DONE Rename all to MLJS form mldb
   
 Floating as and when
+ - MarkLogic reported bugs retesting
+  - BUG (Product 6.0-2): plain text documents - text content not escaped properly
  - Widgets: Document properties and view widget
  - IN PROGRESS REST extensions
   - DONE DLS declare document as a record

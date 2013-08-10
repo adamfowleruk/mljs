@@ -633,13 +633,57 @@ com.marklogic.widgets.searchresults = function(container) {
         self.ctx.db.logger.debug("match text: " + result.matches[0]["match-text"]);
         self.ctx.db.logger.debug("match text 0: " + result.matches[0]["match-text"][0]);
       }
-      if ("object" == typeof result.content && undefined != result.content.html) {
-        self.ctx.db.logger.debug("defaultProcessor: Got JSON Object rendering of an HTML document");
-        // is a xhtml document rendered as json
-        var content = result.content.html.body;
-        var resStr = htmlRec(content);
-        
-      } else if (undefined != result.matches && undefined != result.matches[0] && undefined != result.matches[0]["match-text"] && undefined != result.matches[0]["match-text"][0] /*&& result.matches[0]["match-text"][0].indexOf("<html") == 0*/) {
+      if ("string" == typeof result.content && -1 != result.content.indexOf("<html")) {
+          // Get title from /html/head/title or /html/body/h1[1] or /html/body/h2[1] or /html/body/p[1]
+          // don't rely on xml.evaluate() though
+          var titleStart = result.content.indexOf("<title>");
+          var titleEnd = result.content.indexOf("</title>");
+          var bodyStart = result.content.indexOf("<body");
+          var bodyEnd = result.content.indexOf(">",bodyStart + 5);
+          var endBodyStart = result.content.indexOf("</body>",bodyEnd + 1);
+          self.ctx.db.logger.debug("titleStart: " + titleStart);
+          self.ctx.db.logger.debug("titleEnd: " + titleEnd);
+          self.ctx.db.logger.debug("bodyStart: " + bodyStart);
+          self.ctx.db.logger.debug("bodyEnd: " + bodyEnd);
+          self.ctx.db.logger.debug("endBodyStart: " + endBodyStart);
+          
+          //var endBodyEnd = result.content.indexOf(">",endBodyStart + 6);
+          
+          var bodyContent = result.content.substring(bodyEnd + 1,endBodyStart);
+          self.ctx.db.logger.debug("bodyContent: " + bodyContent);
+          var title = "";
+          if (-1 != titleStart && -1 != titleEnd) {
+            title = result.content.substring(titleStart + 7,titleEnd);
+          } else {
+            var firstElStart = bodyContent.indexOf("<");
+            var firstElEnd = bodyContent.indexOf(">",firstElStart + 1);
+            var endFirstElStart = bodyContent.indexOf("</",firstElEnd);
+            if (-1 != firstElStart && -1 != firstElEnd && -1 != endFirstElStart) {
+              title = bodyContent.substring(firstElEnd + 1,endFirstElStart);
+            } else {
+              // use URI
+              title = result.uri;
+            }
+          }
+          self.ctx.db.logger.debug("title: " + title);
+          // render first 4 elements from /html/body/element()[1 to 4]
+          // render all content for now
+          
+          var resStr = "<div class='searchresults-result'><h3>" + result.index + ". " + title + "</h3>";
+          resStr += "<div class='searchresults-snippet'>" + bodyContent + "</div>";
+          resStr += "</div>";
+          return resStr;
+          
+        //} else {
+          
+          /*
+          self.ctx.db.logger.debug("defaultProcessor: Got JSON Object rendering of an HTML document");
+          // is a xhtml document rendered as json
+          var content = result.content.html.body;
+          var resStr = htmlRec(content);
+          */
+        } 
+       else if (undefined != result.matches && undefined != result.matches[0] && undefined != result.matches[0]["match-text"] && undefined != result.matches[0]["match-text"][0] /*&& result.matches[0]["match-text"][0].indexOf("<html") == 0*/) {
         self.ctx.db.logger.debug("defaultProcessor: Got a snippet match with a html element");
         
         //var xml = textToXML(result.matches[0]["match-text"][0]);
