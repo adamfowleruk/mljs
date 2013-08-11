@@ -3298,6 +3298,8 @@ mljs.prototype.searchcontext = function() {
   this.sortWord = "sort";
   this.defaultQuery = ""; // should be set E.g. to "sort:relevance"
   
+  this.defaultSort = [];
+  
   this.optionsName = mljs.__dogenid();
   this.optionsExists = false;
   this.optionssavemode = "persist"; // persist or dynamic (v7 only)
@@ -3382,10 +3384,15 @@ mljs.prototype.searchcontext.prototype.setDirectory = function(dir) {
  */
 mljs.prototype.searchcontext.prototype.setOptions = function(name,options) {
   this.optionsName = name;
-  this._options = options;
+  this._options = {options: options};
+  if (undefined != options.options) {
+    this._options = options; // no object wrapper
+  }
   this.optionsExists = false;
   
-  this.optionsPublisher.publish(this._options);
+  this.defaultSort = this._options.options["sort-order"];
+  
+  this.optionsPublisher.publish(this._options.options);
   
   // TODO support V7 dynamic query options capability rather than always saving
   
@@ -3598,15 +3605,18 @@ mljs.prototype.searchcontext.prototype.dosimplequery = function(q,start) {
   }*/
   
   if ("persist" == this.optionssavemode) {
-    self.db.searchoptions(this.optionsName,function(result) {
-      self.db.logger.debug("RESULT: " + JSON.stringify(result.doc));
-      if (result.inError) {
-        self.db.logger.debug("Search options " + self.optionsName + " do not exist on the server. Search bar widget will auto create them on next search.");
-        self.db.logger.debug("ERROR: " + JSON.stringify(result.details));
-      } else {
+    //self.db.searchoptions(this.optionsName,function(result) {
+      //self.db.logger.debug("RESULT: " + JSON.stringify(result.doc));
+      //if (result.inError) {
+      //  self.db.logger.debug("Search options " + self.optionsName + " do not exist on the server. Search bar widget will auto create them on next search.");
+      //  self.db.logger.debug("ERROR: " + JSON.stringify(result.details));
+      //} else {
         // no error, do nothing (dependant objects fetch options dynamically)
         // now save them
         self.db.logger.debug("setOptions: saving search options: " + self.optionsName);
+        if (self.optionsExist) {
+          dos();
+        } else {
         self.db.saveSearchOptions(self.optionsName,self._options,function(result) {
           if (result.inError) {
             self.db.logger.debug("Error saving Search options " + self.optionsName); 
@@ -3618,7 +3628,8 @@ mljs.prototype.searchcontext.prototype.dosimplequery = function(q,start) {
           }
         });
       }
-    });
+      //}
+    //});
   }
   
 };
@@ -3725,9 +3736,9 @@ mljs.prototype.searchcontext.prototype.updateFacets = function(facetSelection) {
  */
 mljs.prototype.searchcontext.prototype.updatePage = function(json) {
   // example: {start: this.start, show: this.perPage}
-  if (this.options.options["page-length"] != json.show) {
+  if (this._options.options["page-length"] != json.show) {
     this.optionsExists = false; // force re save of options
-    this.options.options["page-length"] = json.show;
+    this._options.options["page-length"] = json.show;
   }
   this.dosimplequery(this.simplequery,json.start);
 };
@@ -3735,12 +3746,22 @@ mljs.prototype.searchcontext.prototype.updatePage = function(json) {
 /**
  * Event Target. Useful for linking to a search sorter. Updates the sort word and executes a search.
  * 
- * @param {string} sortSelection - The sort word. Relates to the search options used.
+ * @param {JSON} sortSelection - The sort-order JSON object - E.g. {"json-key": year, direction: "ascending"} 
  */
 mljs.prototype.searchcontext.prototype.updateSort = function(sortSelection) {
   // TODO remove any existing sort
-  this.simplequery += " " + this.sortWord + ":\"" + sortSelection + "\""; // TODO move sort to query url param, not in grammar
+  //this.simplequery += " " + this.sortWord + ":\"" + sortSelection + "\""; // TODO move sort to query url param, not in grammar
   
+  // alter options such that no update event is fired, but will be persisted
+  if (undefined != sortSelection["json-key"] && "" == sortSelection["json-key"]) {
+    //this._options.options["sort-order"] = [];
+    this._options.options["sort-order"] = this.defaultSort;
+  } else {
+    this._options.options["sort-order"] = [sortSelection];
+  }
+  this.optionsExists = false; // force re save of options
+  
+  // now perform same query again
   this.dosimplequery(this.simplequery);
 };
 

@@ -1274,10 +1274,13 @@ com.marklogic.widgets.searchsort = function(container) {
   
   this.ctx = new mljs.defaultconnection.searchcontext();
   
+  this.initialised = false;
+  this.selectedValue = null;
+  
   // event handlers
   this.selectionPublisher = new com.marklogic.events.Publisher();
   this.sortOptions = new Array();
-  this.sortOptions.push({title: "None", value: ""}); // value is required
+  //this.sortOptions.push({title: "None", "json-key": "", direction: "ascending"}); // value is required
   //this.sortOptions.push({title: "Relevance", value: "relevance", order: "descending"}); // value is required
   
   // html
@@ -1296,20 +1299,56 @@ com.marklogic.widgets.searchsort.prototype._refresh = function() {
     "<select class='searchsort-select' id='" + selid + "'>";
 //      "<option value='relevance'>Relevance</option>" +
   for (var i = 0;i < this.sortOptions.length;i++) {
-    var o = this.sortOptions[i];
-    str += "<option value='" + o.value + "'>";
-    if (undefined != o.title) {
-      str += o.title;
+    var selected = false;
+    if (this.selectedValue == null) {
+      selected = true;
+      this.selectedValue = this.sortOptions[i];
     } else {
-      str += com.marklogic.widgets.searchhelper.processValueAll(o.value);
+      selected = ((this.selectedValue["json-key"]==this.sortOptions[i]["json-key"]) &&
+                  (this.selectedValue["element"]==this.sortOptions[i]["element"]) &&
+                  (this.selectedValue["attribute"]==this.sortOptions[i]["attribute"]) &&
+                  (this.selectedValue["field"]==this.sortOptions[i]["field"]) &&
+                  (this.selectedValue["direction"]==this.sortOptions[i]["direction"]))
     }
+    var o = this.sortOptions[i];
+    str += "<option value='" + i + "'";
+    if (selected) {
+      str += " selected='selected'";
+    }
+    str += ">"; // use i not o.value so that we can determine o.value and o.direction on _updateSortSelect
+    var title = "";
+    //if (undefined != o.title) {
+    //  title = o.title;
+    //} else {
+      var val = "";
+      if (undefined != o["json-key"]) {
+        val = o["json-key"];
+      }
+      // element, element attribute, path etc sort options
+      if (undefined != o.element) {
+        if (undefined != o.attribute) {
+          val = o["attribute"];
+        } else {
+          val = o["element"];
+        }
+      }
+      if (undefined != o.field) {
+        val = o["field"];
+      }
+      
+      title = com.marklogic.widgets.searchhelper.processValueAll(val);
+    //}
     //str += " (";
-    if (undefined != o.order) {
-      str += " (" +com.marklogic.widgets.searchhelper.camelcase(o.order,"all") + ")";
+    if ("" != title && undefined != o.direction) {
+      title += " (" + com.marklogic.widgets.searchhelper.camelcase(o.direction,"all") + ")";
     } else {
-      // TODO not specified - default to ascending?
+      // TODO not specified - default to ascending? - no, leave this to the first, untitled sort option given by MarkLogic server
+    }
+    if ("" == title) {
+      title = "None";
     }
     //str += ")";
+    str += title;
   }
   str += "</select>";
   document.getElementById(this.container).innerHTML = str;
@@ -1319,11 +1358,13 @@ com.marklogic.widgets.searchsort.prototype._refresh = function() {
   var sel = document.getElementById(selid);
   sel.onchange = function(evt) {
     self._updateSortSelect(sel.value);
-  }
+  };
 };
 
-com.marklogic.widgets.searchsort.prototype._updateSortSelect = function(value) {
-  mljs.defaultconnection.logger.debug("searchsort: publishing selected sort option: " + value);
+com.marklogic.widgets.searchsort.prototype._updateSortSelect = function(index) {
+  var value = this.sortOptions[index];
+  this.selectedValue = value;
+  mljs.defaultconnection.logger.debug("searchsort: publishing selected sort option: " + JSON.stringify(value));
   // fire sort changed event
   this.selectionPublisher.publish(value);
 };
@@ -1353,7 +1394,9 @@ com.marklogic.widgets.searchsort.prototype.removeSortListener = function(sl) {
  */
 com.marklogic.widgets.searchsort.prototype.updateSort = function(sortSelection) {
   // NB do NOT fire results update event here - we've likely been called by it
+  // DO NOT update our own sortOptions - there may only be one result coming back (the one the user has just selected) keep our original options
   
+  // just select the correct option in the list
 };
 
 /**
@@ -1362,16 +1405,26 @@ com.marklogic.widgets.searchsort.prototype.updateSort = function(sortSelection) 
  * @param {JSON} options - REST API JSON options object. See PUT /v1/config/query
  */
 com.marklogic.widgets.searchsort.prototype.updateOptions = function(options) {
+  mljs.defaultconnection.logger.debug("searchsort: updateOptions: " + JSON.stringify(options));
+  mljs.defaultconnection.logger.debug("searchsort: initalised yet?: " + this.initialised);
+  
+  if (this.initialised) return;
+  this.initialised = true; // prevents overwriting when one is selected
+  // TODO replace with a check potentially if number of sort options is not 1, or is more than our own number of sort options (-1 for none)
+  
   // parse options object for sort settings
-  var so = options.options["sort-order"];
+  var so = options["sort-order"];
   this.sortOptions = new Array();
-  this.sortOptions.push({title: "None", value: ""}); // value is required
+  //this.sortOptions.push({title: "None", value: ""}); // value is required
   if (undefined != so) {
     for (var i = 0;i < so.length;i++) {
+      this.sortOptions.push(so[i]);
+      /*
       var key = so[i]["json-key"];
       if (undefined != key) {
-        this.sortOptions.push({value: key, order: so[i]["direction"]});
-      }
+        this.sortOptions.push({value: key, direction: so[i]["direction"], "json-key": so[i]["json-key"]});
+      }*/
+      // TODO check for element, element attribute, path etc. ordering values too
     }
   }
   this._refresh();

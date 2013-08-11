@@ -9,8 +9,9 @@ Targets for 0.8 (Jul 2013)
  - DONE Widgets: Script to install latest MLJS in to an existing Roxy project
  - DONE Samples: ml-config.xml to include range indexes required for sample application
  - Samples: Upgrade embedded Roxy to latest dev branch with ML7 EA3 nightly build deploy fix
+ - Node: NodeJS regression testing
  - IN PROGRESS Widgets: Search widgets, and overarching search page widget UI layer over mljs in browser, including custom result rendering plugins (search bar, facets, results, paging, sorting)
-  - IN PROGRESS Widgets: Sorting widget actions
+  - DONE Widgets: Sorting widget actions
   - IN PROGRESS Widgets: More... all... links in facets -> BUG always updating last facet, not the correct facet
   - BUG: Pagination no longer refreshes search results shown
   - DONE BUG: Hitting enter in search bar executes search
@@ -65,6 +66,7 @@ Documentation priorities
  - Tutorial: Deploying the mldbwebtest roxy project (video + text)
  
 Targets for 1.0 (Aug 2013)
+ - Node: Node.js tests for all functionality now in core MLJS
  - All: Windows batch file versions of developer required (non build related) bash scripts, including mljsme
  - Core: Extra query builder options (all constraints supported by options, plus sorting)
  - Sample: Sample triples, linked content, working sparql query builder
