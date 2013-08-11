@@ -14,7 +14,8 @@ This library provides a convenient JavaScript wrapper for common operations on M
  - Browser download - [\[raw tar.gz\]](https://github.com/adamfowleruk/mljs/blob/master/dist/mljs-browser.tar.gz) [\[raw zip\]](https://github.com/adamfowleruk/mljs/blob/master/dist/mljs-browser.zip) [[minified tar.gz]](https://github.com/adamfowleruk/mljs/blob/master/dist/mljs-browser-minified.tar.gz) [\[minified zip\]](https://github.com/adamfowleruk/mljs/blob/master/dist/mljs-browser-minified.zip)
 
 ## Main Documentation
- - Tutorials site (START HERE): [\[Online HTML\]](http://adamfowleruk.github.io/mljs/apidocs/core/tutorial-all.html) 
+ - Install the MLJS samples web application (START HERE): [\[Online HTML\]](http://adamfowleruk.github.io/mljs/apidocs/core/tutorial-013-browser-samples-app.html)
+ - Tutorials site: [\[Online HTML\]](http://adamfowleruk.github.io/mljs/apidocs/core/tutorial-all.html) 
  - All docs online here: [\[Online HTML\]](http://adamfowleruk.github.io/mljs/index.html) 
  - API Doc downloads (Includes samples, tutorials) - [\[tar.gz\]](https://github.com/adamfowleruk/mljs/blob/master/dist/mljs-docs.tar.gz) [\[zip\]](https://github.com/adamfowleruk/mljs/blob/master/dist/mljs-docs.zip)
  
