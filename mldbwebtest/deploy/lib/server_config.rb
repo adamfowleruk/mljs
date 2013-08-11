@@ -21,6 +21,7 @@ require 'RoxyHttp'
 require 'xcc'
 require 'MLClient'
 require 'date'
+require 'ml_rest'
 
 class ExitException < Exception; end
 
@@ -96,8 +97,10 @@ class ServerConfig < MLClient
     sample_config = File.expand_path("../../sample/ml-config.sample.xml", __FILE__)
     sample_properties = File.expand_path("../../sample/build.sample.properties", __FILE__)
     build_properties = File.expand_path("../../build.properties", __FILE__)
-    options_dir = File.expand_path("../../../rest-api/options", __FILE__)
-    options_file = File.expand_path("../../../rest-api/options/all.xml", __FILE__)
+    options_dir = File.expand_path("../../../rest-api/config/options", __FILE__)
+    rest_ext_dir = File.expand_path("../../../rest-api/ext", __FILE__)
+    rest_transforms_dir = File.expand_path("../../../rest-api/transforms", __FILE__)
+    options_file = File.expand_path("../../../rest-api/config/options/all.xml", __FILE__)
     sample_options = File.expand_path("../../sample/all.sample.xml", __FILE__)
 
     force = find_arg(['--force']).present?
@@ -145,8 +148,13 @@ class ServerConfig < MLClient
 
     # If this is a rest or hybrid app, set up some initial options
     if ["rest", "hybrid"].include? app_type
+      FileUtils.mkdir_p rest_ext_dir
+      FileUtils.mkdir_p rest_transforms_dir
       FileUtils.mkdir_p options_dir
       FileUtils.cp sample_options, options_file
+      FileUtils.cp(
+        File.expand_path("../../sample/properties.sample.xml", __FILE__),
+        File.expand_path("../../../rest-api/config/properties.xml", __FILE__))
     end
 
     target_config = File.expand_path(ServerConfig.properties["ml.config.file"], __FILE__)
@@ -287,8 +295,10 @@ class ServerConfig < MLClient
     r = nil
     if @server_version == 4
       r = execute_query_4 query, properties
-    else
+    elsif @server_version == 5 || @server_version == 6
       r = execute_query_5 query, properties
+    else
+      r = execute_query_7 query, properties
     end
 
     raise ExitException.new(r.body) unless r.code.to_i == 200
@@ -410,6 +420,8 @@ class ServerConfig < MLClient
         deploy_content
       when 'modules'
         deploy_modules
+      when 'schemas'
+        deploy_schemas
       when 'cpf'
         deploy_cpf
       else
@@ -575,7 +587,7 @@ class ServerConfig < MLClient
   end
 
   def corb
-    connection_string = %Q{xcc://#{@properties['ml.app-name']}-user:#{@properties['ml.appuser-password']}@#{@properties['ml.server']}:#{@properties['ml.xcc-port']}/#{@properties['ml.content-db']}}
+    connection_string = %Q{xcc://#{@properties['ml.user']}:#{@properties['ml.password']}@#{@properties['ml.server']}:#{@properties['ml.xcc-port']}/#{@properties['ml.content-db']}}
     collection_name = find_arg(['--collection']) || '""'
     xquery_module = find_arg(['--modules'])
     uris_module = find_arg(['--uris']) || '""'
@@ -590,7 +602,7 @@ class ServerConfig < MLClient
     thread_count = thread_count.to_i
     module_root = find_arg(['--root']) || '"/"'
     modules_database = @properties['ml.modules-db']
-    install = find_arg(['install']) == "true"
+    install = find_arg(['--install']) == "true"
 
     matches = Dir.glob(File.expand_path("../java/*xcc*.jar", __FILE__))
     raise "Missing XCC Jar." if matches.length == 0
@@ -730,18 +742,45 @@ private
           },
           { :db_name => dest_db }
 
-        rest_options_dir = @properties['ml.rest-options.dir']
-        if (File.exist?(rest_options_dir))
-        total_count += load_data rest_options_dir,
-            :add_prefix => "/#{@properties['ml.group']}/#{@properties['ml.app-name']}/rest-api",
-            :remove_prefix => rest_options_dir,
-            :db => dest_db
+        if (@properties.has_key?('ml.rest-options.dir') && File.exist?(@properties['ml.rest-options.dir']))
+          total_count += load_data @properties['ml.rest-options.dir'],
+              :add_prefix => "/#{@properties['ml.group']}/#{@properties['ml.app-name']}/rest-api",
+              :remove_prefix => @properties['ml.rest-options.dir'],
+              :db => dest_db
+        else
+          logger.error "Could not find REST API options directory: #{@properties['ml.rest-options.dir']}\n";
         end
 
       end
 
       logger.info "\nLoaded #{total_count} #{pluralize(total_count, "document", "documents")} from #{xquery_dir} to #{xcc.hostname}:#{xcc.port}/#{dest_db} at #{DateTime.now.strftime('%m/%d/%Y %I:%M:%S %P')}\n"
     end
+
+    if ['rest', 'hybrid'].include? @properties["ml.app-type"]
+      if (@properties.has_key?('ml.rest-ext.dir') && File.exist?(@properties['ml.rest-ext.dir']))
+        logger.info "\nLoading REST extensions from #{@properties['ml.rest-ext.dir']}\n"
+        mlRest.install_extensions(File.expand_path(@properties['ml.rest-ext.dir']))
+      end
+
+      if (@properties.has_key?('ml.rest-transforms.dir') && File.exist?(@properties['ml.rest-transforms.dir']))
+        logger.info "\nLoading REST transforms from #{@properties['ml.rest-transforms.dir']}\n"
+        mlRest.install_transforms(File.expand_path(@properties['ml.rest-transforms.dir']))
+      end
+    end
+  end
+
+  def deploy_schemas
+    if @properties.has_key?('ml.schemas-db')
+      schema_db = @properties['ml.schemas-db']
+    else
+      logger.info "\nWarning: app-specific schemas database not defined. Deploying schemas to the Schemas database. The clean and wipe commands will not remove these schemas.\n"
+      schema_db = "Schemas"
+    end
+    total_count = load_data @properties["ml.schemas.dir"],
+      :add_prefix => @properties["ml.schemas-root"],
+      :remove_prefix => @properties["ml.schemas.dir"],
+      :db => schema_db
+    logger.info "\nLoaded #{total_count} #{pluralize(total_count, "schema", "schemas")} from #{@properties["ml.schemas.dir"]} to #{xcc.hostname}:#{xcc.port}/#{schema_db}\n"
   end
 
   def clean_modules
@@ -828,6 +867,20 @@ private
       end
   end
 
+  def mlRest
+    if (!@mlRest)
+      @mlRest = Roxy::MLRest.new({
+        :user_name => @ml_username,
+        :password => @ml_password,
+        :server => @hostname,
+        :port => @properties["ml.app-port"],
+        :logger => @logger
+      })
+    else
+      @mlRest
+    end
+  end
+
   def get_config
     @config ||= build_config(@options[:config_file])
   end
@@ -910,6 +963,45 @@ private
         :q => query
       }
       logger.debug r.body
+    end
+
+    raise ExitException.new(JSON.pretty_generate(JSON.parse(r.body))) if r.body.match(/\{"error"/)
+
+    r
+  end
+
+  def execute_query_7(query, properties = {})
+    # We need a context for this query. Here's what we look for, in order of preference:
+    # 1. A caller-specified database
+    # 2. A caller-specified application server
+    # 3. An application server that is present by default
+    # 4. Any database
+    if properties[:db_name] != nil
+      db_id = get_db_id(properties[:db_name])
+    elsif properties[:app_name] != nil
+      sid = get_sid(properties[:app_name])
+    else
+      sid = get_sid("Manage")
+    end
+
+    db_id = get_any_db_id if db_id.nil? && sid.nil?
+
+    if db_id.present?
+      logger.debug "using dbid: #{db_id}"
+      r = go_7 "http://#{@hostname}:#{@bootstrap_port}/qconsole/endpoints/evaler.xqy", "post", {}, {
+        :dbid => db_id,
+        :action => "eval",
+        :querytype => "xquery"
+      },
+      query
+    else
+      logger.debug "using sid: #{sid}"
+      r = go_7 "http://#{@hostname}:#{@bootstrap_port}/qconsole/endpoints/evaler.xqy", "post", {}, {
+        :sid => sid,
+        :action => "eval",
+        :querytype => "xquery"
+      },
+      query
     end
 
     raise ExitException.new(JSON.pretty_generate(JSON.parse(r.body))) if r.body.match(/\{"error"/)
@@ -1013,6 +1105,17 @@ private
       </xdbc-server>
       }) if @properties['ml.xcc-port'].present?
 
+    config.gsub!("@ml.odbc-server",
+      %Q{
+      <odbc-server>
+        <odbc-server-name>@ml.app-name-odbc</odbc-server-name>
+        <port>@ml.odbc-port</port>
+        <database name="@ml.content-db"/>
+        <modules name="@ml.modules-db"/>
+        <authentication>digest</authentication>
+      </odbc-server>
+      }) if @properties['ml.odbc-port'].present?
+
     # Build the schemas db if it is provided
     if @properties['ml.schemas-db'].present?
       config.gsub!("@ml.schemas-db-xml",
@@ -1064,39 +1167,26 @@ private
         </assignment>
       })
 
-      if @properties['ml.test-modules-db'].present? &&
-         @properties['ml.test-modules-db'] != @properties['ml.app-modules-db']
-        config.gsub!("@ml.test-appserver",
-        %Q{
-          <http-server>
-            <http-server-name>@ml.app-name-test</http-server-name>
-            <port>@ml.test-port</port>
-            <database name="@ml.test-content-db"/>
-            <modules name="@ml.test-modules-db"/>
-            <root>@ml.modules-root</root>
-            <authentication>@ml.authentication-method</authentication>
-            <default-user name="@ml.default-user"/>
-            <url-rewriter>@ml.url-rewriter</url-rewriter>
-            <error-handler>@ml.error-handler</error-handler>
-          </http-server>
-        })
-      else
-        config.gsub!("@ml.test-appserver",
-        %Q{
-          <http-server>
-            <http-server-name>@ml.app-name-test</http-server-name>
-            <port>@ml.test-port</port>
-            <database name="@ml.test-content-db"/>
-            <modules name="@ml.modules-db"/>
-            <root>@ml.modules-root</root>
-            <authentication>@ml.authentication-method</authentication>
-            <default-user name="@ml.default-user"/>
-            <url-rewriter>@ml.url-rewriter</url-rewriter>
-            <error-handler>@ml.error-handler</error-handler>
-            @ml.rewrite-resolves-globally
-          </http-server>
-        })
+      # The modules database for the test server can be different from the app one
+      test_modules_db = @properties['ml.test-modules-db']
+      if !@properties['ml.test-modules-db'].present?
+        test_modules_db = @properties['ml.app-modules-db']
       end
+      test_auth_method = @properties['ml.authentication-method']
+      if @properties['ml.test-authentication-method'].present?
+        test_auth_method = @properties['ml.test-authentication-method']
+      end
+
+      config.gsub!("@ml.test-appserver",
+      %Q{
+        <http-server import="@ml.app-name">
+          <http-server-name>@ml.app-name-test</http-server-name>
+          <port>@ml.test-port</port>
+          <database name="@ml.test-content-db"/>
+          <modules name="#{test_modules_db}"/>
+          <authentication>#{test_auth_method}</authentication>
+        </http-server>
+      })
 
     else
       config.gsub!("@ml.test-content-db-xml", "")

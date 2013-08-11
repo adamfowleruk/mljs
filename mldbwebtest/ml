@@ -40,7 +40,7 @@ then
       exit 1
     fi
 
-    BRANCH="master"
+    BRANCH="dev"
     INIT_GIT=0
     APPTYPE="mvc"
     for (( i = 0; i < ${#PARAMS[@]}; i++ )); do

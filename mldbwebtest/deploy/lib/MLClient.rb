@@ -13,6 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ###############################################################################
+begin
+require 'io/console'
+rescue LoadError
+end
+
+require 'uri'
+
 class MLClient
   def initialize(options)
     @ml_username = options[:user_name]
@@ -44,11 +51,13 @@ class MLClient
 
   def build_request_params(url, verb)
     uri = URI.parse url
+
     if (!@request[verb])
       @request[verb] = Net::HTTP.const_get(verb.capitalize).new(uri.request_uri)
       @request[verb].add_field 'Connection', 'keep-alive'
       @request[verb].add_field 'Keep-Alive', '30'
       @request[verb].add_field 'User-Agent', 'Roxy'
+      @request[verb].add_field 'content-type', 'text/plain'
     else
       @request[verb].set_path uri.request_uri
     end
@@ -63,6 +72,34 @@ class MLClient
     }
   end
 
+  # MarkLogic 7 requires the parameters to be set a different way than previous versions.
+  def build_request_params_7(url, verb, p=nil)
+    uri = URI.parse url
+    if (p)
+      uri.query = URI.encode_www_form(p.each {|key, value| ["#{key}",  "#{value}"] })
+    end
+
+    if (!@request[verb])
+      @request[verb] = Net::HTTP.const_get(verb.capitalize).new(uri.request_uri)
+      @request[verb].add_field 'Connection', 'keep-alive'
+      @request[verb].add_field 'Keep-Alive', '30'
+      @request[verb].add_field 'User-Agent', 'Roxy'
+      @request[verb].add_field 'content-type', 'text/plain'
+    else
+      @request[verb].set_path uri.request_uri
+    end
+    request_params = {
+      :request => @request[verb],
+      :server => uri.host,
+      :port => uri.port,
+      :protocol => uri.scheme,
+      :user_name => @ml_username,
+      :password => @ml_password,
+      :logger => logger
+    }
+  end
+
+  # Used for ML4-ML6
   def go(url, verb, headers = {}, params = nil, body = nil)
     password_prompt
     request_params = build_request_params(url, verb)
@@ -84,6 +121,27 @@ class MLClient
     response
   end
 
+  # MarkLogic 7 requires the command to be sent a different way than previous versions.
+  # TODO: I hate that the code needs to be split this way. Figure out a way to
+  # unify this code across ML versions.
+  def go_7(url, verb, headers = {}, params = nil, body = nil)
+    password_prompt
+    request_params = build_request_params_7(url, verb, params)
+    # configure headers
+    headers.each do |k, v|
+      request_params[:request][k] = v
+    end
+
+    if (body)
+      request_params[:request].body = body
+    end
+
+
+    response = get_http.request request_params
+    response.value
+    response
+  end
+
   def url_encode(str)
     return str.gsub(/[^-_.a-zA-Z0-9]+/) { |s|
       s.unpack('C*').collect { |i| "%%%02X" % i }.join
@@ -97,7 +155,13 @@ class MLClient
 
   def password_prompt
     if (@ml_password == "") then
-      @ml_password = prompt "Password for admin user: "
+      if STDIN.respond_to?(:noecho)
+      print "Password for admin user: "
+      @ml_password = STDIN.noecho(&:gets).chomp
+      print "\n"
+      else
+        raise ExitException.new("Upgrade to Ruby >= 1.9 for password prompting on the shell. Or you can set password= in your properties file")
+      end
     end
   end
 end

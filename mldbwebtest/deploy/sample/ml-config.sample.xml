@@ -29,16 +29,21 @@
       <url-rewriter>@ml.url-rewriter</url-rewriter>
       <error-handler>@ml.error-handler</error-handler>
       <rewrite-resolves-globally>@ml.rewrite-resolves-globally</rewrite-resolves-globally>
+      <!-- <ssl-certificate-template>@ml.ssl-certificate-template</ssl-certificate-template> -->
     </http-server>
     @ml.test-appserver
   </http-servers>
   <xdbc-servers xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://marklogic.com/xdmp/group" xsi:schemaLocation="http://marklogic.com/xdmp/group group.xsd">
     @ml.xdbc-server
   </xdbc-servers>
+  <odbc-servers xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://marklogic.com/xdmp/group" xsi:schemaLocation="http://marklogic.com/xdmp/group group.xsd">
+    @ml.odbc-server
+  </odbc-servers>
   <!--Assignments-->
   <assignments xmlns="http://marklogic.com/xdmp/assignments" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://marklogic.com/xdmp/assignments assignments.xsd">
     <assignment>
       <forest-name>@ml.content-db</forest-name>
+      @ml.forest-data-dir-xml
     </assignment>
     @ml.test-content-db-assignment
     @ml.test-modules-db-assignment
@@ -64,6 +69,7 @@
       @ml.triggers-mapping
       <forests>
         <forest-id name="@ml.content-db"/>
+        @ml.forest-data-dir-xml
       </forests>
       <uri-lexicon>true</uri-lexicon>
       <collection-lexicon>true</collection-lexicon>
@@ -88,6 +94,19 @@
         <field>
           <field-name/>
           <include-root>true</include-root>
+          <fast-case-sensitive-searches>false<fast-case-sensitive-searches>
+          <fast-diacritic-sensitive-searches>false<fast-diacritic-sensitive-searches>
+          <fast-phrase-searches>false<fast-phrase-searches>
+          <one-character-searches>false<one-character-searches>
+          <stemmed-searches><stemmed-searches>
+          <three-character-searches>false<three-character-searches>
+          <three-character-word-positions>false<three-character-word-positions>
+          <trailing-wildcard-searches>false<trailing-wildcard-searches>
+          <trailing-wildcard-word-positions>false<trailing-wildcard-word-positions>
+          <two-character-searches>false<two-character-searches>
+          <value-positions>false<value-positions>
+          <value-searches>false<value-searches>
+          <word-searches>false<word-searches>
           <word-lexicons/>
           <included-elements>
             <included-element>
@@ -292,6 +311,15 @@
     @ml.triggers-db-xml
     @ml.schemas-db-xml
   </databases>
+  <certificate xmlns="http://marklogic.com/xdmp/pki">
+    <name>@ml.ssl-certificate-template</name>
+    <countryName>@ml.ssl-certificate-countryName</countryName>
+    <stateOrProvinceName>@ml.ssl-certificate-stateOrProvinceName</stateOrProvinceName>
+    <localityName>@ml.ssl-certificate-localityName</localityName>
+    <organizationName>@ml.ssl-certificate-organizationName</organizationName>
+    <organizationalUnitName>@ml.ssl-certificate-organizationalUnitName</organizationalUnitName>
+    <emailAddress>@ml.ssl-certificate-emailAddress</emailAddress>
+  </certificate>
   <roles xmlns="http://marklogic.com/xdmp/security">
     <role>
       <role-name>@ml.app-role</role-name>

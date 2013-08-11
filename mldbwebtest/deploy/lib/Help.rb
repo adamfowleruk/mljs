@@ -15,15 +15,17 @@ class Help
        deploy         Loads modules, data, cpf configuration into the server
        load           Loads a file or folder into the server
        clean          Removes all files from the cpf, modules, or content databases
-       info           Prints the configuration information
+       info           Prints the environment-specific configuration information
        test           Runs xquery unit tests
        recordloader   Runs RecordLoader
        xqsync         Runs XQSync
        corb           Runs Corb
 
-      Roxy MVC Commands:
+      Roxy Scaffolding commands:
        create       Creates a controller or view or model
        index        Adds an index to the configuration
+       extend       Create a REST API service extension
+       transform    Create a REST API transformation
 
       All commands can be run with -h for more information.
 
@@ -227,6 +229,7 @@ class Help
 
         modules # deploys code to your modules db in the given environment
         content # deploys content to your content db in the given environment
+        schemas # deploys schemas to your schemas db in the given environment
         cpf     # deploys your cpf config to the server in the given environment
     DOC
   end
@@ -253,7 +256,8 @@ class Help
       Please choose a WHAT below.
 
         modules # removes all data from the modules db in the given environment
-        content # removes all data from the content dv in the given environment
+        content # removes all data from the content db in the given environment
+        schemas # removes all data from the schemas db in the given environment
         cpf     # removes your cpf config from the server in the given environment
     DOC
   end
@@ -354,6 +358,51 @@ class Help
     <<-DOC.strip_heredoc
       Usage: ml index
         ml will ask questions to help you build an index
+    DOC
+  end
+
+  def self.extend
+    <<-DOC.strip_heredoc
+      Usage: ml extend [prefix:]extension
+        Create a REST API service extension with the provided name. If a prefix
+        is provided, it will be used in the extension module.
+
+        Example:
+          $ ml extend ml:tag
+          will create a tag.xqy library module in your rest-ext directory, using
+          the "ml" prefix for the functions.
+    DOC
+  end
+
+  def self.transform
+    <<-DOC.strip_heredoc
+      Usage: ml transform [prefix:]name [type]
+        Create a REST API transformation with the provided name. By default,
+        the transform will be XSLT.
+
+      prefix:
+        The prefix will be used as the namespace prefix.
+
+      name:
+        This name will be used for the file in which the transform is stored
+        and the name used when deploying to MarkLogic.
+
+      type:
+        (xslt|xqy)
+
+      Example:
+        $ ml transform ex:sample
+        will create a sample.xsl file in your rest-transform directory,
+        using the "ex" namespace prefix.
+
+      Example:
+        $ ml transform sample
+        will create a sample.xsl file in your rest-transform directory.
+
+      Example:
+        $ ml transform sample xqy
+        will create a sample.xqy library module in your rest-transform directory,
+        using a built-in value as the prefix for the functions.
     DOC
   end
 
