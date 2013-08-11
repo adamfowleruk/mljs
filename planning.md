@@ -8,8 +8,9 @@ Targets for 0.8 (Jul 2013)
  - DONE Widgets: Charts widget to support aggregations via search options (facet values)
  - DONE Widgets: Script to install latest MLJS in to an existing Roxy project
  - DONE Samples: ml-config.xml to include range indexes required for sample application
- - Samples: Upgrade embedded Roxy to latest dev branch with ML7 EA3 nightly build deploy fix
- - Node: NodeJS regression testing
+ - DONE Samples: Upgrade embedded Roxy to latest dev branch with ML7 EA3 nightly build deploy fix
+ - DONE Tutorial: Deploying the mldbwebtest roxy project (text)
+ - NodeJS: NodeJS regression testing
  - IN PROGRESS Widgets: Search widgets, and overarching search page widget UI layer over mljs in browser, including custom result rendering plugins (search bar, facets, results, paging, sorting)
   - DONE Widgets: Sorting widget actions
   - IN PROGRESS Widgets: More... all... links in facets -> BUG always updating last facet, not the correct facet
@@ -50,40 +51,49 @@ Targets for 0.8 (Jul 2013)
 Floating as and when
  - MarkLogic reported bugs retesting
   - BUG (Product 6.0-2): plain text documents - text content not escaped properly
- - Widgets: Document properties and view widget
+ - Own demo apps
+  - Update Situational Awareness Node.JS app for 0.8+ MLJS
+  - Update alerting instant messaging Jabber Node.JS app for 0.8+ MLJS
  - IN PROGRESS REST extensions
-  - DONE DLS declare document as a record
-  - DLS list all documents in a record collection
-  - DONE DLS list all DLS collections
-  - DLS list all retention rules
-  - DLS get document history
-  - DLS get document version
-  - DLS add retention rule
-  - Browser: DLS add retention rule widget
-  - DONE Browser: DLS declare search results as record widget
-  
-Documentation priorities
- - Tutorial: Deploying the mldbwebtest roxy project (video + text)
+  - DONE Core: DLS declare document as a record
+  - Core: DLS list all documents in a record collection
+  - DONE Core: DLS list all DLS collections
+  - Core: DLS list all retention rules
+  - Core: DLS get document history
+  - Core: DLS get document version
+  - Core: DLS add retention rule
+  - Widgets: DLS add retention rule widget
+  - DONE Widgets: DLS declare search results as record widget
  
 Targets for 1.0 (Aug 2013)
- - Node: Node.js tests for all functionality now in core MLJS
- - All: Windows batch file versions of developer required (non build related) bash scripts, including mljsme
- - Core: Extra query builder options (all constraints supported by options, plus sorting)
- - Sample: Sample triples, linked content, working sparql query builder
+ - NodeJS: Node.js tests for all functionality now in core MLJS
+ - Tools: Windows batch file versions of developer required (non build related) bash scripts, including mljsme
+ - Docs: Document all core concepts currently part of MLJS
+ - Samples: Sample triples, linked content, working sparql query builder
+ - Widgets: Document properties and view widget
+ - Widgets: Navigable charts / co-occurence - clicking sets facet value
+ - Widgets: Google maps (via OpenLayers?)
  - Widgets: Geospatial facets show in maps, and not in facets widget
- - Widgets: Facet support for buckets, sliders
- - Widgets: Facet hierarchies in browser sidebar
+ - Core: Query Builder. Easy geospatial search (Already done?)
  - Widgets: Support facet hierarchies
  - Widgets: D3.js network diagram
+ - Core: Support all search functions not currently provided in query builder
+ - Core: Extra query builder options (all constraints supported by options, plus sorting)
+ - Core: Complete support for /v1/values REST function (suggestions aka auto complete etc)
+ - Test: Support current functionality against MarkLogic V7
+ - Core: New V7 functionality
+  - Core: POST /v1/search - Dynamic search options (Try this in search context, catch error if on V6 and fall back to original mode)
+  - Core: Alerting
+ - Widget: Add search action button - 'save as alert'
+ - Core: Support all client API /v1/ REST endpoints in ML7
+ - Node: More Node.js tests for all new functionality
+ - Docs: Document new widgets with screen shots and scenario code
+ - Widgets: Facet support for buckets, sliders
+ - Widgets: Facet hierarchies in browser sidebar
  - Widgets: Charts widget to support extraction of XML info via XPath
  - Widgets: XML/JSON document creation-by-example (via HTML form generator)
  - Widgets: Support array children in aggregations for graphs
- - Widgets: Lazy loading on search results (E.g. when requesting page 2 result 3 (result 13), make http request for re-search transparent) - Also for graphing when all search results need loading
- - Easy geospatial search
  - Widgets: searchresults: Adding action bar support, with plugins for each button (applicable() and render() functions) - E.g. Download, View, Generate PDF, Delete, Properties 
- - Widgets: Google maps (via OpenLayers?)
- - Support all search functions not currently provided in query builder
- - Complete support for /v1/values REST function (auto complete etc)
  - NodeJS: Support SSL
  - NodeJS: SSL with Basic
  - NodeJS: SSL with Digest
@@ -91,30 +101,27 @@ Targets for 1.0 (Aug 2013)
  - NodeJS: SSL Basic + Digest
  - NodeJS: SSL no auth (default user)
  - NodeJS: Support 'anyauth' option, much like curl (i.e. auth method auto detection)
- - Support current functionality against MarkLogic V7
- - New V7 functionality
-  - Dynamic search options (Try this in search context, catch error if on V6 and fall back to original mode)
-  - Alerting
  - Widgets: Support for using widgets in non ML 6 REST webapps, and embedding widgets remotely, via W3C CORS support (i.e. secure cross site scripting support)
- - Widgets: Navigable charts / co-occurence - clicking sets facet value
+ - Widgets: Alerting client widget (Requires Alerting API, CORS)
 
 Targets for 1.2 (Oct 2013)
- - Widget: Situational awareness and search renderer app (from BF sim)
- - Widget: Table - allow binding of JSON search results to jQuery table (for example)
- - Widget: Table - allow binding of XML search results to jQuery table (for example)
- - Widget: Tree - browse JSON/XML documents in search results as a tree
- - Widget: Timeline (point in time and start / stop dates)
- - Widget: Rose - direction (N, S etc) and time (12 and 24 hour) - arbitrary categories
+ - Widgets: HTML content editing widget (new doc, and existing document with specified element (E.g. body, comments) and configuration for what is permissable as content)
+ - Widgets: Situational awareness and search renderer app (from BF sim)
+ - Widgets: Table - allow binding of JSON search results to jQuery table (for example)
+ - Widgets: Table - allow binding of XML search results to jQuery table (for example)
+ - Widgets: Tree - browse JSON/XML documents in search results as a tree
+ - Widgets: Timeline (point in time and start / stop dates)
+ - Widgets: Rose - direction (N, S etc) and time (12 and 24 hour) - arbitrary categories
  - Widgets: File upload (multiple)
  - Widgets: (multi) Upload progress bar
- - TEST Browser: prototype.js binding
+ - Test: prototype.js browser AJAX binding
  
 Targets for 1.4 (Dec 2013)
- - More support for server management (namespaces, indexes, service extensions, update REST instance configuration, XSLT transform management)
+ - Core: More support for server management (namespaces, indexes, service extensions, update REST instance configuration, XSLT transform management)
  - Widgets: Administration widgets (mainly aimed at pre-sales developers, not sysadmins)
- - CSV and TSV utilities
- - support arbitrary XPath for searches (if possible)
- - allow upload and use of XSLT for result transform
+ - Core: CSV and TSV utilities
+ - Core: support arbitrary XPath for searches (if possible)
+ - Core: allow upload and use of XSLT for result transform
 
 Not applicable / dropped / postponed targets
  - N/A sensible to/from json settings (Default on &format=json on server)
@@ -125,6 +132,7 @@ Not applicable / dropped / postponed targets
  - NodeJS: Provide REST API proxy within NodeJS wrapper
  - Browser: Support REST API proxy within general javascript and nodejs javascript code
  - NA generic xml document tree fallback
+ - NA Widgets: Lazy loading on search results (E.g. when requesting page 2 result 3 (result 13), make http request for re-search transparent) - Also for graphing when all search results need loading
  
 ## Past Releases
 
