@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Tutorial: 002-widgets-search</title>
+    <title>JSDoc: Tutorial: 013-browser-samples-app</title>
     
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,30 +17,38 @@
 
 <div id="main">
     
-    <h1 class="page-title">Tutorial: 002-widgets-search</h1>
+    <h1 class="page-title">Tutorial: 013-browser-samples-app</h1>
     
     <section>
     
 <header>
     
 
-    <h2>002-widgets-search</h2>
+    <h2>013-browser-samples-app</h2>
 </header>  
 
 <article>
     <p><a href="tutorial-all.html">Back to All Tutorials list</a></p>
-<h1>How Search Widgets work</h1>
-<p>The following diagram explains the main code workflow for a search app.</p>
-<p><img src="./images/mljs-diagrams.003.png" alt="Search Widgets" title="Search Widgets"></p>
-<p>As you can see a search context object instance is used to bind widgets together. No widget knows of the existence
-of another one - the developer merely calls the register method on search context to bind a new widget to the
-search context.</p>
-<p>The register() function is a convenience such that the application developer doesn't need to know what events
-and actions are supported by each widget instance in order to use them. It is required that all widgets adhere
-to the same naming convention for event listeners and actions. This convention is how the searchcontext object
-can introspect each widget to determine how it can be used.</p>
-<p>In the above example both the search bar and results widgets have a setContext() method and an updateResults()
-event listener method. These are discovered by the searchcontext.register() function and called as appropriate.</p>
+<h1>Installing the MLJS Samples App</h1>
+<p>MLJS ships with a samples app called mldbwebtest. You can install this and browse through the available
+visual widgets to see what is possible.</p>
+<p>This app ships as a Roxy Hybrid browser app. Roxy is an app deploy tool and convention-over-coding
+Ruby on Rails like web app framework. All I'm using it for is a basic web controller and as a deploy
+tool.</p>
+<p>To install the samples app:-</p>
+<ol>
+<li>Open a terminal</li>
+<li>cd to the mldbwebtest application</li>
+<li>Edit the mldbwebtest/deploy/build.properties file</li>
+<li>Change the admin username, password, app port and app host to suit your MarkLogic installation</li>
+<li>IMPORTANT: If an ML 7 installation, uncomment the server-version=7 line (or add if it isn't there)</li>
+<li>Save the build.properties file</li>
+<li>Type ./ml local bootstrap (Note: You MUST use ./ to select this Roxy version, not any other that may be installed on your machine)</li>
+<li>Now type ./ml local deploy modules</li>
+<li>Now open a browser and visit <a href="http://localhost:8120/">http://localhost:8120/</a> </li>
+</ol>
+<p>This will send you to the main mldbtest controller page. This will check for indexes and install any missing content for you. 
+Once this returns 'Done' you will be able to visit any of the sample pages using the top navigation on the page.</p>
 <hr>
 <p><a href="tutorial-all.html">Back to All Tutorials list</a></p>
 </article>

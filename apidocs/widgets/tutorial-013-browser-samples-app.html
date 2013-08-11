@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Tutorial: 011-browser-create-app</title>
+    <title>JSDoc: Tutorial: 013-browser-samples-app</title>
     
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,27 +17,38 @@
 
 <div id="main">
     
-    <h1 class="page-title">Tutorial: 011-browser-create-app</h1>
+    <h1 class="page-title">Tutorial: 013-browser-samples-app</h1>
     
     <section>
     
 <header>
     
 
-    <h2>011-browser-create-app</h2>
+    <h2>013-browser-samples-app</h2>
 </header>  
 
 <article>
     <p><a href="tutorial-all.html">Back to All Tutorials list</a></p>
-<h1>Creating a new Web application with Roxy</h1>
-<p>Roxy is a framework created by the Vanguard team within MarkLogic. It has the capability to deploy a set of application code in to a MarkLogic REST instance.</p>
-<p>This tutorial shows how to create and deploy a new Roxy Hybrid application.</p>
-<p>The full tutorial can be found on my blog at the below URL.</p>
-<p><a href="http://adamfowlerml.wordpress.com/2013/04/18/creating-a-new-roxy-rest-api-hybrid-app-video/"><a href="http://adamfowlerml.wordpress.com/2013/04/18/creating-a-new-roxy-rest-api-hybrid-app-video/">http://adamfowlerml.wordpress.com/2013/04/18/creating-a-new-roxy-rest-api-hybrid-app-video/</a></a></p>
-<p>This tutorial is a video with audio only.</p>
-<p>The next tutorial is used to install mljs and the browser widgets in to a Roxy application. It must be done after the above tutorial.</p>
-<p><a href="http://adamfowlerml.wordpress.com/2013/04/18/creating-a-new-roxy-rest-api-hybrid-app-video/"><a href="http://adamfowlerml.wordpress.com/2013/04/18/creating-a-new-roxy-rest-api-hybrid-app-video/">http://adamfowlerml.wordpress.com/2013/04/18/creating-a-new-roxy-rest-api-hybrid-app-video/</a></a></p>
-<p>This tutorial includes video and audio, with a full set of text instructions.</p>
+<h1>Installing the MLJS Samples App</h1>
+<p>MLJS ships with a samples app called mldbwebtest. You can install this and browse through the available
+visual widgets to see what is possible.</p>
+<p>This app ships as a Roxy Hybrid browser app. Roxy is an app deploy tool and convention-over-coding
+Ruby on Rails like web app framework. All I'm using it for is a basic web controller and as a deploy
+tool.</p>
+<p>To install the samples app:-</p>
+<ol>
+<li>Open a terminal</li>
+<li>cd to the mldbwebtest application</li>
+<li>Edit the mldbwebtest/deploy/build.properties file</li>
+<li>Change the admin username, password, app port and app host to suit your MarkLogic installation</li>
+<li>IMPORTANT: If an ML 7 installation, uncomment the server-version=7 line (or add if it isn't there)</li>
+<li>Save the build.properties file</li>
+<li>Type ./ml local bootstrap (Note: You MUST use ./ to select this Roxy version, not any other that may be installed on your machine)</li>
+<li>Now type ./ml local deploy modules</li>
+<li>Now open a browser and visit <a href="http://localhost:8120/">http://localhost:8120/</a> </li>
+</ol>
+<p>This will send you to the main mldbtest controller page. This will check for indexes and install any missing content for you. 
+Once this returns 'Done' you will be able to visit any of the sample pages using the top navigation on the page.</p>
 <hr>
 <p><a href="tutorial-all.html">Back to All Tutorials list</a></p>
 </article>
