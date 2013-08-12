@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Class: BasicWrapper</title>
+    <title>JSDoc: Class: Publisher</title>
     
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
     
-    <h1 class="page-title">Class: BasicWrapper</h1>
+    <h1 class="page-title">Class: Publisher</h1>
     
     
 
@@ -27,7 +27,7 @@
     
 <header>
     <h2>
-    BasicWrapper
+    Publisher
     </h2>
     
 </header>  
@@ -39,7 +39,7 @@
     
         
 <dt>
-    <h4 class="name" id="BasicWrapper"><span class="type-signature"></span>new BasicWrapper<span class="signature">()</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="Publisher"><span class="type-signature"></span>new Publisher<span class="signature">()</span><span class="type-signature"></span></h4>
     
     
 </dt>
@@ -47,7 +47,8 @@
     
     
     <div class="description">
-        <p>Creates a new HTTP Basic Auth wrapper. Not to be created directly.</p>
+        <p>Creates an event publishing management object. This is used extensively by searchcontext and widgets.
+One event publisher should be created for each event type.</p>
     </div>
     
 
@@ -80,7 +81,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="basic-wrapper.js.html">lib/basic-wrapper.js</a>, <a href="basic-wrapper.js.html#line8">line 8</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3297">line 3297</a>
     </li></ul></dd>
     
     
@@ -126,7 +127,7 @@
         <dl>
             
 <dt>
-    <h4 class="name" id="configure"><span class="type-signature"></span>configure<span class="signature">()</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="publish"><span class="type-signature"></span>publish<span class="signature">(event)</span><span class="type-signature"></span></h4>
     
     
 </dt>
@@ -134,7 +135,7 @@
     
     
     <div class="description">
-        <p>Configures the basic wrapper</p>
+        <p>Publishes an event, calling all listener functions in turn with the event object.</p>
     </div>
     
 
@@ -142,6 +143,54 @@
     
     
     
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+		
+		<th>Type</th>
+		
+		
+		
+		
+		
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+	
+	<tbody>
+	
+	
+        <tr>
+            
+                <td class="name"><code>event</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">object</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last"><p>The event object. Can be of any type.</p></td>
+        </tr>
+	
+	
+	</tbody>
+</table>
     
     
     
@@ -167,7 +216,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="basic-wrapper.js.html">lib/basic-wrapper.js</a>, <a href="basic-wrapper.js.html#line15">line 15</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3328">line 3328</a>
     </li></ul></dd>
     
     
@@ -195,7 +244,7 @@
         
             
 <dt>
-    <h4 class="name" id="get"><span class="type-signature"></span>get<span class="signature">()</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="subscribe"><span class="type-signature"></span>subscribe<span class="signature">(listener)</span><span class="type-signature"></span></h4>
     
     
 </dt>
@@ -203,7 +252,7 @@
     
     
     <div class="description">
-        <p>Performs a http get to the server</p>
+        <p>Subscribes a listening function to this event publisher</p>
     </div>
     
 
@@ -211,6 +260,54 @@
     
     
     
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+		
+		<th>Type</th>
+		
+		
+		
+		
+		
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+	
+	<tbody>
+	
+	
+        <tr>
+            
+                <td class="name"><code>listener</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last"><p>The function that is passed the event object</p></td>
+        </tr>
+	
+	
+	</tbody>
+</table>
     
     
     
@@ -236,7 +333,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="basic-wrapper.js.html">lib/basic-wrapper.js</a>, <a href="basic-wrapper.js.html#line38">line 38</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3305">line 3305</a>
     </li></ul></dd>
     
     
@@ -264,7 +361,7 @@
         
             
 <dt>
-    <h4 class="name" id="request"><span class="type-signature"></span>request<span class="signature">()</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="unsubscribe"><span class="type-signature"></span>unsubscribe<span class="signature">(listener)</span><span class="type-signature"></span></h4>
     
     
 </dt>
@@ -272,7 +369,7 @@
     
     
     <div class="description">
-        <p>Handles a http request to the server</p>
+        <p>Unsubscribes a listening function from this event publisher</p>
     </div>
     
 
@@ -280,6 +377,54 @@
     
     
     
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+		
+		<th>Type</th>
+		
+		
+		
+		
+		
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+	
+	<tbody>
+	
+	
+        <tr>
+            
+                <td class="name"><code>listener</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last"><p>The function that should no longer receive events</p></td>
+        </tr>
+	
+	
+	</tbody>
+</table>
     
     
     
@@ -305,7 +450,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="basic-wrapper.js.html">lib/basic-wrapper.js</a>, <a href="basic-wrapper.js.html#line24">line 24</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3313">line 3313</a>
     </li></ul></dd>
     
     
@@ -352,7 +497,7 @@
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Mon Aug 12 2013 22:50:48 GMT+0100 (BST)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Mon Aug 12 2013 22:50:49 GMT+0100 (BST)
 </footer>
 
 <script> prettyPrint(); </script>
