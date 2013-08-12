@@ -578,7 +578,7 @@ mljs.prototype.__doreq_node = function(reqname,options,content,callback_opt) {
               jsonResult.location = loc;
             }
           }
-          (callback_opt || noop)(jsonResult); // TODO probably pass res straight through, appending body data
+          (callback_opt || noop)(jsonResult);
         }
       }
     };
@@ -984,7 +984,7 @@ mljs.prototype.save = function(jsonXmlBinary,docuri_opt,props_opt,callback_opt) 
         options.contentType = "application/json";
         format = null; // overrides param override setting
         
-        // TODO binary support
+        // NB binary support exists within wrappers
       }
       
     } else {
@@ -1199,7 +1199,7 @@ mljs.prototype.search = function(query_opt,options_opt,start_opt,sprops_opt,call
     }/* else {
       // add as content document
       content = options_opt;
-      method = "POST"; // TODO verify
+      method = "POST"; // verify
     }*/
   }
   var format = "&format=json";
@@ -1849,7 +1849,6 @@ mljs.prototype.saveAll = function(doc_array,uri_array_opt,callback_opt) {
   }
   
   // TODO make fast aware
-  // TODO make transaction aware (auto by using save - need to check for error on return. pass error up for auto rollback)
   var error = null;
   for (var i = 0;null == error && i < doc_array.length;i++) {
     this.save(doc_array[i],uri_array_opt[i],function(result) {
@@ -1929,7 +1928,6 @@ mljs.prototype.saveAll2 = function(doc_array,uri_array_opt,callback_opt) {
   }
   
   // TODO make fast aware
-  // TODO make transaction aware (auto by using save - need to check for error on return. pass error up for auto rollback)
   var error = null;
   //for (var i = 0;null == error && i < doc_array.length;i++) {
   var that = this;
@@ -2178,7 +2176,13 @@ mljs.prototype.whoami = function(callback) {
   this.__doreq("WHOAMI",options,null,callback);
 };
 
-
+/**
+ * REQUIRES CUSTOM REST API EXTENSION - dls.xqy - Adam Fowler adam.fowler@marklogic.com - Declares documents as members of a DLS collection, and enables DLS management
+ *
+ * @param {string|Array} uri_or_uris - Documents to declare as records
+ * @param {string} collection - New DLS collection to add documents to
+ * @param {function} callback - The callback to invoke after the method completes
+ */
 mljs.prototype.dlsdeclare = function(uri_or_uris,collection,callback) {
   /*
   var path = "/v1/resources/dls?rs:collection=" + encodeURI("/records/" + decname) + "&rs:uri=";
@@ -2200,6 +2204,11 @@ mljs.prototype.dlsdeclare = function(uri_or_uris,collection,callback) {
        // TODO FIX THIS MESS
 };
 
+/**
+ * REQUIRES CUSTOM REST API EXTENSION - dls.xqy - Adam Fowler adam.fowler@marklogic.com - Lists all DLS collections
+ *
+ * @param {function} callback - The callback to invoke after the method completes
+ */
 mljs.prototype.dlscollections = function(callback) {
   var options = {
     path: "/v1/resources/dls",
@@ -2209,6 +2218,12 @@ mljs.prototype.dlscollections = function(callback) {
 };
 
 
+/**
+ * REQUIRES CUSTOM REST API EXTENSION - dls.xqy - Adam Fowler adam.fowler@marklogic.com - Fetching documents within specified DLS collection
+ *
+ * @param {string} collection - DLS collection to list documents who are members of
+ * @param {function} callback - The callback to invoke after the method completes
+ */
 mljs.prototype.dlscollection = function(collection,callback) {
   var options = {
     path: "/v1/resources/dls?rs:collection=" + encodeURI(collection),
@@ -2219,6 +2234,11 @@ mljs.prototype.dlscollection = function(collection,callback) {
 
 
 
+/**
+ * REQUIRES CUSTOM REST API EXTENSION - dlsrules.xqy - Adam Fowler adam.fowler@marklogic.com - Lists all DLS retention rules
+ *
+ * @param {function} callback - The callback to invoke after the method completes
+ */
 mljs.prototype.dlsrules = function(callback) {
   var options = {
     path: "/v1/resources/dlsrules",
@@ -2228,6 +2248,12 @@ mljs.prototype.dlsrules = function(callback) {
 };
 
 
+/**
+ * REQUIRES CUSTOM REST API EXTENSION - dlsrules.xqy - Adam Fowler adam.fowler@marklogic.com - Fetches DLS retention rule
+ *
+ * @param {string} name - Name of the Rule to fetch configuration of
+ * @param {function} callback - The callback to invoke after the method completes
+ */
 mljs.prototype.dlsrule = function(name,callback) {
   var options = {
     path: "/v1/resources/dlsrules?rs:rulename=" + encodeURI(name),
@@ -2838,7 +2864,7 @@ mljs.prototype.options.prototype.geoelemConstraint = function(constraint_name_op
 mljs.prototype.options.prototype.geoelem = mljs.prototype.options.prototype.geoelemConstraint;
 
 /**
- * Specifies a geospatial element attribute pair constraint, and adds it to the search options object
+ * TODO Specifies a geospatial element attribute pair constraint, and adds it to the search options object
  */
 mljs.prototype.options.prototype.geoelemattrConstraint = function() {
   // TODO geoelem attr
@@ -2846,7 +2872,7 @@ mljs.prototype.options.prototype.geoelemattrConstraint = function() {
 mljs.prototype.options.prototype.geoelemattr = mljs.prototype.options.prototype.geoelemattrConstraint;
 
 /**
- * Specifies a geospatial element pair constraint, and adds it to the search options object
+ * TODO Specifies a geospatial element pair constraint, and adds it to the search options object
  */
 mljs.prototype.options.prototype.geoelempairConstraint = function() {
   // TODO geoelem pair
@@ -3063,7 +3089,7 @@ mljs.prototype.options = function() {
  */
 mljs.prototype.query = function() {
   this._query = {
-    // TODO initialise query object
+    // TODO initialise query object with sensible settings
   };
   
   this.defaults = {};
@@ -3215,6 +3241,12 @@ mljs.prototype.query.prototype.range = function(constraint_name,val) {
   }
 };
 
+/**
+ * Creates a document (uri list) query
+ *
+ * @param {string} constraint_name - The constraint name from the search options for this constraint
+ * @param {string} uris - URI array for the documents to restrict search results to
+ */
 mljs.prototype.query.prototype.uris = function(constraint_name,uris) {
   return {
     "document-query": {
@@ -3256,14 +3288,28 @@ com.marklogic.events.Event = function(type,data) {
 
 // PUBLISHER
 
+/**
+ * Creates an event publishing management object. This is used extensively by searchcontext and widgets.
+ * One event publisher should be created for each event type.
+ * 
+ * @constructor
+ */
 com.marklogic.events.Publisher = function() {
   this.listeners = new Array();
 };
 
+/**
+ * Subscribes a listening function to this event publisher
+ * @param {function} listener - The function that is passed the event object
+ */
 com.marklogic.events.Publisher.prototype.subscribe = function(listener) {
   this.listeners.push(listener);
 };
 
+/**
+ * Unsubscribes a listening function from this event publisher
+ * @param {function} listener - The function that should no longer receive events
+ */
 com.marklogic.events.Publisher.prototype.unsubscribe = function(listener) {
   var newArr = new Array();
   for (var i = 0;i < this.listeners.length;i++) {
@@ -3275,6 +3321,10 @@ com.marklogic.events.Publisher.prototype.unsubscribe = function(listener) {
 };
 
 
+/**
+ * Publishes an event, calling all listener functions in turn with the event object.
+ * @param {object} event - The event object. Can be of any type.
+ */
 com.marklogic.events.Publisher.prototype.publish = function(event) {
   for (var i = 0;i < this.listeners.length;i++) {
     this.listeners[i](event);
@@ -3288,6 +3338,11 @@ com.marklogic.events.Publisher.prototype.publish = function(event) {
 
 
 
+/**
+ * A Search Context links together any objects affecting the query, sorting, facets or that
+ * wants to be notified of changes to those, and to any new results or pages being retrieved.
+ * @constructor
+ */
 mljs.prototype.searchcontext = function() {
   this._optionsbuilder = new mljs.prototype.options();
   
@@ -3381,6 +3436,7 @@ mljs.prototype.searchcontext.prototype.setDirectory = function(dir) {
  * Sets to options object to use. By default on V6 this will be persisted to the server. 
  * In V7 this will be passed on the fly to MarkLogic.
  * 
+ * @param {string} name - The name of the options object to manage
  * @param {JSON} options - The REST API JSON search options object to use
  */
 mljs.prototype.searchcontext.prototype.setOptions = function(name,options) {
@@ -3423,8 +3479,12 @@ mljs.prototype.searchcontext.prototype.setConnection = function(connection) {
   this.db = connection;
 };
 
+/**
+ * Registers a search widget (visual or not) to this context.
+ * @param {object} searchWidget - The widget to register with this context. Will be introspected by this function.
+ */
 mljs.prototype.searchcontext.prototype.register = function(searchWidget) {
-  // TODO introspect widget for update functions
+  // introspect widget for update functions
   if ('function' === typeof(searchWidget.setContext)) {
     searchWidget.setContext(this);
   }
@@ -3526,6 +3586,11 @@ mljs.prototype.searchcontext.prototype._queryToText = function(parsed) {
   return q;
 };
 
+/**
+ * Fires a simple query as specified, updating all listeners when the result is returned.
+ * @param {string} q - The simple text query using the grammar in the search options
+ * @param {integer} start - The start index (result number), starting at 1
+ */
 mljs.prototype.searchcontext.prototype.dosimplequery = function(q,start) {
   if (null == q || undefined == q) {
     q = "";
@@ -3580,7 +3645,6 @@ mljs.prototype.searchcontext.prototype.dosimplequery = function(q,start) {
     if (result.inError) {
       // report error on screen somewhere sensible (e.g. under search bar)
       self.db.logger.debug(result.error);
-      // TODO show error div below search div with message
       self.resultsPublisher.publish(false); // hides refresh glyth on error
     } else {
       self.resultsPublisher.publish(result.doc);
@@ -3594,7 +3658,6 @@ mljs.prototype.searchcontext.prototype.dosimplequery = function(q,start) {
     this.db.logger.debug("searchbar: Saving search options prior to query");
     this.db.saveSearchOptions(this.optionsName,this._options,function(result) {
       if (result.inError) {
-        // TODO log error somewhere sensible on screen
         self.db.logger.debug("Exception saving results: " + result.details);
       } else {
         self.optionsExists = true; // to stop overwriting on subsequent requests
@@ -3750,8 +3813,8 @@ mljs.prototype.searchcontext.prototype.updatePage = function(json) {
  * @param {JSON} sortSelection - The sort-order JSON object - E.g. {"json-key": year, direction: "ascending"} 
  */
 mljs.prototype.searchcontext.prototype.updateSort = function(sortSelection) {
-  // TODO remove any existing sort
-  //this.simplequery += " " + this.sortWord + ":\"" + sortSelection + "\""; // TODO move sort to query url param, not in grammar
+  // remove any existing sort
+  //this.simplequery += " " + this.sortWord + ":\"" + sortSelection + "\""; // move sort to query url param, not in grammar
   
   // alter options such that no update event is fired, but will be persisted
   if (undefined != sortSelection["json-key"] && "" == sortSelection["json-key"]) {
@@ -3773,7 +3836,7 @@ mljs.prototype.searchcontext.prototype.reset = function() {
   // clear search bar text
   // send update to results and facets and sort
   this.resultsPublisher.publish(null);
-  this.facetsPublisher.publish(null); // TODO verify this is the right element to send
+  this.facetsPublisher.publish(null); // verify this is the right element to send
   this.sortPublisher.publish(null); // order default sort
   this.simpleQueryPublisher.publish(this.defaultQuery);
 };
