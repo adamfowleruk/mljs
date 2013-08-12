@@ -129,6 +129,7 @@ Targets for 0.6 (Apr 2013) - for MarkLogic World 2013
  - DONE Widgets: Update search samples to include a custom renderer for one document type
  
 Targets for 0.8 (Jul 2013)
+ - DONE Added Apache 2.0 license text file and statement to all code files (not sample files though)
  - DONE Core+Widgets: Create search context object, and make search widgets responsible for registering themselves with it. Refactor search execution code in to here. (Required for Sort widget)
  - DONE Widgets: Support multiple values for save facet in facet widget and searchbar/context
  - DONE Widgets: Charts widget to support aggregations via search options (facet values)
@@ -165,11 +166,11 @@ Targets for 0.8 (Jul 2013)
  - DONE Integrate error widget on each demo page
  - DONE Add button to allow force reload on main page
  - DONE Index detection and reporting on main page
- - DONE Tests: Refactor to use alternate testing framework
+ - DONE Tests: Refactor to use alternate testing framework (Mocha)
  - DONE Core: Return and add binary documents
  - DONE Core: Return and add plain text documents
  - DONE EA 1 support
   - DONE TEST Add/delete/modify/replace named graphs
   - DONE IN PROGRESS Interactive SPARQL query builder and result handler (including paging, linking to document search, restrict by collection, other document search criteria)
  - DONE Get collections starting with a URI (values query helper method)
- - DONE Rename all to MLJS form mldb
+ - DONE Rename all to MLJS from mldb

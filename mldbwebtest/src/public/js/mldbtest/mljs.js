@@ -1,3 +1,18 @@
+/*
+Copyright 2012 MarkLogic Corporation
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
 var basic = null, digest = null, thru = null, noop = null, winston = null, jsdom = null;
 var logger = null;
 if (typeof(window) === 'undefined') {
@@ -1000,9 +1015,9 @@ mljs.prototype.save = function(jsonXmlBinary,docuri_opt,props_opt,callback_opt) 
     }
   }
   this.logger.debug("mljs.save(): Content Type now: " + options.contentType);
-  if (null != format) {
-    options.path += "&format=" + format;
-  }
+  //if (null != format) {
+  //  options.path += "&format=" + format;
+  //} // format not needed - this is the format of the results, not the content being sent, so dont pass all format settings in using this code
   // make transaction aware
   if (undefined != this.__transaction_id) {
     options.path += "&txid=" + encodeURI(this.__transaction_id);
