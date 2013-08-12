@@ -23,7 +23,7 @@ describe("001-do",function() {
   };
   
   db.do(options,function(result) {
-    assert(!result.inError,"result should not be in error: " + JSON.stringify(result.error));
+    assert.equal(false,result.inError,"result should not be in error: " + JSON.stringify(result));
     done();
   });
 });});

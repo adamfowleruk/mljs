@@ -942,22 +942,22 @@ mljs.prototype.save = function(jsonXmlBinary,docuri_opt,props_opt,callback_opt) 
   var format = "json";
   var contentType = null; // default to using format, above
   var url = "/v1/documents?uri=" + encodeURI(docuri_opt);
-  if (props_opt) {
-    if (props_opt.collection) {
+  if (undefined != props_opt) {
+    if (undefined != props_opt.collection) {
       var cols = props_opt.collection.split(",");
       for (var c = 0;c < cols.length;c++) {
         url += "&collection=" + encodeURI(cols[c]);
       }
     }
-    if (props_opt.contentType) {
+    if (undefined != props_opt.contentType) {
       format = null;
       contentType = props_opt.contentType;
     }
-    if (props_opt.format) {
+    if (undefined != props_opt.format) {
       // most likely 'binary'
       format = props_opt.format;
     }
-    if (props_opt.permissions) {
+    if (undefined != props_opt.permissions) {
       // array of {role: name, permission: read|update|execute} objects
       for (var p = 0;p < props_opt.permissions.length;p++) {
         url += "&perm:" + props_opt.permissions[p].role + "=" + props_opt.permissions[p].permission;
@@ -979,6 +979,7 @@ mljs.prototype.save = function(jsonXmlBinary,docuri_opt,props_opt,callback_opt) 
         options.contentType = "text/xml";
         format = null; // overrides param override setting
       } else {
+        this.logger.debug("MLJS.save: No contentType specified, falling back to application/json");
         // assume JSON, but could easily be binary too
         options.contentType = "application/json";
         format = null; // overrides param override setting
@@ -1000,11 +1001,11 @@ mljs.prototype.save = function(jsonXmlBinary,docuri_opt,props_opt,callback_opt) 
   }
   this.logger.debug("mljs.save(): Content Type now: " + options.contentType);
   if (null != format) {
-    url += "&format=" + format;
+    options.path += "&format=" + format;
   }
   // make transaction aware
   if (undefined != this.__transaction_id) {
-    url += "&txid=" + encodeURI(this.__transaction_id);
+    options.path += "&txid=" + encodeURI(this.__transaction_id);
   }
   
   this.__doreq("SAVE",options,jsonXmlBinary,function(result) {

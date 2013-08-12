@@ -1,3 +1,5 @@
+
+
 var mljs = require("../../mljs"),
     tests = exports,
     assert = require('assert'),
@@ -13,7 +15,7 @@ var mljs = require("../../mljs"),
      });
      
 describe("004-create-destroy",function() {
-  it("Should complete entirely",function(done){
+  it.skip("Should complete entirely",function(done){
   var db = new mljs(); // default options
   db.setLogger(logger);
   var dodestroy = function() {

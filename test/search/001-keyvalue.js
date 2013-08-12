@@ -36,7 +36,7 @@ describe("001-keyvalue",function() {
             callback(false);
           } else {
             var isOne = (1==result.doc.total);
-            assert(isOne,"There should only be one document with name='third wolf' in " + col.collection);
+            assert(isOne,"There should only be one document with name='third wolf' in " + col.collection + ", result: " + JSON.stringify(result));
           
             if (isOne){
               // now remove docs in collection

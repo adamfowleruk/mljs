@@ -10,7 +10,7 @@ Targets for 0.8 (Jul 2013)
  - DONE Samples: ml-config.xml to include range indexes required for sample application
  - DONE Samples: Upgrade embedded Roxy to latest dev branch with ML7 EA3 nightly build deploy fix
  - DONE Tutorial: Deploying the mldbwebtest roxy project (text)
- - NodeJS: NodeJS regression testing
+ - DONE NodeJS: NodeJS regression testing
  - IN PROGRESS Widgets: Search widgets, and overarching search page widget UI layer over mljs in browser, including custom result rendering plugins (search bar, facets, results, paging, sorting)
   - DONE Widgets: Sorting widget actions
   - IN PROGRESS Widgets: More... all... links in facets -> BUG always updating last facet, not the correct facet

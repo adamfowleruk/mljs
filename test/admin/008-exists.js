@@ -19,9 +19,9 @@ describe("008-exists",function() {
   
   // assume db exists before this test
   db.exists(function(result) {
-    assert(!result.inError,"Error checking if db exists");
+    assert.equal(false,result.inError,"Error checking if db exists");
     logger.debug("TEST: EXISTS: exists result: " + JSON.stringify(result));
-    assert(true==result.exists,"Database exists, but reports it does not");
+    assert.equal(true,result.exists,"Database exists, but reports it does not");
     done();
   });
   

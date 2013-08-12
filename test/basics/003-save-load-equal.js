@@ -28,7 +28,7 @@ describe("003-save-load-equal",function() {
       // now print it
       logger.debug("Doc content: " + JSON.stringify(result.doc));
       //assert.equal(undefined,result.doc,"/messages/1 exists, should not be found in DB.");
-      assert(JSON.stringify(json) == JSON.stringify(result.doc),"JSON objects should be equal");
+      assert.equal(JSON.stringify(json),JSON.stringify(result.doc),"JSON objects should be equal");
       
       
  logger.debug("Testing basic json equal");
@@ -40,7 +40,7 @@ describe("003-save-load-equal",function() {
      // now print it
      logger.debug("Doc content: " + JSON.stringify(result.doc));
      //assert.equal(undefined,result.doc,"/messages/1 exists, should not be found in DB.");
-     assert(JSON.stringify(json) == JSON.stringify(result.doc),"JSON objects should be equal 2");
+     assert.equal(JSON.stringify(json),JSON.stringify(result.doc),"JSON objects should be equal 2");
      
      done();
    });
