@@ -343,7 +343,7 @@ com.marklogic.widgets.searchfacets.prototype._refresh = function() {
     for (var i = 0;i &lt; this.selected.length;i++) {
       var s = this.selected[i];
       str += "&lt;div class='searchfacets-selection'>" + 
-        "&lt;a href='#' class='searchfacets-deselect' id='" + this.container + "-desel-" + s.name + "-" + s.value + "'>X&lt;/a> " +
+        "&lt;a href='#" + this.container + "-desel-" + s.name + "-" + s.value + "' class='searchfacets-deselect' id='" + this.container + "-desel-" + s.name + "-" + s.value + "'>X&lt;/a> " +
         this._transformFacetName(s.name) + ": " + this._transformFacetValue(s.value) + "&lt;/div>";
       // add deselection X link
       deselectionTodo.push(s);
@@ -357,7 +357,7 @@ com.marklogic.widgets.searchfacets.prototype._refresh = function() {
     if (undefined != this.results.facets) {
       
       for (var name in this.results.facets) { // TODO replace with introspection of objects within search facets (objects, not array)
-        var facetStr = "&lt;div class='searchfacets-facet'>&lt;div class='searchfacets-facet-title'>" + this._transformFacetName(name) + "&lt;/div>" +
+        var facetStr = "&lt;div class='searchfacets-facet' id='" + this.container + "-facetinfo-" + name + "'>&lt;div class='searchfacets-facet-title'>" + this._transformFacetName(name) + "&lt;/div>" +
           "&lt;div class='searchfacets-facet-values'>";
         var settings = this._getFacetSettings(name);
         var max = this.listSize;
@@ -382,20 +382,22 @@ com.marklogic.widgets.searchfacets.prototype._refresh = function() {
         if (valuesCount > this.listSize) {
           // TODO less... clickable links
             // html for 'show more'
-            facetStr += "&lt;div class='searchfacets-more'>&lt;a href='#' id='" + this.container + "-" + name + "-more-link'>";
+          if (!settings.showAll) { // we should show more or less in the more div (but not if we show 'less' in the extended div, hence if !showAll)
+            facetStr += "&lt;div class='searchfacets-more'>&lt;a href='#" + this.container + "-facetinfo-" + name + "' id='" + this.container + "-" + name + "-more-link'>";
             
-          if (!settings.extended) {
-            facetStr += "More";
-          } else {
-            facetStr += "Less";
-          }
+            if (!settings.extended) {
+              facetStr += "More";
+            } else {
+              facetStr += "Less";
+            }
             facetStr += "...&lt;/a>&lt;/div>";
             more.push(name);
+          }
           
           if (settings.extended) {
             // show all link
             if (valuesCount > this.extendedSize && this.allowShowAll) {
-              facetStr += "&lt;div class='searchfacets-extended' style:'display:none;'>&lt;a href='#' id='" + this.container + "-" + name + "-extended-link'>";
+              facetStr += "&lt;div class='searchfacets-extended'>&lt;a href='#" + this.container + "-facetinfo-" + name + "' id='" + this.container + "-" + name + "-extended-link'>";
               if (settings.showAll) {
                 facetStr += "Less"
               } else {
@@ -446,15 +448,23 @@ com.marklogic.widgets.searchfacets.prototype._refresh = function() {
   }
   
   // more handlers
+  var addmoreh = function(morei) {
+    document.getElementById(self.container + "-" + morei + "-more-link").onclick = function() {self._more(morei);};
+  };
   for (var i = 0;i &lt; more.length;i++) {
     var morei = more[i];
-    document.getElementById(this.container + "-" + morei + "-more-link").onclick = function() {self._more(morei);};
+    mljs.defaultconnection.logger.debug("more[i]: " + morei + " , i: " + i);
+    addmoreh(morei);
   }
   
   // extended handlers
+  var addexth = function(exti) {
+    document.getElementById(self.container + "-" + exti + "-extended-link").onclick = function() {self._extended(exti);};
+  };
   for (var i = 0;i &lt; extended.length;i++) {
     var exti = extended[i];
-    document.getElementById(this.container + "-" + exti + "-extended-link").onclick = function() {self._extended(exti);};
+    mljs.defaultconnection.logger.debug("extended[i]: " + exti + " , i: " + i);
+    addexth(exti);
   }
   
   // TODO less handlers
@@ -507,12 +517,14 @@ com.marklogic.widgets.searchfacets.prototype._transformFacetValue = function(fac
 
 
 com.marklogic.widgets.searchfacets.prototype._more = function(facetName) {
+  mljs.defaultconnection.logger.debug("searchfacets._more: " + facetName + ", extended currently: " + this._getFacetSettings(facetName).extended);
   this._setFacetSettings(facetName,!this._getFacetSettings(facetName).extended,false);
   this._refresh();
 };
 
 com.marklogic.widgets.searchfacets.prototype._extended = function(facetName) {
-  this._setFacetSettings(facetName,false,!this._getFacetSettings(facetName).showAll);
+  mljs.defaultconnection.logger.debug("searchfacets._extended: " + facetName + ", showAll currently: " + this._getFacetSettings(facetName).showAll);
+  this._setFacetSettings(facetName,true,!this._getFacetSettings(facetName).showAll);
   this._refresh();
 };
 
@@ -1595,7 +1607,7 @@ com.marklogic.widgets.searchpage.reset = function() {
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Mon Aug 12 2013 19:42:19 GMT+0100 (BST)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Mon Aug 12 2013 21:28:21 GMT+0100 (BST)
 </footer>
 
 <script> prettyPrint(); </script>
