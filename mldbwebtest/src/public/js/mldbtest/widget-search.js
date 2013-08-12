@@ -316,7 +316,7 @@ com.marklogic.widgets.searchfacets.prototype._refresh = function() {
     for (var i = 0;i < this.selected.length;i++) {
       var s = this.selected[i];
       str += "<div class='searchfacets-selection'>" + 
-        "<a href='#' class='searchfacets-deselect' id='" + this.container + "-desel-" + s.name + "-" + s.value + "'>X</a> " +
+        "<a href='#" + this.container + "-desel-" + s.name + "-" + s.value + "' class='searchfacets-deselect' id='" + this.container + "-desel-" + s.name + "-" + s.value + "'>X</a> " +
         this._transformFacetName(s.name) + ": " + this._transformFacetValue(s.value) + "</div>";
       // add deselection X link
       deselectionTodo.push(s);
@@ -330,7 +330,7 @@ com.marklogic.widgets.searchfacets.prototype._refresh = function() {
     if (undefined != this.results.facets) {
       
       for (var name in this.results.facets) { // TODO replace with introspection of objects within search facets (objects, not array)
-        var facetStr = "<div class='searchfacets-facet'><div class='searchfacets-facet-title'>" + this._transformFacetName(name) + "</div>" +
+        var facetStr = "<div class='searchfacets-facet' id='" + this.container + "-facetinfo-" + name + "'><div class='searchfacets-facet-title'>" + this._transformFacetName(name) + "</div>" +
           "<div class='searchfacets-facet-values'>";
         var settings = this._getFacetSettings(name);
         var max = this.listSize;
@@ -355,20 +355,22 @@ com.marklogic.widgets.searchfacets.prototype._refresh = function() {
         if (valuesCount > this.listSize) {
           // TODO less... clickable links
             // html for 'show more'
-            facetStr += "<div class='searchfacets-more'><a href='#' id='" + this.container + "-" + name + "-more-link'>";
+          if (!settings.showAll) { // we should show more or less in the more div (but not if we show 'less' in the extended div, hence if !showAll)
+            facetStr += "<div class='searchfacets-more'><a href='#" + this.container + "-facetinfo-" + name + "' id='" + this.container + "-" + name + "-more-link'>";
             
-          if (!settings.extended) {
-            facetStr += "More";
-          } else {
-            facetStr += "Less";
-          }
+            if (!settings.extended) {
+              facetStr += "More";
+            } else {
+              facetStr += "Less";
+            }
             facetStr += "...</a></div>";
             more.push(name);
+          }
           
           if (settings.extended) {
             // show all link
             if (valuesCount > this.extendedSize && this.allowShowAll) {
-              facetStr += "<div class='searchfacets-extended' style:'display:none;'><a href='#' id='" + this.container + "-" + name + "-extended-link'>";
+              facetStr += "<div class='searchfacets-extended'><a href='#" + this.container + "-facetinfo-" + name + "' id='" + this.container + "-" + name + "-extended-link'>";
               if (settings.showAll) {
                 facetStr += "Less"
               } else {
@@ -419,15 +421,23 @@ com.marklogic.widgets.searchfacets.prototype._refresh = function() {
   }
   
   // more handlers
+  var addmoreh = function(morei) {
+    document.getElementById(self.container + "-" + morei + "-more-link").onclick = function() {self._more(morei);};
+  };
   for (var i = 0;i < more.length;i++) {
     var morei = more[i];
-    document.getElementById(this.container + "-" + morei + "-more-link").onclick = function() {self._more(morei);};
+    mljs.defaultconnection.logger.debug("more[i]: " + morei + " , i: " + i);
+    addmoreh(morei);
   }
   
   // extended handlers
+  var addexth = function(exti) {
+    document.getElementById(self.container + "-" + exti + "-extended-link").onclick = function() {self._extended(exti);};
+  };
   for (var i = 0;i < extended.length;i++) {
     var exti = extended[i];
-    document.getElementById(this.container + "-" + exti + "-extended-link").onclick = function() {self._extended(exti);};
+    mljs.defaultconnection.logger.debug("extended[i]: " + exti + " , i: " + i);
+    addexth(exti);
   }
   
   // TODO less handlers
@@ -480,12 +490,14 @@ com.marklogic.widgets.searchfacets.prototype._transformFacetValue = function(fac
 
 
 com.marklogic.widgets.searchfacets.prototype._more = function(facetName) {
+  mljs.defaultconnection.logger.debug("searchfacets._more: " + facetName + ", extended currently: " + this._getFacetSettings(facetName).extended);
   this._setFacetSettings(facetName,!this._getFacetSettings(facetName).extended,false);
   this._refresh();
 };
 
 com.marklogic.widgets.searchfacets.prototype._extended = function(facetName) {
-  this._setFacetSettings(facetName,false,!this._getFacetSettings(facetName).showAll);
+  mljs.defaultconnection.logger.debug("searchfacets._extended: " + facetName + ", showAll currently: " + this._getFacetSettings(facetName).showAll);
+  this._setFacetSettings(facetName,true,!this._getFacetSettings(facetName).showAll);
   this._refresh();
 };
 

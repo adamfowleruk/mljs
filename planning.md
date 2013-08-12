@@ -11,10 +11,10 @@ Targets for 0.8 (Jul 2013)
  - DONE Samples: Upgrade embedded Roxy to latest dev branch with ML7 EA3 nightly build deploy fix
  - DONE Tutorial: Deploying the mldbwebtest roxy project (text)
  - DONE NodeJS: NodeJS regression testing
- - IN PROGRESS Widgets: Search widgets, and overarching search page widget UI layer over mljs in browser, including custom result rendering plugins (search bar, facets, results, paging, sorting)
+ - DONE Widgets: Search widgets, and overarching search page widget UI layer over mljs in browser, including custom result rendering plugins (search bar, facets, results, paging, sorting)
   - DONE Widgets: Sorting widget actions
-  - IN PROGRESS Widgets: More... all... links in facets -> BUG always updating last facet, not the correct facet
-  - BUG: Pagination no longer refreshes search results shown
+  - DONE Widgets: More... all... links in facets -> BUG always updating last facet, not the correct facet
+  - DONE BUG: Pagination no longer refreshes search results shown (was probably related to JSON being saved as binary incorrectly) 
   - DONE BUG: Hitting enter in search bar executes search
   - DONE BUG: one page too many in results if results are multiple of page size (i.e. 30 gives you 4 pages, not 3)
   - DONE BUG: multi word facet selection causes search to be limited to first word only (no quotes) -> query parser, not facet issue
@@ -65,7 +65,7 @@ Floating as and when
   - Widgets: DLS add retention rule widget
   - DONE Widgets: DLS declare search results as record widget
  
-Targets for 1.0 (Aug 2013)
+Targets for 1.0 (Oct 2013)
  - NodeJS: Node.js tests for all functionality now in core MLJS
  - Tools: Windows batch file versions of developer required (non build related) bash scripts, including mljsme
  - Docs: Document all core concepts currently part of MLJS
@@ -104,7 +104,7 @@ Targets for 1.0 (Aug 2013)
  - Widgets: Support for using widgets in non ML 6 REST webapps, and embedding widgets remotely, via W3C CORS support (i.e. secure cross site scripting support)
  - Widgets: Alerting client widget (Requires Alerting API, CORS)
 
-Targets for 1.2 (Oct 2013)
+Targets for 1.2 (Dec 2013)
  - Widgets: HTML content editing widget (new doc, and existing document with specified element (E.g. body, comments) and configuration for what is permissable as content)
  - Widgets: Situational awareness and search renderer app (from BF sim)
  - Widgets: Table - allow binding of JSON search results to jQuery table (for example)
@@ -116,7 +116,7 @@ Targets for 1.2 (Oct 2013)
  - Widgets: (multi) Upload progress bar
  - Test: prototype.js browser AJAX binding
  
-Targets for 1.4 (Dec 2013)
+Targets for 1.4 (Feb 2014)
  - Core: More support for server management (namespaces, indexes, service extensions, update REST instance configuration, XSLT transform management)
  - Widgets: Administration widgets (mainly aimed at pre-sales developers, not sysadmins)
  - Core: CSV and TSV utilities
