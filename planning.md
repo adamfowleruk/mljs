@@ -3,9 +3,14 @@
 ## Upcoming releases
 
 Targets for 1.0 (Oct 2013)
- - NodeJS: Node.js tests for all functionality now in core MLJS
+ - IN PROGRESS NodeJS: Node.js tests for all functionality now in core MLJS
  - Tools: Windows batch file versions of developer required (non build related) bash scripts, including mljsme
- - Docs: Document all core concepts currently part of MLJS
+  - mljsme
+  - TEST ml.bat roxy deploy
+  - create-mldbtest
+  - delete-mldbtest
+  - upgraderoxy
+ - IN PROGRESS Docs: Document all core concepts currently part of MLJS
  - Samples: Sample triples, linked content, working sparql query builder
  - Widgets: Document properties and view widget
  - Widgets: Navigable charts / co-occurence - clicking sets facet value
