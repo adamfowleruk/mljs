@@ -13,7 +13,7 @@ var mljs = require("../../mljs"),
      });
 
 describe("002-saveall2",function() {
-  it("Should complete entirely",function(done){
+  it.skip("Should complete entirely",function(done){
   var db = new mljs(); // default options
   db.setLogger(logger);
   
