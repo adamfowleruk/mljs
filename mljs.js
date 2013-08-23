@@ -1526,7 +1526,22 @@ mljs.prototype.saveGraph = function(triples,uri_opt,callback_opt) {
   var graphdoc = "";
   if ("object" === typeof triples) {
     for (var i = 0;i < triples.length;i++) {
-      graphdoc += "<" + triples[i].subject + "> <" + triples[i].predicate + "> <" + triples[i].object + "> .\n";
+      // TODO handle simple (intrinsic type) objects
+      graphdoc += "<" + triples[i].subject + "> <" + triples[i].predicate + "> ";
+      
+      if (undefined != triples[i].object) {
+        graphdoc += "<" + triples[i].object + ">";
+      } else if (undefined != triples[i].string) {
+        graphdoc += "\"" + triples[i].string + "\"";
+        if (undefined != triples[i].locale) {
+          graphdoc += "@" + triples[i].locale;
+        }
+      } else if (undefined != triples[i].number) {
+        graphdoc += "\"" + triples[i].number + "\"";
+      } else {
+        throw new Exception("Triples does not have an object, string or number value: " + JSON.stringify(triples[i]));
+      }
+      graphdoc += " .\n";
     }
   } else {
     graphdoc = triples; // raw text in n-triples format
@@ -3288,9 +3303,13 @@ mljs.prototype.query = function() {
 if (typeof(window) === 'undefined') {
   com = {};
   com.marklogic = {};
+  com.marklogic.events = {};
+  com.marklogic.semantic = {};
 } else {
   com = window.com || {};
   com.marklogic = window.com.marklogic || {};
+  com.marklogic.events = window.com.marklogic.events || {};
+  com.marklogic.semantic = window.com.marklogic.semantic || {};
 }
 com.marklogic.events = {};
 
@@ -3345,6 +3364,10 @@ com.marklogic.events.Publisher.prototype.publish = function(event) {
     this.listeners[i](event);
   }
 };
+
+
+
+
 
 
 
@@ -3602,6 +3625,38 @@ mljs.prototype.searchcontext.prototype._queryToText = function(parsed) {
 };
 
 /**
+ * Performs a structured query against this search context.
+ * 
+ * @param {json} q - The structured query JSON representation
+ * @param {integer} start - The start index (result number), starting at 1
+ */
+mljs.prototype.searchcontext.prototype.dostructuredquery = function(q,start) {
+  var self = this;
+  
+  self.resultsPublisher.publish(true); // forces refresh glyph to show
+  self.facetsPublisher.publish(true);
+  
+  var ourstart = 1;
+  if (0 != start && undefined != start) {
+    ourstart = start;
+  }
+  
+  var dos = function() {
+   self.db.structuredSearch(q,self.optionsName,function(result) { 
+    if (result.inError) {
+      // report error on screen somewhere sensible (e.g. under search bar)
+      self.db.logger.debug(result.error);
+      self.resultsPublisher.publish(false); // hides refresh glyth on error
+    } else {
+      self.resultsPublisher.publish(result.doc);
+    }
+   });
+  };
+  
+  this._persistAndDo(dos);
+};
+
+/**
  * Fires a simple query as specified, updating all listeners when the result is returned.
  * @param {string} q - The simple text query using the grammar in the search options
  * @param {integer} start - The start index (result number), starting at 1
@@ -3683,6 +3738,12 @@ mljs.prototype.searchcontext.prototype.dosimplequery = function(q,start) {
     dos();
   }*/
   
+  this._persistAndDo(dos);
+  
+};
+
+mljs.prototype.searchcontext.prototype._persistAndDo = function(callback) {
+  
   if ("persist" == this.optionssavemode) {
     //self.db.searchoptions(this.optionsName,function(result) {
       //self.db.logger.debug("RESULT: " + JSON.stringify(result.doc));
@@ -3694,7 +3755,7 @@ mljs.prototype.searchcontext.prototype.dosimplequery = function(q,start) {
         // now save them
         self.db.logger.debug("setOptions: saving search options: " + self.optionsName);
         if (self.optionsExist) {
-          dos();
+          callback();
         } else {
         self.db.saveSearchOptions(self.optionsName,self._options,function(result) {
           if (result.inError) {
@@ -3703,7 +3764,7 @@ mljs.prototype.searchcontext.prototype.dosimplequery = function(q,start) {
             self.optionsExists = true;
             self.db.logger.debug("Saved Search options " + self.optionsName); 
             
-            dos();
+            callback();
           }
         });
       }
@@ -3856,3 +3917,599 @@ mljs.prototype.searchcontext.prototype.reset = function() {
   this.simpleQueryPublisher.publish(this.defaultQuery);
 };
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/**
+ * Relationships for content:-
+ *  - http://marklogic.com/semantic/ontology/derived_from (graph as subject)
+ *  - http://marklogic.com/semantic/ontology/defined_by (any entity as subject where triples were extracted)
+ * 
+ */
+
+
+
+
+
+
+/**
+ * Holds configuration for object to triple mappings
+ * 
+ * @constructor
+ */
+com.marklogic.semantic.tripleconfig = function() {
+  this.errorPublisher = new com.marklogic.events.Publisher();
+  
+  // TODO drastically simplify this data model
+  
+  //this.entities = new Array();
+  
+  this.validTriples = new Array();
+  
+  //this._predicates = new Array();
+  
+  // own extensions - need ontology somewhere for this!
+  
+  //this._predicatesShort = new Array();
+  
+  //this._iriPatterns = new Array();
+  
+  //this._rdfTypes = new Array();
+  
+  //this._rdfTypesShort = new Array();
+  
+  //this._commonNamePredicates = new Array();
+  
+  //this._properties = new Array(); // TODO other common properties, alpha order by name value
+  
+  // ANYTHING PAST THIS POINT IS REFACTORED AND AWESOME
+  
+  this._newentities = new Array(); // [name] => {name: "person", prefix: "http://xmlns.com/foaf/0.1/", iriPattern:, rdfTypeIri: , rdfTypeIriShort: , commonNamePredicate: 
+  // ..., properties: [{},{}, ...] }
+  
+  this._newPredicates = new Array(); // [commonname] => {iri: , iriShort: }
+  
+  // also keep _validTriples as-is
+  
+  // defaults
+  this.addFoaf();
+  this.addPlaces();
+  this.addFoafPlaces();
+  this.addTest();
+  this.addMovies();
+};
+
+/**
+ * Adds an error listener to this widget
+ * 
+ * @param {function(error)} fl - The error listener to add
+ */
+com.marklogic.semantic.tripleconfig.prototype.addErrorListener = function(fl) {
+  this.errorPublisher.subscribe(fl);
+};
+
+/**
+ * Removes an error listener
+ * 
+ * @param {function(error)} fl - The error listener to remove
+ */
+com.marklogic.semantic.tripleconfig.prototype.removeErrorListener = function(fl) {
+  this.errorPublisher.unsubscribe(fl);
+};
+
+/**
+ * Adds a new set of semantic objects to this configuration
+ * 
+ * @param {string} mapname - The unique name in this configuration for this entity
+ * @param {json} entityJson - The Entity JSON
+ * @param {Array} namedPredicateArray - An array with names (not integers) as position markers, with JSON predicate information
+ * @param {Array} validTriplesArray - Any new triples associated with just this entity class (E.g. valid relationships between People) as JSON valid triples
+ */
+com.marklogic.semantic.tripleconfig.prototype.addMappings = function(mapname,entityJson,namedPredicateArray,validTriplesArray) {
+  this._newentities[mapname] = entityJson;
+  for (var i = 0;i < validTriplesArray.length;i++) {
+    this.validTriples.push(validTriplesArray[i]);
+  }
+  for (var predname in namedPredicateArray) {
+    if ("object" == typeof this._newPredicates[predname]) {
+      this._newPredicates[predname] = namedPredicateArray;
+    }
+  }
+};
+
+/**
+ * Adds new valid triples.
+ * 
+ * @param {Array} validTriplesArray - Any new triples associated with multiple entity classes (E.g. relationships between people and places) as JSON valid triples
+ */
+com.marklogic.semantic.tripleconfig.prototype.addValidTriples = function(validTriplesArray) {
+  for (var i = 0;i < validTriplesArray.length;i++) {
+    this.validTriples.push(validTriplesArray[i]);
+  }
+};
+
+com.marklogic.semantic.tripleconfig.prototype.addPlaces = function() {
+  //this.entities.push("placename");
+  
+  this.validTriples.push({subjectType: "placename", objectType: "placename", predicateArray: ["located_within","contains_location"]}); 
+  
+  //this._predicates["studies_at"] = "http://www.marklogic.com/ontology/0.1/studies_at";
+  //this._predicates["affiliated_with"] = "http://www.marklogic.com/ontology/0.1/affiliated_with";
+  //this._predicates["has_meetings_near"] = "http://www.marklogic.com/ontology/0.1/has_meetings_near";
+  //this._predicates["located_within"] = "http://www.marklogic.com/ontology/0.1/located_within";
+  //this._predicates["contains_location"] = "http://www.marklogic.com/ontology/0.1/contains_location";
+  
+  //this._iriPatterns["placename"] = "http://marklogic.com/semantic/targets/placename/#VALUE#";
+  //this._rdfTypes["placename"] = "http://schema.org/Place"; // geonames features are an extension of Place
+  //this._rdfTypesShort["placename"] = "so:Place"; // geonames features are an extension of Place
+  //this._commonNamePredicates["placename"] = "http://www.geonames.org/ontology#name";
+  //this._properties["placename"] = [{name: "name", iri: "http://www.geonames.org/ontology#name", shortiri: "geonames:name"}];
+  
+  
+  this._newentities["place"] = {name: "place", title: "Place", prefix: "http://www.geonames.org/ontology#", iriPattern: "http://marklogic.com/semantic/targets/organisation/#VALUE#", 
+    rdfTypeIri: "http://schema.org/Place", rdfTypeIriShort: "foaf:Organization", commonNamePredicate: "http://www.geonames.org/ontology#name",
+    properties: [{name: "name", iri: "http://www.geonames.org/ontology#name", shortiri: "geonames:name"}]};
+  
+  this._newPredicates["studies_at"] = {name: "studies_at", title: "Studies at", iri: "http://www.marklogic.com/ontology/0.1/studies_at", shortiri: "ml:studies_at"};
+  this._newPredicates["affiliated_with"] = {name: "affiliated_with", title: "Affiliated with", iri: "http://www.marklogic.com/ontology/0.1/affiliated_with", shortiri: "ml:affiliated_with"};
+  this._newPredicates["has_meetings_near"] = {name: "has_meetings_near", title: "Meets near", iri: "http://www.marklogic.com/ontology/0.1/has_meetings_near", shortiri: "ml:has_meetings_near"};
+  this._newPredicates["located_within"] = {name: "located_within", title: "Located within", iri: "http://www.marklogic.com/ontology/0.1/located_within", shortiri: "ml:located_within"};
+  this._newPredicates["contains_location"] = {name: "contains_location", title: "Contains", iri: "http://www.marklogic.com/ontology/0.1/contains_location", shortiri: "ml:contains_location"};
+};
+
+com.marklogic.semantic.tripleconfig.prototype.addMovies = function() {
+  this.validTriples.push({subjectType: "person", objectType: "movie", predicateArray: ["likesmovie"]});
+  
+  this._newentities["movie"] = {name: "movie", title: "Movie", prefix: "http://marklogic.com/semantic/ns/movie", iriPattern: "http://marklogic.com/semantic/targets/movies/#VALUE#",
+    rdfTypeIri: "http://marklogic.com/semantic/rdfTypes/movie", rdfTypeIriShort: "mov:movie", commonNamePredicate: "hastitle",
+    properties: [
+      {name: "hastitle", iri: "hastitle", shortiri: "mov:hastitle"},
+      {name: "hasactor", iri: "hasactor", shortiri: "mov:hasactor"},
+      {name: "hasgenre", iri: "hasgenre", shortiri: "mov:hasgenre"},
+      {name: "releasedin", iri: "releasedin", shortiri: "mov:releasedin"}
+    ]
+  };
+  this._newPredicates["likesmovie"] = {name: "likesmovie", title: "Likes movie", iri: "likesmovie", shortiri: "mov:likesmovie"};
+  this._newPredicates["hastitle"] = {name: "hastitle", title: "Has Title", iri: "hastitle", shortiri: "mov:hastitle"};
+  this._newPredicates["hasactor"] = {name: "hasactor", title: "Has Actor", iri: "hasactor", shortiri: "mov:hasactor"};
+  this._newPredicates["hasgenre"] = {name: "hasgenre", title: "Has Genre", iri: "hasgenre", shortiri: "mov:hasgenre"};
+  this._newPredicates["releasedin"] = {name: "releasedin", title: "Released In", iri: "releasedin", shortiri: "mov:releasedin"};
+};
+
+com.marklogic.semantic.tripleconfig.prototype.addTest = function() {
+  //this.entities.push("foodstuff");
+  
+  this.validTriples.push({subjectType: "person", objectType: "foodstuff", predicateArray: ["likes"]});
+  
+  // no special predicates in foodstuffs
+  
+  //this._iriPatterns["foodstuff"] = "http://marklogic.com/semantic/targets/foodstuffs/#VALUE#";
+  //this._rdfTypes["foodstuff"] = "http://marklogic.com/semantic/rdfTypes/foodstuff";
+  //this._rdfTypesShort["foodstuff"] = "fs:foodstuff";
+  //this._commonNamePredicates["foodstuff"] = "foodname";
+  //this._properties["foodstuff"] = [{name: "name", iri: "foodname", shortiri: "foodname"}];
+  
+  this._newentities["foodstuff"] = {name: "foodstuff", title: "Foodstuff", prefix: "http://marklogic.com/semantic/ns/foodstuff", iriPattern: "http://marklogic.com/semantic/targets/foodstuffs/#VALUE#", 
+    rdfTypeIri: "http://marklogic.com/semantic/rdfTypes/foodstuff", rdfTypeIriShort: "fs:foodstuff", commonNamePredicate: "foodname",
+    properties: [{name: "name", iri: "foodname", shortiri: "fs:foodname"}]};
+    
+  this._newPredicates["foodname"] = {name: "name", title: "Named", iri: "foodname", shortiri: "foodname"};
+  this._newPredicates["likes"] = {name: "likes", title: "Likes food", iri: "likes", shortiri: "fs:likes"};
+};
+
+com.marklogic.semantic.tripleconfig.prototype.addFoafPlaces = function() {
+  this.validTriples.push({subjectType: "person", objectType: "placename", predicateArray: ["based_near"]}); //NB based_near may not be a valid relationship class - may be lon/lat instead
+  this.validTriples.push({subjectType: "organisation", objectType: "placename", predicateArray: ["based_near","has_meetings_near"]}); 
+};
+
+com.marklogic.semantic.tripleconfig.prototype.addFoaf = function() {
+  this.validTriples.push({subjectType: "person", objectType: "person", predicateArray: ["knows","friendOf","enemyOf","childOf","parentOf","fundedBy"]});
+  this.validTriples.push({subjectType: "person", objectType: "organisation", predicateArray: ["member","studies_at"]});
+  this.validTriples.push({subjectType: "organisation", objectType: "organisation", predicateArray: ["member","parentOf","affiliated_with","fundedBy"]});
+  
+  //this._predicates["knows"] = "http://xmlns.com/foaf/0.1/knows";
+  //this._predicates["friendOf"] = "http://xmlns.com/foaf/0.1/friendOf";
+  //this._predicates["enemyOf"] = "http://xmlns.com/foaf/0.1/enemyOf";
+  //this._predicates["childOf"] = "http://xmlns.com/foaf/0.1/childOf";
+  //this._predicates["parentOf"] = "http://xmlns.com/foaf/0.1/parentOf";
+  //this._predicates["fundedBy"] = "http://xmlns.com/foaf/0.1/fundedBy";
+  //this._predicates["member"] = "http://xmlns.com/foaf/0.1/member";
+  //this._predicates["based_near"] = "http://xmlns.com/foaf/0.1/based_near";
+  //this._predicatesShort["knows"] = "foaf:knows";
+  //this._predicatesShort["friendOf"] = "foaf:friendOf";
+  //this._predicatesShort["enemyOf"] = "foaf:enemyOf";
+  //this._predicatesShort["childOf"] = "foaf:childOf";
+  //this._predicatesShort["parentOf"] = "foaf:parentOf";
+  //this._predicatesShort["fundedBy"] = "foaf:fundedBy";
+  //this._predicatesShort["member"] = "foaf:member";
+  //this._predicatesShort["based_near"] = "foaf:based_near";
+  
+  // DELETE THE FOLLOWING
+  /*
+  this.entities.push("person");
+  this.entities.push("organisation");
+  this._iriPatterns["person"] = "http://marklogic.com/semantic/targets/person/#VALUE#";
+  this._iriPatterns["organisation"] = "http://marklogic.com/semantic/targets/organisation/#VALUE#";
+  this._rdfTypes["person"] = "http://xmlns.com/foaf/0.1/Person";
+  this._rdfTypes["organisation"] = "http://xmlns.com/foaf/0.1/Organization";
+  this._rdfTypesShort["person"] = "foaf:Person";
+  this._rdfTypesShort["organisation"] = "foaf:Organization";
+  this._commonNamePredicates["person"] = "http://xmlns.com/foaf/0.1/name";
+  this._commonNamePredicates["organisation"] = "http://xmlns.com/foaf/0.1/name";
+  
+  this._properties["person"] = [{name: "name", iri: "http://xmlns.com/foaf/0.1/name", shortiri: "foaf:name"}];
+  this._properties["organisation"] = [{name: "name", iri: "http://xmlns.com/foaf/0.1/name", shortiri: "foaf:name"}];
+  // END DELETE
+  */
+  
+  this._newentities["person"] = {name: "person", title: "Person",prefix: "http://xmlns.com/foaf/0.1/", iriPattern: "http://marklogic.com/semantic/targets/person/#VALUE#", 
+    rdfTypeIri: "http://xmlns.com/foaf/0.1/Person", rdfTypeIriShort: "foaf:Person", commonNamePredicate: "http://xmlns.com/foaf/0.1/name",
+    properties: [{name: "name", iri: "http://xmlns.com/foaf/0.1/name", shortiri: "foaf:name"}]};
+    
+  this._newentities["organisation"] = {name: "organisation", title: "Organisation", prefix: "http://xmlns.com/foaf/0.1/", iriPattern: "http://marklogic.com/semantic/targets/organisation/#VALUE#", 
+    rdfTypeIri: "http://xmlns.com/foaf/0.1/Organization", rdfTypeIriShort: "foaf:Organization", commonNamePredicate: "http://xmlns.com/foaf/0.1/name",
+    properties: [{name: "name", iri: "http://xmlns.com/foaf/0.1/name", shortiri: "foaf:name"}]};
+  
+  this._newPredicates["knows"] = {name: "knows", title: "Knows", iri: "http://xmlns.com/foaf/0.1/knows", shortiri: "foaf:knows"};
+  this._newPredicates["friendOf"] = {name: "friendOf", title: "Friend", iri: "http://xmlns.com/foaf/0.1/friendOf", shortiri: "foaf:friendOf"};
+  this._newPredicates["enemyOf"] = {name: "enemyOf", title: "Enemy", iri: "http://xmlns.com/foaf/0.1/enemyOf", shortiri: "foaf:enemyOf"};
+  this._newPredicates["childOf"] = {name: "childOf", title: "Is a child of", iri: "http://xmlns.com/foaf/0.1/childOf", shortiri: "foaf:childOf"};
+  this._newPredicates["parentOf"] = {name: "parentOf", title: "Is a parent of", iri: "http://xmlns.com/foaf/0.1/parentOf", shortiri: "foaf:parentOf"};
+  this._newPredicates["fundedBy"] = {name: "fundedBy", title: "Funded by", iri: "http://xmlns.com/foaf/0.1/fundedBy", shortiri: "foaf:fundedBy"};
+  this._newPredicates["member"] = {name: "member", title: "Is a member of", iri: "http://xmlns.com/foaf/0.1/member", shortiri: "foaf:member"};
+  this._newPredicates["based_near"] = {name: "based_near", title: "Is based near", iri: "http://xmlns.com/foaf/0.1/based_near", shortiri: "foaf:based_near"};
+  
+};
+
+com.marklogic.semantic.tripleconfig.prototype.getValidPredicates = function(from,to) {
+  for (var i = 0;i < this.validTriples.length;i++) {
+    if (this.validTriples[i].subjectType == from && this.validTriples[i].objectType == to) {
+      return this.validTriples[i].predicateArray;
+    }
+  }
+  return new Array();
+};
+
+com.marklogic.semantic.tripleconfig.prototype.getNameProperty = function(entity) {
+  mljs.defaultconnection.logger.debug("getNameProperty: entity=" + entity);
+  var cnp = this._newentities[entity].commonNamePredicate;
+  mljs.defaultconnection.logger.debug("Common name property: " + cnp);
+  for (var i = 0;i < this._newentities[entity].properties.length;i++) {
+    mljs.defaultconnection.logger.debug("Property: " + i + " is: " + JSON.stringify(this._newentities[entity].properties[i]));
+    mljs.defaultconnection.logger.debug(" - IRI: " + this._newentities[entity].properties[i].iri);
+    if (cnp == this._newentities[entity].properties[i].iri) {
+      mljs.defaultconnection.logger.debug("MATCH: " + JSON.stringify(this._newentities[entity].properties[i]));
+      return this._newentities[entity].properties[i];
+    }
+  }
+  return null;
+};
+
+com.marklogic.semantic.tripleconfig.prototype.getEntityFromIRI = function(iri) {
+  for (var cn in this._newentities) {
+    var p = this._newentities[cn];
+    if (p.rdfTypeIri == iri) {
+      return p;
+    }
+  }
+};
+
+com.marklogic.semantic.tripleconfig.prototype.getEntityFromShortIRI = function(iri) {
+  for (var cn in this._newentities) {
+    var p = this._newentities[cn];
+    if (p.rdfTypeIriShort == iri) {
+      return p;
+    }
+  }
+};
+
+com.marklogic.semantic.tripleconfig.prototype.getEntityFromName = function(name) {
+  for (var cn in this._newentities) {
+    var p = this._newentities[cn];
+    if (p.name == name) {
+      return p;
+    }
+  }
+};
+
+com.marklogic.semantic.tripleconfig.prototype.getPredicateFromIRI = function(iri) {
+  for (var cn in this._newPredicates) {
+    var p = this._newPredicates[cn];
+    if (p.iri == iri) {
+      return p;
+    }
+  }
+};
+
+com.marklogic.semantic.tripleconfig.prototype.getPredicateFromShortIRI = function(iri) {
+  for (var cn in this._newPredicates) {
+    var p = this._newPredicates[cn];
+    if (p.shortiri == iri) {
+      return p;
+    }
+  }
+};
+
+com.marklogic.semantic.tripleconfig.prototype.getPredicateFromName = function(name) {
+  for (var cn in this._newPredicates) {
+    var p = this._newPredicates[cn];
+    if (p.name == name) {
+      return p;
+    }
+  }
+};
+
+com.marklogic.semantic.tripleconfig.prototype.getEntityProperty = function(entity, name) {
+  for (var i = 0;i < entity.properties.length;i++) {
+    if (name == entity.properties[i].name) {
+      return entity.properties[i];
+    }
+  }
+  return null;
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/**
+ * Semantic context object for finding entities and drilling down in to relationships. Abstracts performing SPARQL. Allows Caching of entity facts whilst browsing.
+ * @constructor
+ */
+mljs.prototype.semanticcontext = function() {
+  // query modifiers
+  this._offset = 0;
+  this._limit = 10;
+  //this._distinct = true; // defined within subjectQuery
+  
+  this._tripleconfig = new com.marklogic.semantic.tripleconfig();
+  
+  this._subjectQuery = ""; // SPARQL to execute for selecting subject
+  this._subjectResults = null; // SPARQL results JSON
+  
+  this._selectedSubject = ""; // IRI of selected subject
+  this._subjectFacts = new Array(); // IRI -> JSON SPARQL facts results object
+  
+  this._restrictSearchContext = null; // the searchcontext instance to update with a cts:triples-range-query when our subjectQuery is updated
+  this._contentSearchContext = null; // The search context to replace the query for when finding related content to this SPARQL query (where a result IRI is a document URI)
+  
+  this._subjectResultsPublisher = new com.marklogic.events.Publisher();
+  this._subjectFactsPublisher = new com.marklogic.events.Publisher();
+  this._suggestionsPublisher = new com.marklogic.events.Publisher();
+  this._errorPublisher = new com.marklogic.events.Publisher();
+};
+
+mljs.prototype.semanticcontext.prototype.setContentContext = function(ctx) {
+  this._contentSearchContext = ctx;
+};
+
+mljs.prototype.semanticcontext.prototype.getContentContext = function() {
+  return this._contentSearchContext;
+};
+
+mljs.prototype.semanticcontext.prototype.hasContentContext = function() {
+  return (null != this._contentSearchContext);
+};
+
+mljs.prototype.semanticcontext.prototype.getConfiguration = function() {
+  return this._tripleconfig;
+};
+
+mljs.prototype.semanticcontext.prototype.setConfiguration = function(conf) {
+  this._tripleconfig = conf;
+};
+
+mljs.prototype.semanticcontext.prototype.register = function(obj) {
+  if (undefined != obj.setSemanticContext) {
+    obj.setSemanticContext(this);
+  }
+  
+  // check if this object can respond to our emitted events
+  if (undefined != obj.updateSubjectResults) {
+    this._subjectResultsPublisher.subscribe(function(results) {obj.updateSubjectResults(results)});
+  }
+  if (undefined != obj.updateSubjectFacts) {
+    this._subjectFactsPublisher.subscribe(function(facts) {obj.updateSubjectFacts(facts)});
+  }
+  if (undefined != obj.updateSuggestions) {
+    this._suggestionsPublisher.subscribe(function(suggestions) {obj.updateSuggestions(suggestions)});
+  }
+  
+  // Where we listen to others' events
+  if (undefined != obj.addSubjectSelectionListener) {
+    obj.addSubjectSelectionListener(function(subjectIri) {this.subjectFacts(subjectIri)});
+  }
+  
+  
+  // also register with the content search context, if it exists
+  if (null != this._contentSearchContext) {
+    this._contentSearchContext.register(obj);
+  }
+};
+
+mljs.prototype.semanticcontext.prototype.subjectQuery = function(sparql,offset_opt,limit_opt) {
+  this._subjectQuery = sparql;
+  if (undefined != offset_opt) {
+    this._offset = offset_opt;
+    if (undefined != limit_opt) {
+      this._limit = limit_opt;
+    }
+  }
+  // perform query
+  this._doSubjectQuery();
+};
+
+mljs.prototype.semanticcontext.prototype.moveOffset = function(offset) {
+  this._offset = offset;
+  this._doSubjectQuery();
+};
+
+mljs.prototype.semanticcontext.prototype._doSubjectQuery = function() {
+  var self = this;
+  
+  var q = this._subjectQuery + " OFFSET " + this._offset + " LIMIT " + this._limit;
+  // execute function defined in our properties
+  mljs.defaultconnection.sparql(q,function(result) {
+    mljs.defaultconnection.logger.debug("RESPONSE: " + JSON.stringify(result.doc));
+    if (result.inError) {
+      self._subjectResultsPublisher.publish(false);
+      self._errorPublisher.publish(result.error);
+    } else {
+      self._subjectResultsPublisher.publish(result.doc);
+    }
+  });
+};
+
+mljs.prototype.semanticcontext.prototype.subjectFacts = function(subjectIri) {
+  this._selectedSubject = subjectIri;
+  
+  // subject SPARQL
+  this.getFacts(subjectIri,true);
+};
+
+mljs.prototype.semanticcontext.prototype.subjectContent = function(subjectIri) {
+  // update the linked searchcontext with a query related to documents that the facts relating to this subjectIri were inferred from
+  // TODO sparql query to fetch doc URIs (stored as derivedFrom IRIs)
+  // execute sparql for all facts  to do with current entity
+  var self = this;
+  if (null != this._contentSearchContext) {
+    self._contentSearchContext.updateResults(true);
+    
+    var sparql = "PREFIX foaf: <http://xmlns.com/foaf/0.1/>\nPREFIX rdfs: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" + 
+      "SELECT ?docuri {\n  GRAPH ?graph {\n    ";
+    if (self.reverse) {
+      sparql += "?obj ?pred <" + self.iri + "> .";
+    } else {
+      sparql += "<" + self.iri + "> ?pred ?obj .";
+    }
+    
+    sparql += "\n  }\n  ?graph <http://marklogic.com/semantics/ontology/derived_from> ?docuri .\n" + 
+      "} LIMIT 10";
+    mljs.defaultconnection.sparql(sparql,function(result) {
+        if (result.inError) {
+          self._contentSearchContext.updateResults(false);
+          self.errorPublisher.publish(result.error);
+        } else {
+      // use docuris as a shotgun or structured search
+      var qb = new mljs.defaultconnection.query(); // TODO maintain link to parent connection instance
+      var uris = new Array();
+      for (var b = 0;b < result.doc.results.bindings.length;b++) {
+        var res = result.doc.results.bindings[b];
+        uris.push(res.docuri.value);
+      }
+      qb.query(qb.uris("uris",uris));
+      var queryjson = qb.toJson();
+      
+      self._contentSearchContext(queryjson,1);
+      
+      /*
+      mljs.defaultconnection.structuredSearch(queryjson,self._options,function(result) {
+        if (result.inError) {
+          self._contentWidget.updateResults(false);
+          self.errorPublisher.publish(result.error);
+        } else {
+          self._contentWidget.updateResults(result.doc);
+        }
+      });
+      */
+    }
+    });
+  }
+};
+
+mljs.prototype.semanticcontext.prototype.getFact = function(subjectIri,predicate,reload_opt) {
+  var facts = this._subjectFacts[subjectIri];
+  var bindings
+  var self = this;
+  var fireFact = function() {
+    var results = [];
+    for (var i = 0;i < bindings.length;i++) {
+      if (undefined == bindings[i].predicate || predicate == bindings[i].predicate) { // if undefined, its a result of us asking for a specific predicate, and thus a matching predicate
+        results.push(bindings[i].predicate); // pushes type, value, xml:lang (if applicable) as JSON object to results array
+      }
+    }
+    self._subjectFactsPublisher.publish({subject: subjectIri,predicate: predicate,facts: bindings})
+  };
+  
+  if ((true==reload_opt) || undefined == facts) { 
+    var sparql = "SELECT * WHERE {<" + subjectIri + "> <" + predicate + "> ?object .}";
+  
+    // fetch info and refresh again
+    mljs.defaultconnection.sparql(sparql,function(result) {
+      mljs.defaultconnection.logger.debug("RESPONSE: " + JSON.stringify(result.doc));
+      if (result.inError) {
+        self._errorPublisher.publish(result.error);
+      } else {
+        bindings = result.doc.results.bindings;
+        fireFact();
+      }
+    });
+  } else {
+    bindings = facts.results.bindings;
+    fireFact();
+  }
+};
+
+mljs.prototype.semanticcontext.prototype.getFacts = function(subjectIri,reload_opt) {
+  var self = this;
+  var facts = this._subjectFacts[subjectIri];
+  if ((true==reload_opt) || undefined == facts) { 
+    var sparql = "SELECT * WHERE {<" + subjectIri + "> ?predicate ?object .}";
+  
+    // fetch info and refresh again
+    mljs.defaultconnection.sparql(sparql,function(result) {
+      mljs.defaultconnection.logger.debug("RESPONSE: " + JSON.stringify(result.doc));
+      if (result.inError) {
+        self._subjectFactsPublisher.publish(false);
+        self._errorPublisher.publish(result.error);
+      } else {
+        self._subjectFacts[subjectIri] = result.doc;
+        self._subjectFactsPublisher.publish({subject: subjectIri,facts: result.doc});
+      }
+    });
+  } else {
+    self._subjectFactsPublisher.publish({subject: subjectIri,facts: facts});
+  }
+};
+
+mljs.prototype.semanticcontext.prototype.simpleSuggest = function(rdfTypeIri,predicateIri,startString_opt) {
+  var sparql = "SELECT ?suggestion WHERE {\n  ?s a <" + rdfTypeIri + "> . \n  ?s <" + predicateIri + "> ?suggestion . \n";
+  if (undefined != startString_opt) {
+    sparql += "  FILTER regex(?suggestions, \"" + startString_opt + "*\", i) \n";
+  }
+  
+  sparql += "\n} ORDER BY ASC(?suggestion) LIMIT 10";
+  
+  var self = this;
+  mljs.defaultconnection.sparql(sparql,function(result) {
+    mljs.defaultconnection.logger.debug("RESPONSE: " + JSON.stringify(result.doc));
+    if (result.inError) {
+      self._errorPublisher.publish(result.error);
+    } else {
+      self._suggestionsPublisher.publish({rdfTypeIri: rdfTypeIri, predicate: predicateIri, suggestions: result.doc});
+    }
+  }); 
+};

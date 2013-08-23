@@ -3,6 +3,24 @@
 ## Upcoming releases
 
 Targets for 1.0 (Oct 2013)
+ - Core: Search Context
+  - Structured Search (required for Sparql semantic context's linking to fact provenance documents - derived_from)
+ - Widgets: Sparql: Various SYTYCD alterations
+  - TEST Check returned triples for type (URI or value) and display appropriately
+  - Drive property list equals values dynamically using sparql
+  - DONE Support DISTINCT (always eliminates duplicates)
+  - TEST Use OFFSET and LIMIT to do paging
+  - DONE Move summariseInto out of tripleconfig and in to widget library
+  - IN PROGRESS Support ORDER BY
+  - Support OPTIONAL?
+  - Support UNION?
+  - Support FILTER?
+  - Support REDUCED? (Permits duplicates to be eliminated)
+  - Support FROM NAMED (limit results from set of named graphs) - http://www.w3.org/TR/2008/REC-rdf-sparql-query-20080115/#restrictByLabel
+  - NA multiple listeners for this in same context - Multiple modes, one to contribute sparql query to a searchcontext, another to perform sparql query itself (to list entities)
+  - NA Sparql 1.1 required - Allow less than / greater than rather than just equals, depending on property selected
+ - Core: TripleConfig
+  - Support loading of OWL / other ontologies to populate triple config object
  - IN PROGRESS NodeJS: Node.js tests for all functionality now in core MLJS
  - Tools: Windows batch file versions of developer required (non build related) bash scripts, including mljsme
   - mljsme
@@ -10,8 +28,16 @@ Targets for 1.0 (Oct 2013)
   - create-mldbtest
   - delete-mldbtest
   - upgraderoxy
+ - Minor fixes
+  - Remove debug logging for every value in charts
+  - Ensure charts are efficient when rendering facet and in doc values
  - IN PROGRESS Docs: Document all core concepts currently part of MLJS
- - Samples: Sample triples, linked content, working sparql query builder
+  - IN PROGRESS searchcontext object
+ - DONE Samples: Sample triples, linked content, working sparql query builder
+ - Widgets: Semantic rearchitecting
+  - addTriplesListener to replace addResultsListener
+  - Core: rework searchcontext to handle triples listener
+  - Core: mljs core to check /v1/sparql result for triple format type and place in result.tripleFormat (owl, n3, etc.)
  - Widgets: Document properties and view widget
  - Widgets: Navigable charts / co-occurence - clicking sets facet value
  - Widgets: Google maps (via OpenLayers?)
@@ -21,11 +47,15 @@ Targets for 1.0 (Oct 2013)
  - Widgets: D3.js network diagram
  - Core: Support all search functions not currently provided in query builder
  - Core: Extra query builder options (all constraints supported by options, plus sorting)
+  - V7: result decorator option
+  - V7: Boost query & matching query
  - Core: Complete support for /v1/values REST function (suggestions aka auto complete etc)
  - Test: Support current functionality against MarkLogic V7
  - Core: New V7 functionality
   - Core: POST /v1/search - Dynamic search options (Try this in search context, catch error if on V6 and fall back to original mode)
   - Core: Alerting
+  - Core: Score-function=linear|reciprocal, scale-factor=0|inputFloat
+  - Core: Supply pagination values as part of query (as Vis Widgets do) not as part of search options
  - Widget: Add search action button - 'save as alert'
  - Core: Support all client API /v1/ REST endpoints in ML7
  - Node: More Node.js tests for all new functionality

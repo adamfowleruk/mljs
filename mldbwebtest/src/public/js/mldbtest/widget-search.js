@@ -62,7 +62,7 @@ com.marklogic.widgets.searchhelper.splitdash = function(value,mode) {
   }
   if ("string" != typeof value) {
     mljs.defaultconnection.logger.warn("WARNING: splitdash(): value is not of type string, but of type '" + (typeof value) + "'");
-    return "";
+    return "" + value; // return raw value - can be converted to string
   }
   var name = value;
   if ("all" == mode || "splitdash" == mode) {
