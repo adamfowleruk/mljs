@@ -424,6 +424,27 @@ span.person {
   margin-top: 20px;
 }
 
+.sparqlbar-suggestions {
+  position: absolute;
+  left: -1000px;
+  top: -1000px;
+  z-index: 10;
+  background-color: white;
+  border: 1px solid black;
+  width: auto;
+  height: auto;
+  padding: 2px;
+}
+
+.sparqlbar-suggestion {
+  margin-bottom: 2px;
+}
+
+.sparqlbar-suggestion:hover {
+  text-decoration: underline;
+  color: blue;
+}
+
 .sparqlresults-title {
   font-weight: bold;
   font-size: 1.2em;

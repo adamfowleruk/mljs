@@ -3,15 +3,22 @@
 ## Upcoming releases
 
 Targets for 1.0 (Oct 2013)
- - Core: Search Context
-  - Structured Search (required for Sparql semantic context's linking to fact provenance documents - derived_from)
- - Widgets: Sparql: Various SYTYCD alterations
-  - TEST Check returned triples for type (URI or value) and display appropriately
-  - Drive property list equals values dynamically using sparql
+ - TEST Core: Search Context
+  - TEST Structured Search (required for Sparql semantic context's linking to fact provenance documents - derived_from)
+ - IN PROGRESS Widgets: Sparql: Various SYTYCD alterations
+  - DONE Check returned triples for type (URI or value) and display appropriately
+  - DONE Drive property list equals values dynamically using sparql (suggestions feature via FILTER regex)
   - DONE Support DISTINCT (always eliminates duplicates)
-  - TEST Use OFFSET and LIMIT to do paging
+  - TEST Use OFFSET and LIMIT to do paging for subject results sparql query
+  - Add paging to subject results widget itself
   - DONE Move summariseInto out of tripleconfig and in to widget library
   - IN PROGRESS Support ORDER BY
+ - Widgets: Highcharts
+  - updateSubjectFacts support (extracting series from ?s ?p ?o and ?g in sparql results)
+  - updateSparqlResults support (for any arbitrary named sparql binded variables, not just ?s, ?p, ?o and ?g)
+ - Widgets: Kratu
+  - Support viewing arbitrary sparql results as Kratu table (needs reworking of bindings result object to a flatter classic row structure)
+ - Widgets: Sparql: Other sparql improvements
   - Support OPTIONAL?
   - Support UNION?
   - Support FILTER?
@@ -30,21 +37,23 @@ Targets for 1.0 (Oct 2013)
   - upgraderoxy
  - Minor fixes
   - Remove debug logging for every value in charts
-  - Ensure charts are efficient when rendering facet and in doc values
+  - Ensure charts are efficient when rendering facet and in doc values, and triples
  - IN PROGRESS Docs: Document all core concepts currently part of MLJS
   - IN PROGRESS searchcontext object
  - DONE Samples: Sample triples, linked content, working sparql query builder
- - Widgets: Semantic rearchitecting
-  - addTriplesListener to replace addResultsListener
-  - Core: rework searchcontext to handle triples listener
+ - IN PROGRESS Widgets: Semantic rearchitecting
+  - DONE addTriplesListener to replace addResultsListener
+  - DONE Core: rework searchcontext to handle triples listener
   - Core: mljs core to check /v1/sparql result for triple format type and place in result.tripleFormat (owl, n3, etc.)
  - Widgets: Document properties and view widget
  - Widgets: Navigable charts / co-occurence - clicking sets facet value
  - Widgets: Google maps (via OpenLayers?)
  - Widgets: Geospatial facets show in maps, and not in facets widget
  - Core: Query Builder. Easy geospatial search (Already done?)
+  - triples-range-query support
  - Widgets: Support facet hierarchies
- - Widgets: D3.js network diagram
+ - Widgets: D3.js network/hive diagram - http://www.hiveplot.net
+ - Widgets: InfoVis network diagram
  - Core: Support all search functions not currently provided in query builder
  - Core: Extra query builder options (all constraints supported by options, plus sorting)
   - V7: result decorator option

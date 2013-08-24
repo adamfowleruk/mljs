@@ -139,7 +139,7 @@ com.marklogic.widgets.sparqlbar.prototype.updateSuggestions = function(suggestio
     var s = "";
     var links = new Array();
     for (var b = 0;b < arr.length;b++) {
-      var link = {index: b, suggestion: b.suggestion.value};
+      var link = {index: b, suggestion: arr[b].suggestion.value}; // TODO support locale of xml:lang behind the scenes too
       links.push(link);
       
       s += "<p class='sparqlbar-suggestion' id='" + this.container + "-sparqlbar-suggestion-" + b + "'>" + link.suggestion + "</p>";
@@ -149,16 +149,13 @@ com.marklogic.widgets.sparqlbar.prototype.updateSuggestions = function(suggestio
     }
     el.innerHTML = s;
     
-    // remove hidden class
-    self._hidden(el,false);
-    
     // now do click handlers
     var self = this;
     var addClickHandler = function(el,suggestion) {
       el.onclick = function(event) {
         document.getElementById(self._suggestionDestinationElementId).value = suggestion;
         // hide suggestions box
-        self._hidden(el,true);
+        self._hidden(document.getElementById(self.container + "-sparqlbar-suggestions"),true);
         
         // disable suggestions
         self._suggestionRdfTypeIri = null;
@@ -306,8 +303,8 @@ com.marklogic.widgets.sparqlbar.prototype._addTerm = function(parentid) {
   document.getElementById(this.container + "-sparqlbar-term-relatedtype-" + tid).onchange = function (el) {
     self._updateRelationships(tid);
   };
-  document.getElementById(this.container + "-sparqlbar-term-value-" + tid).onchange = function(el) {
-    self._suggest(el);
+  document.getElementById(this.container + "-sparqlbar-term-value-" + tid).onkeyup = function(el) {
+    self._suggest(tid);
   };
   
   // TODO - term handler
@@ -323,11 +320,49 @@ com.marklogic.widgets.sparqlbar.prototype._addTerm = function(parentid) {
   // TODO check for previous term in this container, and remove 'hidden' class from ;AND span
 };
 
-com.marklogic.widgets.sparqlbar.prototype._suggest = function(el) {
+com.marklogic.widgets.sparqlbar.prototype._suggest = function(tid) {
+  mljs.defaultconnection.logger.debug("sparqlbar._suggest");
+  
+  var el = document.getElementById(this.container + "-sparqlbar-term-value-" + tid);
+  
   // check value, if 3 (by config) or more, ensure we're linked to this field, and perform suggest
   var value = el.value;
+  mljs.defaultconnection.logger.debug("sparqlbar._suggest: el.value: " + value);
   if (value.length >= this._suggestionMinimumCharacters) {
+    mljs.defaultconnection.logger.debug("sparqlbar._suggest: Firing suggest action");
+    
     this._suggestionDestinationElementId = el.getAttribute("id");
+    mljs.defaultconnection.logger.debug("sparqlbar._suggest: destination el id: " + this._suggestionDestinationElementId);
+    var predicateName = document.getElementById(this.container + "-sparqlbar-term-properties-" + tid).value;
+    mljs.defaultconnection.logger.debug("sparqlbar._suggest: predicateName: " + predicateName);
+    
+    var parentType = this._getParentType(tid);
+    mljs.defaultconnection.logger.debug("sparqlbar._suggest: parentType: " + parentType);
+    var parentInfo = this.semanticcontext.getConfiguration().getEntityFromName(parentType);
+    mljs.defaultconnection.logger.debug("sparqlbar._suggest: parentInfo: " + JSON.stringify(parentInfo));
+    
+    var predicateInfo = this.semanticcontext.getConfiguration().getEntityProperty(parentInfo,predicateName);
+    mljs.defaultconnection.logger.debug("sparqlbar._suggest: predicateInfo: " + JSON.stringify(predicateInfo));
+    
+    this._suggestionRdfTypeIri = parentInfo.rdfTypeIri;
+    this._suggestionPredicateIri = predicateInfo.iri;
+    
+    mljs.defaultconnection.logger.debug("sparqlbar._suggest: rdfTypeIri: " + this._suggestionRdfTypeIri + ", predicateIri: " + this._suggestionPredicateIri + 
+      ", suggestion el id: " + this._suggestionDestinationElementId);
+      
+    mljs.defaultconnection.logger.debug("sparqlbar._suggest: destination id value: " + value);
+    
+    
+    // move element to correct position
+    var rect = el.getBoundingClientRect();
+    var suggestel = document.getElementById(this.container + "-sparqlbar-suggestions");
+    suggestel.setAttribute("style","left: " + el.offsetLeft + "px; top: " + (el.offsetTop + el.offsetHeight) + "px;");
+    suggestel.innerHTML = "<i>Loading suggestions...</i>";
+    
+    // remove hidden class
+    this._hidden(suggestel,false);
+      
+    this.semanticcontext.simpleSuggest(this._suggestionRdfTypeIri,this._suggestionPredicateIri,value);
   }
 };
 
@@ -409,6 +444,16 @@ com.marklogic.widgets.sparqlbar.prototype._getParentType = function(tid) {
   }
   if (null == top) {
     top = document.getElementById(this.container + "-sparqlbar-what").value;
+  }
+  return top;
+};
+
+com.marklogic.widgets.sparqlbar.prototype._getParentPredicate = function(tid) {
+  var top = null;
+  // Find parent term object type
+  var parent = this._parentterms[tid];
+  if (null != parent && undefined != parent) {
+    top = document.getElementById(this.container + "-sparqlbar-term-relationship-" + parent).value;
   }
   return top;
 };

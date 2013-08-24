@@ -4103,9 +4103,9 @@ com.marklogic.semantic.tripleconfig.prototype.addTest = function() {
   
   this._newentities["foodstuff"] = {name: "foodstuff", title: "Foodstuff", prefix: "http://marklogic.com/semantic/ns/foodstuff", iriPattern: "http://marklogic.com/semantic/targets/foodstuffs/#VALUE#", 
     rdfTypeIri: "http://marklogic.com/semantic/rdfTypes/foodstuff", rdfTypeIriShort: "fs:foodstuff", commonNamePredicate: "foodname",
-    properties: [{name: "name", iri: "foodname", shortiri: "fs:foodname"}]};
+    properties: [{name: "foodname", iri: "foodname", shortiri: "fs:foodname"}]};
     
-  this._newPredicates["foodname"] = {name: "name", title: "Named", iri: "foodname", shortiri: "foodname"};
+  this._newPredicates["foodname"] = {name: "foodname", title: "Named", iri: "foodname", shortiri: "foodname"};
   this._newPredicates["likes"] = {name: "likes", title: "Likes food", iri: "likes", shortiri: "fs:likes"};
 };
 
@@ -4423,7 +4423,7 @@ mljs.prototype.semanticcontext.prototype.subjectContent = function(subjectIri) {
       qb.query(qb.uris("uris",uris));
       var queryjson = qb.toJson();
       
-      self._contentSearchContext(queryjson,1);
+      self._contentSearchContext.dostructuredquery(queryjson,1);
       
       /*
       mljs.defaultconnection.structuredSearch(queryjson,self._options,function(result) {
@@ -4496,12 +4496,15 @@ mljs.prototype.semanticcontext.prototype.getFacts = function(subjectIri,reload_o
 };
 
 mljs.prototype.semanticcontext.prototype.simpleSuggest = function(rdfTypeIri,predicateIri,startString_opt) {
-  var sparql = "SELECT ?suggestion WHERE {\n  ?s a <" + rdfTypeIri + "> . \n  ?s <" + predicateIri + "> ?suggestion . \n";
+  mljs.defaultconnection.logger.debug("simpleSuggest");
+  var sparql = "SELECT DISTINCT ?suggestion WHERE {\n  ?s a <" + rdfTypeIri + "> . \n  ?s <" + predicateIri + "> ?suggestion . \n";
   if (undefined != startString_opt) {
-    sparql += "  FILTER regex(?suggestions, \"" + startString_opt + "*\", i) \n";
+    sparql += "  FILTER regex(?suggestion, \"" + startString_opt + "*\", \"i\") \n";
   }
   
   sparql += "\n} ORDER BY ASC(?suggestion) LIMIT 10";
+  
+  mljs.defaultconnection.logger.debug("simpleSuggest: SPARQL: " + sparql);
   
   var self = this;
   mljs.defaultconnection.sparql(sparql,function(result) {

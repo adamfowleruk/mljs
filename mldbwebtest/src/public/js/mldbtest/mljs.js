@@ -4103,9 +4103,9 @@ com.marklogic.semantic.tripleconfig.prototype.addTest = function() {
   
   this._newentities["foodstuff"] = {name: "foodstuff", title: "Foodstuff", prefix: "http://marklogic.com/semantic/ns/foodstuff", iriPattern: "http://marklogic.com/semantic/targets/foodstuffs/#VALUE#", 
     rdfTypeIri: "http://marklogic.com/semantic/rdfTypes/foodstuff", rdfTypeIriShort: "fs:foodstuff", commonNamePredicate: "foodname",
-    properties: [{name: "name", iri: "foodname", shortiri: "fs:foodname"}]};
+    properties: [{name: "foodname", iri: "foodname", shortiri: "fs:foodname"}]};
     
-  this._newPredicates["foodname"] = {name: "name", title: "Named", iri: "foodname", shortiri: "foodname"};
+  this._newPredicates["foodname"] = {name: "foodname", title: "Named", iri: "foodname", shortiri: "foodname"};
   this._newPredicates["likes"] = {name: "likes", title: "Likes food", iri: "likes", shortiri: "fs:likes"};
 };
 
@@ -4298,6 +4298,7 @@ mljs.prototype.semanticcontext = function() {
   
   this._subjectResultsPublisher = new com.marklogic.events.Publisher();
   this._subjectFactsPublisher = new com.marklogic.events.Publisher();
+  this._suggestionsPublisher = new com.marklogic.events.Publisher();
   this._errorPublisher = new com.marklogic.events.Publisher();
 };
 
@@ -4332,6 +4333,9 @@ mljs.prototype.semanticcontext.prototype.register = function(obj) {
   }
   if (undefined != obj.updateSubjectFacts) {
     this._subjectFactsPublisher.subscribe(function(facts) {obj.updateSubjectFacts(facts)});
+  }
+  if (undefined != obj.updateSuggestions) {
+    this._suggestionsPublisher.subscribe(function(suggestions) {obj.updateSuggestions(suggestions)});
   }
   
   // Where we listen to others' events
@@ -4489,4 +4493,26 @@ mljs.prototype.semanticcontext.prototype.getFacts = function(subjectIri,reload_o
   } else {
     self._subjectFactsPublisher.publish({subject: subjectIri,facts: facts});
   }
+};
+
+mljs.prototype.semanticcontext.prototype.simpleSuggest = function(rdfTypeIri,predicateIri,startString_opt) {
+  mljs.defaultconnection.logger.debug("simpleSuggest");
+  var sparql = "SELECT DISTINCT ?suggestion WHERE {\n  ?s a <" + rdfTypeIri + "> . \n  ?s <" + predicateIri + "> ?suggestion . \n";
+  if (undefined != startString_opt) {
+    sparql += "  FILTER regex(?suggestion, \"" + startString_opt + "*\", \"i\") \n";
+  }
+  
+  sparql += "\n} ORDER BY ASC(?suggestion) LIMIT 10";
+  
+  mljs.defaultconnection.logger.debug("simpleSuggest: SPARQL: " + sparql);
+  
+  var self = this;
+  mljs.defaultconnection.sparql(sparql,function(result) {
+    mljs.defaultconnection.logger.debug("RESPONSE: " + JSON.stringify(result.doc));
+    if (result.inError) {
+      self._errorPublisher.publish(result.error);
+    } else {
+      self._suggestionsPublisher.publish({rdfTypeIri: rdfTypeIri, predicate: predicateIri, suggestions: result.doc});
+    }
+  }); 
 };
