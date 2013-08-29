@@ -460,6 +460,19 @@ span.person {
 }
 
 
+
+/** RDB2RDF **/
+.rdb2rdf-submit {
+  height: 30px;
+  margin-left: 5px;
+  line-height: 20px;
+  text-align: center;
+  border: 1px solid #929292;
+  padding: 4px;
+}
+
+
+
 /** Bits **/
 .bits-done {
   border: 2px solid blue;

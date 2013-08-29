@@ -50,12 +50,14 @@ com.marklogic.widgets.rdb2rdf.prototype._refresh = function() {
   // Step panes
   s += "<div id='" + this.container + "-step-1'>"; // intro / enter SAM URL
   s += "  <p>Welcome to the MarkLogic RDBMS to RDF import wizard! Please enter a MarkLogic SAM endpoint URL that is connected to your database server.";
-  s += "  <input type='text' id='" + this.container + "-schema' value='' />";
-  s += "  <p class='rdb2rdf-button' id='" + this.container + "-step-1-next'>Next...</p>";
+  s += "  <p><b>ML SAM URL:</b> <input type='text' id='" + this.container + "-schema' value='' /></p>";
+  s += "  <p class='rdb2rdf-submit' id='" + this.container + "-step-1-next'>Next...</p>";
   s += "</div>";
   
   s += "<div id='" + this.container + "-step-2' class='hidden'>"; // list and select schema to import
-  
+  s += "  <p>Select a Schema to import and click Next.</p>";
+  s += "  <p><select id='" + this.container + "-schema-select'><option value=''>None</option></select></p>";
+  s += "  <p class='rdb2rdf-submit' id='" + this.container + "-step-2-next'>Next...</p>";
   s += "</div>";
   
   
@@ -101,7 +103,7 @@ com.marklogic.widgets.rdb2rdf.prototype._showStep2 = function() {
   // refresh schema list
   var self = this;
   mljs.defaultconnection.samListSchema(document.getElementById(this.container + "-schema").value,function(result) {
-    var schemas = result.doc["schema-list"].schema;
+    var schemas = result.doc["list-schema"].schema;
     var s = "";
     for (var i = 0, max = schema.length;i < max;i++) {
       s += "<option value='" + schema[i] + "'>" + schema[i] + "</option>";
