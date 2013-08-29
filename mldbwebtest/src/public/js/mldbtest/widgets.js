@@ -256,6 +256,37 @@ if (undefined == String.prototype.startsWith) {
 
 
 
+
+com.marklogic.widgets.hide = function(el,isHidden) {
+  if (isHidden) {
+    var found = false;
+    var attr = el.getAttribute("class");
+    if (undefined != attr) {
+      var attrs = attr.split(" ");
+      for (var i = 0;!found && i < attrs.length;i++) {
+        found = ("hidden" == attrs[i]);
+      }
+    }
+    if (!found) {
+      el.setAttribute("class",attr + " hidden");
+    }
+  } else {
+    var attr = el.getAttribute("class");
+    var newClass = "";
+    if (undefined != attr) {
+      var attrs = attr.split(" ");
+      for (var i = 0;!found && i < attrs.length;i++) {
+        if ("hidden" != attrs[i]) {
+          newClass += attrs[i] + " ";
+        }
+      }
+    }
+    el.setAttribute("class",newClass);
+  }
+};
+
+
+
 // our own global widgets here
 com.marklogic.widgets.error = function(container) {
   this.container = container;

@@ -2263,7 +2263,6 @@ mljs.prototype.dlscollection = function(collection,callback) {
 };
 
 
-
 /**
  * REQUIRES CUSTOM REST API EXTENSION - dlsrules.xqy - Adam Fowler adam.fowler@marklogic.com - Lists all DLS retention rules
  *
@@ -2290,6 +2289,74 @@ mljs.prototype.dlsrule = function(name,callback) {
     method: "GET"
   };
   this.__doreq("DLSRULE",options,null,callback);
+};
+
+
+
+/**
+ * REQUIRES CURSTOM REST API EXTENSION - rdb2rdf.xqy - Adam Fowler adam.fowler@marklogic.com - List DB schema attached to an MLSAM URL endpoint.
+ * 
+ * @param {string} samurl - The endpoint URL of the installed SAM service (uses a JDBC connection)
+ */
+mljs.prototype.samListSchema = function(samurl,callback) {
+  var options = {
+    path: "/v1/resources/rdb2rdf?rs:samurl=" + encodeURI(samurl),
+    method: "GET",
+    headers: { Accept: "application/json"}
+  };
+  this.__doreq("SAMLISTSCHEMA",options,null,callback);
+};
+
+
+/**
+ * REQUIRES CURSTOM REST API EXTENSION - rdb2rdf.xqy - Adam Fowler adam.fowler@marklogic.com - Describe tables and relationships in the prescribed schema attached to an MLSAM URL endpoint.
+ * 
+ * NB This method relies on ANSI DESCRIBE, COUNT and Information Schema support
+ * 
+ * @param {string} samurl - The endpoint URL of the installed SAM service (uses a JDBC connection)
+ * @param {string} schema - The database schema name. 
+ */
+mljs.prototype.samSchemaInfo = function(samurl,schema,callback) {
+  var options = {
+    path: "/v1/resources/rdb2rdf?rs:samurl=" + encodeURI(samurl) + "&rs:schema=" + encodeURI(schema),
+    method: "GET",
+    headers: { Accept: "application/json"}
+  };
+  this.__doreq("SAMSCHEMAINFO",options,null,callback);
+};
+
+/**
+ * REQUIRES CURSTOM REST API EXTENSION - rdb2rdf.xqy - Adam Fowler adam.fowler@marklogic.com - Ingests an RDBMS schema subset (limited rows per table) in to the MarkLogic Triplestore using W3C RDB2RDF direct mapping.
+ * 
+ * NB This method relies on ANSI DESCRIBE, COUNT and Information Schema support
+ * 
+ * @param {JSON} config - The JSON configuration of the database segment to ingest
+{ingest: {
+  database: {
+    samurl: "http://kojak.marklogic.com:8080/mlsam/samurl"
+  },
+  create: {
+    graph: "mynamedgraph"
+  },
+  selection: {
+    // Either:
+    mode: "schema", // Creates interdependencies between tables
+    tables: ["customers","policies","address"] // Other RD info required here
+    
+    // Or: 
+    mode: "data",
+    tables: ["customers"], offset: 101, limit: 100
+  }
+}
+}
+ */
+mljs.prototype.samRdb2Rdf = function(config,callback) {
+  var options = {
+    path: "/v1/resources/rdb2rdf",
+    method: "POST",
+    headers: { Accept: "application/json"}
+  };
+  this.__doreq("SAMRDB2RDF",options,config,callback);
 };
 
 

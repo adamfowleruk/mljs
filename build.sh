@@ -75,7 +75,11 @@ cp core.md $N/README.md
 cp core.md $NM/README.md
 
 # jsdocs
-./gendocs.sh
+# disabled when in one of the dev branches
+# ./gendocs.sh
+# tar czf ./dist/mljs-docs.tar.gz ./dist/docs
+# zip -vr ./dist/mljs-docs.zip ./dist/docs
+# rm -rf dist/docs
 
 # zips and tars
 tar czf ./dist/mljs-browser.tar.gz $R
@@ -87,12 +91,9 @@ zip -vr ./dist/mljs-browser-minified.zip $D
 zip -vr ./dist/mljs-nodejs.zip $N
 zip -vr ./dist/mljs-nodejs-minified.zip $NM
 
-tar czf ./dist/mljs-docs.tar.gz ./dist/docs
-zip -vr ./dist/mljs-docs.zip ./dist/docs
 
 # cleanup
 rm -rf dist/mljs
-rm -rf dist/docs
 
 echo "Done."
 exit 0 

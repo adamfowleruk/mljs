@@ -34,7 +34,7 @@ Targets for 0.9 (Sep 2013)
   - DONE Move summariseInto out of tripleconfig and in to widget library
   - IN PROGRESS Support ORDER BY
   - Use ?s ?p ?o ?g rather than longer ?subject ?predicate ?object ?graph, everywhere
- - Widgets: CSS: Add baseline.js (?) support for Jochen
+ - Widgets: CSS: Add bootstrap.js support for Jochen
  - Widgets: Highcharts
   - updateSubjectFacts support (extracting series from ?s ?p ?o and ?g in sparql results)
   - updateSparqlResults support (for any arbitrary named sparql binded variables, not just ?s, ?p, ?o and ?g) (pull back known predicates in semantic config by ?name)
