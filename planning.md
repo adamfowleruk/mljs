@@ -2,22 +2,80 @@
 
 ## Upcoming releases
 
-Targets for 1.0 (Oct 2013)
+Targets for 0.9 (Sep 2013)
+ - Interactive RDBMS migration utility
+  - REST extension: POST stuff2triples with JSON config specifying what to ingest
+   - make long transaction aware
+   - add to MLJS Core
+   - MLSAM presence detection / error message
+  - Widgets: Interactive migrator
+   - Pg 1: Enter DB connection configuration parameters
+    - Use cookies to hold DB connection parameters in user's browser so its quick to perform both imports
+   - Pg 2: Select which tables & relationships to ingest
+    - (with totals of records to import, column data type conversion to use)
+    - Also allow specifying a named graph to add all this new data to
+   - Pg 3: Show 'importing 1 to 100 of y' message for each table, synchronously, all within the same transaction
+    - Widgets: Progress bar widget (generic)
+    - Generate and save ontology information in cookies too
+    - Create semantic context decorator widget to fill in semantic context based on ontology information available within user cookies (So new objects show up in Sparqlbar immediately)
  - TEST Core: Search Context
   - TEST Structured Search (required for Sparql semantic context's linking to fact provenance documents - derived_from)
  - IN PROGRESS Widgets: Sparql: Various SYTYCD alterations
+  - DONE BUG REGEX suggestion match for Ada* should have been Ada.* in order to produce correct results (trailing letter was being interpreted as a ., producing erroneous results)
   - DONE Check returned triples for type (URI or value) and display appropriately
   - DONE Drive property list equals values dynamically using sparql (suggestions feature via FILTER regex)
   - DONE Support DISTINCT (always eliminates duplicates)
   - TEST Use OFFSET and LIMIT to do paging for subject results sparql query
-  - Add paging to subject results widget itself
+  - Figure out how to do sameas - either as separate inferencing stage, or dynamically within the query (Introduces the concept of Sparql Query Options)
+   - Widget: Inferencing with named graph for output, sparqlbar for production of constraints?
+  - Add named graph restriction support for facts (So we can just query triples generated from DB 1 or DB 2)
+  - MEDIUM Add paging to subject results widget itself
+  - LOW Add preview quick view to subject results widget
   - DONE Move summariseInto out of tripleconfig and in to widget library
   - IN PROGRESS Support ORDER BY
+  - Use ?s ?p ?o ?g rather than longer ?subject ?predicate ?object ?graph, everywhere
+ - Widgets: CSS: Add baseline.js (?) support for Jochen
  - Widgets: Highcharts
   - updateSubjectFacts support (extracting series from ?s ?p ?o and ?g in sparql results)
-  - updateSparqlResults support (for any arbitrary named sparql binded variables, not just ?s, ?p, ?o and ?g)
+  - updateSparqlResults support (for any arbitrary named sparql binded variables, not just ?s, ?p, ?o and ?g) (pull back known predicates in semantic config by ?name)
  - Widgets: Kratu
   - Support viewing arbitrary sparql results as Kratu table (needs reworking of bindings result object to a flatter classic row structure)
+ - Widgets: Interactive data exploration widgets
+  - Widgets: Drag & Drop semantic context object browser with support for menu popups 'add as series, add as secondary axis' etc.
+  - Widgets: hive diagram (D3.js or InfoVis) widget to show relationship between scalars on three axes, and fourth colour scalar / finite set property
+   - Navigable so as to introduce Sparql Query constraints
+  - Widgets: Sparql outer context wrapper widget
+   - Download CSV file of results
+   - Download generated PNG from current visualisation div
+ - Minor fixes
+  - Remove debug logging for every value in charts
+  - Ensure charts are efficient when rendering facet and in doc values, and triples
+
+Targets for 1.0 (Oct 2013)
+ - JavaScript best practices / conventions
+  - IN PROGRESS use var max = whatever.length in for loops - between 2 and 150 times faster than accessing the DOM on each iteration
+   - DONE Sparql (triple) widgets
+   - Search widgets
+   - Core
+   - Highcharts
+  - underscores for private functions
+  - UpperCamelCase for constructors/objects
+  - lowerCamelCase for functions (searchcontext and mljs have some alllowercase methods)
+  - change mljs.defaultconnection in core MLJS to instead access parent MLJS instance
+  - keep tripleconfig separate from core MLJS instantiator (as it never requires a connection to use), but allow a way to specify a logger and check for this (to avoid defaultconnection.logger)
+  - better way to access logging functionality by default - define _i(), _d() prototype methods for each subobject? Via a core mixin utility func? 
+   - (Could use same mechanism to provide correct 'this' reference from constructor function.)
+   - have mljs.prototype.* constructor functions add a db property pointer to all created children
+  - Add check in constructor functions to ensure if not called via new MyObject(), that it returns a new instance anyway (location 1051)
+  - Double check isArray function definition for best practice (location 1110) - also check for splice()
+  - Use self defining functions for lazy loading (E.g. semantic context creation), and any requiring extensive initialisation (Sparql widget?) (location 1515)
+  - Memoization (cache) pattern applied to sparql facts (location 1702)
+  - Apply Configuration object pattern consistently with MLJS Core (E.g. search options), and add helper methods where this is complex for common use cases (location 1734)
+  - Apply Currying when calling the same function with mostly same parameters (if costly) (location 1860)
+  - Use Module pattern and closures to hide internal properties/private methods (location 2117) but with constructors (2139)
+  - Apply Borrow and Bind pattern (mixin for functions) where applicable (to avoid any inheritance temptations) (location 2922) (Candidates???: ...)
+  - Apply Data Validation pattern to docbuilder widget (When new functionality added - may be V 1.2?) (location 3254)
+  - Find a better way to restrict what parts of the logging output are set to use debug (Perhaps a mixin to objects with lazy initialisation based on debug level specified, if any)
  - Widgets: Sparql: Other sparql improvements
   - Support OPTIONAL?
   - Support UNION?
@@ -35,9 +93,6 @@ Targets for 1.0 (Oct 2013)
   - create-mldbtest
   - delete-mldbtest
   - upgraderoxy
- - Minor fixes
-  - Remove debug logging for every value in charts
-  - Ensure charts are efficient when rendering facet and in doc values, and triples
  - IN PROGRESS Docs: Document all core concepts currently part of MLJS
   - IN PROGRESS searchcontext object
  - DONE Samples: Sample triples, linked content, working sparql query builder

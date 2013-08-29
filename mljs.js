@@ -4495,14 +4495,31 @@ mljs.prototype.semanticcontext.prototype.getFacts = function(subjectIri,reload_o
   }
 };
 
+/**
+ * This seems to kick the sparql query cache in to action. Even doing this for a different RdfType seems to help.
+ * This is really only applicable to demonstrations rather than production systems, as in production MarkLogic's
+ * triple algorithms over time change algorithms to a near-best option, and caches this for 10 minutes.
+ */
+mljs.prototype.semanticcontext.prototype.primeSimpleSuggest = function() {
+  mljs.defaultconnection.logger.debug("primeSimpleSuggest");
+  var sparql = "SELECT DISTINCT ?suggestion WHERE {\n  ?s a <wibble> . \n  ?s <hasflibble> ?suggestion . \n  FILTER regex(?suggestion, \"Abc.*\", \"i\") \n} ORDER BY ASC(?suggestion) LIMIT 10";
+  
+  mljs.defaultconnection.logger.debug("primeSimpleSuggest: SPARQL: " + sparql);
+  
+  mljs.defaultconnection.sparql(sparql,function(result) {
+    mljs.defaultconnection.logger.debug("primeSimpleSuggest: RESPONSE: " + JSON.stringify(result.doc));
+    // do nothing - we're just priming the MarkLogic server's triple algorithm cache
+  }); 
+};
+
 mljs.prototype.semanticcontext.prototype.simpleSuggest = function(rdfTypeIri,predicateIri,startString_opt) {
   mljs.defaultconnection.logger.debug("simpleSuggest");
   var sparql = "SELECT DISTINCT ?suggestion WHERE {\n  ?s a <" + rdfTypeIri + "> . \n  ?s <" + predicateIri + "> ?suggestion . \n";
   if (undefined != startString_opt) {
-    sparql += "  FILTER regex(?suggestion, \"" + startString_opt + "*\", \"i\") \n";
+    sparql += "  FILTER regex(?suggestion, \"" + startString_opt + ".*\", \"i\") \n";
   }
   
-  sparql += "\n} ORDER BY ASC(?suggestion) LIMIT 10";
+  sparql += "} ORDER BY ASC(?suggestion) LIMIT 10";
   
   mljs.defaultconnection.logger.debug("simpleSuggest: SPARQL: " + sparql);
   

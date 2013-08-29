@@ -129,16 +129,18 @@ com.marklogic.widgets.sparqlbar = function(container) {
 
 com.marklogic.widgets.sparqlbar.prototype.setSemanticContext = function(sc) {
   this.semanticcontext = sc;
+  sc.primeSimpleSuggest(); // speeds up MarkLogic server's SPARQL processing on demo systems (i.e. ones that haven't been running long)
 };
 
 com.marklogic.widgets.sparqlbar.prototype.updateSuggestions = function(suggestions) {
   if (undefined != suggestions && suggestions.rdfTypeIri == this._suggestionRdfTypeIri && suggestions.predicate == this._suggestionPredicateIri) {
     // We need to show these suggestions
-    var el = document.getElementById(this.container + "-sparqlbar-suggestions");
+    var elss = document.getElementById(this.container + "-sparqlbar-suggestions");
     var arr = suggestions.suggestions.results.bindings;
+    var len = arr.length;
     var s = "";
     var links = new Array();
-    for (var b = 0;b < arr.length;b++) {
+    for (var b = 0;b < len;b++) {
       var link = {index: b, suggestion: arr[b].suggestion.value}; // TODO support locale of xml:lang behind the scenes too
       links.push(link);
       
@@ -147,7 +149,7 @@ com.marklogic.widgets.sparqlbar.prototype.updateSuggestions = function(suggestio
     if ("" == s) {
       s = "<i>No Suggestions</i>";
     }
-    el.innerHTML = s;
+    elss.innerHTML = s;
     
     // now do click handlers
     var self = this;
@@ -155,7 +157,7 @@ com.marklogic.widgets.sparqlbar.prototype.updateSuggestions = function(suggestio
       el.onclick = function(event) {
         document.getElementById(self._suggestionDestinationElementId).value = suggestion;
         // hide suggestions box
-        self._hidden(document.getElementById(self.container + "-sparqlbar-suggestions"),true);
+        self._hidden(elss,true);
         
         // disable suggestions
         self._suggestionRdfTypeIri = null;
@@ -163,7 +165,7 @@ com.marklogic.widgets.sparqlbar.prototype.updateSuggestions = function(suggestio
         self._suggestionDestinationElementId = null;
       }
     };
-    for (var l = 0;l < links.length;l++) {
+    for (var l = 0, max = links.length;l < max;l++) {
       addClickHandler(document.getElementById(this.container + "-sparqlbar-suggestion-" + links[l].index),links[l].suggestion);
     }
   }
@@ -185,15 +187,16 @@ com.marklogic.widgets.sparqlbar.prototype.refresh = function() {
   //s += "      <option value='_facts'>All Facts</option>";
   //s += "      <option value='_graphs'>All Graphs</option>";
   var first = true;
-  for (var nom in this.semanticcontext.getConfiguration()._newentities) {
-    var ent = this.semanticcontext.getConfiguration()._newentities[nom];
+  var ents = this.semanticcontext.getConfiguration()._newentities;
+  for (var nom in ents) {
+    var ent = ents[nom];
     if (undefined != ent && "function" != typeof ent) { // fix for array function members
-      s += "    <option value='" + this.semanticcontext.getConfiguration()._newentities[nom].name + "'";
+      s += "    <option value='" + ent.name + "'";
       if (first) {
         s += " selected='selected'";
         first = false;
       }
-      s += ">" + this.semanticcontext.getConfiguration()._newentities[nom].title + "</option>";
+      s += ">" + ent.title + "</option>";
     }
   }
   s += "</select> which <span class='sparqlbar-add'>[<a class='sparqlbar-add-link' id='" + this.container + "-sparqlbar-add-link' href='#'>+</a>]</span></div>";
@@ -215,14 +218,17 @@ com.marklogic.widgets.sparqlbar.prototype.refresh = function() {
   
   // TODO add event handlers
   var self = this;
-  document.getElementById(this.container + "-sparqlbar-button").onclick = function() {
+  document.getElementById(this.container + "-sparqlbar-button").onclick = function(e) {
     self._doQuery();
+    e.stopPropagation();
     return false;
   }
   
   // + child handler
-  document.getElementById(this.container + "-sparqlbar-add-link").onclick = function() {
+  document.getElementById(this.container + "-sparqlbar-add-link").onclick = function(e) {
     self._addTerm();
+    e.stopPropagation();
+    return false;
   }
   
   // add first term
@@ -248,15 +254,16 @@ com.marklogic.widgets.sparqlbar.prototype._addTerm = function(parentid) {
   s += "<select class='sparqlbar-term-relatedtype' id='" + this.container + "-sparqlbar-term-relatedtype-" + tid + "'>";
   // generate related object options
   var first = true;
-  for (var nom in this.semanticcontext.getConfiguration()._newentities) {
-    var ent = this.semanticcontext.getConfiguration()._newentities[nom];
-    if (undefined != ent && "function" != typeof ent) { // fix for array function members
-      s += "<option value='" + this.semanticcontext.getConfiguration()._newentities[nom].name + "'";
+  var ents = this.semanticcontext.getConfiguration()._newentities
+  for (var nom in ents) {
+    var ent = ents[nom];
+    if (undefined != ent && "function" !== typeof ent) { // fix for array function members
+      s += "<option value='" + ent.name + "'";
       if (first) {
         s += " selected='selected'";
         first = false;
       }
-      s += ">" + this.semanticcontext.getConfiguration()._newentities[nom].title + "</option>";
+      s += ">" + ent.title + "</option>";
     }
   }
   s += " [+]</select> ";
@@ -337,11 +344,12 @@ com.marklogic.widgets.sparqlbar.prototype._suggest = function(tid) {
     mljs.defaultconnection.logger.debug("sparqlbar._suggest: predicateName: " + predicateName);
     
     var parentType = this._getParentType(tid);
+    var scfg = this.semanticcontext.getConfiguration();
     mljs.defaultconnection.logger.debug("sparqlbar._suggest: parentType: " + parentType);
-    var parentInfo = this.semanticcontext.getConfiguration().getEntityFromName(parentType);
+    var parentInfo = scfg.getEntityFromName(parentType);
     mljs.defaultconnection.logger.debug("sparqlbar._suggest: parentInfo: " + JSON.stringify(parentInfo));
     
-    var predicateInfo = this.semanticcontext.getConfiguration().getEntityProperty(parentInfo,predicateName);
+    var predicateInfo = scfg.getEntityProperty(parentInfo,predicateName);
     mljs.defaultconnection.logger.debug("sparqlbar._suggest: predicateInfo: " + JSON.stringify(predicateInfo));
     
     this._suggestionRdfTypeIri = parentInfo.rdfTypeIri;
@@ -402,12 +410,13 @@ com.marklogic.widgets.sparqlbar.prototype._updateRelationships = function(tid) {
   var me = document.getElementById(this.container + "-sparqlbar-term-relatedtype-" + tid).value;
   console.log("*** RELATING PARENT: " + parentType + " TO ME: " + me);
   var rels = this.semanticcontext.getConfiguration().getValidPredicates(parentType,me);
-  for (var i = 0; i < rels.length;i++) {
-    s += "<option value='" + rels[i] + "'";
+  for (var i = 0, max = rels.length, rel; i < max;i++) {
+    rel = rels[i];
+    s += "<option value='" + rel + "'";
     if (0 == i) {
       s += " selected='selected'";
     }
-    s += ">" + rels[i] + "</option>";
+    s += ">" + rel + "</option>";
   }
   
   document.getElementById(this.container + "-sparqlbar-term-relationship-" + tid).innerHTML = s;
@@ -424,12 +433,13 @@ com.marklogic.widgets.sparqlbar.prototype._updateProperties = function(tid) {
   
   var s = "";
   var props = parentInfo.properties; // this._config._properties[parentType];
-  for (var i = 0; i < props.length;i++) {
-    s += "<option value='" + props[i].name + "'";
+  for (var i = 0, max = props.length, propname; i < max;i++) {
+    propname = props[i].name;
+    s += "<option value='" + propname + "'";
     if (0 == i) {
       s += " selected='selected'";
     }
-    s += ">" + props[i].name + "</option>";
+    s += ">" + propname + "</option>";
   }
   
   document.getElementById(this.container + "-sparqlbar-term-properties-" + tid).innerHTML = s;
@@ -461,8 +471,8 @@ com.marklogic.widgets.sparqlbar.prototype._getParentPredicate = function(tid) {
 com.marklogic.widgets.sparqlbar.prototype._removeTerm = function(tid) {
   // find any children, and remove recursively
   var children = this._allterms[tid].children;
-  for (var c = 0;c < children.length;c++) {
-    this._removeTerm(children[c].tid);
+  for (var c = 0, max = children.length;c < max;c++) {
+    this._removeTerm(children[c].tid); // TODO replace with splice for performance?
   }
   
   // remove ourselves from our parent
@@ -470,11 +480,12 @@ com.marklogic.widgets.sparqlbar.prototype._removeTerm = function(tid) {
   if (undefined != parentid) {
     var newc = new Array();
     var childs = this._allterms[parentid].children;
-    for (var nc = 0;nc < childs.length;nc++) {
-      if (childs[nc].tid != tid) {
-        newc.push(childs[nc]);
+    for (var nc = 0, max = childs.length, child;nc < max;nc++) {
+      child = childs[nc];
+      if (child.tid != tid) {
+        newc.push(child);
       }
-      this._allterms[parentid].children = newc;
+      this._allterms[parentid].children = newc; // TODO replace with splice for performance?
     }
   }
   
@@ -490,6 +501,7 @@ com.marklogic.widgets.sparqlbar.prototype._removeTerm = function(tid) {
 };
 
 com.marklogic.widgets.sparqlbar.prototype._updateTerm = function(termid) {
+  // TODO improve performance of this by checking if new selected value is different from current selected value, returning immediately if they are the same
   var what = document.getElementById(this.container + "-sparqlbar-term-what-" + termid).value;
   if ("*" == what) {
     // refresh and show relationships
@@ -579,24 +591,25 @@ com.marklogic.widgets.sparqlbar.prototype._buildQuery = function() {
 
 com.marklogic.widgets.sparqlbar.prototype._buildTerms = function(what,termArray,padding,counterObject) {
   var s = "";
-  for (var i = 0;i < termArray.length;i++) {
-    var tjson = termArray[i];
+  var scfg = this.semanticcontext.getConfiguration();
+  for (var i = 0, max = termArray.length, tjson, twel, termWhat,termType,termRel,termPref,c,propentity,propname,propvalue,propinfo,termTypeObject;i < max;i++) {
+    tjson = termArray[i];
     // TODO support deleted terms (try catch)
-    var twel = document.getElementById(this.container + "-sparqlbar-term-what-" + tjson.tid);
+    twel = document.getElementById(this.container + "-sparqlbar-term-what-" + tjson.tid);
     if (undefined != twel) {
-      var termWhat = twel.value;
+      termWhat = twel.value;
       
       if ("*" == termWhat) {
-        var termType = document.getElementById(this.container + "-sparqlbar-term-relatedtype-" + tjson.tid).value;
-        var termRel = document.getElementById(this.container + "-sparqlbar-term-relationship-" + tjson.tid).value;
+        termType = document.getElementById(this.container + "-sparqlbar-term-relatedtype-" + tjson.tid).value;
+        termRel = document.getElementById(this.container + "-sparqlbar-term-relationship-" + tjson.tid).value;
         console.log("termType: " + termType + ", termRel: " + termRel);
         if (undefined != termRel) {
           //var termPred = this._config._predicatesShort[termRel];
-          var termPred = this.semanticcontext.getConfiguration().getPredicateFromName(termRel);
+          termPred = scfg.getPredicateFromName(termRel);
           if (undefined != termPred) {
-            var c = counterObject.tc++;
+            c = counterObject.tc++;
             s += padding + "    ?" + what + " <" + termPred.iri + "> ?" + termType + c + " .\n" ;
-            var termTypeObject = this.semanticcontext.getConfiguration().getEntityFromName(termType);
+            termTypeObject = scfg.getEntityFromName(termType);
             s += padding + "      ?" + termType + c + " rdfs:type <" + termTypeObject.rdfTypeIri + "> .\n";
             
             // TODO process child terms here
@@ -609,10 +622,10 @@ com.marklogic.widgets.sparqlbar.prototype._buildTerms = function(what,termArray,
         }
       } else {
         // TODO property (=)
-        var propentity = this.semanticcontext.getConfiguration().getEntityFromName(this._getParentType(tjson.tid));
-        var propname = document.getElementById(this.container + "-sparqlbar-term-properties-" + tjson.tid).value;
-        var propvalue = document.getElementById(this.container + "-sparqlbar-term-value-" + tjson.tid).value;
-        var propinfo = this.semanticcontext.getConfiguration().getEntityProperty(propentity,propname);
+        propentity = scfg.getEntityFromName(this._getParentType(tjson.tid));
+        propname = document.getElementById(this.container + "-sparqlbar-term-properties-" + tjson.tid).value;
+        propvalue = document.getElementById(this.container + "-sparqlbar-term-value-" + tjson.tid).value;
+        propinfo = scfg.getEntityProperty(propentity,propname);
         s += padding + "    ?" + what + " <" + propinfo.iri + "> '" + propvalue + "'@en .\n"; // TODO support I18N
       }
     }
@@ -686,7 +699,7 @@ com.marklogic.widgets.sparqlbar.prototype.removeErrorListener = function(lis) {
 com.marklogic.widgets.sparqlresults = function(container) {
   this.container = container;
   
-  this.semanticcontext = new mljs.defaultconnection.semanticcontext();
+  this.semanticcontext = new mljs.defaultconnection.semanticcontext(); // TODO lazy load this is setSemanticContext is never called (unlikely)
   
   this.errorPublisher = new com.marklogic.events.Publisher();
   
@@ -739,14 +752,16 @@ com.marklogic.widgets.sparqlresults.prototype._refresh = function() {
     
     // process results, showing common information where appropriate
       // title - get name eventually
-      for (var b = 0;b < this.results.results.bindings.length;b++) {
+      var bindings = this.results.results.bindings;
+      for (var b = 0,max = bindings.length, binding;b < max;b++) {
+        binding = this.results.results.bindings[b];
         s += "<div id='" + this.container + "-sparqlresults-result-" + b + "' class='sparqlresults";
         if (null != this._iriHandler) {
           s += " sparqlresults-navigable";
         }
         s += "'><h3>" + (b + 1) + ". ";
-        for (var et = 0;et < entities.length;et++) {
-          var entityValue = this.results.results.bindings[b][entities[et]];
+        for (var et = 0, maxent = entities.length, entityValue;et < maxent;et++) {
+          entityValue = binding[entities[et]];
           //s += entities[et] + " (" + entityValue.type + "): " + entityValue.value;
           s += "<span id='" + this.container + "-sparqlresults-result-" + b + "-summary'><i>Loading...</i></span>";
           irilinks.push({iri: entityValue.value, elid: this.container + "-sparqlresults-result-" + b + "-summary"});
@@ -764,9 +779,11 @@ com.marklogic.widgets.sparqlresults.prototype._refresh = function() {
   document.getElementById(this.container).innerHTML = s;
   
   // click handlers
-  for (var i = 0; i < irilinks.length;i++) {
-    var link = irilinks[i];
-    com.marklogic.widgets.semantichelper.summariseInto(this.semanticcontext.getConfiguration(),link.iri,link.elid,this._iriHandler);
+  var sh = com.marklogic.widgets.semantichelper;
+  var scfg = this.semanticcontext.getConfiguration();
+  for (var i = 0, max = irilinks.length,link; i < max;i++) {
+    link = irilinks[i];
+    sh.summariseInto(scfg,link.iri,link.elid,this._iriHandler);
   }
 };
 
@@ -820,7 +837,7 @@ com.marklogic.widgets.sparqlresults.prototype.removeErrorListener = function(fl)
 com.marklogic.widgets.entityfacts = function(container) {
   this.container = container;
   
-  this.semanticcontext = new mljs.defaultconnection.semanticcontext();
+  this.semanticcontext = new mljs.defaultconnection.semanticcontext(); // TODO lazy load if setSemanticContext not called
   
   this.loading = false;
   
@@ -856,7 +873,7 @@ com.marklogic.widgets.entityfacts.prototype.updateSubjectFacts = function(factsJ
     } else {
       // update name
       if (factsJson.predicate == "") {
-        
+        // TODO do something here
       }
     }
   }
@@ -890,16 +907,18 @@ com.marklogic.widgets.entityfacts.prototype._refresh = function() {
   }
   
   var irilinks = new Array();
+  var scfg = this.semanticcontext.getConfiguration();
   
   if (this.facts != null && this.facts != undefined) {
     // get type: http://www.w3.org/1999/02/22-rdf-syntax-ns#type
     var type = null;
-    for (var b = 0;(null == type) && (b < this.facts.facts.results.bindings.length);b++) {
-      var predicate = this.facts.facts.results.bindings[b].predicate;
+    for (var b = 0,bindings = this.facts.facts.results.bindings, max = bindings.length, predicate, object, binding;(null == type) && (b < max);b++) {
+      binding = bindings[b];
+      predicate = binding.predicate;
       if (undefined == predicate) {
         predicate = {value: this.facts.predicate};
       }
-      var object = this.facts.facts.results.bindings[b].object;
+      object = binding.object;
       
       if (predicate.value == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type") {
         type = object.value;
@@ -907,21 +926,22 @@ com.marklogic.widgets.entityfacts.prototype._refresh = function() {
     }
     mljs.defaultconnection.logger.debug("Got type: " + type);
     
-    var entityInfo = this.semanticcontext.getConfiguration().getEntityFromIRI(type);
+    var entityInfo = scfg.getEntityFromIRI(type);
     
     var entityName = entityInfo.name;
     mljs.defaultconnection.logger.debug("Got entity name: " + entityName);
     
     // get common name from config
-    var namepredicate = this.semanticcontext.getConfiguration().getNameProperty(entityName).iri;
+    var namepredicate = scfg.getNameProperty(entityName).iri;
     mljs.defaultconnection.logger.debug("Got name predicate: " + namepredicate);
     var namevalue = null;
-    for (var b = 0;(null == namevalue) && (b < this.facts.facts.results.bindings.length);b++) {
-      var predicate = this.facts.facts.results.bindings[b].predicate;
+    for (var b = 0,bindings = this.facts.facts.results.bindings, max = bindings.length, predicate, object, binding;(null == namevalue) && (b < max);b++) {
+      binding = bindings[b];
+      predicate = binding.predicate;
       if (undefined == predicate) {
         predicate = {value: this.facts.predicate};
       }
-      var object = this.facts.facts.results.bindings[b].object;
+      object = binding.object;
       
       if (predicate.value == namepredicate) {
         namevalue = object.value;
@@ -938,15 +958,16 @@ com.marklogic.widgets.entityfacts.prototype._refresh = function() {
     
     // TODO publish non IRIs first
     // TODO publish IRIs as links
-    for (var b = 0;(b < this.facts.facts.results.bindings.length);b++) {
-      var predicate = this.facts.facts.results.bindings[b].predicate;
+    for (var b = 0,bindings = this.facts.facts.results.bindings, max = bindings.length, predicate, obj, binding;(b < max);b++) {
+      binding = bindings[b];
+      predicate = binding.predicate;
       if (undefined == predicate) {
         predicate = {value: this.facts.predicate};
       }
-      var pinfo = this.semanticcontext.getConfiguration().getPredicateFromIRI(predicate.value);
-      var obj = this.facts.facts.results.bindings[b].object;
+      var pinfo = scfg.getPredicateFromIRI(predicate.value);
+      var obj = binding.object;
       mljs.defaultconnection.logger.debug("OUR OBJECT: " + JSON.stringify(obj));
-      mljs.defaultconnection.logger.debug("OUR BINDING: " + JSON.stringify(this.facts.facts.results.bindings[b]));
+      mljs.defaultconnection.logger.debug("OUR BINDING: " + JSON.stringify(binding));
       
       if (predicate.value != namepredicate && predicate.value != "http://www.w3.org/1999/02/22-rdf-syntax-ns#type") {
         s += "<p><b>" + pinfo.title + ":</b> ";
@@ -969,8 +990,9 @@ com.marklogic.widgets.entityfacts.prototype._refresh = function() {
   
   // event handlers and lazy loading
   // lazy load related entity summaries
-  for (var i = 0;i < irilinks.length ;i++) {
-    this._summariseInto(irilinks[i].iri,irilinks[i].elid);
+  for (var i = 0, max = irilinks.length,link;i < max ;i++) {
+    link = irilinks[i];
+    this._summariseInto(link.iri,link.elid);
   }
   
   if (null != this._contentWidget) {
