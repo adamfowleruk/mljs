@@ -105,8 +105,8 @@ com.marklogic.widgets.rdb2rdf.prototype._showStep2 = function() {
   mljs.defaultconnection.samListSchema(document.getElementById(this.container + "-schema").value,function(result) {
     var schemas = result.doc["list-schema"].schema;
     var s = "";
-    for (var i = 0, max = schema.length;i < max;i++) {
-      s += "<option value='" + schema[i] + "'>" + schema[i] + "</option>";
+    for (var i = 0, max = schemas.length;i < max;i++) {
+      s += "<option value='" + schemas[i] + "'>" + schemas[i] + "</option>";
     }
     document.getElementById(self.container + "-schema-select").innerHTML = s;
   });
