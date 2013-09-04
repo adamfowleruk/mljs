@@ -24,11 +24,15 @@ com.marklogic.widgets = window.com.marklogic.widgets || {};
 
 com.marklogic.widgets.semantichelper = {};
 
-com.marklogic.widgets.semantichelper.summariseInto = function(ctx,iri,elid,iriHandler) {
+com.marklogic.widgets.semantichelper.summariseInto = function(ctx,iri,type,elid,iriHandler) {
   mljs.defaultconnection.logger.debug("semantichelper.summariseInto: IRI: " + iri + ", elid: " + elid);
   var self = ctx;
   // load type IRI for entity
-  var ts = "SELECT ?rdftype WHERE {<" + iri + "> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?rdftype . } LIMIT 1";
+  var lookupIri = iri;
+  if (type == "bnode") {
+    lookupIri = "_:" + iri;
+  }
+  var ts = "SELECT ?rdftype WHERE {<" + lookupIri + "> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?rdftype . } LIMIT 1";
   mljs.defaultconnection.logger.debug("TS: " + ts);
   mljs.defaultconnection.sparql(ts,function(result) {
     if (result.inError) {
@@ -37,10 +41,10 @@ com.marklogic.widgets.semantichelper.summariseInto = function(ctx,iri,elid,iriHa
       var entityinfo = self.getEntityFromIRI(result.doc.results.bindings[0].rdftype.value); // TODO check for no rdftype
       var nameprop = self.getNameProperty(entityinfo.name).iri;
       if (undefined == nameprop) {
-        document.getElementById(elid).innerHTML = iri;
+        document.getElementById(elid).innerHTML = lookupIri;
       } else {
       // load common name for this type
-      var ns = "SELECT ?name WHERE {<" + iri + "> <" + nameprop  + "> ?name . } LIMIT 1";
+      var ns = "SELECT ?name WHERE {<" + lookupIri + "> <" + nameprop  + "> ?name . } LIMIT 1";
       mljs.defaultconnection.logger.debug("NS: " + ns);
       
       mljs.defaultconnection.sparql(ns,function(result2) {
@@ -71,7 +75,7 @@ com.marklogic.widgets.semantichelper.summariseInto = function(ctx,iri,elid,iriHa
               }
             }
             var el = document.getElementById(elid + "-link");
-            addClickHandler(el,iri);
+            addClickHandler(el,lookupIri);
           }
         } // end if element is defined
         } else {
@@ -130,6 +134,7 @@ com.marklogic.widgets.sparqlbar = function(container) {
 com.marklogic.widgets.sparqlbar.prototype.setSemanticContext = function(sc) {
   this.semanticcontext = sc;
   sc.primeSimpleSuggest(); // speeds up MarkLogic server's SPARQL processing on demo systems (i.e. ones that haven't been running long)
+  this.refresh(); // redraw - we assume the underlying config has changed, requiring a repaint
 };
 
 com.marklogic.widgets.sparqlbar.prototype.updateSuggestions = function(suggestions) {
@@ -764,7 +769,7 @@ com.marklogic.widgets.sparqlresults.prototype._refresh = function() {
           entityValue = binding[entities[et]];
           //s += entities[et] + " (" + entityValue.type + "): " + entityValue.value;
           s += "<span id='" + this.container + "-sparqlresults-result-" + b + "-summary'><i>Loading...</i></span>";
-          irilinks.push({iri: entityValue.value, elid: this.container + "-sparqlresults-result-" + b + "-summary"});
+          irilinks.push({iri: entityValue.value, type: binding[entities[et]].type, elid: this.container + "-sparqlresults-result-" + b + "-summary"});
         }
         s += "</h3></div>";
       }
@@ -783,7 +788,7 @@ com.marklogic.widgets.sparqlresults.prototype._refresh = function() {
   var scfg = this.semanticcontext.getConfiguration();
   for (var i = 0, max = irilinks.length,link; i < max;i++) {
     link = irilinks[i];
-    sh.summariseInto(scfg,link.iri,link.elid,this._iriHandler);
+    sh.summariseInto(scfg,link.iri,link.type,link.elid,this._iriHandler);
   }
 };
 

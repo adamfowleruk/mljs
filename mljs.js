@@ -2333,19 +2333,15 @@ mljs.prototype.samSchemaInfo = function(samurl,schema,callback) {
  * @param {JSON} config - The JSON configuration of the database segment to ingest
 {ingest: {
   database: {
-    samurl: "http://kojak.marklogic.com:8080/mlsam/samurl"
+    samurl: "http://kojak.demo.marklogic.com:8080/mlsam/mlsql",
+    schema: "test2"
   },
   create: {
     graph: "mynamedgraph"
   },
   selection: {
-    // Either:
-    mode: "schema", // Creates interdependencies between tables
-    tables: ["customers","policies","address"] // Other RD info required here
-    
-    // Or: 
     mode: "data",
-    tables: ["customers"], offset: 101, limit: 100
+    table: ["customers"], offset: 0, limit: 100, column: ["col1","col2"]
   }
 }
 }

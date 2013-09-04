@@ -35,6 +35,8 @@ Targets for 0.9 (Sep 2013)
   - IN PROGRESS Support ORDER BY
   - Use ?s ?p ?o ?g rather than longer ?subject ?predicate ?object ?graph, everywhere
  - Widgets: CSS: Add bootstrap.js support for Jochen
+ - Core: Search Options builder
+  - hidetriples() function to hide any docs under /triplestore/ (NOT any that define sem:triples)
  - Widgets: Highcharts
   - updateSubjectFacts support (extracting series from ?s ?p ?o and ?g in sparql results)
   - updateSparqlResults support (for any arbitrary named sparql binded variables, not just ?s, ?p, ?o and ?g) (pull back known predicates in semantic config by ?name)
@@ -86,7 +88,33 @@ Targets for 1.0 (Oct 2013)
   - NA Sparql 1.1 required - Allow less than / greater than rather than just equals, depending on property selected
  - Core: TripleConfig
   - Support loading of OWL / other ontologies to populate triple config object
+ - Core: Search Options builder - hide sem:triples elements from snippet highlighting
  - IN PROGRESS NodeJS: Node.js tests for all functionality now in core MLJS
+ - Docs: Video tutorials for all new functionality - Create a Semantic Application Series
+  - Intro to semantics in MarkLogic
+   - Manually load in some triple in N-triples format, and query this in QConsole and rest to show the ideas behind what we're doing
+    - Include a sprinkling of 'why do this with triples?' / 'why triples are cool!' type slides
+   - Do a query that you can't do in relational / document search alone -> Idea of context, defining the 'relationship' not just the presence of data
+  - Manually define a new triple (mention we'll suggest triples in the future) for a XHTML document
+   - Includes setting up your own ontology in the semanticcontext object
+   - Include 'automatically link root entity back to document' via documentcontext object (to be created)
+  - Add sparql query widget using same ontology
+   - Add entity facts and content linking search widget
+   - Add relationship visualisation widget
+  - Implying triples from document content 
+   - define a trigger to highlight key XML with known terms
+   - link these xml elements to the ontology via the suggestions widget
+  - Inferencing
+   - Start with a query for which you have the data, but which creating a sparql query is non trivial
+   - Use inferencing as a way to suggest triples that would make the query simpler
+   - Show the new query, and that the same answers are produced
+  - Sparql 1.1 in MarkLogic 7
+   - Show what parts of the spec are there, and which ones we're missing, but which ones *can* be provided with a little work
+   - Inferencing - we've shown, but should mention here
+   - aggregates (count, sum, avg, etc.)
+  - Other cool things we could do with MarkLogic
+   - Combine triple search with content search
+   - Alerting with triples (+drawbacks - document level, not triple level)
  - Tools: Windows batch file versions of developer required (non build related) bash scripts, including mljsme
   - mljsme
   - TEST ml.bat roxy deploy
@@ -100,6 +128,9 @@ Targets for 1.0 (Oct 2013)
   - DONE addTriplesListener to replace addResultsListener
   - DONE Core: rework searchcontext to handle triples listener
   - Core: mljs core to check /v1/sparql result for triple format type and place in result.tripleFormat (owl, n3, etc.)
+  
+Targets for 1.2 (Dec 2013)
+ - Core: Document context for editing/updating type widgets
  - Widgets: Document properties and view widget
  - Widgets: Navigable charts / co-occurence - clicking sets facet value
  - Widgets: Google maps (via OpenLayers?)
@@ -157,7 +188,7 @@ Floating as and when
   - Widgets: DLS add retention rule widget
   - DONE Widgets: DLS declare search results as record widget
  
-Targets for 1.2 (Dec 2013)
+Targets for 1.4 (Feb 2013)
  - Widgets: HTML content editing widget (new doc, and existing document with specified element (E.g. body, comments) and configuration for what is permissable as content)
  - Widgets: Situational awareness and search renderer app (from BF sim)
  - Widgets: Table - allow binding of JSON search results to jQuery table (for example)
@@ -169,7 +200,7 @@ Targets for 1.2 (Dec 2013)
  - Widgets: (multi) Upload progress bar
  - Test: prototype.js browser AJAX binding
  
-Targets for 1.4 (Feb 2014)
+Targets for 1.6 (Apr 2014)
  - Core: More support for server management (namespaces, indexes, service extensions, update REST instance configuration, XSLT transform management)
  - Widgets: Administration widgets (mainly aimed at pre-sales developers, not sysadmins)
  - Core: CSV and TSV utilities
