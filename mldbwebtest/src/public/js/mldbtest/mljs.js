@@ -4540,7 +4540,17 @@ mljs.prototype.semanticcontext.prototype.getFacts = function(subjectIri,reload_o
   var self = this;
   var facts = this._subjectFacts[subjectIri];
   if ((true==reload_opt) || undefined == facts) { 
-    var sparql = "SELECT * WHERE {<" + subjectIri + "> ?predicate ?object .}";
+    var sparql = "SELECT * WHERE {";
+    
+    // check for bnodes
+    if (!(subjectIri.indexOf("_:") == 0)) {
+      sparql += "<";
+    }
+    sparql += subjectIri;
+    if (!(subjectIri.indexOf("_:") == 0)) {
+      sparql += ">";
+    }
+    sparql += " ?predicate ?object .}";
   
     // fetch info and refresh again
     mljs.defaultconnection.sparql(sparql,function(result) {

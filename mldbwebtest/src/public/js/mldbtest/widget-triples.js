@@ -29,10 +29,21 @@ com.marklogic.widgets.semantichelper.summariseInto = function(ctx,iri,type,elid,
   var self = ctx;
   // load type IRI for entity
   var lookupIri = iri;
+  var useSubjectAngle = true;
   if (type == "bnode") {
     lookupIri = "_:" + iri;
+    useSubjectAngle = false;
   }
-  var ts = "SELECT ?rdftype WHERE {<" + lookupIri + "> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?rdftype . } LIMIT 1";
+  
+  var ts = "SELECT ?rdftype WHERE {";
+  if (useSubjectAngle) {
+    ts += "<";
+  }
+  ts += lookupIri;
+  if (useSubjectAngle) {
+    ts += ">";
+  }
+  ts += " <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?rdftype . } LIMIT 1";
   mljs.defaultconnection.logger.debug("TS: " + ts);
   mljs.defaultconnection.sparql(ts,function(result) {
     if (result.inError) {
@@ -44,7 +55,15 @@ com.marklogic.widgets.semantichelper.summariseInto = function(ctx,iri,type,elid,
         document.getElementById(elid).innerHTML = lookupIri;
       } else {
       // load common name for this type
-      var ns = "SELECT ?name WHERE {<" + lookupIri + "> <" + nameprop  + "> ?name . } LIMIT 1";
+      var ns = "SELECT ?name WHERE {";
+  if (useSubjectAngle) {
+    ns += "<";
+  }
+  ns += lookupIri;
+  if (useSubjectAngle) {
+    bs += ">";
+  }
+  ns += " <" + nameprop  + "> ?name . } LIMIT 1";
       mljs.defaultconnection.logger.debug("NS: " + ns);
       
       mljs.defaultconnection.sparql(ns,function(result2) {
