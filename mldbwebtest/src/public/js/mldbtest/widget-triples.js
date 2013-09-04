@@ -61,7 +61,7 @@ com.marklogic.widgets.semantichelper.summariseInto = function(ctx,iri,type,elid,
   }
   ns += lookupIri;
   if (useSubjectAngle) {
-    bs += ">";
+    ns += ">";
   }
   ns += " <" + nameprop  + "> ?name . } LIMIT 1";
       mljs.defaultconnection.logger.debug("NS: " + ns);
