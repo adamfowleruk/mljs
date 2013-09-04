@@ -3806,7 +3806,7 @@ mljs.prototype.searchcontext.prototype.dosimplequery = function(q,start) {
 };
 
 mljs.prototype.searchcontext.prototype._persistAndDo = function(callback) {
-  
+  var self = this;
   if ("persist" == this.optionssavemode) {
     //self.db.searchoptions(this.optionsName,function(result) {
       //self.db.logger.debug("RESULT: " + JSON.stringify(result.doc));
