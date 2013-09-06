@@ -322,7 +322,7 @@ com.marklogic.widgets.sparqlbar.prototype._addTerm = function(parentid) {
   s += "<div id='" + this.container + "-sparqlbar-term-" + tid + "-children' class='sparqlbar-term'></div>";
   s += "</div>";
   
-  console.log("Adding html: " + s);
+  //console.log("Adding html: " + s);
   
   if (undefined == parentid) {
     document.getElementById(this.container + "-sparqlbar-terms").innerHTML += s;
@@ -442,7 +442,7 @@ com.marklogic.widgets.sparqlbar.prototype._updateRelationships = function(tid) {
   
   var s = "";
   var me = document.getElementById(this.container + "-sparqlbar-term-relatedtype-" + tid).value;
-  console.log("*** RELATING PARENT: " + parentType + " TO ME: " + me);
+  //console.log("*** RELATING PARENT: " + parentType + " TO ME: " + me);
   var rels = this.semanticcontext.getConfiguration().getValidPredicates(parentType,me);
   for (var i = 0, max = rels.length, rel; i < max;i++) {
     rel = rels[i];
@@ -636,7 +636,7 @@ com.marklogic.widgets.sparqlbar.prototype._buildTerms = function(what,termArray,
       if ("*" == termWhat) {
         termType = document.getElementById(this.container + "-sparqlbar-term-relatedtype-" + tjson.tid).value;
         termRel = document.getElementById(this.container + "-sparqlbar-term-relationship-" + tjson.tid).value;
-        console.log("termType: " + termType + ", termRel: " + termRel);
+        //console.log("termType: " + termType + ", termRel: " + termRel);
         if (undefined != termRel) {
           //var termPred = this._config._predicatesShort[termRel];
           termPred = scfg.getPredicateFromName(termRel);

@@ -233,20 +233,20 @@ function xmlToJsonSearchResults(xml) {
     // check if parent name is 'result'. If so, return content json object with encoded string of all child nodes
     var isResultContent = false;
     if (null != xml.parentNode) {
-      console.log("parentNode is not null");
+      //console.log("parentNode is not null");
       var ourName = xml.parentNode.nodeName;
       var pos = ourName.indexOf(":");
       if (-1 != pos) {
         ourName = ourName.substring(pos + 1);
       }
-      console.log("ourName: " + ourName);
+      //console.log("ourName: " + ourName);
       if ("result"==ourName) {
         isResultContent = true;
       }
     }
       
     if (isResultContent) {
-        console.log("GOT RESULT");
+        //console.log("GOT RESULT");
         /*
         var s = "";
         for (var i = 0; i < xml.childNodes.length; i++) {
@@ -3806,7 +3806,7 @@ mljs.prototype.searchcontext.prototype.dosimplequery = function(q,start) {
 };
 
 mljs.prototype.searchcontext.prototype._persistAndDo = function(callback) {
-  var self = this;
+  
   if ("persist" == this.optionssavemode) {
     //self.db.searchoptions(this.optionsName,function(result) {
       //self.db.logger.debug("RESULT: " + JSON.stringify(result.doc));
@@ -4086,8 +4086,10 @@ com.marklogic.semantic.tripleconfig.prototype.addMappings = function(mapname,ent
     this.validTriples.push(validTriplesArray[i]);
   }
   for (var predname in namedPredicateArray) {
-    if ("object" == typeof this._newPredicates[predname]) {
-      this._newPredicates[predname] = namedPredicateArray;
+    //console.log("PREDNAME: " + predname);
+    if ("object" == typeof namedPredicateArray[predname]) { // check this is a JSON object, not a function
+      //console.log("ADDING PREDNAME: " + predname);
+      this._newPredicates[predname] = namedPredicateArray[predname];
     }
   }
 };
@@ -4257,9 +4259,13 @@ com.marklogic.semantic.tripleconfig.prototype.getNameProperty = function(entity)
       return this._newentities[entity].properties[i];
     }
   }
+  mljs.defaultconnection.logger.debug("getNameProperty: RETURNING NULL for entity: " + entity);
   return null;
 };
 
+/**
+ * Fetch entity info for top level entities (not properties of entities)
+ */
 com.marklogic.semantic.tripleconfig.prototype.getEntityFromIRI = function(iri) {
   for (var cn in this._newentities) {
     var p = this._newentities[cn];
@@ -4315,11 +4321,13 @@ com.marklogic.semantic.tripleconfig.prototype.getPredicateFromName = function(na
 };
 
 com.marklogic.semantic.tripleconfig.prototype.getEntityProperty = function(entity, name) {
+  mljs.defaultconnection.logger.debug("getEntityProperty: " + name + " from entity: " + entity);
   for (var i = 0;i < entity.properties.length;i++) {
     if (name == entity.properties[i].name) {
       return entity.properties[i];
     }
   }
+  mljs.defaultconnection.logger.debug("getEntityProperty: RETURNING NULL for " + name + " from entity: " + entity);
   return null;
 };
 
