@@ -177,7 +177,7 @@ com.marklogic.widgets.rdb2rdf.prototype._refresh = function() {
 //------ content for step 4  
 //Perform the import sequence, table by table, 100 rows at a time, showing a progress bar widget, or even better a list where green ticks appear when each step is done. NB steps must be done in order  
   s += "<div id='" + this.container + "-step-4' class='hidden col-md-9 col-md-offset-1'>"; // list and select schema to import
-  s += "  <p class='lead row'>Processing the import ...</p>";
+  s += "  <p class='lead row' id='import-status'>Processing the import ...</p>";
 
   s += " <form role='form'>";
   s += "   <div class='row'>";
@@ -192,7 +192,7 @@ com.marklogic.widgets.rdb2rdf.prototype._refresh = function() {
   s += "   <div class='form-group row'>";
   s += "     <div class='row'>";   
   s += "       <div class='col-md-4'>";
-  s += "         <button type='submit' id='" + this.container + "-step-2-next' class='btn btn-primary'>Close</button>";
+  s += "         <a href='/' id='wizard-close-button' class='btn btn-primary'>Close</button>";
   s += "       </div>";
   s += "     </div>";  
   s += "   </div>";
@@ -302,64 +302,94 @@ com.marklogic.widgets.rdb2rdf.prototype._showStep3 = function() {
   
 };
 
+
+com.marklogic.widgets.rdb2rdf.prototype._rdb2RdfDummy = function(tableName, callback) {
+  console.log("fake import table:" + tableName );
+  //$.delay(2000);
+  console.log('fififi');
+  callback();
+	
+};
+
+
+
 com.marklogic.widgets.rdb2rdf.prototype._showStep4 = function() {
   com.marklogic.widgets.hide(document.getElementById(this.container + "-step-1"),true);
   com.marklogic.widgets.hide(document.getElementById(this.container + "-step-2"),true);
   com.marklogic.widgets.hide(document.getElementById(this.container + "-step-3"),true);
   com.marklogic.widgets.hide(document.getElementById(this.container + "-step-4"),false);
   
+  var self = this;
+  
+  
+  
+  
   var graphName = $("#" + this.container + "-named-graph").val();
   var samUrl = $("#" + this.container + "-mlsam").val();
-  var tableNameList = [];
-  var ulElemSelector = "#" + this.container + "-schema-import-tables";
-  var selectId = this.container + "-table-select";  
-  $("#" + selectId + " option").each(function() {
-	  tableNameList.push($(this).val());
-	  $(ulElemSelector).append("<li id='" + $(this).val() + "' class='list-group-item'>" + $(this).val() + "</li>");
-  });
-  console.log(tableNameList);
-  console.log(graphName);
-  console.log(samUrl);
-   
+  var schemaName = $("#" + this.container + "-schema-select").val();
+  
+  
   var config =   
   {
     "ingest": {
 	  "database": {
-	    "samurl": samUrl
+	    "samurl": samUrl,
+	    "schema": schemaName
 	  },
 	  "create": {
 	    "graph": graphName
 	  },
 	  "selection": {
 	    "mode": "data", // Creates interdependencies between tables
-	    "tables": tableNameList, offset: 1, limit: 100
+	    "table": [], 
+	    offset: 0, 
+	    limit: 3000
 	  }
 	}
-  };  
+  }; 
   
-  /*
-    var saveCount = 0;
-    var nextSave0 = function() {
-      if (saveCount == alloptions.length) {
+  var tableNameList = [];
+  var ulElemSelector = "#" + this.container + "-schema-import-tables";
+  var selectId = this.container + "-table-select";  
+  $("#" + selectId + " option").each(function(index) {
+	  tableNameList.push($(this).val());
+	  spanElem = "<span id='import-checker-' class='pull-right glyphicon glyphicon-ok import-checker'>&nbsp;</span>";
+	  $(ulElemSelector).append("<li id='input-checker-" + index + "' class='list-group-item'>" + $(this).val() + spanElem + "</li>");
+  });
+  console.log(tableNameList);
+  console.log(graphName);
+  console.log(samUrl);
+
+  var saveCount = 0;
+  
+  var complete0 = function() {
+      console.log("- Done.");
+      $("#import-status").html("<span id='import-completed'>Import completed!</span>");
+      $("#wizard-close-button").show(); 
+      
+  };
+  
+  
+  var nextSave0 = function() {
+	  console.log("value of saveCount:" + saveCount);
+      if (saveCount == tableNameList.length) {
         complete0();
       } else {
-        db.saveSearchOptions(alloptions[saveCount],alloptions[saveCount + 1], function(result) { // REPLACE WITH CALL TO RDB2RDF
-          saveCount+=2;
+        //self._rdb2RdfDummy(tableNameList[saveCount], function(result) {           
+          config.ingest.selection.table = [tableNameList[saveCount]];
+          console.log(config);
+    	  mljs.defaultconnection.samRdb2Rdf(config,function(result){
+    	  $("#input-checker-" + saveCount + " span").show();
+          saveCount+=1;
           nextSave0();
         });
       }
-    };
+  };
   
-    var complete0 = function() {
-      log("- Done.");
-      // SHOW 'FINISHED' HERE
-    };
-   */
   
-	  
-	  
-	  
-  // TODO step 4 display actions
+  nextSave0();
+  
+  
 };
 
 
