@@ -256,20 +256,26 @@ com.marklogic.widgets.sparqlbar.prototype.refresh = function() {
   s += "</div></div>";
   document.getElementById(this.container).innerHTML = s;
   
-  // TODO add event handlers
+  // add event handlers
   var self = this;
   document.getElementById(this.container + "-sparqlbar-button").onclick = function(e) {
     self._doQuery();
     e.stopPropagation();
     return false;
-  }
+  };
   
   // + child handler
   document.getElementById(this.container + "-sparqlbar-add-link").onclick = function(e) {
     self._addTerm();
     e.stopPropagation();
     return false;
-  }
+  };
+  
+  document.getElementById(this.container + "-sparqlbar-what").onchange = function(e) {
+    for (var i = 0;i < self._allterms.length;i++) {
+      self._updateTerm(self._allterms[i].tid);
+    }
+  };
   
   // add first term
   this._addTerm();
@@ -628,28 +634,42 @@ com.marklogic.widgets.sparqlbar.prototype._updateTerm = function(termid) {
 };
 
 com.marklogic.widgets.sparqlbar.prototype._refreshOperation = function(termid) {
+    
+    mljs.defaultconnection.logger.debug("refreshOperation: termid: " + termid);
     // lookup type to determine which operations to show, if any at all
-    var propvalue = document.getElementById(this.container + "-sparqlbar-term-prop-" + termid).value;
+    var propvalue = document.getElementById(this.container + "-sparqlbar-term-properties-" + termid).value;
+    
+    mljs.defaultconnection.logger.debug("refreshOperation: propvalue: " + propvalue);
     var parentid = this._parentterms[termid];
-    var parententityname = document.getElementById(this.container + "-sparqlbar-term-what-" + parentid).value;
+    var parententityname = "";
+    if (undefined == parentid) {
+      // get root top
+      parententityname = document.getElementById(this.container + "-sparqlbar-what").value;
+    } else {
+      parententityname = document.getElementById(this.container + "-sparqlbar-term-what-" + parentid).value;
+    }
+    
+    mljs.defaultconnection.logger.debug("Property Info: propvalue: " + propvalue + ", parentid: " + parentid + ", parententityname: " + parententityname);
     
     var scfg = this.semanticcontext.getConfiguration();
     
     // lookup predicate for property
-    var predinfo = scfg.getEntityPropertyByName(parententityname,propvalue);
+    var entity = scfg.getEntityFromName(parententityname);
+    mljs.defaultconnection.logger.debug("Property Info: entity: " + JSON.stringify(entity));
+    var predinfo = scfg.getEntityProperty(entity,propvalue);
     
-    this.semanticcontext.db.logger.debug("Property Info: propvalue: " + propvalue + ", parentid: " + parentid + ", parententityname: " + parententityname + ", predinfo: " + JSON.stringify(predinfo));
+    mljs.defaultconnection.logger.debug("Property Info: predinfo: " + JSON.stringify(predinfo));
     
     if (undefined == predinfo.type) {
       var val = document.getElementById(this.container + "-sparqlbar-term-eq-" + termid);
       this._hidden(val,false);
-      var val = document.getElementById(this.container + "-sparqlbar-term-oper-" + termid);
+      val = document.getElementById(this.container + "-sparqlbar-term-oper-" + termid);
       this._hidden(val,true);
     } else {
       // TODO support things other than just integer types
       var val = document.getElementById(this.container + "-sparqlbar-term-eq-" + termid);
       this._hidden(val,true);
-      var val = document.getElementById(this.container + "-sparqlbar-term-oper-" + termid);
+      val = document.getElementById(this.container + "-sparqlbar-term-oper-" + termid);
       this._hidden(val,false);
     }
   
