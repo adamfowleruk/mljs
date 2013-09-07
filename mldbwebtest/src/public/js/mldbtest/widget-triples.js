@@ -27,6 +27,7 @@ com.marklogic.widgets.semantichelper = {};
 com.marklogic.widgets.semantichelper.summariseInto = function(ctx,iri,type,elid,iriHandler) {
   mljs.defaultconnection.logger.debug("semantichelper.summariseInto: IRI: " + iri + ", elid: " + elid + ", ctx: " + ctx + ", type: " + type + ", iriHandler: " + iriHandler);
   
+          
   // load type IRI for entity
   var lookupIri = iri;
   var useSubjectAngle = true;
@@ -48,6 +49,7 @@ com.marklogic.widgets.semantichelper.summariseInto = function(ctx,iri,type,elid,
   mljs.defaultconnection.sparql(ts,function(result) {
     if (result.inError) {
       // TODO publish error
+      document.getElementById(elid).innerHTML = lookupIri;
     } else {
       mljs.defaultconnection.logger.debug("semantichelper.summariseInto: TYPERESPONSE: " + JSON.stringify(result.doc));
       var firstbinding = result.doc.results.bindings[0];
@@ -76,6 +78,7 @@ com.marklogic.widgets.semantichelper.summariseInto = function(ctx,iri,type,elid,
           mljs.defaultconnection.sparql(ns,function(result2) {
             if (result2.inError) {
               // TODO publish error
+              document.getElementById(elid).innerHTML = lookupIri;
             } else {
               if (undefined != result2.doc.results && undefined != result2.doc.results.bindings && result2.doc.results.bindings.length > 0) {
                 var el = document.getElementById(elid);
@@ -103,10 +106,13 @@ com.marklogic.widgets.semantichelper.summariseInto = function(ctx,iri,type,elid,
                     var el = document.getElementById(elid + "-link");
                     addClickHandler(el,lookupIri);
                   }
-                } // end if element is defined
+                } else {
+                  document.getElementById(elid).innerHTML = lookupIri;
+                }
               } else {
                 mljs.defaultconnection.logger.debug("This query returns no bindings (results): " + ts);
                 mljs.defaultconnection.logger.debug("Result instead: " + JSON.stringify(result2.doc));
+                document.getElementById(elid).innerHTML = lookupIri;
               } // end if bindings undefined / empty
             }
           });

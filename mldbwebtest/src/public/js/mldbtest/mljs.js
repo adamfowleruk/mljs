@@ -4415,6 +4415,7 @@ mljs.prototype.semanticcontext = function() {
   this._subjectResultsPublisher = new com.marklogic.events.Publisher();
   this._subjectFactsPublisher = new com.marklogic.events.Publisher();
   this._suggestionsPublisher = new com.marklogic.events.Publisher();
+  this._factsPublisher = new com.marklogic.events.Publisher(); // publish facts that can be associated to many subjects - normally for pulling back a result per subject, with many facts per 'row'
   this._errorPublisher = new com.marklogic.events.Publisher();
 };
 
@@ -4457,6 +4458,9 @@ mljs.prototype.semanticcontext.prototype.register = function(obj) {
   }
   if (undefined != obj.updateSubjectFacts) {
     this._subjectFactsPublisher.subscribe(function(facts) {obj.updateSubjectFacts(facts)});
+  }
+  if (undefined != obj.updateFacts) {
+    this._factsPublisher.subscribe(function(facts) {obj.updateFacts(facts)});
   }
   if (undefined != obj.updateSuggestions) {
     this._suggestionsPublisher.subscribe(function(suggestions) {obj.updateSuggestions(suggestions)});
@@ -4677,4 +4681,18 @@ mljs.prototype.semanticcontext.prototype.simpleSuggest = function(rdfTypeIri,pre
       self._suggestionsPublisher.publish({rdfTypeIri: rdfTypeIri, predicate: predicateIri, suggestions: result.doc});
     }
   }); 
+};
+
+// now for generic triple search results
+mljs.prototype.semanticcontext.prototype.queryFacts = function(sparql) {
+  var self = this;
+  this.db.sparql(sparql,function(result) {
+    mljs.defaultconnection.logger.debug("semanticcontext: _queryFacts: RESPONSE: " + JSON.stringify(result.doc));
+    if (result.inError) {
+      self._errorPublisher.publish(result.error);
+    } else {
+      // pass facts on to listeners
+      self._factsPublisher.publish(result.doc);
+    }
+  });
 };
