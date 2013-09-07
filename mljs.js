@@ -4686,7 +4686,7 @@ mljs.prototype.semanticcontext.prototype.simpleSuggest = function(rdfTypeIri,pre
 // now for generic triple search results
 mljs.prototype.semanticcontext.prototype.queryFacts = function(sparql) {
   var self = this;
-  this.db.sparql(sparql,function(result) {
+  mljs.defaultconnection.sparql(sparql,function(result) {
     mljs.defaultconnection.logger.debug("semanticcontext: _queryFacts: RESPONSE: " + JSON.stringify(result.doc));
     if (result.inError) {
       self._errorPublisher.publish(result.error);

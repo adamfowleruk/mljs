@@ -306,7 +306,6 @@ com.marklogic.widgets.rdb2rdf.prototype._showStep3 = function() {
 com.marklogic.widgets.rdb2rdf.prototype._rdb2RdfDummy = function(tableName, callback) {
   console.log("fake import table:" + tableName );
   //$.delay(2000);
-  console.log('fififi');
   callback();
 	
 };
@@ -365,6 +364,7 @@ com.marklogic.widgets.rdb2rdf.prototype._showStep4 = function() {
   var complete0 = function() {
       console.log("- Done.");
       $("#import-status").html("<span id='import-completed'>Import completed!</span>");
+      self._highlightTab(self.container + "-complete");
       $("#wizard-close-button").show(); 
       
   };
