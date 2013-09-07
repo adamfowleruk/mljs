@@ -212,7 +212,9 @@ com.marklogic.widgets.sparqlbar.prototype.updateSuggestions = function(suggestio
       addClickHandler(document.getElementById(this.container + "-sparqlbar-suggestion-" + links[l].index),links[l].suggestion);
     }
     
-    document.getElementById(this.container + "-sparqlbar-nosuggestion").onclick = function(e) {
+    var nosug = document.getElementById(this.container + "-sparqlbar-nosuggestion");
+    if (null != nosug) {
+      nosug.onclick = function(e) {
         self._hidden(elss,true);
         
         // disable suggestions
@@ -222,7 +224,8 @@ com.marklogic.widgets.sparqlbar.prototype.updateSuggestions = function(suggestio
         
         e.stopPropagation();
         return false;
-    };
+      };
+    }
     
   }
 };

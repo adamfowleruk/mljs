@@ -452,7 +452,7 @@ com.marklogic.widgets.bits.base = function(newbase) {
  * @param {string} elid - The element for this widget's top level container
  */
 com.marklogic.widgets.bits.loading = function(elid) {
-  var s = "<img id='" + elid + "' class='bits-loading' src='" + com.marklogic.widgets.bits._base + "/mljs/loading.png' alt='Loading...' title='Loading...' /> Loading...";
+  var s = "<img id='" + elid + "' class='bits-loading' src='" + com.marklogic.widgets.bits._base + "/loading.gif' style='width: 30px; height: 30px;' alt='Loading...' title='Loading...' />";
   
   return s;
 };
