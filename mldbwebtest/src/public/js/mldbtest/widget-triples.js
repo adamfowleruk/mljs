@@ -187,7 +187,7 @@ com.marklogic.widgets.sparqlbar.prototype.updateSuggestions = function(suggestio
       s += "<p class='sparqlbar-suggestion' id='" + this.container + "-sparqlbar-suggestion-" + b + "'>" + link.suggestion + "</p>";
     }
     if ("" == s) {
-      s = "<i>No Suggestions</i>";
+      s = "<i id='" + this.container + "-sparqlbar-nosuggestion'>No Suggestions</i>";
     }
     elss.innerHTML = s;
     
@@ -203,11 +203,27 @@ com.marklogic.widgets.sparqlbar.prototype.updateSuggestions = function(suggestio
         self._suggestionRdfTypeIri = null;
         self._suggestionPredicateIri = null;
         self._suggestionDestinationElementId = null;
+        
+        e.stopPropagation();
+        return false;
       }
     };
     for (var l = 0, max = links.length;l < max;l++) {
       addClickHandler(document.getElementById(this.container + "-sparqlbar-suggestion-" + links[l].index),links[l].suggestion);
     }
+    
+    document.getElementById(this.container + "-sparqlbar-nosuggestion").onclick = function(e) {
+        self._hidden(elss,true);
+        
+        // disable suggestions
+        self._suggestionRdfTypeIri = null;
+        self._suggestionPredicateIri = null;
+        self._suggestionDestinationElementId = null;
+        
+        e.stopPropagation();
+        return false;
+    };
+    
   }
 };
 
@@ -239,7 +255,7 @@ com.marklogic.widgets.sparqlbar.prototype.refresh = function() {
       s += ">" + ent.title + "</option>";
     }
   }
-  s += "</select> which <span class='sparqlbar-add'>[<a class='sparqlbar-add-link' id='" + this.container + "-sparqlbar-add-link' href='#'>+</a>]</span></div>";
+  s += "</select> which <span class='sparqlbar-add'>[<a class='sparqlbar-add-link' id='" + this.container + "-sparqlbar-add-link' href='#'>+ Child</a>]</span></div>";
   
   // criteria
   //  - predicate list
@@ -371,9 +387,23 @@ com.marklogic.widgets.sparqlbar.prototype._addTerm = function(parentid) {
   //console.log("Adding html: " + s);
   
   if (undefined == parentid) {
-    document.getElementById(this.container + "-sparqlbar-terms").innerHTML += s;
+    // WRONG - destroys children - document.getElementById(this.container + "-sparqlbar-terms").innerHTML += s;
+    var newcontent = document.createElement('div');
+    newcontent.innerHTML = s;
+
+    var mydiv = document.getElementById(this.container + "-sparqlbar-terms");
+    while (newcontent.firstChild) {
+        mydiv.appendChild(newcontent.firstChild);
+    }
   } else {
-    document.getElementById(this.container + "-sparqlbar-term-" + parentid + "-children").innerHTML += s;
+    //WRONG destroys children - document.getElementById(this.container + "-sparqlbar-term-" + parentid + "-children").innerHTML += s;
+    var newcontent = document.createElement('div');
+    newcontent.innerHTML = s;
+
+    var mydiv = document.getElementById(this.container + "-sparqlbar-term-" + parentid + "-children");
+    while (newcontent.firstChild) {
+        mydiv.appendChild(newcontent.firstChild);
+    }
   }
   
   this._updateRelationships(tid);
@@ -411,7 +441,7 @@ com.marklogic.widgets.sparqlbar.prototype._addTerm = function(parentid) {
 };
 
 com.marklogic.widgets.sparqlbar.prototype._suggest = function(tid) {
-  mljs.defaultconnection.logger.debug("sparqlbar._suggest");
+  mljs.defaultconnection.logger.debug("sparqlbar._suggest: tid: " + tid);
   
   var el = document.getElementById(this.container + "-sparqlbar-term-value-" + tid);
   
@@ -450,6 +480,15 @@ com.marklogic.widgets.sparqlbar.prototype._suggest = function(tid) {
     suggestel.setAttribute("style","left: " + el.offsetLeft + "px; top: " + (el.offsetTop + el.offsetHeight) + "px;");
     suggestel.innerHTML = "<i>Loading suggestions...</i>";
     
+    // add onblur event, if not already defined
+    if (undefined == el.onblur) {
+      var self = this;
+      el.onblur = function(e) {
+        self._hidden(suggestel,true);
+        el.onblur = undefined;
+      };
+    }
+    
     // remove hidden class
     this._hidden(suggestel,false);
       
@@ -485,13 +524,18 @@ com.marklogic.widgets.sparqlbar.prototype._hidden = function(el,isHidden) {
   }
 };
 
+com.marklogic.widgets.sparqlbar.prototype._getRootType = function() {
+  return document.getElementById(this.container + "-sparqlbar-what").value;
+};
+
 com.marklogic.widgets.sparqlbar.prototype._updateRelationships = function(tid) {
+  mljs.defaultconnection.logger.debug("_updateRelationships: tid: " + tid);
   // get from and to and determine valid set of relationship classes
   var parentType = this._getParentType(tid);
   
   var s = "";
   var me = document.getElementById(this.container + "-sparqlbar-term-relatedtype-" + tid).value;
-  //console.log("*** RELATING PARENT: " + parentType + " TO ME: " + me);
+  mljs.defaultconnection.logger.debug("_updateRelationships: RELATING PARENT: " + parentType + " TO ME: " + me);
   var rels = this.semanticcontext.getConfiguration().getValidPredicates(parentType,me);
   for (var i = 0, max = rels.length, rel; i < max;i++) {
     rel = rels[i];
@@ -506,6 +550,7 @@ com.marklogic.widgets.sparqlbar.prototype._updateRelationships = function(tid) {
 };
 
 com.marklogic.widgets.sparqlbar.prototype._updateProperties = function(tid) {
+  mljs.defaultconnection.logger.debug("_updateProperties: tid: " + tid);
   // get from and to and determine valid set of properties
   var parentType = this._getParentType(tid);
   if (parentType.indexOf("_") == 0) {
@@ -513,6 +558,7 @@ com.marklogic.widgets.sparqlbar.prototype._updateProperties = function(tid) {
     return;
   }
   var parentInfo = this.semanticcontext.getConfiguration().getEntityFromName(parentType);
+  mljs.defaultconnection.logger.debug("_updateProperties: from PARENT: " + parentType);
   
   var s = "";
   var props = parentInfo.properties; // this._config._properties[parentType];
@@ -552,6 +598,8 @@ com.marklogic.widgets.sparqlbar.prototype._getParentPredicate = function(tid) {
 };
 
 com.marklogic.widgets.sparqlbar.prototype._removeTerm = function(tid) {
+  mljs.defaultconnection.logger.debug("_removeTerm: tid: " + tid);
+  
   // find any children, and remove recursively
   var children = this._allterms[tid].children;
   for (var c = 0, max = children.length;c < max;c++) {
@@ -646,7 +694,7 @@ com.marklogic.widgets.sparqlbar.prototype._refreshOperation = function(termid) {
       // get root top
       parententityname = document.getElementById(this.container + "-sparqlbar-what").value;
     } else {
-      parententityname = document.getElementById(this.container + "-sparqlbar-term-what-" + parentid).value;
+      parententityname = document.getElementById(this.container + "-sparqlbar-term-relatedtype-" + parentid).value;
     }
     
     mljs.defaultconnection.logger.debug("Property Info: propvalue: " + propvalue + ", parentid: " + parentid + ", parententityname: " + parententityname);
@@ -758,18 +806,43 @@ com.marklogic.widgets.sparqlbar.prototype._buildTerms = function(what,termArray,
         propname = document.getElementById(this.container + "-sparqlbar-term-properties-" + tjson.tid).value;
         propvalue = document.getElementById(this.container + "-sparqlbar-term-value-" + tjson.tid).value;
         propinfo = scfg.getEntityProperty(propentity,propname);
-        s += padding + "    ?" + what + " <" + propinfo.iri + "> \"" + propvalue + "\"";
-        var proptype = "xs:string";
-        if (undefined != propinfo.type) {
-          proptype = propinfo.type;
-        }
-        if ("xs:string" == proptype) {
-          if (undefined != this._lang) {
-            s += "@" + this._lang; // TODO support I18N on string properties
+          var proptype = "xs:string";
+          if (undefined != propinfo.type) {
+            proptype = propinfo.type;
           }
+        
+        var eloper = document.getElementById(this.container + "-sparqlbar-term-oper-" + tjson.tid);
+        // check if hidden (disabled)
+        if (eloper.getAttribute("class").split(" ").contains("hidden")) {
+        
+          s += padding + "    ?" + what + " <" + propinfo.iri + "> \"" + propvalue + "\"";
+          if ("xs:string" == proptype) {
+            if (undefined != this._lang) {
+              s += "@" + this._lang; // TODO support I18N on string properties
+            }
+          } else {
+            s += "^^<" + proptype + ">";
+          } // TODO other types that require specific handling
         } else {
-          s += "^^<" + proptype + ">";
-        } // TODO other types that require specific handling
+          // oper enabled
+          var oper = eloper.value;
+          var ouroper = "=";
+          if ("!=" == oper) {
+            ouroper = "!=";
+          } else if ("lt" == oper) {
+            ouroper = "<";
+          } else if ("lte" == oper) {
+            ouroper = "<=";
+          } else if ("gt" == oper) {
+            ouroper = ">";
+          } else if ("gte" == oper) {
+            ouroper = ">=";
+          }
+          // Add a filter command instead
+          var rnd = "?a" + Math.floor(Math.random() * 100000);
+          s += padding + "    ?" + what + " <" + propinfo.iri + "> " + rnd + " . \n";
+          s += padding + "    FILTER (" + rnd + " " + ouroper + " \"" + propvalue + "\"^^<" + proptype + "> ) \n";
+        }
         s += " .\n";
       }
     }
