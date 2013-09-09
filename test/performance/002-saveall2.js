@@ -1,5 +1,6 @@
 var mljs = require("../../mljs"),
     tests = exports,
+    configurator = require('../../testconfig'),
     assert = require('assert'),
     winston = require('winston');
 
@@ -13,8 +14,9 @@ var mljs = require("../../mljs"),
      });
 
 describe("002-saveall2",function() {
-  it("Should complete entirely",function(done){
+  it.skip("Should complete entirely",function(done){
   var db = new mljs(); // default options
+  configurator.configure(db);
   db.setLogger(logger);
   
   var docs = [

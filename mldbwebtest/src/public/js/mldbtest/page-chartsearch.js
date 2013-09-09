@@ -48,7 +48,7 @@ $(document).ready(function() {
   //familypie.options.plotOptions = {pie: {pointPadding: 0.2,borderWidth: 0,
   //  dataLabels: { enabled: true, style: { fontWeight: 'bold' } } } };
   
-  var ob = new db.options();
+  var ob = db.createOptions();
   ob.defaultCollation("http://marklogic.com/collation/en")
     .pageLength(100)
     .collectionConstraint() // default constraint name of 'collection' 
@@ -58,7 +58,7 @@ $(document).ready(function() {
   var options = ob.toJson();
   console.log("Created options: " + JSON.stringify(options));
   
-  var context = new db.searchcontext();
+  var context = db.createSearchContext();
   
   var bar = new com.marklogic.widgets.searchbar("cs-bar");
   context.register(bar);

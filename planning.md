@@ -3,24 +3,116 @@
 ## Upcoming releases
 
 Targets for 1.0 (Oct 2013)
- - NodeJS: Node.js tests for all functionality now in core MLJS
+ - JavaScript best practices / conventions
+  - IN PROGRESS use var max = whatever.length in for loops - between 2 and 150 times faster than accessing the DOM on each iteration
+   - DONE Sparql (triple) widgets
+   - Search widgets
+   - Core
+   - Highcharts
+  - underscores for private functions
+  - UpperCamelCase for constructors/objects
+  - lowerCamelCase for functions (searchcontext and mljs have some alllowercase methods)
+  - change mljs.defaultconnection in core MLJS to instead access parent MLJS instance
+  - keep tripleconfig separate from core MLJS instantiator (as it never requires a connection to use), but allow a way to specify a logger and check for this (to avoid defaultconnection.logger)
+  - better way to access logging functionality by default - define _i(), _d() prototype methods for each subobject? Via a core mixin utility func? 
+   - (Could use same mechanism to provide correct 'this' reference from constructor function.)
+   - have mljs.prototype.* constructor functions add a db property pointer to all created children
+  - Add check in constructor functions to ensure if not called via new MyObject(), that it returns a new instance anyway (location 1051)
+  - Double check isArray function definition for best practice (location 1110) - also check for splice()
+  - Use self defining functions for lazy loading (E.g. semantic context creation), and any requiring extensive initialisation (Sparql widget?) (location 1515)
+  - Memoization (cache) pattern applied to sparql facts (location 1702)
+  - Apply Configuration object pattern consistently with MLJS Core (E.g. search options), and add helper methods where this is complex for common use cases (location 1734)
+  - Apply Currying when calling the same function with mostly same parameters (if costly) (location 1860)
+  - Use Module pattern and closures to hide internal properties/private methods (location 2117) but with constructors (2139)
+  - Apply Borrow and Bind pattern (mixin for functions) where applicable (to avoid any inheritance temptations) (location 2922) (Candidates???: ...)
+  - Apply Data Validation pattern to docbuilder widget (When new functionality added - may be V 1.2?) (location 3254)
+  - Find a better way to restrict what parts of the logging output are set to use debug (Perhaps a mixin to objects with lazy initialisation based on debug level specified, if any)
+  - Use more high order functions (callbacks, replacing functionality within otherwise identical loops)
+  - Check for 'innerHTML += ' and replace with appendChild and temporary div trick
+ - Widgets: Sparql: Other sparql improvements
+  - Support OPTIONAL?
+  - Support UNION?
+  - Support FILTER?
+   - DONE Used this for < > <= >= != for integer, double fields
+   - Regex? (used by suggestions only at the moment)
+  - Support REDUCED? (Permits duplicates to be eliminated)
+  - Support FROM NAMED (limit results from set of named graphs) - http://www.w3.org/TR/2008/REC-rdf-sparql-query-20080115/#restrictByLabel
+  - NA multiple listeners for this in same context - Multiple modes, one to contribute sparql query to a searchcontext, another to perform sparql query itself (to list entities)
+  - NA Sparql 1.1 required - Allow less than / greater than rather than just equals, depending on property selected
+ - Core: TripleConfig
+  - Support loading of OWL / other ontologies to populate triple config object
+  - rewrite how ontology information is provided, configured, accessed and managed - far too complex and buggy for the average developer at the moment
+   - ontology builder object?
+ - Core: Search Options builder - hide sem:triples elements from snippet highlighting
+ - IN PROGRESS NodeJS: Node.js tests for all functionality now in core MLJS
+ - Docs: Video tutorials for all new functionality - Create a Semantic Application Series
+  - Intro to semantics in MarkLogic
+   - Manually load in some triple in N-triples format, and query this in QConsole and rest to show the ideas behind what we're doing
+    - Include a sprinkling of 'why do this with triples?' / 'why triples are cool!' type slides
+   - Do a query that you can't do in relational / document search alone -> Idea of context, defining the 'relationship' not just the presence of data
+  - Manually define a new triple (mention we'll suggest triples in the future) for a XHTML document
+   - Includes setting up your own ontology in the semanticcontext object
+   - Include 'automatically link root entity back to document' via documentcontext object (to be created)
+  - Add sparql query widget using same ontology
+   - Add entity facts and content linking search widget
+   - Add relationship visualisation widget
+  - Implying triples from document content 
+   - define a trigger to highlight key XML with known terms
+   - link these xml elements to the ontology via the suggestions widget
+  - Inferencing
+   - Start with a query for which you have the data, but which creating a sparql query is non trivial
+   - Use inferencing as a way to suggest triples that would make the query simpler
+   - Show the new query, and that the same answers are produced
+  - Sparql 1.1 in MarkLogic 7
+   - Show what parts of the spec are there, and which ones we're missing, but which ones *can* be provided with a little work
+   - Inferencing - we've shown, but should mention here
+   - aggregates (count, sum, avg, etc.)
+  - Other cool things we could do with MarkLogic
+   - Combine triple search with content search
+   - Alerting with triples (+drawbacks - document level, not triple level)
  - Tools: Windows batch file versions of developer required (non build related) bash scripts, including mljsme
- - Docs: Document all core concepts currently part of MLJS
- - Samples: Sample triples, linked content, working sparql query builder
+  - mljsme
+  - TEST ml.bat roxy deploy
+  - create-mldbtest
+  - delete-mldbtest
+  - upgraderoxy
+ - IN PROGRESS Docs: Document all core concepts currently part of MLJS
+  - IN PROGRESS searchcontext object
+  
+Targets for 1.2 (Dec 2013)
+ - Detect V7 (HEAD to a V7 only endpoint?)
+ - Auto install of extensions referenced by MLJS core via PUT /v1/ext endpoint
+  - rdb2rdf
+  - savedsearch
+  - alerts
+  - version detect (future proofing)
+  - dls
+  - whoami
+ - Core: Document context for editing/updating type widgets
  - Widgets: Document properties and view widget
+ - Widgets: Folder browsing widget (Probably easiest to do like Mac child folders, left to right, rather than a tree structure)
  - Widgets: Navigable charts / co-occurence - clicking sets facet value
  - Widgets: Google maps (via OpenLayers?)
  - Widgets: Geospatial facets show in maps, and not in facets widget
  - Core: Query Builder. Easy geospatial search (Already done?)
+  - triples-range-query support
  - Widgets: Support facet hierarchies
- - Widgets: D3.js network diagram
+ - Widgets: D3.js network/hive diagram - http://www.hiveplot.net
+ - Widgets: InfoVis network diagram
  - Core: Support all search functions not currently provided in query builder
- - Core: Extra query builder options (all constraints supported by options, plus sorting)
+ - IN PROGRESS Core: Extra query builder options (all constraints supported by options, plus sorting)
+  - DONE Term query
+  - Word query
+  - V7: result decorator option
+  - V7: Boost query & matching query
+  - Others?
  - Core: Complete support for /v1/values REST function (suggestions aka auto complete etc)
  - Test: Support current functionality against MarkLogic V7
  - Core: New V7 functionality
   - Core: POST /v1/search - Dynamic search options (Try this in search context, catch error if on V6 and fall back to original mode)
   - Core: Alerting
+  - Core: Score-function=linear|reciprocal, scale-factor=0|inputFloat
+  - Core: Supply pagination values as part of query (as Vis Widgets do) not as part of search options
  - Widget: Add search action button - 'save as alert'
  - Core: Support all client API /v1/ REST endpoints in ML7
  - Node: More Node.js tests for all new functionality
@@ -40,6 +132,19 @@ Targets for 1.0 (Oct 2013)
  - NodeJS: Support 'anyauth' option, much like curl (i.e. auth method auto detection)
  - Widgets: Support for using widgets in non ML 6 REST webapps, and embedding widgets remotely, via W3C CORS support (i.e. secure cross site scripting support)
  - Widgets: Alerting client widget (Requires Alerting API, CORS)
+ - Core: Search Options builder
+  - hidetriples() function to hide any docs under /triplestore/ (NOT any that define sem:triples)
+ - Widgets: Highcharts
+  - updateSubjectFacts support (extracting series from ?s ?p ?o and ?g in sparql results)
+  - updateSparqlResults support (for any arbitrary named sparql binded variables, not just ?s, ?p, ?o and ?g) (pull back known predicates in semantic config by ?name)
+  - Ensure charts are efficient when rendering facet and in doc values, and triples
+ - Widgets: Interactive data exploration widgets
+  - Widgets: Drag & Drop semantic context object browser with support for menu popups 'add as series, add as secondary axis' etc.
+  - Widgets: hive diagram (D3.js or InfoVis) widget to show relationship between scalars on three axes, and fourth colour scalar / finite set property
+   - Navigable so as to introduce Sparql Query constraints
+  - Widgets: Sparql outer context wrapper widget
+   - Download CSV file of results
+   - Download generated PNG from current visualisation div
   
 Floating as and when
  - MarkLogic reported bugs retesting
@@ -58,7 +163,7 @@ Floating as and when
   - Widgets: DLS add retention rule widget
   - DONE Widgets: DLS declare search results as record widget
  
-Targets for 1.2 (Dec 2013)
+Targets for 1.4 (Feb 2013)
  - Widgets: HTML content editing widget (new doc, and existing document with specified element (E.g. body, comments) and configuration for what is permissable as content)
  - Widgets: Situational awareness and search renderer app (from BF sim)
  - Widgets: Table - allow binding of JSON search results to jQuery table (for example)
@@ -70,7 +175,7 @@ Targets for 1.2 (Dec 2013)
  - Widgets: (multi) Upload progress bar
  - Test: prototype.js browser AJAX binding
  
-Targets for 1.4 (Feb 2014)
+Targets for 1.6 (Apr 2014)
  - Core: More support for server management (namespaces, indexes, service extensions, update REST instance configuration, XSLT transform management)
  - Widgets: Administration widgets (mainly aimed at pre-sales developers, not sysadmins)
  - Core: CSV and TSV utilities
@@ -174,3 +279,49 @@ Targets for 0.8 (Jul 2013)
   - DONE IN PROGRESS Interactive SPARQL query builder and result handler (including paging, linking to document search, restrict by collection, other document search criteria)
  - DONE Get collections starting with a URI (values query helper method)
  - DONE Rename all to MLJS from mldb
+
+Targets for 0.9 (Sep 2013)
+ - DONE Interactive RDBMS migration utility
+  - DONE REST extension: POST stuff2triples with JSON config specifying what to ingest
+   - NA make long transaction aware
+   - DONE add to MLJS Core
+   - NA MLSAM presence detection / error message
+  - DONE Widgets: Interactive migrator
+   - DONE Pg 1: Enter DB connection configuration parameters
+    - NA Use cookies to hold DB connection parameters in user's browser so its quick to perform both imports
+   - DONE Pg 2: Select which tables & relationships to ingest
+    - DONE (with totals of records to import, column data type conversion to use)
+    - DONE Also allow specifying a named graph to add all this new data to
+   - DONE Pg 3: Show 'importing 1 to 100 of y' message for each table, synchronously, all within the same transaction
+    - DONE Widgets: Progress bar widget (done via ticks in a table)
+    - NA Generate and save ontology information in cookies too
+    - NA Create semantic context decorator widget to fill in semantic context based on ontology information available within user cookies (So new objects show up in Sparqlbar immediately)
+ - DONE Core: Search Context
+  - DONE Structured Search (required for Sparql semantic context's linking to fact provenance documents - derived_from)
+  - DONE Structured Search Contribution mode - allow multiple widgets to contribute a query to the content context that is AND'ed with other contributed queries and submitted
+ - DONE IN PROGRESS Widgets: Sparql: Various SYTYCD alterations
+  - DONE BUG REGEX suggestion match for Ada* should have been Ada.* in order to produce correct results (trailing letter was being interpreted as a ., producing erroneous results)
+  - DONE Check returned triples for type (URI or value) and display appropriately
+  - DONE Drive property list equals values dynamically using sparql (suggestions feature via FILTER regex)
+  - DONE Support DISTINCT (always eliminates duplicates)
+  - NA Use OFFSET and LIMIT to do paging for subject results sparql query
+  - NA Used inferencing step to generate JointCustomer triples - Figure out how to do sameas - either as separate inferencing stage, or dynamically within the query (Introduces the concept of Sparql Query Options)
+   - NA Widget: Inferencing with named graph for output, sparqlbar for production of constraints?
+  - NA Add named graph restriction support for facts (So we can just query triples generated from DB 1 or DB 2)
+  - NA MEDIUM Add paging to subject results widget itself
+  - NA LOW Add preview quick view to subject results widget
+  - DONE Move summariseInto out of tripleconfig and in to widget library
+  - NA Support ORDER BY
+  - NA Use ?s ?p ?o ?g rather than longer ?subject ?predicate ?object ?graph, everywhere
+ - DONE Widgets: CSS: Add bootstrap.js support for Jochen
+  - DONE searchbar - uses btn and btn-primary classes
+  - DONE sparqlbar - uses well, btn and btn-primary classes
+ - DONE Widgets: Kratu
+  - DONE updateFacts generic method added to MLJS core's semantic context - Support viewing arbitrary sparql results as Kratu table (needs reworking of bindings result object to a flatter classic row structure)
+ - DONE Minor fixes
+  - DONE Remove debug logging for every value in charts
+ - DONE Samples: Sample triples, linked content, working sparql query builder
+ - DONE Widgets: Semantic rearchitecting
+  - DONE addTriplesListener to replace addResultsListener
+  - DONE Core: rework searchcontext to handle triples listener
+  - NA we specify this through an Accept field - Core: mljs core to check /v1/sparql result for triple format type and place in result.tripleFormat (owl, n3, etc.)

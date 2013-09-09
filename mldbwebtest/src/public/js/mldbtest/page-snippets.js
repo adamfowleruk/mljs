@@ -4,7 +4,7 @@ $(document).ready(function() {
   
   var wgt = new com.marklogic.widgets.searchpage("search-page");
   
-  var ob = new db.options();
+  var ob = db.createOptions();
   ob.defaultCollation("http://marklogic.com/collation/en")
     .collectionConstraint() // default constraint name of 'collection' 
     .rangeConstraint("animal",["item-order"]) // constraint name defaults to that of the range element name 

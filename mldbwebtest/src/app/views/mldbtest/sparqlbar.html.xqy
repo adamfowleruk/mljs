@@ -26,6 +26,7 @@ declare option xdmp:mapping "false";
 <script type="text/javascript" src="/js/mldbtest/mljs-xhr2.js"></script>
 
 <script type="text/javascript" src="/js/mldbtest/widgets.js"></script>
+<script type="text/javascript" src="/js/mldbtest/widget-search.js"></script>
 <script type="text/javascript" src="/js/mldbtest/widget-triples.js"></script>
 
 <script type="text/javascript" src="/js/mldbtest/page-sparqlbar.js"></script>
@@ -33,5 +34,12 @@ declare option xdmp:mapping "false";
  <div class="container_12">  
   <div id="errors" class="grid_12"></div>
  </div>
-  <div id="sparqlbar">Sparqlbar here</div>
+ <div class="container_12">  
+  <div id="query" class="grid_12 sparqlpage-bar">query</div>
+ </div>
+ <div class="container_12">  
+  <div id="triple-content" class="triple-page grid_4">Triple results goes here</div>
+  <div id="facts" class="triple-page grid_4">Facts go here</div>
+  <div id="search-content" class="search-page grid_4">Search content goes here</div>
+ </div>
 </div>

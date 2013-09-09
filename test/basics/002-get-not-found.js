@@ -1,5 +1,6 @@
 var mljs = require("../../mljs"),
     tests = exports,
+    configurator = require('../../testconfig'),
     assert = require('assert'),
     winston = require('winston');
 
@@ -16,6 +17,7 @@ var mljs = require("../../mljs"),
 describe("002-get-not-found",function() {
   it("Should complete entirely",function(done){
   var db = new mljs(); // default options
+  configurator.configure(db);
   db.setLogger(logger);
 
   logger.debug("Testing digest get");
