@@ -45,6 +45,25 @@
   
 }
 
+
+/****
+ * Generic widget styles
+ ****/
+.mljswidget h2 {
+  font-size: 1.2em;
+  font-weight: 700;
+}
+
+.mljswidget h3 {
+  font-size: 1.0em;
+  font-weight: 500;
+}
+
+.mljswidget h4 {
+  font-size: 0.8em;
+  font-weight: 300;
+}
+
 /****
  * ALL SEARCH WIDGETS DEFAULT CSS BELOW HERE
  ****/
@@ -96,7 +115,7 @@
 .searchbar-query {
   border: 1px solid #929292;
   padding: 4px;
-  height: 20px;
+  height: 28px;
   width: 440px;
 }
 
@@ -203,7 +222,15 @@
 }
 
 .searchresults-result {
-  padding: 10px;
+  padding-bottom: 20px;
+  padding-left: 10px;
+  padding-right: 10px;
+  padding-top: 0px;
+}
+
+.searchresults-result h3 {
+  margin-top: 0px;
+  margin-bottom: 0px;
 }
 
 .searchresults-result:hover {
@@ -404,7 +431,6 @@ span.person {
 /** V7 triples widgets **/
 .sparqlpage-bar {
   width: auto;
-  background-color: #D2D2D2;
   color: #4B4B4B;
 }
 
@@ -424,6 +450,27 @@ span.person {
   margin-top: 20px;
 }
 
+.sparqlbar-suggestions {
+  position: absolute;
+  left: -1000px;
+  top: -1000px;
+  z-index: 10;
+  background-color: white;
+  border: 1px solid black;
+  width: auto;
+  height: auto;
+  padding: 2px;
+}
+
+.sparqlbar-suggestion {
+  margin-bottom: 2px;
+}
+
+.sparqlbar-suggestion:hover {
+  text-decoration: underline;
+  color: blue;
+}
+
 .sparqlresults-title {
   font-weight: bold;
   font-size: 1.2em;
@@ -437,6 +484,19 @@ span.person {
   color: #4B4B4B;
   margin-bottom: 15px;
 }
+
+
+
+/** RDB2RDF **/
+.rdb2rdf-submit {
+  height: 30px;
+  margin-left: 5px;
+  line-height: 20px;
+  text-align: center;
+  border: 1px solid #929292;
+  padding: 4px;
+}
+
 
 
 /** Bits **/

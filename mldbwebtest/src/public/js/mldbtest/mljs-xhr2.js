@@ -104,22 +104,28 @@ b.xhr2.prototype.request = function(reqname,options,content,callback) {
           res.doc = xml;
         } else {
           self.logger.debug("XHR2: response text: " + xhr.responseText);
-          try {
-            self.logger.debug("XHR2: parsing xhr.responseText");
-            wibble = JSON.parse(xhr.responseText); // successes are JSON text (needs parsing)
-            res.format = "json";
-            self.logger.debug("XHR2: js raw: " + wibble);
-            self.logger.debug("XHR2: json str: " + JSON.stringify(wibble));
-            self.logger.debug("XHR2: Parsed JSON successfully");
-          } catch (ex) {
-            self.logger.debug("XHR2: JSON parsing failed. Trying XML parsing.");
-            // try XML conversion now
+          if (xhr.status == 201 /* created */ || xhr.status == 204 /* updated */) {
+            // created, use text content as location field - E.g. triple graph creation return 201 code with URI for graph in response text (not location header)
+            res.location = xhr.responseText; // blank for updated
+            wibble = "";
+          } else {
             try {
-              wibble = textToXML(xhr.responseText);
-              res.format = "xml";
-            } catch (ex2) {
-              // do nothing - likely a blank document
-              self.logger.debug("XHR2: Not JSON or XML. Exception: " + ex2);
+              self.logger.debug("XHR2: parsing xhr.responseText");
+              wibble = JSON.parse(xhr.responseText); // successes are JSON text (needs parsing)
+              res.format = "json";
+              self.logger.debug("XHR2: js raw: " + wibble);
+              self.logger.debug("XHR2: json str: " + JSON.stringify(wibble));
+              self.logger.debug("XHR2: Parsed JSON successfully");
+            } catch (ex) {
+              self.logger.debug("XHR2: JSON parsing failed. Trying XML parsing.");
+              // try XML conversion now
+              try {
+                wibble = textToXML(xhr.responseText);
+                res.format = "xml";
+              } catch (ex2) {
+                // do nothing - likely a blank document
+                self.logger.debug("XHR2: Not JSON or XML. Exception: " + ex2);
+              }
             }
           }
         }
@@ -139,28 +145,32 @@ b.xhr2.prototype.request = function(reqname,options,content,callback) {
       if (undefined == res.doc) {
         res.doc = xhr.responseText;
         res.format = "text"; // TODO handle binary content
-        try {
-          self.logger.debug("XHR2: parsing xhr.responseText");
-          var wibble = JSON.parse(xhr.responseText); // successes are JSON text (needs parsing)
-          res.format = "json";
-          self.logger.debug("XHR2: js raw: " + wibble);
-          self.logger.debug("XHR2: json str: " + JSON.stringify(wibble));
-          self.logger.debug("XHR2: Parsed JSON successfully");
-          res.doc = wibble;
-        } catch (ex) {
-          // do nothing - likely a blank XML document
-          self.logger.debug("XHR2: Exception: " + ex);
-        }
+        if (xhr.status == 404) {
+          // 404 error, return text, error remains true
+        } else {
+          try {
+            self.logger.debug("XHR2: parsing xhr.responseText");
+            var wibble = JSON.parse(xhr.responseText); // successes are JSON text (needs parsing)
+            res.format = "json";
+            self.logger.debug("XHR2: js raw: " + wibble);
+            self.logger.debug("XHR2: json str: " + JSON.stringify(wibble));
+            self.logger.debug("XHR2: Parsed JSON successfully");
+            res.doc = wibble;
+          } catch (ex) {
+            // do nothing - likely a blank XML document
+            self.logger.debug("XHR2: Exception: " + ex);
+          }
+        } // end if 404 check
       } else {
         res.format = "xml";
       }
       res.details = res.doc;
-      if ("string" == typeof res.details) { // TODO add response content type check (document could be plain text!)
+      if ("string" == typeof res.details && xhr.status != 404) { // TODO add response content type check (document could be plain text!)
         res.details = textToXML(res.details);
       }
-      if (undefined != res.details.nodeType) { // must be an XML document
-        res.details = xmlToJson(res.details); // convert text in res.doc to XML first
-      } 
+      //if (undefined != res.details.nodeType) { // must be an XML document
+      //  res.details = xmlToJson(res.details); // convert text in res.doc to XML first
+      //} // NB LEAVING ERROS AS XML NOW - XML WIDGET HANDLES THIS CONVERSION ITSELF 
     }
       //self.logger.debug("json final str: " + JSON.stringify(res.doc));
       // now supports XML returned too

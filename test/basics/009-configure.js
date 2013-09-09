@@ -1,5 +1,6 @@
 var mljs = require("../../mljs"),
     tests = exports,
+    configurator = require('../../testconfig'),
     assert = require('assert'),
     winston = require('winston');
 
@@ -15,6 +16,7 @@ var logger = new (winston.Logger)({
 describe("009-configure",function() {
   it.skip("Should complete entirely",function(done){
   var db = new mljs(); // default options
+  configurator.configure(db);
   db.setLogger(logger);
   
   var config = {database: "configtest",port: 9095};

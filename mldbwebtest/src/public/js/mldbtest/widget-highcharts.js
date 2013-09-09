@@ -143,6 +143,70 @@ com.marklogic.widgets.highcharts.prototype.setSeriesSources = function(nameSourc
 };
 
 /**
+ * Event handler. Intended as a parameter for an addSubjectFactsListener.
+ * Takes triple facts and extracts in to chart
+ * 
+ */
+com.marklogic.widgets.highcharts.prototype.updateSubjectFacts = function(facts) {
+  if (false == facts || true == facts ) {
+    // TODO show/hide refresh image based on value of this.results (true|false)
+    return;
+  }
+  
+  mljs.defaultconnection.logger.debug("in highcharts.updateSubjectFacts()");
+  mljs.defaultconnection.logger.debug(" - results: " + JSON.stringify(results));
+  
+    
+  
+  mljs.defaultconnection.logger.debug(" - looping over facts");
+  for (var r = 0;r < facts.facts.bindings.length;r++) {
+    var result = facts.facts.bindings[r];
+    mljs.defaultconnection.logger.debug(" - - result " + r + ": " + result);
+    // get name value
+    var name = "";
+    var resdoc = jsonOrXml(result);
+    mljs.defaultconnection.logger.debug(" -  -  - resdoc: " + resdoc);
+    mljs.defaultconnection.logger.debug(" -  -  - this.nameSource: " + this.nameSource);
+    mljs.defaultconnection.logger.debug(" -  -  - startsWith defined?: " + (undefined != this.nameSource.startsWith));
+    if (this.nameSource.startsWith("#")) {
+      // hardcoded value
+      name = this.nameSource.substring(1);
+    } else {
+      name = extractValue(resdoc,this.nameSource);
+    }
+    mljs.defaultconnection.logger.debug(" -  -  - name: " + name);
+    // get data value
+    var value = extractValue(resdoc,this.valueSource);
+    mljs.defaultconnection.logger.debug(" -  -  - value: " + value);
+    
+    var category = extractValue(resdoc,this.categorySource);
+    mljs.defaultconnection.logger.debug(" -  -  - category: " + category);
+    if (!allCategories.contains(category)) {
+      allCategories.push(category);
+    }
+    
+    // see if name is already known
+    if (!seriesNames.contains(name)) {
+      seriesNames.push(name);
+      seriesValues[name] = new Array();
+      seriesCounts[name] = new Array();
+    }
+    // append to values array
+    var categoryValueArray = seriesValues[name][category];
+    if (undefined == categoryValueArray) {
+      seriesValues[name][category] = new Array();
+      seriesCounts[name][category] = 0;
+    }
+    seriesValues[name][category].push(value);
+    seriesCounts[name][category] += 1;
+    mljs.defaultconnection.logger.debug(" -  - next...");
+  }
+  mljs.defaultconnection.logger.debug(" - finished looping over facts");
+  
+  this._displayResults(seriesNames,seriesCounts,seriesValues,allCategories);
+};
+
+/**
  * Event handler. Intended as a parameter for an addResultsListener method.
  * 
  * @param {results} results - REST API JSON Results object, as from GET /v1/search
@@ -241,6 +305,10 @@ com.marklogic.widgets.highcharts.prototype.updateResults = function(results) {
   
   } // end if is not facet value as category source
   
+  this._displayResults(seriesNames,seriesCounts,seriesValues,allCategories);
+};
+
+com.marklogic.widgets.highcharts.prototype._displayResults = function(seriesNames,seriesCounts,seriesValues,allCategories) {
   
   if (this.autoCategories) {
     mljs.defaultconnection.logger.debug("updateResults(): Auto categories enabled");
@@ -341,4 +409,4 @@ com.marklogic.widgets.highcharts.prototype.updateResults = function(results) {
   this.options.xAxis.categories = this.categories;
   
   this._refresh();
-};
+}

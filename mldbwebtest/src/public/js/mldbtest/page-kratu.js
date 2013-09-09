@@ -8,7 +8,7 @@ $(document).ready(function() {
   
   try {
   
-  var ob = new db.options();
+  var ob = db.createOptions();
   ob.pageLength(100);
   var options = ob.toJson();
   /*

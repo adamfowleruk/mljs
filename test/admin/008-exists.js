@@ -1,5 +1,6 @@
 var mljs = require("../../mljs"),
     tests = exports,
+    configurator = require('../../testconfig'),
     assert = require('assert'),
     winston = require('winston');
 
@@ -15,6 +16,7 @@ var mljs = require("../../mljs"),
 describe("008-exists",function() {
   it("Should complete entirely",function(done){
   var db = new mljs(); // default options
+  configurator.configure(db);
   db.setLogger(logger);
   
   // assume db exists before this test
