@@ -256,6 +256,37 @@ if (undefined == String.prototype.startsWith) {
 
 
 
+
+com.marklogic.widgets.hide = function(el,isHidden) {
+  if (isHidden) {
+    var found = false;
+    var attr = el.getAttribute("class");
+    if (undefined != attr) {
+      var attrs = attr.split(" ");
+      for (var i = 0;!found && i < attrs.length;i++) {
+        found = ("hidden" == attrs[i]);
+      }
+    }
+    if (!found) {
+      el.setAttribute("class",attr + " hidden");
+    }
+  } else {
+    var attr = el.getAttribute("class");
+    var newClass = "";
+    if (undefined != attr) {
+      var attrs = attr.split(" ");
+      for (var i = 0;!found && i < attrs.length;i++) {
+        if ("hidden" != attrs[i]) {
+          newClass += attrs[i] + " ";
+        }
+      }
+    }
+    el.setAttribute("class",newClass);
+  }
+};
+
+
+
 // our own global widgets here
 com.marklogic.widgets.error = function(container) {
   this.container = container;
@@ -421,7 +452,7 @@ com.marklogic.widgets.bits.base = function(newbase) {
  * @param {string} elid - The element for this widget's top level container
  */
 com.marklogic.widgets.bits.loading = function(elid) {
-  var s = "<img id='" + elid + "' class='bits-loading' src='" + com.marklogic.widgets.bits._base + "/mljs/loading.png' alt='Loading...' title='Loading...' /> Loading...";
+  var s = "<img id='" + elid + "' class='bits-loading' src='" + com.marklogic.widgets.bits._base + "/loading.gif' style='width: 30px; height: 30px;' alt='Loading...' title='Loading...' />";
   
   return s;
 };

@@ -1,5 +1,6 @@
 var mljs = require("../../mljs"),
     tests = exports,
+    configurator = require('../../testconfig'),
     assert = require('assert'),
     winston = require('winston');
 
@@ -17,6 +18,7 @@ describe("003-save-load-equal",function() {
   it.skip("Should complete entirely",function(done){
     
   var db = new mljs(); // default options
+  configurator.configure(db);
   db.setLogger(logger);
   
   logger.debug("Testing basic json equal");

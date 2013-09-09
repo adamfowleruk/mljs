@@ -18,242 +18,116 @@ com = window.com || {};
 com.marklogic = window.com.marklogic || {};
 com.marklogic.widgets = window.com.marklogic.widgets || {};
 
-/**
- * Holds configuration for object to triple mappings
- * 
- * @constructor
- */
-com.marklogic.widgets.tripleconfig = function() {
-  this.errorPublisher = new com.marklogic.events.Publisher();
-  
-  // TODO drastically simplify this data model
-  
-  this.entities = new Array();
-  
-  this.validTriples = new Array();
-  
-  this._predicates = new Array();
-  
-  // own extensions - need ontology somewhere for this!
-  
-  this._predicatesShort = new Array();
-  
-  this._iriPatterns = new Array();
-  
-  this._rdfTypes = new Array();
-  
-  this._rdfTypesShort = new Array();
-  
-  this._commonNamePredicates = new Array();
-  
-  this._properties = new Array(); // TODO other common properties, alpha order by name value
-  
-  // ANYTHING PAST THIS POINT IS REFACTORED AND AWESOME
-  
-  this._newentities = new Array(); // [name] => {name: "person", prefix: "http://xmlns.com/foaf/0.1/", iriPattern:, rdfTypeIri: , rdfTypeIriShort: , commonNamePredicate: 
-  // ..., properties: [{},{}, ...] }
-  
-  this._newPredicates = new Array(); // [commonname] => {iri: , iriShort: }
-  
-  // also keep _validTriples as-is
-  
-  // defaults
-  this.addFoaf();
-  this.addPlaces();
-  this.addFoafPlaces();
-};
 
-/**
- * Adds an error listener to this widget
- * 
- * @param {function(error)} fl - The error listener to add
- */
-com.marklogic.widgets.tripleconfig.prototype.addErrorListener = function(fl) {
-  this.errorPublisher.subscribe(fl);
-};
 
-/**
- * Removes an error listener
- * 
- * @param {function(error)} fl - The error listener to remove
- */
-com.marklogic.widgets.tripleconfig.prototype.removeErrorListener = function(fl) {
-  this.errorPublisher.unsubscribe(fl);
-};
 
-com.marklogic.widgets.tripleconfig.prototype.addPlaces = function() {
-  this.entities.push("placename");
-  
-  this.validTriples.push({subjectType: "placename", objectType: "placename", predicateArray: ["located_within","contains_location"]}); 
-  
-  this._predicates["studies_at"] = "http://www.marklogic.com/ontology/0.1/studies_at";
-  this._predicates["affiliated_with"] = "http://www.marklogic.com/ontology/0.1/affiliated_with";
-  this._predicates["has_meetings_near"] = "http://www.marklogic.com/ontology/0.1/has_meetings_near";
-  this._predicates["located_within"] = "http://www.marklogic.com/ontology/0.1/located_within";
-  this._predicates["contains_location"] = "http://www.marklogic.com/ontology/0.1/contains_location";
-  
-  this._iriPatterns["placename"] = "http://marklogic.com/semantic/targets/placename/#VALUE#";
-  this._rdfTypes["placename"] = "http://schema.org/Place"; // geonames features are an extension of Place
-  this._rdfTypesShort["placename"] = "so:Place"; // geonames features are an extension of Place
-  this._commonNamePredicates["placename"] = "http://www.geonames.org/ontology#name";
-  this._properties["placename"] = [{name: "name", iri: "http://www.geonames.org/ontology#name", shortiri: "geonames:name"}];
-  
-  
-  this._newentities["place"] = {name: "place", title: "Place", prefix: "http://www.geonames.org/ontology#", iriPattern: "http://marklogic.com/semantic/targets/organisation/#VALUE#", 
-    rdfTypeIri: "http://schema.org/Place", rdfTypeIriShort: "foaf:Organization", commonNamePredicate: "http://www.geonames.org/ontology#name",
-    properties: [{name: "name", iri: "http://www.geonames.org/ontology#name", shortiri: "geonames:name"}]};
-  
-  this._newPredicates["studies_at"] = {name: "studies_at", title: "Studies at", iri: "http://www.marklogic.com/ontology/0.1/studies_at", shortiri: "ml:studies_at"};
-  this._newPredicates["affiliated_with"] = {name: "affiliated_with", title: "Affiliated with", iri: "http://www.marklogic.com/ontology/0.1/affiliated_with", shortiri: "ml:affiliated_with"};
-  this._newPredicates["has_meetings_near"] = {name: "has_meetings_near", title: "Meets near", iri: "http://www.marklogic.com/ontology/0.1/has_meetings_near", shortiri: "ml:has_meetings_near"};
-  this._newPredicates["located_within"] = {name: "located_within", title: "Located within", iri: "http://www.marklogic.com/ontology/0.1/located_within", shortiri: "ml:located_within"};
-  this._newPredicates["contains_location"] = {name: "contains_location", title: "Contains", iri: "http://www.marklogic.com/ontology/0.1/contains_location", shortiri: "ml:contains_location"};
-};
 
-com.marklogic.widgets.tripleconfig.prototype.addFoafPlaces = function() {
-  this.validTriples.push({subjectType: "person", objectType: "placename", predicateArray: ["based_near"]}); //NB based_near may not be a valid relationship class - may be lon/lat instead
-  this.validTriples.push({subjectType: "organisation", objectType: "placename", predicateArray: ["based_near","has_meetings_near"]}); 
-};
+com.marklogic.widgets.semantichelper = {};
 
-com.marklogic.widgets.tripleconfig.prototype.addFoaf = function() {
-  this.validTriples.push({subjectType: "person", objectType: "person", predicateArray: ["knows","friendOf","enemyOf","childOf","parentOf","fundedBy"]});
-  this.validTriples.push({subjectType: "person", objectType: "organisation", predicateArray: ["member","studies_at"]});
-  this.validTriples.push({subjectType: "organisation", objectType: "organisation", predicateArray: ["member","parentOf","affiliated_with","fundedBy"]});
+com.marklogic.widgets.semantichelper.summariseInto = function(ctx,iri,type,elid,iriHandler) {
+  mljs.defaultconnection.logger.debug("semantichelper.summariseInto: IRI: " + iri + ", elid: " + elid + ", ctx: " + ctx + ", type: " + type + ", iriHandler: " + iriHandler);
   
-  this._predicates["knows"] = "http://xmlns.com/foaf/0.1/knows";
-  this._predicates["friendOf"] = "http://xmlns.com/foaf/0.1/friendOf";
-  this._predicates["enemyOf"] = "http://xmlns.com/foaf/0.1/enemyOf";
-  this._predicates["childOf"] = "http://xmlns.com/foaf/0.1/childOf";
-  this._predicates["parentOf"] = "http://xmlns.com/foaf/0.1/parentOf";
-  this._predicates["fundedBy"] = "http://xmlns.com/foaf/0.1/fundedBy";
-  this._predicates["member"] = "http://xmlns.com/foaf/0.1/member";
-  this._predicates["based_near"] = "http://xmlns.com/foaf/0.1/based_near";
-  this._predicatesShort["knows"] = "foaf:knows";
-  this._predicatesShort["friendOf"] = "foaf:friendOf";
-  this._predicatesShort["enemyOf"] = "foaf:enemyOf";
-  this._predicatesShort["childOf"] = "foaf:childOf";
-  this._predicatesShort["parentOf"] = "foaf:parentOf";
-  this._predicatesShort["fundedBy"] = "foaf:fundedBy";
-  this._predicatesShort["member"] = "foaf:member";
-  this._predicatesShort["based_near"] = "foaf:based_near";
-  
-  // DELETE THE FOLLOWING
-  this.entities.push("person");
-  this.entities.push("organisation");
-  this._iriPatterns["person"] = "http://marklogic.com/semantic/targets/person/#VALUE#";
-  this._iriPatterns["organisation"] = "http://marklogic.com/semantic/targets/organisation/#VALUE#";
-  this._rdfTypes["person"] = "http://xmlns.com/foaf/0.1/Person";
-  this._rdfTypes["organisation"] = "http://xmlns.com/foaf/0.1/Organization";
-  this._rdfTypesShort["person"] = "foaf:Person";
-  this._rdfTypesShort["organisation"] = "foaf:Organization";
-  this._commonNamePredicates["person"] = "http://xmlns.com/foaf/0.1/name";
-  this._commonNamePredicates["organisation"] = "http://xmlns.com/foaf/0.1/name";
-  
-  this._properties["person"] = [{name: "name", iri: "http://xmlns.com/foaf/0.1/name", shortiri: "foaf:name"}];
-  this._properties["organisation"] = [{name: "name", iri: "http://xmlns.com/foaf/0.1/name", shortiri: "foaf:name"}];
-  // END DELETE
-  
-  this._newentities["person"] = {name: "person", title: "Person",prefix: "http://xmlns.com/foaf/0.1/", iriPattern: "http://marklogic.com/semantic/targets/person/#VALUE#", 
-    rdfTypeIri: "http://xmlns.com/foaf/0.1/Person", rdfTypeIriShort: "foaf:Person", commonNamePredicate: "http://xmlns.com/foaf/0.1/name",
-    properties: [{name: "name", iri: "http://xmlns.com/foaf/0.1/name", shortiri: "foaf:name"}]};
-    
-  this._newentities["organisation"] = {name: "organisation", title: "Organisation", prefix: "http://xmlns.com/foaf/0.1/", iriPattern: "http://marklogic.com/semantic/targets/organisation/#VALUE#", 
-    rdfTypeIri: "http://xmlns.com/foaf/0.1/Organization", rdfTypeIriShort: "foaf:Organization", commonNamePredicate: "http://xmlns.com/foaf/0.1/name",
-    properties: [{name: "name", iri: "http://xmlns.com/foaf/0.1/name", shortiri: "foaf:name"}]};
-  
-  this._newPredicates["knows"] = {name: "knows", title: "Knows", iri: "http://xmlns.com/foaf/0.1/knows", shortiri: "foaf:knows"};
-  this._newPredicates["friendOf"] = {name: "friendOf", title: "Friend", iri: "http://xmlns.com/foaf/0.1/friendOf", shortiri: "foaf:friendOf"};
-  this._newPredicates["enemyOf"] = {name: "enemyOf", title: "Enemy", iri: "http://xmlns.com/foaf/0.1/enemyOf", shortiri: "foaf:enemyOf"};
-  this._newPredicates["childOf"] = {name: "childOf", title: "Is a child of", iri: "http://xmlns.com/foaf/0.1/childOf", shortiri: "foaf:childOf"};
-  this._newPredicates["parentOf"] = {name: "parentOf", title: "Is a parent of", iri: "http://xmlns.com/foaf/0.1/parentOf", shortiri: "foaf:parentOf"};
-  this._newPredicates["fundedBy"] = {name: "fundedBy", title: "Funded by", iri: "http://xmlns.com/foaf/0.1/fundedBy", shortiri: "foaf:fundedBy"};
-  this._newPredicates["member"] = {name: "member", title: "Is a member of", iri: "http://xmlns.com/foaf/0.1/member", shortiri: "foaf:member"};
-  this._newPredicates["based_near"] = {name: "based_near", title: "Is based near", iri: "http://xmlns.com/foaf/0.1/based_near", shortiri: "foaf:based_near"};
-  
-};
-
-com.marklogic.widgets.tripleconfig.prototype.getValidPredicates = function(from,to) {
-  for (var i = 0;i < this.validTriples.length;i++) {
-    if (this.validTriples[i].subjectType == from && this.validTriples[i].objectType == to) {
-      return this.validTriples[i].predicateArray;
-    }
-  }
-  return new Array();
-};
-
-com.marklogic.widgets.tripleconfig.prototype.getNameProperty = function(entity) {
-  mljs.defaultconnection.logger.debug("getNameProperty: entity=" + entity);
-  for (var i = 0;i < this._newentities[entity].properties.length;i++) {
-    if ("name" == this._newentities[entity].properties[i].name) {
-      return this._newentities[entity].properties[i];
-    }
-  }
-};
-
-com.marklogic.widgets.tripleconfig.prototype.getEntityFromIRI = function(iri) {
-  for (var cn in this._newentities) {
-    var p = this._newentities[cn];
-    if (p.rdfTypeIri == iri) {
-      return p;
-    }
-  }
-};
-
-com.marklogic.widgets.tripleconfig.prototype.getPredicateFromIRI = function(iri) {
-  for (var cn in this._newPredicates) {
-    var p = this._newPredicates[cn];
-    if (p.iri == iri) {
-      return p;
-    }
-  }
-};
-
-com.marklogic.widgets.tripleconfig.prototype.summariseInto = function(iri,elid,iriHandler) {
-  var self = this;
+          
   // load type IRI for entity
-  var ts = "SELECT ?rdftype WHERE {<" + iri + "> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?rdftype . } LIMIT 1";
+  var lookupIri = iri;
+  var useSubjectAngle = true;
+  if (type == "bnode") {
+    lookupIri = "_:" + iri;
+    useSubjectAngle = false;
+  }
+  
+  var ts = "SELECT ?rdftype WHERE {";
+  if (useSubjectAngle) {
+    ts += "<";
+  }
+  ts += lookupIri;
+  if (useSubjectAngle) {
+    ts += ">";
+  }
+  ts += " <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?rdftype . } LIMIT 1";
   mljs.defaultconnection.logger.debug("TS: " + ts);
   mljs.defaultconnection.sparql(ts,function(result) {
     if (result.inError) {
       // TODO publish error
+      document.getElementById(elid).innerHTML = lookupIri;
     } else {
-      // load common name for this type
-      var entityinfo = self.getEntityFromIRI(result.doc.results.bindings[0].rdftype.value);
-      var ns = "SELECT ?name WHERE {<" + iri + "> <" + self.getNameProperty(entityinfo.name).iri  + "> ?name . } LIMIT 1";
-      mljs.defaultconnection.logger.debug("NS: " + ns);
-      
-      mljs.defaultconnection.sparql(ns,function(result) {
-        if (result.inError) {
-          // TODO publish error
+      mljs.defaultconnection.logger.debug("semantichelper.summariseInto: TYPERESPONSE: " + JSON.stringify(result.doc));
+      var firstbinding = result.doc.results.bindings[0];
+      if (undefined != firstbinding) {
+        
+        
+        var entityinfo = ctx.getConfiguration().getEntityFromIRI(firstbinding.rdftype.value); 
+        mljs.defaultconnection.logger.debug("semantichelper.summariseInto: entityInfo: " + JSON.stringify(entityinfo));
+        var nameprop = ctx.getConfiguration().getNameProperty(entityinfo.name).iri;
+        mljs.defaultconnection.logger.debug("semantichelper.summariseInto: nameprop: " + nameprop);
+        if (undefined == nameprop) {
+          document.getElementById(elid).innerHTML = lookupIri;
         } else {
-          var cn = result.doc.results.bindings[0].name.value;
-          // display in appropriate element
-          var s = "";
-          if (null != iriHandler) {
-            s += "<a href='#' id='" + elid + "-link'>";
+          // load common name for this type
+          var ns = "SELECT ?name WHERE {";
+          if (useSubjectAngle) {
+            ns += "<";
           }
-          s += cn + " (" + entityinfo.title + ")";
-          
-          if (null != iriHandler) {
-            s += "</a>";
+          ns += lookupIri;
+          if (useSubjectAngle) {
+            ns += ">";
           }
-          document.getElementById(elid).innerHTML = s;
+          ns += " <" + nameprop  + "> ?name . } LIMIT 1";
+          mljs.defaultconnection.logger.debug("NS: " + ns);
+      
+          mljs.defaultconnection.sparql(ns,function(result2) {
+            if (result2.inError) {
+              // TODO publish error
+              document.getElementById(elid).innerHTML = lookupIri;
+            } else {
+              if (undefined != result2.doc.results && undefined != result2.doc.results.bindings && result2.doc.results.bindings.length > 0) {
+                var el = document.getElementById(elid);
+                if (undefined != el) {
+                  var cn = result2.doc.results.bindings[0].name.value;
+                  // display in appropriate element
+                  var s = "";
+                  if (null != iriHandler) {
+                    s += "<a href='#' id='" + elid + "-link'>";
+                  }
+                  s += cn + " (" + entityinfo.title + ")";
           
-          // add click handler function here to elid-link
-          if (null != iriHandler) {
-            var addClickHandler = function(el,iri) {
-              el.onclick = function(event) {
-                iriHandler(iri);
-              }
+                  if (null != iriHandler) {
+                    s += "</a>";
+                  }
+                  el.innerHTML = s;
+          
+                  // add click handler function here to elid-link
+                  if (null != iriHandler) {
+                    var addClickHandler = function(el,iri) {
+                      el.onclick = function(event) {
+                        iriHandler(iri);
+                      }
+                    }
+                    var el = document.getElementById(elid + "-link");
+                    addClickHandler(el,lookupIri);
+                  }
+                } else {
+                  document.getElementById(elid).innerHTML = lookupIri;
+                }
+              } else {
+                mljs.defaultconnection.logger.debug("This query returns no bindings (results): " + ts);
+                mljs.defaultconnection.logger.debug("Result instead: " + JSON.stringify(result2.doc));
+                document.getElementById(elid).innerHTML = lookupIri;
+              } // end if bindings undefined / empty
             }
-            var el = document.getElementById(elid + "-link");
-            addClickHandler(el,iri);
-          }
-        }
-      });
-    }
+          });
+        } // end if else nameprop has property map
+      } else { 
+        document.getElementById(elid).innerHTML = lookupIri;
+      }
+    }// error if
   });
 };
+
+
+
+
+
 
 
 
@@ -269,18 +143,97 @@ com.marklogic.widgets.tripleconfig.prototype.summariseInto = function(iri,elid,i
 com.marklogic.widgets.sparqlbar = function(container) {
   this.container = container;
   
+  this.semanticcontext = mljs.defaultconnection.createSemanticContext();
+  
+  // These are so we only update with the suggestions we care about
+  this._suggestionsEnabled = true;
+  this._suggestionMinimumCharacters = 3;
+  this._suggestionRdfTypeIri = null;
+  this._suggestionPredicateIri = null;
+  this._suggestionDestinationElementId = null;
+  
   this.terms = 0;
   
-  this._config = new com.marklogic.widgets.tripleconfig();
+  this._lang = "en";
+  
+  //this._config = this.db.createSemanticConfig();
   
   this._hierarchy = new Array(); // [{tid: 1, children: [{tid: 2, children:[]}, ...]}, ....]
   this._allterms = new Array(); // plain array, [tid] => JSON as above
   this._parentterms = new Array(); // [childid] = parentid
   
-  this.resultsPublisher = new com.marklogic.events.Publisher();
+  //this.resultsPublisher = new com.marklogic.events.Publisher();
   this.errorPublisher = new com.marklogic.events.Publisher();
   
   this.refresh();
+};
+
+com.marklogic.widgets.sparqlbar.prototype.setLang = function(lang) {
+  this._lang = lang;
+};
+
+com.marklogic.widgets.sparqlbar.prototype.setSemanticContext = function(sc) {
+  this.semanticcontext = sc;
+  sc.primeSimpleSuggest(); // speeds up MarkLogic server's SPARQL processing on demo systems (i.e. ones that haven't been running long)
+  this.refresh(); // redraw - we assume the underlying config has changed, requiring a repaint
+};
+
+com.marklogic.widgets.sparqlbar.prototype.updateSuggestions = function(suggestions) {
+  if (undefined != suggestions && suggestions.rdfTypeIri == this._suggestionRdfTypeIri && suggestions.predicate == this._suggestionPredicateIri) {
+    // We need to show these suggestions
+    var elss = document.getElementById(this.container + "-sparqlbar-suggestions");
+    var arr = suggestions.suggestions.results.bindings;
+    var len = arr.length;
+    var s = "";
+    var links = new Array();
+    for (var b = 0;b < len;b++) {
+      var link = {index: b, suggestion: arr[b].suggestion.value}; // TODO support locale of xml:lang behind the scenes too
+      links.push(link);
+      
+      s += "<p class='sparqlbar-suggestion' id='" + this.container + "-sparqlbar-suggestion-" + b + "'>" + link.suggestion + "</p>";
+    }
+    if ("" == s) {
+      s = "<i id='" + this.container + "-sparqlbar-nosuggestion'>No Suggestions</i>";
+    }
+    elss.innerHTML = s;
+    
+    // now do click handlers
+    var self = this;
+    var addClickHandler = function(el,suggestion) {
+      el.onclick = function(event) {
+        document.getElementById(self._suggestionDestinationElementId).value = suggestion;
+        // hide suggestions box
+        self._hidden(elss,true);
+        
+        // disable suggestions
+        self._suggestionRdfTypeIri = null;
+        self._suggestionPredicateIri = null;
+        self._suggestionDestinationElementId = null;
+        
+        e.stopPropagation();
+        return false;
+      }
+    };
+    for (var l = 0, max = links.length;l < max;l++) {
+      addClickHandler(document.getElementById(this.container + "-sparqlbar-suggestion-" + links[l].index),links[l].suggestion);
+    }
+    
+    var nosug = document.getElementById(this.container + "-sparqlbar-nosuggestion");
+    if (null != nosug) {
+      nosug.onclick = function(e) {
+        self._hidden(elss,true);
+        
+        // disable suggestions
+        self._suggestionRdfTypeIri = null;
+        self._suggestionPredicateIri = null;
+        self._suggestionDestinationElementId = null;
+        
+        e.stopPropagation();
+        return false;
+      };
+    }
+    
+  }
 };
 
 /**
@@ -288,22 +241,30 @@ com.marklogic.widgets.sparqlbar = function(container) {
  */
 com.marklogic.widgets.sparqlbar.prototype.refresh = function() {
   var s = "";
-  s += "<div id='" + this.container + "-sparqlbar' class='sparqlbar'><div class='sparqlbar-inner'>";
+  s += "<div id='" + this.container + "-sparqlbar' class='mljswidget sparqlbar'><div class='well sparqlbar-inner'>";
+  // hidden, moveable suggestions drop down
+  s += "  <div id='" + this.container + "-sparqlbar-suggestions' class='sparqlbar-suggestions hidden'><i>None</i></div>";
   // what to retrieve
   s += "  <div class='sparqlbar-for'>Search for: ";
   s += "    <select class='sparqlbar-for-what' id='" + this.container + "-sparqlbar-what'>";
-  s += "      <option value='_content'>All Content</option>";
-  s += "      <option value='_entities'>All Entities</option>";
-  s += "      <option value='_facts'>All Facts</option>";
-  s += "      <option value='_graphs'>All Graphs</option>";
-  for (var i = 0;i < this._config.entities.length;i++) {
-    s += "    <option value='" + this._config.entities[i] + "'";
-    if (0 == i) {
-      s += " selected='selected'";
+  //s += "      <option value='_content'>All Content</option>";
+  s += "      <option value='_entities'>All Subjects</option>";
+  //s += "      <option value='_facts'>All Facts</option>";
+  //s += "      <option value='_graphs'>All Graphs</option>";
+  var first = true;
+  var ents = this.semanticcontext.getConfiguration()._newentities;
+  for (var nom in ents) {
+    var ent = ents[nom];
+    if (undefined != ent && "function" != typeof ent) { // fix for array function members
+      s += "    <option value='" + ent.name + "'";
+      if (first) {
+        s += " selected='selected'";
+        first = false;
+      }
+      s += ">" + ent.title + "</option>";
     }
-   s += ">" + this._config.entities[i] + "</option>";
   }
-  s += "</select> which <span class='sparqlbar-add'>[<a class='sparqlbar-add-link' id='" + this.container + "-sparqlbar-add-link' href='#'>+</a>]</span></div>";
+  s += "</select> which <span class='sparqlbar-add'>[<a class='sparqlbar-add-link' id='" + this.container + "-sparqlbar-add-link' href='#'>+ Child</a>]</span></div>";
   
   // criteria
   //  - predicate list
@@ -312,7 +273,7 @@ com.marklogic.widgets.sparqlbar.prototype.refresh = function() {
   
   s += "<div id='" + this.container + "-sparqlbar-terms' class='sparqlbar-terms'></div>";
   
-  s += "<div><input type='submit' value='Search'  class='sparqlbar-button' id='" + this.container + "-sparqlbar-button'/></div>";
+  s += "<div><input type='submit' value='Search'  class='btn btn-primary sparqlbar-button' id='" + this.container + "-sparqlbar-button'/></div>";
   
   /*
   s += "<div class='sparqlbar-results' id='" + this.container + "-sparqlbar-results'><i>No results</i></div>";
@@ -320,17 +281,26 @@ com.marklogic.widgets.sparqlbar.prototype.refresh = function() {
   s += "</div></div>";
   document.getElementById(this.container).innerHTML = s;
   
-  // TODO add event handlers
+  // add event handlers
   var self = this;
-  document.getElementById(this.container + "-sparqlbar-button").onclick = function() {
+  document.getElementById(this.container + "-sparqlbar-button").onclick = function(e) {
     self._doQuery();
+    e.stopPropagation();
     return false;
-  }
+  };
   
   // + child handler
-  document.getElementById(this.container + "-sparqlbar-add-link").onclick = function() {
+  document.getElementById(this.container + "-sparqlbar-add-link").onclick = function(e) {
     self._addTerm();
-  }
+    e.stopPropagation();
+    return false;
+  };
+  
+  document.getElementById(this.container + "-sparqlbar-what").onchange = function(e) {
+    for (var i = 0;i < self._allterms.length;i++) {
+      self._updateTerm(self._allterms[i].tid);
+    }
+  };
   
   // add first term
   this._addTerm();
@@ -354,12 +324,18 @@ com.marklogic.widgets.sparqlbar.prototype._addTerm = function(parentid) {
   s += "<select class='sparqlbar-term' id='" + this.container + "-sparqlbar-term-what-" + tid + "'><option selected='selected' value='*'>Are related to</option><option value='='>Have property</option></select>";
   s += "<select class='sparqlbar-term-relatedtype' id='" + this.container + "-sparqlbar-term-relatedtype-" + tid + "'>";
   // generate related object options
-  for (var i = 0;i < this._config.entities.length;i++) {
-    s += "<option value='" + this._config.entities[i] + "'";
-    if (0 == i) {
-      s += " selected='selected'";
+  var first = true;
+  var ents = this.semanticcontext.getConfiguration()._newentities
+  for (var nom in ents) {
+    var ent = ents[nom];
+    if (undefined != ent && "function" !== typeof ent) { // fix for array function members
+      s += "<option value='" + ent.name + "'";
+      if (first) {
+        s += " selected='selected'";
+        first = false;
+      }
+      s += ">" + ent.title + "</option>";
     }
-    s += ">" + this._config.entities[i] + "</option>";
   }
   s += " [+]</select> ";
   s += "<span id='" + this.container + "-sparqlbar-term-asa-" + tid + "'>as a </span>";
@@ -374,7 +350,41 @@ com.marklogic.widgets.sparqlbar.prototype._addTerm = function(parentid) {
   s += "<span class='hidden' id='" + this.container + "-sparqlbar-term-prop-" + tid + "'>with property </span>";
   s += "<select id='" + this.container + "-sparqlbar-term-properties-" + tid + "' class='hidden'>";
   s += "</select>";
-  s += "<span class='hidden' id='" + this.container + "-sparqlbar-term-eq-" + tid + "'> equal to </span>";
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  s += "<span class='hidden' id='" + this.container + "-sparqlbar-term-eq-" + tid + "'> equal to </span>"; 
+  
+  s += "<select class='hidden' id='" + this.container + "-sparqlbar-term-oper-" + tid + "'>";
+  
+  // TODO replace the following with things dynamically drawn / shown depending on type
+  
+  s += "<option value='='>equal to</option>";
+  s += "<option value='!='>not equal to</option>";
+  s += "<option value='lt'>less than</option>";
+  s += "<option value='lte'>less than or equal to</option>";
+  s += "<option value='gt'>greater than</option>";
+  s += "<option value='gte'>greater than or equal to</option>";
+  
+  
+  s += "</select>";
+  
+  
+  
+  
+  
+  
   s += "<input type='text' length='20'  class='sparqlbar-term-value hidden' id='" + this.container + "-sparqlbar-term-value-" + tid  + "'/>";
   
   s += "<span class='sparlbar-term-and hidden' id='" + this.container + "-sparqlbar-term-" + tid + "-and'>; AND</span>";
@@ -383,12 +393,26 @@ com.marklogic.widgets.sparqlbar.prototype._addTerm = function(parentid) {
   s += "<div id='" + this.container + "-sparqlbar-term-" + tid + "-children' class='sparqlbar-term'></div>";
   s += "</div>";
   
-  console.log("Adding html: " + s);
+  //console.log("Adding html: " + s);
   
   if (undefined == parentid) {
-    document.getElementById(this.container + "-sparqlbar-terms").innerHTML += s;
+    // WRONG - destroys children - document.getElementById(this.container + "-sparqlbar-terms").innerHTML += s;
+    var newcontent = document.createElement('div');
+    newcontent.innerHTML = s;
+
+    var mydiv = document.getElementById(this.container + "-sparqlbar-terms");
+    while (newcontent.firstChild) {
+        mydiv.appendChild(newcontent.firstChild);
+    }
   } else {
-    document.getElementById(this.container + "-sparqlbar-term-" + parentid + "-children").innerHTML += s;
+    //WRONG destroys children - document.getElementById(this.container + "-sparqlbar-term-" + parentid + "-children").innerHTML += s;
+    var newcontent = document.createElement('div');
+    newcontent.innerHTML = s;
+
+    var mydiv = document.getElementById(this.container + "-sparqlbar-term-" + parentid + "-children");
+    while (newcontent.firstChild) {
+        mydiv.appendChild(newcontent.firstChild);
+    }
   }
   
   this._updateRelationships(tid);
@@ -401,22 +425,84 @@ com.marklogic.widgets.sparqlbar.prototype._addTerm = function(parentid) {
     self._updateTerm(tid);
     self._updateRelationships(tid);
     self._updateProperties(tid);
-  }
+  };
   document.getElementById(this.container + "-sparqlbar-term-relatedtype-" + tid).onchange = function (el) {
     self._updateRelationships(tid);
-  }
+  };
+  document.getElementById(this.container + "-sparqlbar-term-value-" + tid).onkeyup = function(el) {
+    self._suggest(tid);
+  };
+  document.getElementById(this.container + "-sparqlbar-term-properties-" + tid).onchange = function(el) {
+    self._refreshOperation(tid);
+  };
   
   // TODO - term handler
   
   // + child handler
   document.getElementById(this.container + "-sparqlbar-term-" + tid + "-addchild").onclick = function() {
     self._addTerm(tid);
-  }
+  };
   document.getElementById(this.container + "-sparqlbar-term-" + tid + "-remove").onclick = function() {
     self._removeTerm(tid);
-  }
+  };
   
   // TODO check for previous term in this container, and remove 'hidden' class from ;AND span
+};
+
+com.marklogic.widgets.sparqlbar.prototype._suggest = function(tid) {
+  mljs.defaultconnection.logger.debug("sparqlbar._suggest: tid: " + tid);
+  
+  var el = document.getElementById(this.container + "-sparqlbar-term-value-" + tid);
+  
+  // check value, if 3 (by config) or more, ensure we're linked to this field, and perform suggest
+  var value = el.value;
+  mljs.defaultconnection.logger.debug("sparqlbar._suggest: el.value: " + value);
+  if (value.length >= this._suggestionMinimumCharacters) {
+    mljs.defaultconnection.logger.debug("sparqlbar._suggest: Firing suggest action");
+    
+    this._suggestionDestinationElementId = el.getAttribute("id");
+    mljs.defaultconnection.logger.debug("sparqlbar._suggest: destination el id: " + this._suggestionDestinationElementId);
+    var predicateName = document.getElementById(this.container + "-sparqlbar-term-properties-" + tid).value;
+    mljs.defaultconnection.logger.debug("sparqlbar._suggest: predicateName: " + predicateName);
+    
+    var parentType = this._getParentType(tid);
+    var scfg = this.semanticcontext.getConfiguration();
+    mljs.defaultconnection.logger.debug("sparqlbar._suggest: parentType: " + parentType);
+    var parentInfo = scfg.getEntityFromName(parentType);
+    mljs.defaultconnection.logger.debug("sparqlbar._suggest: parentInfo: " + JSON.stringify(parentInfo));
+    
+    var predicateInfo = scfg.getEntityProperty(parentInfo,predicateName);
+    mljs.defaultconnection.logger.debug("sparqlbar._suggest: predicateInfo: " + JSON.stringify(predicateInfo));
+    
+    this._suggestionRdfTypeIri = parentInfo.rdfTypeIri;
+    this._suggestionPredicateIri = predicateInfo.iri;
+    
+    mljs.defaultconnection.logger.debug("sparqlbar._suggest: rdfTypeIri: " + this._suggestionRdfTypeIri + ", predicateIri: " + this._suggestionPredicateIri + 
+      ", suggestion el id: " + this._suggestionDestinationElementId);
+      
+    mljs.defaultconnection.logger.debug("sparqlbar._suggest: destination id value: " + value);
+    
+    
+    // move element to correct position
+    var rect = el.getBoundingClientRect();
+    var suggestel = document.getElementById(this.container + "-sparqlbar-suggestions");
+    suggestel.setAttribute("style","left: " + el.offsetLeft + "px; top: " + (el.offsetTop + el.offsetHeight) + "px;");
+    suggestel.innerHTML = "<i>Loading suggestions...</i>";
+    
+    // add onblur event, if not already defined
+    if (undefined == el.onblur) {
+      var self = this;
+      el.onblur = function(e) {
+        self._hidden(suggestel,true);
+        el.onblur = undefined;
+      };
+    }
+    
+    // remove hidden class
+    this._hidden(suggestel,false);
+      
+    this.semanticcontext.simpleSuggest(this._suggestionRdfTypeIri,this._suggestionPredicateIri,value);
+  }
 };
 
 com.marklogic.widgets.sparqlbar.prototype._hidden = function(el,isHidden) {
@@ -447,37 +533,51 @@ com.marklogic.widgets.sparqlbar.prototype._hidden = function(el,isHidden) {
   }
 };
 
+com.marklogic.widgets.sparqlbar.prototype._getRootType = function() {
+  return document.getElementById(this.container + "-sparqlbar-what").value;
+};
+
 com.marklogic.widgets.sparqlbar.prototype._updateRelationships = function(tid) {
+  mljs.defaultconnection.logger.debug("_updateRelationships: tid: " + tid);
   // get from and to and determine valid set of relationship classes
   var parentType = this._getParentType(tid);
   
   var s = "";
   var me = document.getElementById(this.container + "-sparqlbar-term-relatedtype-" + tid).value;
-  console.log("*** RELATING PARENT: " + parentType + " TO ME: " + me);
-  var rels = this._config.getValidPredicates(parentType,me);
-  for (var i = 0; i < rels.length;i++) {
-    s += "<option value='" + rels[i] + "'";
+  mljs.defaultconnection.logger.debug("_updateRelationships: RELATING PARENT: " + parentType + " TO ME: " + me);
+  var rels = this.semanticcontext.getConfiguration().getValidPredicates(parentType,me);
+  for (var i = 0, max = rels.length, rel; i < max;i++) {
+    rel = rels[i];
+    s += "<option value='" + rel + "'";
     if (0 == i) {
       s += " selected='selected'";
     }
-    s += ">" + rels[i] + "</option>";
+    s += ">" + rel + "</option>";
   }
   
   document.getElementById(this.container + "-sparqlbar-term-relationship-" + tid).innerHTML = s;
 };
 
 com.marklogic.widgets.sparqlbar.prototype._updateProperties = function(tid) {
+  mljs.defaultconnection.logger.debug("_updateProperties: tid: " + tid);
   // get from and to and determine valid set of properties
   var parentType = this._getParentType(tid);
+  if (parentType.indexOf("_") == 0) {
+    // no search output selected
+    return;
+  }
+  var parentInfo = this.semanticcontext.getConfiguration().getEntityFromName(parentType);
+  mljs.defaultconnection.logger.debug("_updateProperties: from PARENT: " + parentType);
   
   var s = "";
-  var props = this._config._properties[parentType];
-  for (var i = 0; i < props.length;i++) {
-    s += "<option value='" + props[i].name + "'";
+  var props = parentInfo.properties; // this._config._properties[parentType];
+  for (var i = 0, max = props.length, propname; i < max;i++) {
+    propname = props[i].name;
+    s += "<option value='" + propname + "'";
     if (0 == i) {
       s += " selected='selected'";
     }
-    s += ">" + props[i].name + "</option>";
+    s += ">" + propname + "</option>";
   }
   
   document.getElementById(this.container + "-sparqlbar-term-properties-" + tid).innerHTML = s;
@@ -496,11 +596,23 @@ com.marklogic.widgets.sparqlbar.prototype._getParentType = function(tid) {
   return top;
 };
 
+com.marklogic.widgets.sparqlbar.prototype._getParentPredicate = function(tid) {
+  var top = null;
+  // Find parent term object type
+  var parent = this._parentterms[tid];
+  if (null != parent && undefined != parent) {
+    top = document.getElementById(this.container + "-sparqlbar-term-relationship-" + parent).value;
+  }
+  return top;
+};
+
 com.marklogic.widgets.sparqlbar.prototype._removeTerm = function(tid) {
+  mljs.defaultconnection.logger.debug("_removeTerm: tid: " + tid);
+  
   // find any children, and remove recursively
   var children = this._allterms[tid].children;
-  for (var c = 0;c < children.length;c++) {
-    this._removeTerm(children[c].tid);
+  for (var c = 0, max = children.length;c < max;c++) {
+    this._removeTerm(children[c].tid); // TODO replace with splice for performance?
   }
   
   // remove ourselves from our parent
@@ -508,11 +620,12 @@ com.marklogic.widgets.sparqlbar.prototype._removeTerm = function(tid) {
   if (undefined != parentid) {
     var newc = new Array();
     var childs = this._allterms[parentid].children;
-    for (var nc = 0;nc < childs.length;nc++) {
-      if (childs[nc].tid != tid) {
-        newc.push(childs[nc]);
+    for (var nc = 0, max = childs.length, child;nc < max;nc++) {
+      child = childs[nc];
+      if (child.tid != tid) {
+        newc.push(child);
       }
-      this._allterms[parentid].children = newc;
+      this._allterms[parentid].children = newc; // TODO replace with splice for performance?
     }
   }
   
@@ -528,6 +641,7 @@ com.marklogic.widgets.sparqlbar.prototype._removeTerm = function(tid) {
 };
 
 com.marklogic.widgets.sparqlbar.prototype._updateTerm = function(termid) {
+  // TODO improve performance of this by checking if new selected value is different from current selected value, returning immediately if they are the same
   var what = document.getElementById(this.container + "-sparqlbar-term-what-" + termid).value;
   if ("*" == what) {
     // refresh and show relationships
@@ -550,6 +664,8 @@ com.marklogic.widgets.sparqlbar.prototype._updateTerm = function(termid) {
     this._hidden(val,true);
     var val = document.getElementById(this.container + "-sparqlbar-term-eq-" + termid);
     this._hidden(val,true);
+    var val = document.getElementById(this.container + "-sparqlbar-term-oper-" + termid);
+    this._hidden(val,true);
   } else {
     // "="
     // show value, hide relationships
@@ -569,9 +685,51 @@ com.marklogic.widgets.sparqlbar.prototype._updateTerm = function(termid) {
     this._hidden(val,false);
     var val = document.getElementById(this.container + "-sparqlbar-term-prop-" + termid);
     this._hidden(val,false);
-    var val = document.getElementById(this.container + "-sparqlbar-term-eq-" + termid);
-    this._hidden(val,false);
+    
+    this._refreshOperation(termid)
   }
+};
+
+com.marklogic.widgets.sparqlbar.prototype._refreshOperation = function(termid) {
+    
+    mljs.defaultconnection.logger.debug("refreshOperation: termid: " + termid);
+    // lookup type to determine which operations to show, if any at all
+    var propvalue = document.getElementById(this.container + "-sparqlbar-term-properties-" + termid).value;
+    
+    mljs.defaultconnection.logger.debug("refreshOperation: propvalue: " + propvalue);
+    var parentid = this._parentterms[termid];
+    var parententityname = "";
+    if (undefined == parentid) {
+      // get root top
+      parententityname = document.getElementById(this.container + "-sparqlbar-what").value;
+    } else {
+      parententityname = document.getElementById(this.container + "-sparqlbar-term-relatedtype-" + parentid).value;
+    }
+    
+    mljs.defaultconnection.logger.debug("Property Info: propvalue: " + propvalue + ", parentid: " + parentid + ", parententityname: " + parententityname);
+    
+    var scfg = this.semanticcontext.getConfiguration();
+    
+    // lookup predicate for property
+    var entity = scfg.getEntityFromName(parententityname);
+    mljs.defaultconnection.logger.debug("Property Info: entity: " + JSON.stringify(entity));
+    var predinfo = scfg.getEntityProperty(entity,propvalue);
+    
+    mljs.defaultconnection.logger.debug("Property Info: predinfo: " + JSON.stringify(predinfo));
+    
+    if (undefined == predinfo.type) {
+      var val = document.getElementById(this.container + "-sparqlbar-term-eq-" + termid);
+      this._hidden(val,false);
+      val = document.getElementById(this.container + "-sparqlbar-term-oper-" + termid);
+      this._hidden(val,true);
+    } else {
+      // TODO support things other than just integer types
+      var val = document.getElementById(this.container + "-sparqlbar-term-eq-" + termid);
+      this._hidden(val,true);
+      val = document.getElementById(this.container + "-sparqlbar-term-oper-" + termid);
+      this._hidden(val,false);
+    }
+  
 };
 
 com.marklogic.widgets.sparqlbar.prototype._buildQuery = function() {
@@ -582,56 +740,120 @@ com.marklogic.widgets.sparqlbar.prototype._buildQuery = function() {
   
   var what = document.getElementById(this.container + "-sparqlbar-what").value;
   // TODO logic around the 'what' (i.e. not just object types, but facts, graph, etc)
-  s += "SELECT ?" + what + " WHERE {\n" + "  ?" + what + " rdfs:type " + this._config._rdfTypesShort[what] + ".\n";
+  if ("_content" == what) {
+    s += "SELECT distinct ?s, ?g {\n  GRAPH ?g {\n    ";
+    s += this._buildTerms("s",this._hierarchy,"",{tc: 1}); // TODO check this works
+    s += "\n  }\n  ?g <http://marklogic.com/semantics/ontology/derived_from> ?docuri .\n}"; 
+    
+  } else if ("_entities" == what) {
+    s += " SELECT distinct ?s WHERE {\n";
+    s += "  ?s ?p ?o . \n";
+    s += this._buildTerms("s",this._hierarchy,"",{tc: 1});
+    s += "}";
+    
+  } else if ("_facts" == what) {
+    s += " SELECT ?s, ?p, ?o WHERE {\n?s ?p ?o .\n";
+    s += this._buildTerms("s",this._hierarchy,"",{tc: 1});
+    s += "}";
+    
+  } else if ("_graphs" == what) {
+    s += "SELECT distinct ?g { GRAPH ?g {}}";
   
-  // build out top level terms
-  s += this._buildTerms(what,this._hierarchy,"",{tc: 1});
-  
-  s += "} LIMIT 20"; // TODO remove/change limit
-  
+  } else {
+    var entity = this.semanticcontext.getConfiguration().getEntityFromName(what);
+    s += "SELECT distinct ?" + what + " WHERE {\n" + "  ?" + what + " rdfs:type <" + entity.rdfTypeIri + "> .\n";
+    
+    // build out top level terms
+    s += this._buildTerms(what,this._hierarchy,"",{tc: 1});
+    
+    s += "}";
+  }
+  //s += " LIMIT 20";
   mljs.defaultconnection.logger.debug("Generated SPARQL: " + s);
   return s;
 };
 
 com.marklogic.widgets.sparqlbar.prototype._buildTerms = function(what,termArray,padding,counterObject) {
   var s = "";
-  for (var i = 0;i < termArray.length;i++) {
-    var tjson = termArray[i];
+  var scfg = this.semanticcontext.getConfiguration();
+  for (var i = 0, max = termArray.length, tjson, twel, termWhat,termType,termRel,termPref,c,propentity,propname,propvalue,propinfo,termTypeObject;i < max;i++) {
+    tjson = termArray[i];
+    mljs.defaultconnection.logger.debug("_buildTerms: Got term json: " + JSON.stringify(tjson));
     // TODO support deleted terms (try catch)
-    var termWhat = document.getElementById(this.container + "-sparqlbar-term-what-" + tjson.tid).value;
-    
-    if ("*" == termWhat) {
-      var termType = document.getElementById(this.container + "-sparqlbar-term-relatedtype-" + tjson.tid).value;
-      var termRel = document.getElementById(this.container + "-sparqlbar-term-relationship-" + tjson.tid).value;
-      console.log("termType: " + termType + ", termRel: " + termRel);
-      if (undefined != termRel) {
-      var termPred = this._config._predicatesShort[termRel];
-      if (undefined != termPred) {
-      var c = counterObject.tc++;
-      s += padding + "    ?" + what + " " + termPred + " ?" + termType + c + " .\n" ;
-      s += padding + "      ?" + termType + c + " rdfs:type " + this._config._rdfTypesShort[termType] + ".\n";
+    twel = document.getElementById(this.container + "-sparqlbar-term-what-" + tjson.tid);
+    if (undefined != twel) {
+      termWhat = twel.value;
+      mljs.defaultconnection.logger.debug("_buildTerms: Processing term type: " + termWhat);
       
-      // TODO process child terms here
-      if (tjson.children.length > 0) {
-        s += this._buildTerms(termType + c,tjson.children,padding + "  ",counterObject);
-      }
-      
-      s += padding /*+ "    } "*/;
+      if ("*" == termWhat) {
+        termType = document.getElementById(this.container + "-sparqlbar-term-relatedtype-" + tjson.tid).value;
+        termRel = document.getElementById(this.container + "-sparqlbar-term-relationship-" + tjson.tid).value;
+        mljs.defaultconnection.logger.debug("_buildTerms: termRel: " + termRel + ", termType: " + termType);
+        //console.log("termType: " + termType + ", termRel: " + termRel);
+        if (undefined != termRel) {
+          //var termPred = this._config._predicatesShort[termRel];
+          termPred = scfg.getPredicateFromName(termRel);
+          mljs.defaultconnection.logger.debug("_buildTerms: termPred: " + JSON.stringify(termPred));
+          if (undefined != termPred) {
+            c = counterObject.tc++;
+            s += padding + "    ?" + what + " <" + termPred.iri + "> ?" + termType + c + " .\n" ;
+            termTypeObject = scfg.getEntityFromName(termType);
+            s += padding + "      ?" + termType + c + " rdfs:type <" + termTypeObject.rdfTypeIri + "> .\n";
+            
+            // TODO process child terms here
+            if (tjson.children.length > 0) {
+              mljs.defaultconnection.logger.debug("_buildTerms: Processing term pred children");
+              s += this._buildTerms(termType + c,tjson.children,padding + "  ",counterObject);
+            }
+            
+            s += padding /*+ "    } "*/;
+          }
         }
-      }
-    } else {
-      // TODO property (=)
-      var propname = document.getElementById(this.container + "-sparqlbar-term-properties-" + tjson.tid).value;
-      var propvalue = document.getElementById(this.container + "-sparqlbar-term-value-" + tjson.tid).value;
-      var proplist = this._config._properties[this._getParentType(tjson.tid)];
-      // find our prop json
-      var propiri = null;
-      for (var p = 0;null == propiri && p < proplist.length;p++) {
-        if (proplist[p].name == propname) {
-          propiri = proplist[p].shortiri;
+      } else {
+        // TODO property (=)
+        propentity = scfg.getEntityFromName(this._getParentType(tjson.tid));
+        propname = document.getElementById(this.container + "-sparqlbar-term-properties-" + tjson.tid).value;
+        propvalue = document.getElementById(this.container + "-sparqlbar-term-value-" + tjson.tid).value;
+        propinfo = scfg.getEntityProperty(propentity,propname);
+          var proptype = "xs:string";
+          if (undefined != propinfo.type) {
+            proptype = propinfo.type;
+          }
+        
+        var eloper = document.getElementById(this.container + "-sparqlbar-term-oper-" + tjson.tid);
+        // check if hidden (disabled)
+        if (eloper.getAttribute("class").split(" ").contains("hidden")) {
+        
+          s += padding + "    ?" + what + " <" + propinfo.iri + "> \"" + propvalue + "\"";
+          if ("xs:string" == proptype) {
+            if (undefined != this._lang) {
+              s += "@" + this._lang; // TODO support I18N on string properties
+            }
+          } else {
+            s += "^^<" + proptype + ">";
+          } // TODO other types that require specific handling
+        } else {
+          // oper enabled
+          var oper = eloper.value;
+          var ouroper = "=";
+          if ("!=" == oper) {
+            ouroper = "!=";
+          } else if ("lt" == oper) {
+            ouroper = "<";
+          } else if ("lte" == oper) {
+            ouroper = "<=";
+          } else if ("gt" == oper) {
+            ouroper = ">";
+          } else if ("gte" == oper) {
+            ouroper = ">=";
+          }
+          // Add a filter command instead
+          var rnd = "?a" + Math.floor(Math.random() * 100000);
+          s += padding + "    ?" + what + " <" + propinfo.iri + "> " + rnd + " . \n";
+          s += padding + "    FILTER (" + rnd + " " + ouroper + " \"" + propvalue + "\"^^<" + proptype + "> ) \n";
         }
+        s += " .\n";
       }
-      s += padding + "    ?" + what + " " + propiri + " '" + propvalue + "'@en .\n"; // TODO support I18N
     }
     /*
     if ((termArray.length - 1) == i) {
@@ -645,8 +867,11 @@ com.marklogic.widgets.sparqlbar.prototype._buildTerms = function(what,termArray,
 };
 
 com.marklogic.widgets.sparqlbar.prototype._doQuery = function() {
-  self.resultsPublisher.publish(true);
   var sparql = this._buildQuery();
+  
+  this.semanticcontext.subjectQuery(sparql);
+  /*
+  this.resultsPublisher.publish(true);
   var self = this;
   mljs.defaultconnection.sparql(sparql,function(result) {
     mljs.defaultconnection.logger.debug("RESPONSE: " + JSON.stringify(result.doc));
@@ -657,26 +882,7 @@ com.marklogic.widgets.sparqlbar.prototype._doQuery = function() {
       self.resultsPublisher.publish(result.doc);
     }
   });
-};
-
-/**
- * Adds a function as a results listener
- * 
- * @param {function} lis - The function handler. Passed the JSON results object.
- **/
-com.marklogic.widgets.sparqlbar.prototype.addResultsListener = function(lis) {
-  // add results listener
-  this.resultsPublisher.subscribe(lis);
-};
-
-/**
- * Removes a results listener function
- * 
- * @param {function} lis - The function handler. 
- **/
-com.marklogic.widgets.sparqlbar.prototype.removeResultsListener = function(lis) {
-  // remove results listener
-  this.resultsPublisher.unsubscribe(lis);
+  */
 };
 
 
@@ -718,6 +924,9 @@ com.marklogic.widgets.sparqlbar.prototype.removeErrorListener = function(lis) {
  **/
 com.marklogic.widgets.sparqlresults = function(container) {
   this.container = container;
+  
+  this.semanticcontext = mljs.defaultconnection.createSemanticContext(); // TODO lazy load this is setSemanticContext is never called (unlikely)
+  
   this.errorPublisher = new com.marklogic.events.Publisher();
   
   this.results = null; // JSON results object:- 
@@ -728,9 +937,15 @@ com.marklogic.widgets.sparqlresults = function(container) {
   
   this._iriHandler = null;
   
-  this._config = new com.marklogic.widgets.tripleconfig();
+  this._mode = "none";
+  
+  //this._config = this.db.createSemanticConfig();
   
   this._refresh();
+};
+
+com.marklogic.widgets.sparqlresults.prototype.setSemanticContext = function(sc) {
+  this.semanticcontext = sc;
 };
 
 /**
@@ -743,8 +958,8 @@ com.marklogic.widgets.sparqlresults.prototype.iriHandler = function(handler) {
 };
 
 com.marklogic.widgets.sparqlresults.prototype._refresh = function() {
-  var s = "<div id='" + this.container + "-sparqlresults' class='sparqlresults'>";
-  s += "<h2 class='sparqlresults-title'>Fact Search Results</h2>";
+  var s = "<div id='" + this.container + "-sparqlresults' class='mljswidget sparqlresults'>";
+  s += "<h2 class='sparqlresults-title'>Subject Search Results</h2>";
   
   var irilinks = new Array();
   
@@ -753,7 +968,7 @@ com.marklogic.widgets.sparqlresults.prototype._refresh = function() {
   if (typeof this.results == "boolean" ) {
     // TODO show/hide refresh image based on value of this.results (true|false)
     if (true == this.results) {
-      s += com.marklogic.widgets.bits.loading(this.container + "-loading");
+      //s += com.marklogic.widgets.bits.loading(this.container + "-loading");
     } else {
       s += com.marklogic.widgets.bits.failure(this.container + "-failure");
     }
@@ -763,19 +978,25 @@ com.marklogic.widgets.sparqlresults.prototype._refresh = function() {
     // get list of entities returned in search
     var entities = this.results.head.vars; // E.g. person, organisation - these are the returned variable bindings from the query
     
+    if (this._mode != "none") {
+      s += "<div><a href='#' id='" + this.container + "-loadContent'>Load related content</a></div>";
+    }
+    
     // process results, showing common information where appropriate
       // title - get name eventually
-      for (var b = 0;b < this.results.results.bindings.length;b++) {
+      var bindings = this.results.results.bindings;
+      for (var b = 0,max = bindings.length, binding;b < max;b++) {
+        binding = this.results.results.bindings[b];
         s += "<div id='" + this.container + "-sparqlresults-result-" + b + "' class='sparqlresults";
         if (null != this._iriHandler) {
           s += " sparqlresults-navigable";
         }
         s += "'><h3>" + (b + 1) + ". ";
-        for (var et = 0;et < entities.length;et++) {
-          var entityValue = this.results.results.bindings[b][entities[et]];
+        for (var et = 0, maxent = entities.length, entityValue;et < maxent;et++) {
+          entityValue = binding[entities[et]];
           //s += entities[et] + " (" + entityValue.type + "): " + entityValue.value;
           s += "<span id='" + this.container + "-sparqlresults-result-" + b + "-summary'><i>Loading...</i></span>";
-          irilinks.push({iri: entityValue.value, elid: this.container + "-sparqlresults-result-" + b + "-summary"});
+          irilinks.push({iri: entityValue.value, type: binding[entities[et]].type, elid: this.container + "-sparqlresults-result-" + b + "-summary"});
         }
         s += "</h3></div>";
       }
@@ -790,9 +1011,19 @@ com.marklogic.widgets.sparqlresults.prototype._refresh = function() {
   document.getElementById(this.container).innerHTML = s;
   
   // click handlers
-  for (var i = 0; i < irilinks.length;i++) {
-    var link = irilinks[i];
-    this._config.summariseInto(link.iri,link.elid,this._iriHandler);
+  var sh = com.marklogic.widgets.semantichelper;
+  //var scfg = this.semanticcontext.getConfiguration();
+  for (var i = 0, max = irilinks.length,link; i < max;i++) {
+    link = irilinks[i];
+    sh.summariseInto(this.semanticcontext,link.iri,link.type,link.elid,this._iriHandler);
+  }
+  
+  if (this._mode != "none") {
+    var contentLink = document.getElementById(this.container + "-loadContent");
+    if (null != contentLink) {
+      var self = this;
+      contentLink.onclick = function(e) {self._provenance();e.stopPropagation();return false;};
+    }
   }
 };
 
@@ -801,7 +1032,7 @@ com.marklogic.widgets.sparqlresults.prototype._refresh = function() {
  *
  * @param {JSON} results - The JSON SPARQL results object
  */
-com.marklogic.widgets.sparqlresults.prototype.updateResults = function(results) {
+com.marklogic.widgets.sparqlresults.prototype.updateSubjectResults = function(results) {
   this.results = results;
   
   this._refresh();
@@ -826,6 +1057,59 @@ com.marklogic.widgets.sparqlresults.prototype.removeErrorListener = function(fl)
 };
 
 
+com.marklogic.widgets.sparqlresults.prototype.setProvenanceSparqlMentioned = function() {
+  this._mode = "mentioned";
+};
+
+com.marklogic.widgets.sparqlresults.prototype._provenance = function() {
+  mljs.defaultconnection.logger.debug("sparqlresults._provenance called");
+  var sparql = "";
+  if (undefined != this.results) {
+    
+    if (typeof this.results == "boolean" ) {
+      return;
+    } else {
+      if (undefined != this.results.head && undefined != this.results.head.vars && undefined != this.results.results) {
+        if (this._mode == "mentioned") {
+          sparql = "SELECT ?docuri WHERE {\n";
+          // get list of entities returned in search
+          var entities = this.results.head.vars; // E.g. person, organisation - these are the returned variable bindings from the query
+    
+          // process results, showing common information where appropriate
+          // title - get name eventually
+          var first = true;
+          var bindings = this.results.results.bindings;
+          for (var b = 0,max = bindings.length, binding;b < max;b++) {
+            binding = this.results.results.bindings[b];
+            for (var et = 0, maxent = entities.length, entityValue;et < maxent;et++) {
+              entityValue = binding[entities[et]];
+              if (first) {
+                first = false;
+              } else {
+                sparql += " UNION ";
+              }
+              sparql += " {<" + entityValue.value + "> <http://marklogic.com/semantics/ontology/mentioned_in> ?docuri . } \n";
+            }
+          }
+      
+          sparql += "}";
+        }
+  
+        /*
+        var sparql = this.provenanceSparql;
+        if (undefined != sparql) {
+          sparql = sparql.replace(/#IRI#/, this.iri);
+        }*/
+        this.semanticcontext.subjectContent(null,sparql);
+  
+  
+      } else {
+        return;
+      }
+    }
+  }
+};
+
 
 
 
@@ -846,21 +1130,47 @@ com.marklogic.widgets.sparqlresults.prototype.removeErrorListener = function(fl)
 com.marklogic.widgets.entityfacts = function(container) {
   this.container = container;
   
+  this.semanticcontext = mljs.defaultconnection.createSemanticContext(); // TODO lazy load if setSemanticContext not called
+  
   this.loading = false;
   
-  this.results = null;
+  this.facts = null;
   
   this._options = "";
   
-  this._config = new com.marklogic.widgets.tripleconfig();
+  //this._config = this.db.createSemanticConfig();
   
   this._iriHandler = null;
   
-  this._contentWidget = null; // JS content results widget to update with fact provenance content
+  //this._contentWidget = null; // JS content results widget to update with fact provenance content
   
   this.reverse = false;
   
   this._refresh();
+};
+
+com.marklogic.widgets.entityfacts.prototype.setSemanticContext = function(sc) {
+  this.semanticcontext = sc;
+};
+
+com.marklogic.widgets.entityfacts.prototype.updateSubjectFacts = function(factsJson) {
+  if ("object" == typeof factsJson) {
+    mljs.defaultconnection.logger.debug("entityfacts.updateSubjectFacts: Facts: " + JSON.stringify(factsJson));
+    
+    // list these facts
+    this.facts = factsJson;
+    this.iri = this.facts.subject;
+    
+    // if predicate exists, just update relevant section, otherwise refresh whole widget
+    if (undefined == factsJson.predicate) {
+      this._refresh(); 
+    } else {
+      // update name
+      if (factsJson.predicate == "") {
+        // TODO do something here
+      }
+    }
+  }
 };
 
 /**
@@ -878,7 +1188,7 @@ com.marklogic.widgets.entityfacts.prototype._toggle = function() {
 };
 
 com.marklogic.widgets.entityfacts.prototype._refresh = function() {
-  var s = "<div id='" + this.container + "-entityfacts' class='entityfacts'>";
+  var s = "<div id='" + this.container + "-entityfacts' class='mljswidget entityfacts'>";
   if (this.reverse) {
     s += "<h2 class='entityfacts-title'>Entity Links</h2>";
     s += "<div id='" + this.container + "-entityfacts-facts'>";
@@ -887,17 +1197,22 @@ com.marklogic.widgets.entityfacts.prototype._refresh = function() {
     s += "<div id='" + this.container + "-entityfacts-facts'>";
   }
   if (this.loading == true) {
-    s += com.marklogic.widgets.bits.loading(this.container + "-loading");
+    //s += com.marklogic.widgets.bits.loading(this.container + "-loading");
   }
   
   var irilinks = new Array();
+  var scfg = this.semanticcontext.getConfiguration();
   
-  if (this.results != null && this.results != undefined) {
+  if (this.facts != null && this.facts != undefined) {
     // get type: http://www.w3.org/1999/02/22-rdf-syntax-ns#type
     var type = null;
-    for (var b = 0;(null == type) && (b < this.results.results.bindings.length);b++) {
-      var predicate = this.results.results.bindings[b].predicate;
-      var object = this.results.results.bindings[b].object;
+    for (var b = 0,bindings = this.facts.facts.results.bindings, max = bindings.length, predicate, object, binding;(null == type) && (b < max);b++) {
+      binding = bindings[b];
+      predicate = binding.predicate;
+      if (undefined == predicate) {
+        predicate = {value: this.facts.predicate};
+      }
+      object = binding.object;
       
       if (predicate.value == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type") {
         type = object.value;
@@ -905,24 +1220,23 @@ com.marklogic.widgets.entityfacts.prototype._refresh = function() {
     }
     mljs.defaultconnection.logger.debug("Got type: " + type);
     
-    var entityInfo = null;
-    var entityName = null;
-    for (var entname in this._config._newentities) {
-      if (this._config._newentities[entname].rdfTypeIri == type) {
-        // found our entity
-        entityInfo = this._config._newentities[entname];
-        entityName = entname;
-      }
-    }
+    var entityInfo = scfg.getEntityFromIRI(type);
+    mljs.defaultconnection.logger.debug("Got entity info: " + JSON.stringify(entityInfo));
+    
+    var entityName = entityInfo.name;
     mljs.defaultconnection.logger.debug("Got entity name: " + entityName);
     
     // get common name from config
-    var namepredicate = this._config.getNameProperty(entityName).iri;
+    var namepredicate = scfg.getNameProperty(entityName).iri;
     mljs.defaultconnection.logger.debug("Got name predicate: " + namepredicate);
     var namevalue = null;
-    for (var b = 0;(null == namevalue) && (b < this.results.results.bindings.length);b++) {
-      var predicate = this.results.results.bindings[b].predicate;
-      var object = this.results.results.bindings[b].object;
+    for (var b = 0,bindings = this.facts.facts.results.bindings, max = bindings.length, predicate, object, binding;(null == namevalue) && (b < max);b++) {
+      binding = bindings[b];
+      predicate = binding.predicate;
+      if (undefined == predicate) {
+        predicate = {value: this.facts.predicate};
+      }
+      object = binding.object;
       
       if (predicate.value == namepredicate) {
         namevalue = object.value;
@@ -930,24 +1244,36 @@ com.marklogic.widgets.entityfacts.prototype._refresh = function() {
     }
     mljs.defaultconnection.logger.debug("Got name value: " + namevalue);
     
-    var objectinfo = this._config.getEntityFromIRI(type);
-    s += "<h3>" + objectinfo.title + ": " + namevalue + "</h3>";
+    //var objectinfo = this._config.getEntityFromIRI(type);
+    s += "<h3>" + entityInfo.title + ": " + namevalue + "</h3>";
     
-    if (null != this._contentWidget) {
-      s += "<p><a href='#' id='" + this.container + "-contentlink'>Load source content</a></p>";
+    if (this.semanticcontext.hasContentContext()) {
+      s += "<p><a href='#' id='" + this.container + "-contentlink'>Load related content</a></p>";
     }
     
     // TODO publish non IRIs first
     // TODO publish IRIs as links
-    for (var b = 0;(b < this.results.results.bindings.length);b++) {
-      var predicate = this.results.results.bindings[b].predicate;
-      var pinfo = this._config.getPredicateFromIRI(predicate.value);
-      var obj = this.results.results.bindings[b].object;
+    for (var b = 0,bindings = this.facts.facts.results.bindings, max = bindings.length, predicate, obj, binding;(b < max);b++) {
+      binding = bindings[b];
+      predicate = binding.predicate;
+      if (undefined == predicate) {
+        predicate = {value: this.facts.predicate};
+      }
+      mljs.defaultconnection.logger.debug("OUR PREDICATE: " + JSON.stringify(predicate));
+      var pinfo = scfg.getPredicateFromIRI(predicate.value);
+      mljs.defaultconnection.logger.debug("OUR PINFO: " + JSON.stringify(pinfo));
+      var obj = binding.object;
+      mljs.defaultconnection.logger.debug("OUR OBJECT: " + JSON.stringify(obj));
+      mljs.defaultconnection.logger.debug("OUR BINDING: " + JSON.stringify(binding));
       
       if (predicate.value != namepredicate && predicate.value != "http://www.w3.org/1999/02/22-rdf-syntax-ns#type") {
-        s += "<p><b>" + pinfo.title + ":</b> ";
+        var title = predicate.value;
+        if (undefined != pinfo) {
+          title = pinfo.title;
+        }
+        s += "<p><b>" + title + ":</b> ";
         // TODO replace the following entirely
-        if (undefined != obj["xml:lang"] /*|| null == this._iriHandler*/) {
+        if (undefined != obj["xml:lang"] /* i.e. is an xml string */ || obj.type != "uri" /* is a value, not a URI */   /*|| null == this._iriHandler*/) {
           // string literal
           s += obj.value;
         } else {
@@ -965,21 +1291,25 @@ com.marklogic.widgets.entityfacts.prototype._refresh = function() {
   
   // event handlers and lazy loading
   // lazy load related entity summaries
-  for (var i = 0;i < irilinks.length ;i++) {
-    this._summariseInto(irilinks[i].iri,irilinks[i].elid);
+  for (var i = 0, max = irilinks.length,link;i < max ;i++) {
+    link = irilinks[i];
+    this._summariseInto(link.iri,link.elid);
   }
   
-  if (null != this._contentWidget) {
+  if (this.semanticcontext.hasContentContext()) {
     var self = this;
     var el = document.getElementById(this.container + "-contentlink");
+    mljs.defaultconnection.logger.debug("CONTENTLINK: " + el);
     if (null != el) {
+      mljs.defaultconnection.logger.debug("ADDING CLICK HANDLER TO CONTENTLINK");
       el.onclick = function() {self._provenance();};
     }
   }
 };
 
 com.marklogic.widgets.entityfacts.prototype._summariseInto = function(iri,elid) {
-  this._config.summariseInto(iri,elid,this._iriHandler);
+  //this.semanticcontext.getConfiguration().summariseInto(iri,elid,this._iriHandler);
+  com.marklogic.widgets.semantichelper.summariseInto(this.semanticcontext,iri,"uri",elid,this._iriHandler);
 };
 
 /**
@@ -988,11 +1318,11 @@ com.marklogic.widgets.entityfacts.prototype._summariseInto = function(iri,elid) 
  * @param {string} iri - The IRI of the object to show facts about
  **/
 com.marklogic.widgets.entityfacts.prototype.updateEntity = function(iri) {
-  this.iri = iri;
   this.loading = true;
   this._refresh();
   
   var self = this;
+  /*
   
   var sparql = "SELECT * WHERE {<" + iri + "> ?predicate ?object .}";
   
@@ -1007,10 +1337,14 @@ com.marklogic.widgets.entityfacts.prototype.updateEntity = function(iri) {
     }
     self._refresh();
   });
+  */
+  
+  this.semanticcontext.getFacts(iri);
   
   this.errorPublisher = new com.marklogic.events.Publisher();
 };
 
+/*
 com.marklogic.widgets.entityfacts.prototype.setProvenanceWidget = function (wgt) {
   this._contentWidget = wgt;
 };
@@ -1018,7 +1352,7 @@ com.marklogic.widgets.entityfacts.prototype.setProvenanceWidget = function (wgt)
 com.marklogic.widgets.entityfacts.prototype.setOptions = function(options) {
   this._options = options;
 };
-
+*/
 
 /**
  * Adds a function as an error listener
@@ -1040,48 +1374,16 @@ com.marklogic.widgets.entityfacts.prototype.removeErrorListener = function(lis) 
   this.errorPublisher.unsubscribe(lis);
 };
 
+com.marklogic.widgets.entityfacts.prototype.setProvenanceSparqlMentioned = function() {
+  this.provenanceSparql = "SELECT ?docuri WHERE {<#IRI#> <http://marklogic.com/semantics/ontology/mentioned_in> ?docuri .}";
+};
 
 com.marklogic.widgets.entityfacts.prototype._provenance = function() {
-  // execute sparql for all facts  to do with current entity
-  var self = this;
-  if (null != this._contentWidget) {
-    self._contentWidget.updateResults(true);
-    
-    var sparql = "PREFIX foaf: <http://xmlns.com/foaf/0.1/>\nPREFIX rdfs: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" + 
-      "SELECT ?docuri {\n  GRAPH ?graph {\n    ";
-    if (self.reverse) {
-      sparql += "?obj ?pred <" + self.iri + "> .";
-    } else {
-      sparql += "<" + self.iri + "> ?pred ?obj .";
-    }
-    
-    sparql += "\n  }\n  ?graph <http://marklogic.com/semantics/ontology/derived_from> ?docuri .\n" + 
-      "} LIMIT 10";
-    mljs.defaultconnection.sparql(sparql,function(result) {
-        if (result.inError) {
-          self._contentWidget.updateResults(false);
-          self.errorPublisher.publish(result.error);
-        } else {
-      // use docuris as a shotgun or structured search
-      var qb = new mljs.defaultconnection.query();
-      var uris = new Array();
-      for (var b = 0;b < result.doc.results.bindings.length;b++) {
-        var res = result.doc.results.bindings[b];
-        uris.push(res.docuri.value);
-      }
-      qb.query(qb.uris("uris",uris));
-      var queryjson = qb.toJson();
-      
-      mljs.defaultconnection.structuredSearch(queryjson,self._options,function(result) {
-        if (result.inError) {
-          self._contentWidget.updateResults(false);
-          self.errorPublisher.publish(result.error);
-        } else {
-          self._contentWidget.updateResults(result.doc);
-        }
-      });
-    }
-    });
+  mljs.defaultconnection.logger.debug("_provenance called for: " + this.facts.subjectIri);
+  var sparql = this.provenanceSparql;
+  if (undefined != sparql) {
+    sparql = sparql.replace(/#IRI#/, this.iri);
   }
+  this.semanticcontext.subjectContent(this.iri,sparql);
 };
 

@@ -62,7 +62,7 @@ com.marklogic.widgets.searchhelper.splitdash = function(value,mode) {
   }
   if ("string" != typeof value) {
     mljs.defaultconnection.logger.warn("WARNING: splitdash(): value is not of type string, but of type '" + (typeof value) + "'");
-    return "";
+    return "" + value; // return raw value - can be converted to string
   }
   var name = value;
   if ("all" == mode || "splitdash" == mode) {
@@ -154,6 +154,8 @@ com.marklogic.widgets.searchbar = function(container) {
   
   this.ctx = new mljs.prototype.searchcontext();
   
+  this._mode = "fullquery"; // also 'contributestructured' for contributing simple word queries to search context
+  
   // draw widget within container
   mljs.defaultconnection.logger.debug("adding search bar html");
   document.getElementById(container).innerHTML = 
@@ -161,7 +163,7 @@ com.marklogic.widgets.searchbar = function(container) {
       "<div class='searchbar-queryrow'>" +
         "<label class='searchbar-label' for='" + container + "-searchinput'>Search: </label>" +
         "<input class='searchbar-query' type='text' id='" + container + "-searchinput' value='' />" +
-        "<input class='searchbar-submit' type='submit' id='" + container + "-submit' value='Search' />" +
+        "<input class='btn btn-primary searchbar-submit' type='submit' id='" + container + "-submit' value='Search' />" +
       "</div><div class='searchbar-errorrow hidden'></div>";
     "</div>";
   mljs.defaultconnection.logger.debug("adding submit click handler");
@@ -213,13 +215,26 @@ com.marklogic.widgets.searchbar.prototype.execute = function() {
   this.ctx.dosimplequery(q);
 };
 
+com.marklogic.widgets.searchbar.prototype.setMode = function(mode) {
+  this._mode = mode;
+};
+
+com.marklogic.widgets.searchbar.prototype.setModeContributeStructured = function() {
+  this._mode = "contributestructured";
+};
+
 com.marklogic.widgets.searchbar.prototype._dosearch = function(self) {
   // get our search input element
   var q = document.getElementById(self.container + "-searchinput").value;
   
   // TODO parse for Sort and Facets values, and update listeners accordingly (user may remove facets/sort by hand)
-  
-  self.ctx.dosimplequery(q);
+  if (this._mode == "fullquery") {
+    self.ctx.dosimplequery(q);
+  } else if (this._mode == "contributestructured") {
+    var qb = new this.ctx.db.query();
+    qb.query(qb.term(q));
+    self.ctx.contributeStructuredQuery(this.container,qb.toJson().query);
+  }
 };
 
 com.marklogic.widgets.searchbar.prototype.updateSimpleQuery = function(q) {
@@ -266,7 +281,7 @@ com.marklogic.widgets.searchfacets = function(container) {
   
   this.results = null;
   
-  this.ctx = new mljs.defaultconnection.searchcontext();
+  this.ctx = mljs.defaultconnection.createSearchContext();
   
   this.selected = new Array();
   
@@ -320,7 +335,7 @@ com.marklogic.widgets.searchfacets.prototype._refresh = function() {
   var more = new Array();
   var extended = new Array();
   
-  var str = "<div class='searchfacets-title'>Browse</div> <div id='" + this.container + "-facetinfo' class='search-facets'> ";
+  var str = "<div class='mljswidget searchfacets'><div class='searchfacets-title'>Browse</div> <div id='" + this.container + "-facetinfo' class='search-facets'> ";
   
   // draw selected facets and deselectors
   var deselectionTodo = new Array();
@@ -405,7 +420,7 @@ com.marklogic.widgets.searchfacets.prototype._refresh = function() {
     }
   }
   
-  str += "</div>";
+  str += "</div></div>";
   
   document.getElementById(this.container).innerHTML = str;
   
@@ -609,7 +624,7 @@ com.marklogic.widgets.searchfacets.prototype.updateSelectedFacets = function(fac
 com.marklogic.widgets.searchresults = function(container) {
   this.container = container;
   
-  this.ctx = new mljs.defaultconnection.searchcontext();
+  this.ctx = mljs.defaultconnection.createSearchContext();
   
   this.processors = new Array();
   this.availableProcessors = new Array();
@@ -660,14 +675,15 @@ com.marklogic.widgets.searchresults = function(container) {
         self.ctx.db.logger.debug("match text: " + result.matches[0]["match-text"]);
         self.ctx.db.logger.debug("match text 0: " + result.matches[0]["match-text"][0]);
       }
-      if ("string" == typeof result.content && -1 != result.content.indexOf("<html")) {
+      if ("string" == typeof result.content && -1 != result.content.indexOf("html")) { // TODO replace with XPath as this is very wide ranging - http://www.w3.org/1999/xhtml (escape dots?)
           // Get title from /html/head/title or /html/body/h1[1] or /html/body/h2[1] or /html/body/p[1]
           // don't rely on xml.evaluate() though
-          var titleStart = result.content.indexOf("<title>");
-          var titleEnd = result.content.indexOf("</title>");
-          var bodyStart = result.content.indexOf("<body");
-          var bodyEnd = result.content.indexOf(">",bodyStart + 5);
-          var endBodyStart = result.content.indexOf("</body>",bodyEnd + 1);
+          self.ctx.db.logger.debug("searchresults: defaultProcesor: Got HTML content");
+          var titleStart = result.content.indexOf("title>"); // NB can't do <title because there may be a random namespace name. Replace this with XPATH if supported
+          var titleEnd = result.content.indexOf("title>",titleStart + 6);
+          var bodyStart = result.content.indexOf("body");
+          var bodyEnd = result.content.indexOf(">",bodyStart + 4);
+          var endBodyStart = result.content.indexOf("body",bodyEnd + 1);
           self.ctx.db.logger.debug("titleStart: " + titleStart);
           self.ctx.db.logger.debug("titleEnd: " + titleEnd);
           self.ctx.db.logger.debug("bodyStart: " + bodyStart);
@@ -678,19 +694,16 @@ com.marklogic.widgets.searchresults = function(container) {
           
           var bodyContent = result.content.substring(bodyEnd + 1,endBodyStart);
           self.ctx.db.logger.debug("bodyContent: " + bodyContent);
-          var title = "";
+          var title = result.uri;
           if (-1 != titleStart && -1 != titleEnd) {
-            title = result.content.substring(titleStart + 7,titleEnd);
+            title = result.content.substring(titleStart + 6,titleEnd);
           } else {
             var firstElStart = bodyContent.indexOf("<");
             var firstElEnd = bodyContent.indexOf(">",firstElStart + 1);
             var endFirstElStart = bodyContent.indexOf("</",firstElEnd);
             if (-1 != firstElStart && -1 != firstElEnd && -1 != endFirstElStart) {
               title = bodyContent.substring(firstElEnd + 1,endFirstElStart);
-            } else {
-              // use URI
-              title = result.uri;
-            }
+            } 
           }
           self.ctx.db.logger.debug("title: " + title);
           // render first 4 elements from /html/body/element()[1 to 4]
@@ -936,26 +949,26 @@ com.marklogic.widgets.searchresults.prototype._refresh = function() {
   if (typeof this.results == "boolean" ) {
     // TODO show/hide refresh image based on value of this.results (true|false)
     if (true == this.results) {
-      document.getElementById(this.container).innerHTML = "<div class='searchresults-inner'>" +
-        "<div class='searchresults-title'>Results</div><div class='searchresults-results'>" + 
+      document.getElementById(this.container).innerHTML = "<div class='mljswidget searchresults-inner'>" +
+        "<h2 class='title searchresults-title'>Results</h2><div class='searchresults-results'>" + 
         com.marklogic.widgets.bits.loading(this.container + "-loading") + "</div></div>";
     } else {
-      document.getElementById(this.container).innerHTML = "<div class='searchresults-inner'>" +
-        "<div class='searchresults-title'>Results</div><div class='searchresults-results'>" + 
+      document.getElementById(this.container).innerHTML = "<div class='mljswidget searchresults-inner'>" +
+        "<h2 class='title searchresults-title'>Results</h2><div class='searchresults-results'>" + 
         com.marklogic.widgets.bits.failure(this.container + "-failure") + "</div></div>";
     }
     return;
   }
   if (null == this.results || undefined == this.results.results || this.results.results.length == 0) {
     document.getElementById(this.container).innerHTML = 
-      "<div class='searchresults-inner'>" +
-        "<div class='searchresults-title'>Results</div><div class='searchresults-results'>No Results</div>" +
+      "<div class='mljswidget searchresults-inner'>" +
+        "<h2 class='title searchresults-title'>Results</h2><div class='searchresults-results'>No Results</div>" +
       "</div>";
   } else {
     mljs.defaultconnection.logger.debug("RESULTS OBJECT: " + JSON.stringify(this.results));
     
     var resStr = 
-      "<div class='searchresults-inner'><div class='searchresults-title'>Results</div><div class='searchresults-results'>";
+      "<div class='mljswidget searchresults-inner'><h2 class='title searchresults-title'>Results</h2><div class='searchresults-results'>";
       
     var uureplace = 1001;
     var replacements = new Array();
@@ -1122,19 +1135,19 @@ com.marklogic.widgets.searchpager = function(container) {
   this.start = 0;
   this.total = 0;
   
-  this.ctx = new mljs.defaultconnection.searchcontext();
+  this.ctx = mljs.defaultconnection.createSearchContext();
   
   // event handlers
   this.pagePublisher = new com.marklogic.events.Publisher();
   
   // html
   document.getElementById(container).innerHTML = 
-    "<span class='searchpager-showing' id='" + container + "-searchpager-showing'></span>" +
+    "<div class='mljswidget searchpager'><span class='searchpager-showing' id='" + container + "-searchpager-showing'></span>" +
     "<span class='searchpager-first searchpager-button' id='" + container + "-searchpager-first'><a href='#' id='" + container + "-searchpager-first-a' class='searchpager-link'>&lt;&lt;  </a></span>" +
     "<span class='searchpager-previous searchpager-button' id='" + container + "-searchpager-previous'><a href='#' id='" + container + "-searchpager-previous-a' class='searchpager-link'>&lt;  </a></span>" +
     "<span class='searchpager-page' id='" + container + "-searchpager-page'>-</span>" +
     "<span class='searchpager-next searchpager-button' id='" + container + "-searchpager-next'><a href='#' id='" + container + "-searchpager-next-a' class='searchpager-link'>  &gt;</a></span>" +
-    "<span class='searchpager-last searchpager-button' id='" + container + "-searchpager-last'><a href='#' id='" + container + "-searchpager-last-a' class='searchpager-link'>  &gt;&gt;</a></span>";
+    "<span class='searchpager-last searchpager-button' id='" + container + "-searchpager-last'><a href='#' id='" + container + "-searchpager-last-a' class='searchpager-link'>  &gt;&gt;</a></span></div>";
   var self = this;
   document.getElementById(container + "-searchpager-first-a").onclick = function() {self._first();};
   document.getElementById(container + "-searchpager-previous-a").onclick = function() {self._previous();};
@@ -1299,7 +1312,7 @@ com.marklogic.widgets.searchpager.prototype._last = function() {
 com.marklogic.widgets.searchsort = function(container) {
   this.container = container;
   
-  this.ctx = new mljs.defaultconnection.searchcontext();
+  this.ctx = mljs.defaultconnection.createSearchContext();
   
   this.initialised = false;
   this.selectedValue = null;
@@ -1322,7 +1335,7 @@ com.marklogic.widgets.searchsort.prototype.setContext = function(context) {
 com.marklogic.widgets.searchsort.prototype._refresh = function() {
   var selid =  this.container + "-searchsort-select";
   var str = 
-    "<span class='searchsort-text'>Sort: </span>" +
+    "<div class='mljswidget searchsort'><span class='searchsort-text'>Sort: </span>" +
     "<select class='searchsort-select' id='" + selid + "'>";
 //      "<option value='relevance'>Relevance</option>" +
   for (var i = 0;i < this.sortOptions.length;i++) {
@@ -1377,7 +1390,7 @@ com.marklogic.widgets.searchsort.prototype._refresh = function() {
     //str += ")";
     str += title;
   }
-  str += "</select>";
+  str += "</select></div>";
   document.getElementById(this.container).innerHTML = str;
   
   // add event handlers
@@ -1493,7 +1506,7 @@ com.marklogic.widgets.searchpage = function(container) {
       "<div id='" + container + "-results-actions' class='grid_8 searchpage-results-actions'></div>" +
     "</div></div>";
     
-  this.context = new mljs.defaultconnection.searchcontext();
+  this.context = mljs.defaultconnection.createSearchContext();
   
   // NB these simple names allow direct access via mypage.bar in order for page creator to set config defaults (E.g. facet size)
   this.bar = new com.marklogic.widgets.searchbar(container + "-bar");
