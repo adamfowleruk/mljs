@@ -16,7 +16,7 @@ $(document).ready(function() {
   
   // check if db needs initialising
   
-  var ob = new db.options();
+  var ob = db.createOptions();
   ob.pageLength(100);
   ob.collection().returnResults(false);
   var options = ob.toJson();
@@ -114,18 +114,18 @@ $(document).ready(function() {
     logel.innerHTML = "";
     
     log("Installing search options...");
-    var ob1 = new db.options();
+    var ob1 = db.createOptions();
     ob1.defaultCollation("http://marklogic.com/collation/en")
       .pageLength(100)
       .collectionConstraint() // default constraint name of 'collection' 
       .rangeConstraint("animal",["item-order"]) // constraint name defaults to that of the range element name 
       .rangeConstraint("family",["item-frequency"]); // constraint name defaults to that of the range element name 
     
-    var ob2 = new db.options();
+    var ob2 = db.createOptions();
     ob2.tuples("actor-year","actor","year"); // first is tuple name. defaults to string, json namespace
-    var ob3 = new db.options();
+    var ob3 = db.createOptions();
     ob3.tuples("actor-genre","actor","genre"); // first is tuple name. defaults to string, json namespace
-    var ob4 = new db.options();
+    var ob4 = db.createOptions();
     ob4.defaultCollation("http://marklogic.com/collation/en")
       .collectionConstraint() // default constraint name of 'collection' 
       .rangeConstraint("animal",["item-order"]) // constraint name defaults to that of the range element name 

@@ -7,8 +7,8 @@ $(document).ready(function() {
   
   try {
   
-  var semctx = new db.semanticcontext();
-  var contentctx = new db.searchcontext();
+  var semctx = db.createSemanticContext();
+  var contentctx = db.createSearchContext();
   semctx.setContentContext(contentctx);
  
   var wgt = new com.marklogic.widgets.searchresults("search-content");
@@ -33,7 +33,7 @@ $(document).ready(function() {
   info.iriHandler(function(iri){info.updateEntity(iri)});
   //info.setProvenanceWidget(wgt);
   
-  var ob = new db.options();
+  var ob = db.createOptions();
   ob.defaultCollation("http://marklogic.com/collation/en")
     .collectionConstraint() // default constraint name of 'collection' 
     .rangeConstraint("animal",["item-order"]) // constraint name defaults to that of the range element name 

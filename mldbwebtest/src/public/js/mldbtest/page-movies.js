@@ -11,10 +11,10 @@ $(document).ready(function() {
   var agName = "actor-genre";
   var ayName = "actor-year";
 
-  var ob = new db.options();
+  var ob = db.createOptions();
   ob.tuples(agName,"actor","genre"); // first is tuple name. defaults to string, json namespace
   var ag = ob.toJson();
-  var ob2 = new db.options();
+  var ob2 = db.createOptions();
   ob2.tuples(ayName,"actor","year"); // first is tuple name. defaults to string, json namespace
   var ay = ob2.toJson();
   /*

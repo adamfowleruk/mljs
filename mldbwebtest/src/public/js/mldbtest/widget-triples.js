@@ -143,7 +143,7 @@ com.marklogic.widgets.semantichelper.summariseInto = function(ctx,iri,type,elid,
 com.marklogic.widgets.sparqlbar = function(container) {
   this.container = container;
   
-  this.semanticcontext = new mljs.defaultconnection.semanticcontext();
+  this.semanticcontext = mljs.defaultconnection.createSemanticContext();
   
   // These are so we only update with the suggestions we care about
   this._suggestionsEnabled = true;
@@ -156,7 +156,7 @@ com.marklogic.widgets.sparqlbar = function(container) {
   
   this._lang = "en";
   
-  //this._config = new com.marklogic.semantic.tripleconfig();
+  //this._config = this.db.createSemanticConfig();
   
   this._hierarchy = new Array(); // [{tid: 1, children: [{tid: 2, children:[]}, ...]}, ....]
   this._allterms = new Array(); // plain array, [tid] => JSON as above
@@ -925,7 +925,7 @@ com.marklogic.widgets.sparqlbar.prototype.removeErrorListener = function(lis) {
 com.marklogic.widgets.sparqlresults = function(container) {
   this.container = container;
   
-  this.semanticcontext = new mljs.defaultconnection.semanticcontext(); // TODO lazy load this is setSemanticContext is never called (unlikely)
+  this.semanticcontext = mljs.defaultconnection.createSemanticContext(); // TODO lazy load this is setSemanticContext is never called (unlikely)
   
   this.errorPublisher = new com.marklogic.events.Publisher();
   
@@ -939,7 +939,7 @@ com.marklogic.widgets.sparqlresults = function(container) {
   
   this._mode = "none";
   
-  //this._config = new com.marklogic.semantic.tripleconfig();
+  //this._config = this.db.createSemanticConfig();
   
   this._refresh();
 };
@@ -1130,7 +1130,7 @@ com.marklogic.widgets.sparqlresults.prototype._provenance = function() {
 com.marklogic.widgets.entityfacts = function(container) {
   this.container = container;
   
-  this.semanticcontext = new mljs.defaultconnection.semanticcontext(); // TODO lazy load if setSemanticContext not called
+  this.semanticcontext = mljs.defaultconnection.createSemanticContext(); // TODO lazy load if setSemanticContext not called
   
   this.loading = false;
   
@@ -1138,7 +1138,7 @@ com.marklogic.widgets.entityfacts = function(container) {
   
   this._options = "";
   
-  //this._config = new com.marklogic.semantic.tripleconfig();
+  //this._config = this.db.createSemanticConfig();
   
   this._iriHandler = null;
   

@@ -1,5 +1,6 @@
 var mljs = require("../../mljs"),
     tests = exports,
+    configurator = require('../../testconfig'),
     assert = require('assert'),
     winston = require('winston');
 
@@ -19,6 +20,7 @@ describe("007-search-collections",function() {
   var uris = ["/collections/1","/collections/2","/collections/3"];
   
   var db = new mljs(); // default options
+  configurator.configure(db);
   db.setLogger(logger);
       
   

@@ -1,5 +1,6 @@
 var mljs = require("../../mljs"),
     tests = exports,
+    configurator = require('../../testconfig'),
     assert = require('assert'),
     winston = require('winston');
 
@@ -13,6 +14,7 @@ var mljs = require("../../mljs"),
      });
 
       var db = new mljs(); // default options
+  configurator.configure(db);
       db.setLogger(logger);
       
 

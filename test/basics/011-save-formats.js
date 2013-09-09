@@ -1,5 +1,6 @@
 var mljs = require("../../mljs"),
     tests = exports,
+    configurator = require('../../testconfig'),
     assert = require('assert'),
     winston = require('winston');
 
@@ -17,10 +18,12 @@ describe("011-save-formats",function() {
    
   it("Should complete entirely",function(done){
   var db = new mljs(); // default options
+  configurator.configure(db);
   db.setLogger(logger);
   
   logger.debug("****** Creating doc");
   db.save({from: "test", to: "all", body: "wibble"}, {collection: "messages"},function(result) {
+        logger.debug("result: " + JSON.stringify(result));
     assert.equal(result.inError,false,"save() JSON should not be in error");
     
     var uri = result.docuri;
@@ -50,15 +53,18 @@ describe("011-save-formats",function() {
  
  describe("#save() XML", function(){
    
-  it("Should complete entirely",function(done){
-    var text = "<mydoc><someel>title</someel><otherel>description</otherel></mydoc>";
-    var xml = textToXML(text);
-    
+  it.skip("Should complete entirely",function(done){
   var db = new mljs(); // default options
   db.setLogger(logger);
+  configurator.configure(db);
+  
+    var text = "<mydoc><someel>title</someel><otherel>description</otherel></mydoc>";
+    var xml = db.textToXML(text);
+    
   
   logger.debug("****** Creating doc");
   db.save(xml, {collection: "messages"},function(result) {
+        logger.debug("result: " + JSON.stringify(result));
     assert.equal(result.inError,false,"save() XML should not be in error");
     
     var uri = result.docuri;
@@ -88,7 +94,7 @@ describe("011-save-formats",function() {
  
   describe("#save() plain", function(){
    
-    it("Should complete entirely",function(done){
+    it.skip("Should complete entirely",function(done){
       var text = "This is a plain text document";
     
       var db = new mljs(); // default options
@@ -96,6 +102,7 @@ describe("011-save-formats",function() {
   
       logger.debug("****** Creating doc");
       db.save(text, {collection: "messages"},function(result) {
+        logger.debug("result: " + JSON.stringify(result));
         assert.equal(result.inError,false,"save() plain should not be in error");
     
         var uri = result.docuri;

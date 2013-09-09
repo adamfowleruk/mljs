@@ -1,5 +1,6 @@
 var mljs = require("../../mljs"),
     tests = exports,
+    configurator = require('../../testconfig'),
     assert = require('assert'),
     winston = require('winston');
 
@@ -14,9 +15,10 @@ var mljs = require("../../mljs"),
 
 describe("009-tuples",function() {
   var db = new mljs(); // default options
+  configurator.configure(db);
   db.setLogger(logger);
       
-  var options = new db.options();
+  var options = db.createOptions();
   options.rangeConstraint("actor",["item-frequency"],"http://marklogic.com/collation/")
       .rangeConstraint("year",["item-order"],"http://marklogic.com/collation/")
       .returnValues().tuples("mytuples","actor","year").values("actor");
@@ -76,7 +78,7 @@ describe("009-tuples",function() {
               if (saveCount == docs.length) {
                 complete2();
               } else {
-                db.delete("/movies/" + (saveCount+1),{collection: "movies,testdata"}, function(result) {
+                db.delete("/movies/" + (saveCount+1), function(result) {
                   saveCount++;
                   nextSave2();
                 });

@@ -90,6 +90,7 @@ Targets for 1.2 (Dec 2013)
   - whoami
  - Core: Document context for editing/updating type widgets
  - Widgets: Document properties and view widget
+ - Widgets: Folder browsing widget (Probably easiest to do like Mac child folders, left to right, rather than a tree structure)
  - Widgets: Navigable charts / co-occurence - clicking sets facet value
  - Widgets: Google maps (via OpenLayers?)
  - Widgets: Geospatial facets show in maps, and not in facets widget

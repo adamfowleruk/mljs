@@ -281,7 +281,7 @@ com.marklogic.widgets.searchfacets = function(container) {
   
   this.results = null;
   
-  this.ctx = new mljs.defaultconnection.searchcontext();
+  this.ctx = mljs.defaultconnection.createSearchContext();
   
   this.selected = new Array();
   
@@ -624,7 +624,7 @@ com.marklogic.widgets.searchfacets.prototype.updateSelectedFacets = function(fac
 com.marklogic.widgets.searchresults = function(container) {
   this.container = container;
   
-  this.ctx = new mljs.defaultconnection.searchcontext();
+  this.ctx = mljs.defaultconnection.createSearchContext();
   
   this.processors = new Array();
   this.availableProcessors = new Array();
@@ -1135,7 +1135,7 @@ com.marklogic.widgets.searchpager = function(container) {
   this.start = 0;
   this.total = 0;
   
-  this.ctx = new mljs.defaultconnection.searchcontext();
+  this.ctx = mljs.defaultconnection.createSearchContext();
   
   // event handlers
   this.pagePublisher = new com.marklogic.events.Publisher();
@@ -1312,7 +1312,7 @@ com.marklogic.widgets.searchpager.prototype._last = function() {
 com.marklogic.widgets.searchsort = function(container) {
   this.container = container;
   
-  this.ctx = new mljs.defaultconnection.searchcontext();
+  this.ctx = mljs.defaultconnection.createSearchContext();
   
   this.initialised = false;
   this.selectedValue = null;
@@ -1506,7 +1506,7 @@ com.marklogic.widgets.searchpage = function(container) {
       "<div id='" + container + "-results-actions' class='grid_8 searchpage-results-actions'></div>" +
     "</div></div>";
     
-  this.context = new mljs.defaultconnection.searchcontext();
+  this.context = mljs.defaultconnection.createSearchContext();
   
   // NB these simple names allow direct access via mypage.bar in order for page creator to set config defaults (E.g. facet size)
   this.bar = new com.marklogic.widgets.searchbar(container + "-bar");

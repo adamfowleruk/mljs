@@ -186,7 +186,7 @@ function xmlToJson(xml) {
         } else if (Array.isArray(obj[nodeName][i])) {
           // merge array then add to text
           // No need, done elsewhere above
-          mljs.defaultconnection.logger.warn("WARNING: #text is still an array. Should not happen.")
+          // WILL CAUSE AN ERROR IN NODE.JS mljd.defaultconnection.logger.warn("WARNING: #text is still an array. Should not happen.")
         }
       }
       obj = text; // removes whitespace as unimportant // TODO replace with check for all string is whitespace first
@@ -310,7 +310,7 @@ function xmlToJsonSearchResults(xml) {
         } else if (Array.isArray(obj[nodeName][i])) {
           // merge array then add to text
           // No need, done elsewhere above
-          mljs.defaultconnection.logger.warn("WARNING: #text is still an array. Should not happen.")
+          // WILL CAUSE AN ERROR IN NODE.JS: mljs.defaultconnection.logger.warn("WARNING: #text is still an array. Should not happen.")
         }
       }
       obj = text; // removes whitespace as unimportant // TODO replace with check for all string is whitespace first
@@ -491,6 +491,18 @@ mljs.prototype.setLogger = function(newlogger) {
   }
 };
 
+mljs.prototype.__d = function(msg) {
+  this.logger.debug(msg);
+};
+mljs.prototype.__i = function(msg) {
+  this.logger.info(msg);
+};
+mljs.prototype.__w = function(msg) {
+  this.logger.warn(msg);
+};
+mljs.prototype.__e = function(msg) {
+  this.logger.error(msg);
+};
 
 if (typeof window === 'undefined') {
   // NodeJS exports
@@ -1051,28 +1063,32 @@ mljs.prototype.merge = function(json,docuri,callback_opt) {
 };
 
 mljs.prototype.__merge = function(json1,json2) {
-  this.logger.debug("__merge: JSON json1: " + JSON.stringify(json1) + ", json2: " + JSON.stringify(json2));
+  //this.logger.debug("__merge: JSON json1: " + JSON.stringify(json1) + ", json2: " + JSON.stringify(json2));
   if (undefined == json1 && undefined != json2) {
-    this.logger.debug("JSON1 undefined, returning: " + json2);
+    //this.logger.debug("JSON1 undefined, returning: " + json2);
     return json2;
   } else if (undefined == json2 && undefined != json1) {
-    this.logger.debug("JSON2 undefined, returning: " + json1);
+    //this.logger.debug("JSON2 undefined, returning: " + json1);
     return json1;
   } else if (typeof(json1)==='object' && typeof(json2)==='object') {
-    this.logger.debug("Both 1&2 are JSON objects. json1: " + JSON.stringify(json1) + ", json2: " + JSON.stringify(json2));
+    //this.logger.debug("Both 1&2 are JSON objects. json1: " + JSON.stringify(json1) + ", json2: " + JSON.stringify(json2));
     // can be merged
     var merged = {};
     for (var k in json1) {
-      merged[k] = json1[k];
+      if (json1.hasOwnProperty(k)) {
+        merged[k] = json1[k];
+      }
     }
     for (var k in json2) {
-      merged[k] = this.__merge(merged[k],json2[k]);
+      if (json2.hasOwnProperty(k)) {
+        merged[k] = this.__merge(merged[k],json2[k]);
+      }
     }
     return merged;
   } else if (undefined == json1 && undefined == json2) {
     return undefined;
   } else {
-    this.logger.debug("Both 1&2 are JSON values. json2 (newest): " + json2);
+    //this.logger.debug("Both 1&2 are JSON values. json2 (newest): " + json2);
     // return the second (new) value
     return json2;
   }
@@ -2363,6 +2379,64 @@ mljs.prototype.samRdb2Rdf = function(config,callback) {
 
 
 
+/****
+ * Object creation and linking helpers (akin to Factory pattern)
+ ****/
+
+/**
+ * Factory pattern. Creates an options object referring back to the current database connection. Useful to link to the correct logger, and db settings.
+ */
+mljs.prototype.createOptions = function(name,callback) {
+  var obj = new this.options(name,callback);
+  obj.db = this;
+  return obj;
+};
+
+/**
+ * Factory pattern. Creates an options object referring back to the current database connection. Useful to link to the correct logger, and db settings.
+ */
+mljs.prototype.createQuery = function() {
+  var obj = new this.query();
+  obj.db = this;
+  return obj;
+};
+
+
+/**
+ * Factory pattern. Creates a content search context object referring back to the current database connection. Useful to link to the correct logger, and db settings.
+ */
+mljs.prototype.createSearchContext = function() {
+  var obj = new this.searchcontext();
+  obj.db = this;
+  return obj;
+};
+
+
+/**
+ * Factory pattern. Creates a semantic config object referring back to the current database connection. Useful to link to the correct logger, and db settings.
+ */
+mljs.prototype.createTripleConfig = function() {
+  var obj = new com.marklogic.semantic.tripleconfig();
+  obj.db = this;
+  return obj;
+};
+
+
+/**
+ * Factory pattern. Creates a semantic context object referring back to the current database connection. Useful to link to the correct logger, and db settings.
+ */
+mljs.prototype.createSemanticContext = function() {
+  var obj = new this.semanticcontext();
+  obj.db = this;
+  return obj;
+};
+
+
+
+
+
+
+
 
 
 /****
@@ -2384,7 +2458,7 @@ mljs.prototype.samRdb2Rdf = function(config,callback) {
  * 
   <h3>Sample usage 1: page-search.js:- (and page-chartsearch except without .pageLength(100) )</h3>
  <pre>
-  var ob = new db.options();
+  var ob = db.createOptions();
   ob.defaultCollation("http://marklogic.com/collation/en")
     //.defaultType("xs:string"); // this should be the default anyway 
     //.defaultNamespace("http://marklogic.com/xdmp/json/basic") // this should be the default anyway 
@@ -2399,13 +2473,14 @@ mljs.prototype.samRdb2Rdf = function(config,callback) {
  *
   <h3>Sample usage 2: page-movies.js</h3>
   <pre>
-  var ob = new db.options();
+  var ob = db.createOptions();
   ob.tuples("coag","actor","genre"); // first is tuple name. defaults to string, json namespace
-  var ob2 = new db.options();
+  var ob2 = db.createOptions();
   ob2.tuples("coay","actor","year"); // first is tuple name. defaults to string, json namespace
   </pre>
  *
  * @constructor
+ * @deprecated Use var db = new mljs(); db.createOptions(); instead
  */
 mljs.prototype.options = function() {
   this.options = {};
@@ -2853,7 +2928,7 @@ mljs.prototype.options.prototype.rangeConstraint = function(constraint_name_opt,
     constraint_name_opt = name_or_key;  
   }
   // output values here
-  mljs.defaultconnection.logger.debug("rangeConstraint(): cName: " + constraint_name_opt + 
+  this.__d("rangeConstraint(): cName: " + constraint_name_opt + 
     ", name_or_key: " + name_or_key + ", ns_opt: " + ns_opt + ", type_opt: " + type_opt + ", collation_opt: " + collation_opt +
     ", facet_opt: " + facet_opt + ", facet_options_opt: " + facet_options_opt);
   // now use values
@@ -3257,7 +3332,7 @@ mljs.prototype.query.prototype.collection = function(uri_opt,depth_opt) {
   } else if (Array.isArray(uri_opt)) {
     // TODO handle array of uris
   } else {
-    mljs.defaultconnection.logger.debug("WARNING: query.collection(): uri_opt not an array or string, but instead a '" + (typeof uri_opt) + "'");
+    this.__d("WARNING: query.collection(): uri_opt not an array or string, but instead a '" + (typeof uri_opt) + "'");
   }
   return undefined;
 };
@@ -3455,6 +3530,7 @@ com.marklogic.events.Publisher.prototype.publish = function(event) {
  * A Search Context links together any objects affecting the query, sorting, facets or that
  * wants to be notified of changes to those, and to any new results or pages being retrieved.
  * @constructor
+ * @deprecated Use var db = new mljs(); db.createSearchContext(); instead
  */
 mljs.prototype.searchcontext = function() {
   this._optionsbuilder = new mljs.prototype.options();
@@ -3506,9 +3582,6 @@ mljs.prototype.searchcontext = function() {
   this.errorPublisher = new com.marklogic.events.Publisher(); // errors occuring at search time
   this.simpleQueryPublisher = new com.marklogic.events.Publisher(); // simple query text
   
-  
-  // set default connection
-  this.db = mljs.defaultconnection;
 };
 
 
@@ -3641,11 +3714,11 @@ mljs.prototype.searchcontext.prototype._parseQuery = function(q) {
   var sort = null;
   var parts = q.trim().split(" "); // handles spaces in facet values
   for (var i = 0;i < parts.length;i++) {
-    this.db.logger.debug("searchbar._parseQuery: parts[" + i + "]: " + parts[i]);
+    this.__d("searchbar._parseQuery: parts[" + i + "]: " + parts[i]);
     var newIdx = i;
     var colonQuote = parts[i].indexOf(":\"");
     var finalQuote = parts[i].indexOf("\"",colonQuote + 2);
-    this.db.logger.debug("searchbar._parseQuery: colonQuote: " + colonQuote + ", finalQuote: " + finalQuote);
+    this.__d("searchbar._parseQuery: colonQuote: " + colonQuote + ", finalQuote: " + finalQuote);
     if (-1 != colonQuote && -1 == finalQuote) { // found first quote without end quote
       do {
         newIdx++;
@@ -3653,27 +3726,27 @@ mljs.prototype.searchcontext.prototype._parseQuery = function(q) {
           parts[i] = parts[i] + " " + parts[newIdx];
         }
       } while (newIdx < parts.length && parts[newIdx].indexOf("\"") != parts[newIdx].length - 1);
-      this.db.logger.debug("searchbar._parseQuery: parts[" + i + "] now: " + parts[i]);
+      this.__d("searchbar._parseQuery: parts[" + i + "] now: " + parts[i]);
     }
       if (0 == parts[i].indexOf(this.sortWord + ":")) {
         sort = parts[i].substring(5);
       } else if (-1 != parts[i].indexOf(":")) {
-        this.db.logger.debug("FOUND A FACET IN QUERY: " + parts[i]);
+        this.__d("FOUND A FACET IN QUERY: " + parts[i]);
         var fv = parts[i].split(":");
-        this.db.logger.debug("Facet name: " + fv[0] + " value: " + fv[1]);
+        this.__d("Facet name: " + fv[0] + " value: " + fv[1]);
         if (0 == fv[1].indexOf("\"")) {
           fv[1] = fv[1].substring(1);
           if ((fv[1].length - 1) == fv[1].indexOf("\"")) {
             fv[1] = fv[1].substring(0,fv[1].length-1);
           }
         }
-        this.db.logger.debug("Facet info now name: " + fv[0] + " value: " + fv[1]);
+        this.__d("Facet info now name: " + fv[0] + " value: " + fv[1]);
         var found = false;
         for (var f = 0;f < facets.length;f++) {
-          this.db.logger.debug(" - testing FACET: " + facets[f].name + " = " + facets[f].value);
+          this.__d(" - testing FACET: " + facets[f].name + " = " + facets[f].value);
           if (facets[f].name == fv[0] && facets[f].value == fv[1]) {
             // mark as found so we don't add this again as a facet. NB multiples for same facet are allowed, but not multiples of same facet value
-            this.db.logger.debug(" - facets match, marking as found");
+            this.__d(" - facets match, marking as found");
             found = true;
           }
         }
@@ -3719,13 +3792,13 @@ mljs.prototype.searchcontext.prototype.dostructuredquery = function(q,start) {
   if (0 != start && undefined != start) {
     ourstart = start;
   }
-  this.db.logger.debug("searchcontext.dostructuredquery: " + JSON.stringify(q) + ", ourstart: " + ourstart);
+  this.__d("searchcontext.dostructuredquery: " + JSON.stringify(q) + ", ourstart: " + ourstart);
   
   var dos = function() {
    self.db.structuredSearch(q,self.optionsName,function(result) { 
     if (result.inError) {
       // report error on screen somewhere sensible (e.g. under search bar)
-      self.db.logger.debug(result.error);
+      self.__d(result.error);
       self.resultsPublisher.publish(false); // hides refresh glyth on error
     } else {
       self.resultsPublisher.publish(result.doc);
@@ -3778,14 +3851,14 @@ mljs.prototype.searchcontext.prototype.dosimplequery = function(q,start) {
   }
   
   // cleanse query value first
-  this.db.logger.debug("Query before: '" + q + "'");
+  this.__d("Query before: '" + q + "'");
   
   var parsed = self._parseQuery(q);
   
-  this.db.logger.debug("Query parsed: '" + JSON.stringify(parsed) + "'");
+  this.__d("Query parsed: '" + JSON.stringify(parsed) + "'");
   var cq = self._queryToText(parsed);
   q = cq;
-  this.db.logger.debug("Query after: '" + cq + "'");
+  this.__d("Query after: '" + cq + "'");
   
   // check for blank
   if ("" == cq.trim()) {
@@ -3816,7 +3889,7 @@ mljs.prototype.searchcontext.prototype.dosimplequery = function(q,start) {
    self.db.search(q,self.optionsName,ourstart,sprops,function(result) { 
     if (result.inError) {
       // report error on screen somewhere sensible (e.g. under search bar)
-      self.db.logger.debug(result.error);
+      self.__d(result.error);
       self.resultsPublisher.publish(false); // hides refresh glyth on error
     } else {
       self.resultsPublisher.publish(result.doc);
@@ -3827,10 +3900,10 @@ mljs.prototype.searchcontext.prototype.dosimplequery = function(q,start) {
   // check for options existance
   /*
   if (!this.optionsExists && "persist" == this.optionssavemode) {
-    this.db.logger.debug("searchbar: Saving search options prior to query");
+    this.__d("searchbar: Saving search options prior to query");
     this.db.saveSearchOptions(this.optionsName,this._options,function(result) {
       if (result.inError) {
-        self.db.logger.debug("Exception saving results: " + result.details);
+        self.__d("Exception saving results: " + result.details);
       } else {
         self.optionsExists = true; // to stop overwriting on subsequent requests
         dos();
@@ -3852,23 +3925,23 @@ mljs.prototype.searchcontext.prototype._persistAndDo = function(callback) {
   var self = this;
   if ("persist" == this.optionssavemode) {
     //self.db.searchoptions(this.optionsName,function(result) {
-      //self.db.logger.debug("RESULT: " + JSON.stringify(result.doc));
+      //self.__d("RESULT: " + JSON.stringify(result.doc));
       //if (result.inError) {
-      //  self.db.logger.debug("Search options " + self.optionsName + " do not exist on the server. Search bar widget will auto create them on next search.");
-      //  self.db.logger.debug("ERROR: " + JSON.stringify(result.details));
+      //  self.__d("Search options " + self.optionsName + " do not exist on the server. Search bar widget will auto create them on next search.");
+      //  self.__d("ERROR: " + JSON.stringify(result.details));
       //} else {
         // no error, do nothing (dependant objects fetch options dynamically)
         // now save them
-        self.db.logger.debug("setOptions: saving search options: " + self.optionsName);
+        self.__d("setOptions: saving search options: " + self.optionsName);
         if (self.optionsExist) {
           callback();
         } else {
         self.db.saveSearchOptions(self.optionsName,self._options,function(result) {
           if (result.inError) {
-            self.db.logger.debug("Error saving Search options " + self.optionsName); 
+            self.__d("Error saving Search options " + self.optionsName); 
           } else {
             self.optionsExists = true;
-            self.db.logger.debug("Saved Search options " + self.optionsName); 
+            self.__d("Saved Search options " + self.optionsName); 
             
             callback();
           }
@@ -4291,18 +4364,20 @@ com.marklogic.semantic.tripleconfig.prototype.getValidPredicates = function(from
 };
 
 com.marklogic.semantic.tripleconfig.prototype.getNameProperty = function(entity) {
-  mljs.defaultconnection.logger.debug("getNameProperty: entity=" + entity);
+  this.__d("getNameProperty: entity=" + entity);
   var cnp = this._newentities[entity].commonNamePredicate;
-  mljs.defaultconnection.logger.debug("Common name property: " + cnp);
+  
+  var self = this
+  self.__d("Common name property: " + cnp);
   for (var i = 0;i < this._newentities[entity].properties.length;i++) {
-    mljs.defaultconnection.logger.debug("Property: " + i + " is: " + JSON.stringify(this._newentities[entity].properties[i]));
-    mljs.defaultconnection.logger.debug(" - IRI: " + this._newentities[entity].properties[i].iri);
+    self.__d("Property: " + i + " is: " + JSON.stringify(this._newentities[entity].properties[i]));
+    self.__d(" - IRI: " + this._newentities[entity].properties[i].iri);
     if (cnp == this._newentities[entity].properties[i].iri) {
-      mljs.defaultconnection.logger.debug("MATCH: " + JSON.stringify(this._newentities[entity].properties[i]));
+      self.__d("MATCH: " + JSON.stringify(this._newentities[entity].properties[i]));
       return this._newentities[entity].properties[i];
     }
   }
-  mljs.defaultconnection.logger.debug("getNameProperty: RETURNING NULL for entity: " + entity);
+  self.__d("getNameProperty: RETURNING NULL for entity: " + entity);
   return null;
 };
 
@@ -4364,13 +4439,13 @@ com.marklogic.semantic.tripleconfig.prototype.getPredicateFromName = function(na
 };
 
 com.marklogic.semantic.tripleconfig.prototype.getEntityProperty = function(entity, name) {
-  mljs.defaultconnection.logger.debug("getEntityProperty: " + name + " from entity: " + entity);
+  self.__d("getEntityProperty: " + name + " from entity: " + entity);
   for (var i = 0;i < entity.properties.length;i++) {
     if (name == entity.properties[i].name) {
       return entity.properties[i];
     }
   }
-  mljs.defaultconnection.logger.debug("getEntityProperty: RETURNING NULL for " + name + " from entity: " + entity);
+  self.__d("getEntityProperty: RETURNING NULL for " + name + " from entity: " + entity);
   return null;
 };
 
@@ -4392,6 +4467,7 @@ com.marklogic.semantic.tripleconfig.prototype.getEntityProperty = function(entit
 /**
  * Semantic context object for finding entities and drilling down in to relationships. Abstracts performing SPARQL. Allows Caching of entity facts whilst browsing.
  * @constructor
+ * @deprecated Use var db = new mljs(); db.createSemanticContext(); instead
  */
 mljs.prototype.semanticcontext = function() {
   // query modifiers
@@ -4399,7 +4475,7 @@ mljs.prototype.semanticcontext = function() {
   this._limit = 10;
   //this._distinct = true; // defined within subjectQuery
   
-  this._tripleconfig = new com.marklogic.semantic.tripleconfig();
+  this._tripleconfig = null;
   
   this._subjectQuery = ""; // SPARQL to execute for selecting subject
   this._subjectResults = null; // SPARQL results JSON
@@ -4440,6 +4516,9 @@ mljs.prototype.semanticcontext.prototype.hasContentContext = function() {
 };
 
 mljs.prototype.semanticcontext.prototype.getConfiguration = function() {
+  if (null == this._tripleconfig) {
+    this._tripleconfig = this.db.createTripleConfig();
+  }
   return this._tripleconfig;
 };
 
@@ -4500,8 +4579,8 @@ mljs.prototype.semanticcontext.prototype._doSubjectQuery = function() {
   
   var q = this._subjectQuery + " OFFSET " + this._offset + " LIMIT " + this._limit;
   // execute function defined in our properties
-  mljs.defaultconnection.sparql(q,function(result) {
-    mljs.defaultconnection.logger.debug("RESPONSE: " + JSON.stringify(result.doc));
+  this.db.sparql(q,function(result) {
+    self.__d("RESPONSE: " + JSON.stringify(result.doc));
     if (result.inError) {
       self._subjectResultsPublisher.publish(false);
       self._errorPublisher.publish(result.error);
@@ -4543,13 +4622,13 @@ mljs.prototype.semanticcontext.prototype.subjectContent = function(subjectIri,do
     }
     sparql += " LIMIT 10";
     
-    mljs.defaultconnection.sparql(sparql,function(result) {
+    self.db.sparql(sparql,function(result) {
         if (result.inError) {
           self._contentSearchContext.updateResults(false);
           self.errorPublisher.publish(result.error);
         } else {
       // use docuris as a shotgun or structured search
-      var qb = new mljs.defaultconnection.query(); // TODO maintain link to parent connection instance
+      var qb = self.db.createQuery(); // TODO maintain link to parent connection instance
       var uris = new Array();
       for (var b = 0;b < result.doc.results.bindings.length;b++) {
         var res = result.doc.results.bindings[b];
@@ -4557,7 +4636,7 @@ mljs.prototype.semanticcontext.prototype.subjectContent = function(subjectIri,do
       }
       qb.query(qb.uris("uris",uris));
       var queryjson = qb.toJson();
-      mljs.defaultconnection.logger.debug("SEMANTIC CONTENT JSON QUERY: " + JSON.stringify(queryjson));
+      self.__d("SEMANTIC CONTENT JSON QUERY: " + JSON.stringify(queryjson));
       
       if (self._contentMode == "full") {
         self._contentSearchContext.dostructuredquery(queryjson,1);
@@ -4597,8 +4676,8 @@ mljs.prototype.semanticcontext.prototype.getFact = function(subjectIri,predicate
     var sparql = "SELECT * WHERE {<" + subjectIri + "> <" + predicate + "> ?object .}";
   
     // fetch info and refresh again
-    mljs.defaultconnection.sparql(sparql,function(result) {
-      mljs.defaultconnection.logger.debug("RESPONSE: " + JSON.stringify(result.doc));
+    self.db.sparql(sparql,function(result) {
+      self.__d("RESPONSE: " + JSON.stringify(result.doc));
       if (result.inError) {
         self._errorPublisher.publish(result.error);
       } else {
@@ -4629,8 +4708,8 @@ mljs.prototype.semanticcontext.prototype.getFacts = function(subjectIri,reload_o
     sparql += " ?predicate ?object .}";
   
     // fetch info and refresh again
-    mljs.defaultconnection.sparql(sparql,function(result) {
-      mljs.defaultconnection.logger.debug("RESPONSE: " + JSON.stringify(result.doc));
+    self.db.sparql(sparql,function(result) {
+      self.__d("RESPONSE: " + JSON.stringify(result.doc));
       if (result.inError) {
         self._subjectFactsPublisher.publish(false);
         self._errorPublisher.publish(result.error);
@@ -4650,19 +4729,21 @@ mljs.prototype.semanticcontext.prototype.getFacts = function(subjectIri,reload_o
  * triple algorithms over time change algorithms to a near-best option, and caches this for 10 minutes.
  */
 mljs.prototype.semanticcontext.prototype.primeSimpleSuggest = function() {
-  mljs.defaultconnection.logger.debug("primeSimpleSuggest");
+  this.__d("primeSimpleSuggest");
   var sparql = "SELECT DISTINCT ?suggestion WHERE {\n  ?s a <wibble> . \n  ?s <hasflibble> ?suggestion . \n  FILTER regex(?suggestion, \"Abc.*\", \"i\") \n} ORDER BY ASC(?suggestion) LIMIT 10";
   
-  mljs.defaultconnection.logger.debug("primeSimpleSuggest: SPARQL: " + sparql);
+  this.__d("primeSimpleSuggest: SPARQL: " + sparql);
   
-  mljs.defaultconnection.sparql(sparql,function(result) {
-    mljs.defaultconnection.logger.debug("primeSimpleSuggest: RESPONSE: " + JSON.stringify(result.doc));
+  var self = this;
+  
+  this.db.sparql(sparql,function(result) {
+    self.__d("primeSimpleSuggest: RESPONSE: " + JSON.stringify(result.doc));
     // do nothing - we're just priming the MarkLogic server's triple algorithm cache
   }); 
 };
 
 mljs.prototype.semanticcontext.prototype.simpleSuggest = function(rdfTypeIri,predicateIri,startString_opt) {
-  mljs.defaultconnection.logger.debug("simpleSuggest");
+  this.__d("simpleSuggest");
   var sparql = "SELECT DISTINCT ?suggestion WHERE {\n  ?s a <" + rdfTypeIri + "> . \n  ?s <" + predicateIri + "> ?suggestion . \n";
   if (undefined != startString_opt) {
     sparql += "  FILTER regex(?suggestion, \"" + startString_opt + ".*\", \"i\") \n";
@@ -4670,11 +4751,11 @@ mljs.prototype.semanticcontext.prototype.simpleSuggest = function(rdfTypeIri,pre
   
   sparql += "} ORDER BY ASC(?suggestion) LIMIT 10";
   
-  mljs.defaultconnection.logger.debug("simpleSuggest: SPARQL: " + sparql);
+  this.__d("simpleSuggest: SPARQL: " + sparql);
   
   var self = this;
-  mljs.defaultconnection.sparql(sparql,function(result) {
-    mljs.defaultconnection.logger.debug("RESPONSE: " + JSON.stringify(result.doc));
+  this.db.sparql(sparql,function(result) {
+    self.__d("RESPONSE: " + JSON.stringify(result.doc));
     if (result.inError) {
       self._errorPublisher.publish(result.error);
     } else {
@@ -4686,8 +4767,8 @@ mljs.prototype.semanticcontext.prototype.simpleSuggest = function(rdfTypeIri,pre
 // now for generic triple search results
 mljs.prototype.semanticcontext.prototype.queryFacts = function(sparql) {
   var self = this;
-  mljs.defaultconnection.sparql(sparql,function(result) {
-    mljs.defaultconnection.logger.debug("semanticcontext: _queryFacts: RESPONSE: " + JSON.stringify(result.doc));
+  self.db.sparql(sparql,function(result) {
+    self.__d("semanticcontext: _queryFacts: RESPONSE: " + JSON.stringify(result.doc));
     if (result.inError) {
       self._errorPublisher.publish(result.error);
     } else {
@@ -4696,3 +4777,68 @@ mljs.prototype.semanticcontext.prototype.queryFacts = function(sparql) {
     }
   });
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/****
+ * Functional mixin pattern for easier logging. Could be used for other functions too.
+ * See http://javascriptweblog.wordpress.com/2011/05/31/a-fresh-look-at-javascript-mixins/ for pattern details.
+ ****/
+(function () { // first IIFE definition ensures asLogSink does not end up as a global variable
+  var asLogSink = (function() {
+    function __d(msg) {
+      this.db.logger.debug(msg);
+    };
+    function __i(msg) {
+      this.db.logger.info(msg);
+    };
+    function __w(msg) {
+      this.db.logger.warn(msg);
+    };
+    function __e(msg) {
+      this.db.logger.error(msg);
+    };
+    return function() {
+      this.__d = __d;
+      this.__i = __i;
+      this.__w = __w;
+      this.__e = __e;
+      
+      return this;
+    };
+  })(); // second IIFE immediate call instantiates each function only once
+  
+  asLogSink.call(mljs.prototype.options.prototype);
+  asLogSink.call(mljs.prototype.query.prototype);
+  asLogSink.call(mljs.prototype.searchcontext.prototype);
+  asLogSink.call(com.marklogic.semantic.tripleconfig.prototype);
+  asLogSink.call(mljs.prototype.semanticcontext.prototype);
+})();
+
+
+
+
+
+
+/****
+ * Node JS mljs namespace function mappings
+ ****/
+mljs.prototype.textToXML = textToXML;
+mljs.prototype.xmlToJson = xmlToJson;
+
+
+
+
+
