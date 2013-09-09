@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Class: Publisher</title>
+    <title>JSDoc: Class: tripleconfig</title>
     
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
     
-    <h1 class="page-title">Class: Publisher</h1>
+    <h1 class="page-title">Class: tripleconfig</h1>
     
     
 
@@ -27,7 +27,7 @@
     
 <header>
     <h2>
-    Publisher
+    tripleconfig
     </h2>
     
 </header>  
@@ -39,7 +39,7 @@
     
         
 <dt>
-    <h4 class="name" id="Publisher"><span class="type-signature"></span>new Publisher<span class="signature">()</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="tripleconfig"><span class="type-signature"></span>new tripleconfig<span class="signature">()</span><span class="type-signature"></span></h4>
     
     
 </dt>
@@ -47,8 +47,7 @@
     
     
     <div class="description">
-        <p>Creates an event publishing management object. This is used extensively by searchcontext and widgets.
-One event publisher should be created for each event type.</p>
+        <p>Holds configuration for object to triple mappings</p>
     </div>
     
 
@@ -81,7 +80,7 @@ One event publisher should be created for each event type.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3481">line 3481</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4131">line 4131</a>
     </li></ul></dd>
     
     
@@ -127,7 +126,7 @@ One event publisher should be created for each event type.</p>
         <dl>
             
 <dt>
-    <h4 class="name" id="publish"><span class="type-signature"></span>publish<span class="signature">(event)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="addErrorListener"><span class="type-signature"></span>addErrorListener<span class="signature">(fl)</span><span class="type-signature"></span></h4>
     
     
 </dt>
@@ -135,7 +134,7 @@ One event publisher should be created for each event type.</p>
     
     
     <div class="description">
-        <p>Publishes an event, calling all listener functions in turn with the event object.</p>
+        <p>Adds an error listener to this widget</p>
     </div>
     
 
@@ -169,13 +168,13 @@ One event publisher should be created for each event type.</p>
 	
         <tr>
             
-                <td class="name"><code>event</code></td>
+                <td class="name"><code>fl</code></td>
             
             
             <td class="type">
             
                 
-<span class="param-type">object</span>
+<span class="param-type">function</span>
 
 
             
@@ -185,7 +184,7 @@ One event publisher should be created for each event type.</p>
             
             
             
-            <td class="description last"><p>The event object. Can be of any type.</p></td>
+            <td class="description last"><p>The error listener to add</p></td>
         </tr>
 	
 	
@@ -216,7 +215,7 @@ One event publisher should be created for each event type.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3512">line 3512</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4178">line 4178</a>
     </li></ul></dd>
     
     
@@ -244,7 +243,7 @@ One event publisher should be created for each event type.</p>
         
             
 <dt>
-    <h4 class="name" id="subscribe"><span class="type-signature"></span>subscribe<span class="signature">(listener)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="addMappings"><span class="type-signature"></span>addMappings<span class="signature">(mapname, entityJson, namedPredicateArray, validTriplesArray)</span><span class="type-signature"></span></h4>
     
     
 </dt>
@@ -252,7 +251,7 @@ One event publisher should be created for each event type.</p>
     
     
     <div class="description">
-        <p>Subscribes a listening function to this event publisher</p>
+        <p>Adds a new set of semantic objects to this configuration</p>
     </div>
     
 
@@ -286,13 +285,13 @@ One event publisher should be created for each event type.</p>
 	
         <tr>
             
-                <td class="name"><code>listener</code></td>
+                <td class="name"><code>mapname</code></td>
             
             
             <td class="type">
             
                 
-<span class="param-type">function</span>
+<span class="param-type">string</span>
 
 
             
@@ -302,7 +301,76 @@ One event publisher should be created for each event type.</p>
             
             
             
-            <td class="description last"><p>The function that is passed the event object</p></td>
+            <td class="description last"><p>The unique name in this configuration for this entity</p></td>
+        </tr>
+	
+	
+	
+        <tr>
+            
+                <td class="name"><code>entityJson</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">json</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last"><p>The Entity JSON</p></td>
+        </tr>
+	
+	
+	
+        <tr>
+            
+                <td class="name"><code>namedPredicateArray</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">Array</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last"><p>An array with names (not integers) as position markers, with JSON predicate information</p></td>
+        </tr>
+	
+	
+	
+        <tr>
+            
+                <td class="name"><code>validTriplesArray</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">Array</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last"><p>Any new triples associated with just this entity class (E.g. valid relationships between People) as JSON valid triples</p></td>
         </tr>
 	
 	
@@ -333,7 +401,7 @@ One event publisher should be created for each event type.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3489">line 3489</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4199">line 4199</a>
     </li></ul></dd>
     
     
@@ -361,7 +429,7 @@ One event publisher should be created for each event type.</p>
         
             
 <dt>
-    <h4 class="name" id="unsubscribe"><span class="type-signature"></span>unsubscribe<span class="signature">(listener)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="addValidTriples"><span class="type-signature"></span>addValidTriples<span class="signature">(validTriplesArray)</span><span class="type-signature"></span></h4>
     
     
 </dt>
@@ -369,7 +437,7 @@ One event publisher should be created for each event type.</p>
     
     
     <div class="description">
-        <p>Unsubscribes a listening function from this event publisher</p>
+        <p>Adds new valid triples.</p>
     </div>
     
 
@@ -403,13 +471,13 @@ One event publisher should be created for each event type.</p>
 	
         <tr>
             
-                <td class="name"><code>listener</code></td>
+                <td class="name"><code>validTriplesArray</code></td>
             
             
             <td class="type">
             
                 
-<span class="param-type">function</span>
+<span class="param-type">Array</span>
 
 
             
@@ -419,7 +487,7 @@ One event publisher should be created for each event type.</p>
             
             
             
-            <td class="description last"><p>The function that should no longer receive events</p></td>
+            <td class="description last"><p>Any new triples associated with multiple entity classes (E.g. relationships between people and places) as JSON valid triples</p></td>
         </tr>
 	
 	
@@ -450,7 +518,193 @@ One event publisher should be created for each event type.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3497">line 3497</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4218">line 4218</a>
+    </li></ul></dd>
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="getEntityFromIRI"><span class="type-signature"></span>getEntityFromIRI<span class="signature">()</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        <p>Fetch entity info for top level entities (not properties of entities)</p>
+    </div>
+    
+
+    
+    
+    
+    
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4387">line 4387</a>
+    </li></ul></dd>
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="removeErrorListener"><span class="type-signature"></span>removeErrorListener<span class="signature">(fl)</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        <p>Removes an error listener</p>
+    </div>
+    
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+		
+		<th>Type</th>
+		
+		
+		
+		
+		
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+	
+	<tbody>
+	
+	
+        <tr>
+            
+                <td class="name"><code>fl</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last"><p>The error listener to remove</p></td>
+        </tr>
+	
+	
+	</tbody>
+</table>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4187">line 4187</a>
     </li></ul></dd>
     
     

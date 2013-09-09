@@ -62,7 +62,7 @@ Applies the following sensible defaults:-&lt;/p&gt;
  &lt;/ul&gt;</p>
 <p>  &lt;h3&gt;Sample usage 1: page-search.js:- (and page-chartsearch except without .pageLength(100) )&lt;/h3&gt;
  &lt;pre&gt;
-  var ob = new db.options();
+  var ob = db.createOptions();
   ob.defaultCollation(&quot;<a href="http://marklogic.com/collation/en">http://marklogic.com/collation/en</a>&quot;)
     //.defaultType(&quot;xs:string&quot;); // this should be the default anyway 
     //.defaultNamespace(&quot;<a href="http://marklogic.com/xdmp/json/basic">http://marklogic.com/xdmp/json/basic</a>&quot;) // this should be the default anyway 
@@ -76,9 +76,9 @@ Applies the following sensible defaults:-&lt;/p&gt;
  &lt;/pre&gt;</p>
 <p>  &lt;h3&gt;Sample usage 2: page-movies.js&lt;/h3&gt;
   &lt;pre&gt;
-  var ob = new db.options();
+  var ob = db.createOptions();
   ob.tuples(&quot;coag&quot;,&quot;actor&quot;,&quot;genre&quot;); // first is tuple name. defaults to string, json namespace
-  var ob2 = new db.options();
+  var ob2 = db.createOptions();
   ob2.tuples(&quot;coay&quot;,&quot;actor&quot;,&quot;year&quot;); // first is tuple name. defaults to string, json namespace
   &lt;/pre&gt;</p>
     </div>
@@ -101,6 +101,8 @@ Applies the following sensible defaults:-&lt;/p&gt;
     
     
     
+        <dt class="important tag-deprecated">Deprecated:</dt><dd><ul class="dummy"><li>Use var db = new mljs(); db.createOptions(); instead</li><ul></dd>
+    
     
     
     
@@ -113,7 +115,7 @@ Applies the following sensible defaults:-&lt;/p&gt;
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2332">line 2332</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2485">line 2485</a>
     </li></ul></dd>
     
     
@@ -250,7 +252,7 @@ This is for any constraints you wish to add that don't have their own method her
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2814">line 2814</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2967">line 2967</a>
     </li></ul></dd>
     
     
@@ -367,7 +369,7 @@ This is for any constraints you wish to add that don't have their own method her
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2402">line 2402</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2555">line 2555</a>
     </li></ul></dd>
     
     
@@ -530,7 +532,7 @@ This is for any constraints you wish to add that don't have their own method her
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2825">line 2825</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2978">line 2978</a>
     </li></ul></dd>
     
     
@@ -647,7 +649,7 @@ This is for any constraints you wish to add that don't have their own method her
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2425">line 2425</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2578">line 2578</a>
     </li></ul></dd>
     
     
@@ -764,7 +766,7 @@ This is for any constraints you wish to add that don't have their own method her
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2435">line 2435</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2588">line 2588</a>
     </li></ul></dd>
     
     
@@ -881,7 +883,7 @@ This is for any constraints you wish to add that don't have their own method her
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2622">line 2622</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2775">line 2775</a>
     </li></ul></dd>
     
     
@@ -998,7 +1000,7 @@ This is for any constraints you wish to add that don't have their own method her
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2652">line 2652</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2805">line 2805</a>
     </li></ul></dd>
     
     
@@ -1115,7 +1117,7 @@ This is for any constraints you wish to add that don't have their own method her
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2632">line 2632</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2785">line 2785</a>
     </li></ul></dd>
     
     
@@ -1232,7 +1234,7 @@ This is for any constraints you wish to add that don't have their own method her
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2642">line 2642</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2795">line 2795</a>
     </li></ul></dd>
     
     
@@ -1510,7 +1512,7 @@ This is for any constraints you wish to add that don't have their own method her
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2678">line 2678</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2831">line 2831</a>
     </li></ul></dd>
     
     
@@ -1580,7 +1582,7 @@ This is for any constraints you wish to add that don't have their own method her
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2955">line 2955</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3108">line 3108</a>
     </li></ul></dd>
     
     
@@ -1700,7 +1702,7 @@ This is for any constraints you wish to add that don't have their own method her
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2444">line 2444</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2597">line 2597</a>
     </li></ul></dd>
     
     
@@ -1817,7 +1819,7 @@ This is for any constraints you wish to add that don't have their own method her
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2459">line 2459</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2612">line 2612</a>
     </li></ul></dd>
     
     
@@ -1886,7 +1888,7 @@ This is for any constraints you wish to add that don't have their own method her
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2884">line 2884</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3037">line 3037</a>
     </li></ul></dd>
     
     
@@ -2095,7 +2097,7 @@ This is for any constraints you wish to add that don't have their own method her
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2852">line 2852</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3005">line 3005</a>
     </li></ul></dd>
     
     
@@ -2164,7 +2166,7 @@ This is for any constraints you wish to add that don't have their own method her
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2892">line 2892</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3045">line 3045</a>
     </li></ul></dd>
     
     
@@ -2234,7 +2236,7 @@ This is for any constraints you wish to add that don't have their own method her
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2967">line 2967</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3120">line 3120</a>
     </li></ul></dd>
     
     
@@ -2303,7 +2305,7 @@ This is for any constraints you wish to add that don't have their own method her
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2411">line 2411</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2564">line 2564</a>
     </li></ul></dd>
     
     
@@ -2420,7 +2422,7 @@ This is for any constraints you wish to add that don't have their own method her
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2902">line 2902</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3055">line 3055</a>
     </li></ul></dd>
     
     
@@ -2489,7 +2491,7 @@ This is for any constraints you wish to add that don't have their own method her
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2660">line 2660</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2813">line 2813</a>
     </li></ul></dd>
     
     
@@ -2606,7 +2608,7 @@ This is for any constraints you wish to add that don't have their own method her
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2469">line 2469</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2622">line 2622</a>
     </li></ul></dd>
     
     
@@ -2861,7 +2863,7 @@ This is for any constraints you wish to add that don't have their own method her
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2718">line 2718</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2871">line 2871</a>
     </li></ul></dd>
     
     
@@ -2931,7 +2933,7 @@ This is for any constraints you wish to add that don't have their own method her
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2931">line 2931</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3084">line 3084</a>
     </li></ul></dd>
     
     
@@ -3048,7 +3050,7 @@ This is for any constraints you wish to add that don't have their own method her
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2479">line 2479</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2632">line 2632</a>
     </li></ul></dd>
     
     
@@ -3165,7 +3167,7 @@ This is for any constraints you wish to add that don't have their own method her
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2492">line 2492</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2645">line 2645</a>
     </li></ul></dd>
     
     
@@ -3282,7 +3284,7 @@ This is for any constraints you wish to add that don't have their own method her
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2505">line 2505</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2658">line 2658</a>
     </li></ul></dd>
     
     
@@ -3399,7 +3401,7 @@ This is for any constraints you wish to add that don't have their own method her
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2518">line 2518</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2671">line 2671</a>
     </li></ul></dd>
     
     
@@ -3516,7 +3518,7 @@ This is for any constraints you wish to add that don't have their own method her
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2531">line 2531</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2684">line 2684</a>
     </li></ul></dd>
     
     
@@ -3633,7 +3635,7 @@ This is for any constraints you wish to add that don't have their own method her
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2544">line 2544</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2697">line 2697</a>
     </li></ul></dd>
     
     
@@ -3750,7 +3752,7 @@ This is for any constraints you wish to add that don't have their own method her
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2557">line 2557</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2710">line 2710</a>
     </li></ul></dd>
     
     
@@ -3867,7 +3869,7 @@ This is for any constraints you wish to add that don't have their own method her
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2570">line 2570</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2723">line 2723</a>
     </li></ul></dd>
     
     
@@ -3984,7 +3986,7 @@ This is for any constraints you wish to add that don't have their own method her
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2583">line 2583</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2736">line 2736</a>
     </li></ul></dd>
     
     
@@ -4101,7 +4103,7 @@ This is for any constraints you wish to add that don't have their own method her
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2596">line 2596</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2749">line 2749</a>
     </li></ul></dd>
     
     
@@ -4218,7 +4220,7 @@ This is for any constraints you wish to add that don't have their own method her
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2609">line 2609</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2762">line 2762</a>
     </li></ul></dd>
     
     
@@ -4288,7 +4290,7 @@ This is for any constraints you wish to add that don't have their own method her
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2943">line 2943</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3096">line 3096</a>
     </li></ul></dd>
     
     
@@ -4474,7 +4476,7 @@ This is for any constraints you wish to add that don't have their own method her
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3001">line 3001</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3154">line 3154</a>
     </li></ul></dd>
     
     
@@ -4543,7 +4545,7 @@ This is for any constraints you wish to add that don't have their own method her
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2977">line 2977</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3130">line 3130</a>
     </li></ul></dd>
     
     
@@ -4612,7 +4614,7 @@ This is for any constraints you wish to add that don't have their own method her
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2986">line 2986</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3139">line 3139</a>
     </li></ul></dd>
     
     
@@ -4681,7 +4683,7 @@ This is for any constraints you wish to add that don't have their own method her
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2389">line 2389</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2542">line 2542</a>
     </li></ul></dd>
     
     
@@ -4844,7 +4846,7 @@ This is for any constraints you wish to add that don't have their own method her
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line2915">line 2915</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3068">line 3068</a>
     </li></ul></dd>
     
     
@@ -5013,7 +5015,7 @@ This is for any constraints you wish to add that don't have their own method her
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3053">line 3053</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3206">line 3206</a>
     </li></ul></dd>
     
     
@@ -5182,7 +5184,7 @@ This is for any constraints you wish to add that don't have their own method her
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3071">line 3071</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3224">line 3224</a>
     </li></ul></dd>
     
     
@@ -5223,13 +5225,13 @@ This is for any constraints you wish to add that don't have their own method her
 </div>
 
 <nav>
-    <h2><a href="index.html">Index</a></h2><h3>Classes</h3><ul><li><a href="BasicWrapper.html">BasicWrapper</a></li><li><a href="com.marklogic.events.Publisher.html">Publisher</a></li><li><a href="DigestWrapper.html">DigestWrapper</a></li><li><a href="mljs.html">mljs</a></li><li><a href="options.html">options</a></li><li><a href="query.html">query</a></li><li><a href="searchcontext.html">searchcontext</a></li><li><a href="PassThroughWrapper.html">PassThroughWrapper</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-001-intro.html">001-intro</a></li><li><a href="tutorial-002-widgets-search.html">002-widgets-search</a></li><li><a href="tutorial-003-widgets-search-render.html">003-widgets-search-render</a></li><li><a href="tutorial-004-widgets-highcharts.html">004-widgets-highcharts</a></li><li><a href="tutorial-011-browser-create-app.html">011-browser-create-app</a></li><li><a href="tutorial-012-browser-install-app.html">012-browser-install-app</a></li><li><a href="tutorial-013-browser-samples-app.html">013-browser-samples-app</a></li><li><a href="tutorial-999-samples.html">999-samples</a></li><li><a href="tutorial-all.html">all</a></li></ul><h3>Global</h3><ul><li><a href="global.html#padNC">padNC</a></li><li><a href="global.html#parseDigest">parseDigest</a></li><li><a href="global.html#textToXML">textToXML</a></li><li><a href="global.html#xmlToJson">xmlToJson</a></li><li><a href="global.html#xmlToJsonSearchResults">xmlToJsonSearchResults</a></li><li><a href="global.html#xmlToJsonStrict">xmlToJsonStrict</a></li></ul>
+    <h2><a href="index.html">Index</a></h2><h3>Classes</h3><ul><li><a href="BasicWrapper.html">BasicWrapper</a></li><li><a href="com.marklogic.events.Publisher.html">Publisher</a></li><li><a href="com.marklogic.semantic.tripleconfig.html">tripleconfig</a></li><li><a href="DigestWrapper.html">DigestWrapper</a></li><li><a href="mljs.html">mljs</a></li><li><a href="options.html">options</a></li><li><a href="query.html">query</a></li><li><a href="searchcontext.html">searchcontext</a></li><li><a href="semanticcontext.html">semanticcontext</a></li><li><a href="PassThroughWrapper.html">PassThroughWrapper</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-001-intro.html">001-intro</a></li><li><a href="tutorial-002-widgets-search.html">002-widgets-search</a></li><li><a href="tutorial-003-widgets-search-render.html">003-widgets-search-render</a></li><li><a href="tutorial-004-widgets-highcharts.html">004-widgets-highcharts</a></li><li><a href="tutorial-011-browser-create-app.html">011-browser-create-app</a></li><li><a href="tutorial-012-browser-install-app.html">012-browser-install-app</a></li><li><a href="tutorial-013-browser-samples-app.html">013-browser-samples-app</a></li><li><a href="tutorial-999-samples.html">999-samples</a></li><li><a href="tutorial-all.html">all</a></li></ul><h3>Global</h3><ul><li><a href="global.html#padNC">padNC</a></li><li><a href="global.html#parseDigest">parseDigest</a></li><li><a href="global.html#textToXML">textToXML</a></li><li><a href="global.html#xmlToJson">xmlToJson</a></li><li><a href="global.html#xmlToJsonSearchResults">xmlToJsonSearchResults</a></li><li><a href="global.html#xmlToJsonStrict">xmlToJsonStrict</a></li></ul>
 </nav>
 
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Tue Aug 13 2013 22:30:14 GMT+0100 (BST)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Mon Sep 09 2013 23:59:15 GMT+0100 (BST)
 </footer>
 
 <script> prettyPrint(); </script>

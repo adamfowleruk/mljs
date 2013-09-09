@@ -213,7 +213,7 @@ function xmlToJson(xml) {
         } else if (Array.isArray(obj[nodeName][i])) {
           // merge array then add to text
           // No need, done elsewhere above
-          mljs.defaultconnection.logger.warn("WARNING: #text is still an array. Should not happen.")
+          // WILL CAUSE AN ERROR IN NODE.JS mljd.defaultconnection.logger.warn("WARNING: #text is still an array. Should not happen.")
         }
       }
       obj = text; // removes whitespace as unimportant // TODO replace with check for all string is whitespace first
@@ -260,20 +260,20 @@ function xmlToJsonSearchResults(xml) {
     // check if parent name is 'result'. If so, return content json object with encoded string of all child nodes
     var isResultContent = false;
     if (null != xml.parentNode) {
-      console.log("parentNode is not null");
+      //console.log("parentNode is not null");
       var ourName = xml.parentNode.nodeName;
       var pos = ourName.indexOf(":");
       if (-1 != pos) {
         ourName = ourName.substring(pos + 1);
       }
-      console.log("ourName: " + ourName);
+      //console.log("ourName: " + ourName);
       if ("result"==ourName) {
         isResultContent = true;
       }
     }
       
     if (isResultContent) {
-        console.log("GOT RESULT");
+        //console.log("GOT RESULT");
         /*
         var s = "";
         for (var i = 0; i &lt; xml.childNodes.length; i++) {
@@ -337,7 +337,7 @@ function xmlToJsonSearchResults(xml) {
         } else if (Array.isArray(obj[nodeName][i])) {
           // merge array then add to text
           // No need, done elsewhere above
-          mljs.defaultconnection.logger.warn("WARNING: #text is still an array. Should not happen.")
+          // WILL CAUSE AN ERROR IN NODE.JS: mljs.defaultconnection.logger.warn("WARNING: #text is still an array. Should not happen.")
         }
       }
       obj = text; // removes whitespace as unimportant // TODO replace with check for all string is whitespace first
@@ -518,6 +518,18 @@ mljs.prototype.setLogger = function(newlogger) {
   }
 };
 
+mljs.prototype.__d = function(msg) {
+  this.logger.debug(msg);
+};
+mljs.prototype.__i = function(msg) {
+  this.logger.info(msg);
+};
+mljs.prototype.__w = function(msg) {
+  this.logger.warn(msg);
+};
+mljs.prototype.__e = function(msg) {
+  this.logger.error(msg);
+};
 
 if (typeof window === 'undefined') {
   // NodeJS exports
@@ -1078,28 +1090,32 @@ mljs.prototype.merge = function(json,docuri,callback_opt) {
 };
 
 mljs.prototype.__merge = function(json1,json2) {
-  this.logger.debug("__merge: JSON json1: " + JSON.stringify(json1) + ", json2: " + JSON.stringify(json2));
+  //this.logger.debug("__merge: JSON json1: " + JSON.stringify(json1) + ", json2: " + JSON.stringify(json2));
   if (undefined == json1 && undefined != json2) {
-    this.logger.debug("JSON1 undefined, returning: " + json2);
+    //this.logger.debug("JSON1 undefined, returning: " + json2);
     return json2;
   } else if (undefined == json2 && undefined != json1) {
-    this.logger.debug("JSON2 undefined, returning: " + json1);
+    //this.logger.debug("JSON2 undefined, returning: " + json1);
     return json1;
   } else if (typeof(json1)==='object' && typeof(json2)==='object') {
-    this.logger.debug("Both 1&2 are JSON objects. json1: " + JSON.stringify(json1) + ", json2: " + JSON.stringify(json2));
+    //this.logger.debug("Both 1&2 are JSON objects. json1: " + JSON.stringify(json1) + ", json2: " + JSON.stringify(json2));
     // can be merged
     var merged = {};
     for (var k in json1) {
-      merged[k] = json1[k];
+      if (json1.hasOwnProperty(k)) {
+        merged[k] = json1[k];
+      }
     }
     for (var k in json2) {
-      merged[k] = this.__merge(merged[k],json2[k]);
+      if (json2.hasOwnProperty(k)) {
+        merged[k] = this.__merge(merged[k],json2[k]);
+      }
     }
     return merged;
   } else if (undefined == json1 && undefined == json2) {
     return undefined;
   } else {
-    this.logger.debug("Both 1&2 are JSON values. json2 (newest): " + json2);
+    //this.logger.debug("Both 1&2 are JSON values. json2 (newest): " + json2);
     // return the second (new) value
     return json2;
   }
@@ -1553,7 +1569,22 @@ mljs.prototype.saveGraph = function(triples,uri_opt,callback_opt) {
   var graphdoc = "";
   if ("object" === typeof triples) {
     for (var i = 0;i &lt; triples.length;i++) {
-      graphdoc += "&lt;" + triples[i].subject + "> &lt;" + triples[i].predicate + "> &lt;" + triples[i].object + "> .\n";
+      // TODO handle simple (intrinsic type) objects
+      graphdoc += "&lt;" + triples[i].subject + "> &lt;" + triples[i].predicate + "> ";
+      
+      if (undefined != triples[i].object) {
+        graphdoc += "&lt;" + triples[i].object + ">";
+      } else if (undefined != triples[i].string) {
+        graphdoc += "\"" + triples[i].string + "\"";
+        if (undefined != triples[i].locale) {
+          graphdoc += "@" + triples[i].locale;
+        }
+      } else if (undefined != triples[i].number) {
+        graphdoc += "\"" + triples[i].number + "\"";
+      } else {
+        throw new Exception("Triples does not have an object, string or number value: " + JSON.stringify(triples[i]));
+      }
+      graphdoc += " .\n";
     }
   } else {
     graphdoc = triples; // raw text in n-triples format
@@ -2275,7 +2306,6 @@ mljs.prototype.dlscollection = function(collection,callback) {
 };
 
 
-
 /**
  * REQUIRES CUSTOM REST API EXTENSION - dlsrules.xqy - Adam Fowler adam.fowler@marklogic.com - Lists all DLS retention rules
  *
@@ -2306,6 +2336,128 @@ mljs.prototype.dlsrule = function(name,callback) {
 
 
 
+/**
+ * REQUIRES CURSTOM REST API EXTENSION - rdb2rdf.xqy - Adam Fowler adam.fowler@marklogic.com - List DB schema attached to an MLSAM URL endpoint.
+ * 
+ * @param {string} samurl - The endpoint URL of the installed SAM service (uses a JDBC connection)
+ */
+mljs.prototype.samListSchema = function(samurl,callback) {
+  var options = {
+    path: "/v1/resources/rdb2rdf?rs:samurl=" + encodeURI(samurl),
+    method: "GET",
+    headers: { Accept: "application/json"}
+  };
+  this.__doreq("SAMLISTSCHEMA",options,null,callback);
+};
+
+
+/**
+ * REQUIRES CURSTOM REST API EXTENSION - rdb2rdf.xqy - Adam Fowler adam.fowler@marklogic.com - Describe tables and relationships in the prescribed schema attached to an MLSAM URL endpoint.
+ * 
+ * NB This method relies on ANSI DESCRIBE, COUNT and Information Schema support
+ * 
+ * @param {string} samurl - The endpoint URL of the installed SAM service (uses a JDBC connection)
+ * @param {string} schema - The database schema name. 
+ */
+mljs.prototype.samSchemaInfo = function(samurl,schema,callback) {
+  var options = {
+    path: "/v1/resources/rdb2rdf?rs:samurl=" + encodeURI(samurl) + "&rs:schema=" + encodeURI(schema),
+    method: "GET",
+    headers: { Accept: "application/json"}
+  };
+  this.__doreq("SAMSCHEMAINFO",options,null,callback);
+};
+
+/**
+ * REQUIRES CURSTOM REST API EXTENSION - rdb2rdf.xqy - Adam Fowler adam.fowler@marklogic.com - Ingests an RDBMS schema subset (limited rows per table) in to the MarkLogic Triplestore using W3C RDB2RDF direct mapping.
+ * 
+ * NB This method relies on ANSI DESCRIBE, COUNT and Information Schema support
+ * 
+ * @param {JSON} config - The JSON configuration of the database segment to ingest
+{ingest: {
+  database: {
+    samurl: "http://kojak.demo.marklogic.com:8080/mlsam/mlsql",
+    schema: "test2"
+  },
+  create: {
+    graph: "mynamedgraph"
+  },
+  selection: {
+    mode: "data",
+    table: ["customers"], offset: 0, limit: 100, column: ["col1","col2"]
+  }
+}
+}
+ */
+mljs.prototype.samRdb2Rdf = function(config,callback) {
+  var options = {
+    path: "/v1/resources/rdb2rdf",
+    method: "POST",
+    headers: { Accept: "application/json"}
+  };
+  this.__doreq("SAMRDB2RDF",options,config,callback);
+};
+
+
+
+
+
+
+
+
+
+/****
+ * Object creation and linking helpers (akin to Factory pattern)
+ ****/
+
+/**
+ * Factory pattern. Creates an options object referring back to the current database connection. Useful to link to the correct logger, and db settings.
+ */
+mljs.prototype.createOptions = function(name,callback) {
+  var obj = new this.options(name,callback);
+  obj.db = this;
+  return obj;
+};
+
+/**
+ * Factory pattern. Creates an options object referring back to the current database connection. Useful to link to the correct logger, and db settings.
+ */
+mljs.prototype.createQuery = function() {
+  var obj = new this.query();
+  obj.db = this;
+  return obj;
+};
+
+
+/**
+ * Factory pattern. Creates a content search context object referring back to the current database connection. Useful to link to the correct logger, and db settings.
+ */
+mljs.prototype.createSearchContext = function() {
+  var obj = new this.searchcontext();
+  obj.db = this;
+  return obj;
+};
+
+
+/**
+ * Factory pattern. Creates a semantic config object referring back to the current database connection. Useful to link to the correct logger, and db settings.
+ */
+mljs.prototype.createTripleConfig = function() {
+  var obj = new com.marklogic.semantic.tripleconfig();
+  obj.db = this;
+  return obj;
+};
+
+
+/**
+ * Factory pattern. Creates a semantic context object referring back to the current database connection. Useful to link to the correct logger, and db settings.
+ */
+mljs.prototype.createSemanticContext = function() {
+  var obj = new this.semanticcontext();
+  obj.db = this;
+  return obj;
+};
+
 
 
 
@@ -2333,7 +2485,7 @@ mljs.prototype.dlsrule = function(name,callback) {
  * 
   &lt;h3>Sample usage 1: page-search.js:- (and page-chartsearch except without .pageLength(100) )&lt;/h3>
  &lt;pre>
-  var ob = new db.options();
+  var ob = db.createOptions();
   ob.defaultCollation("http://marklogic.com/collation/en")
     //.defaultType("xs:string"); // this should be the default anyway 
     //.defaultNamespace("http://marklogic.com/xdmp/json/basic") // this should be the default anyway 
@@ -2348,13 +2500,14 @@ mljs.prototype.dlsrule = function(name,callback) {
  *
   &lt;h3>Sample usage 2: page-movies.js&lt;/h3>
   &lt;pre>
-  var ob = new db.options();
+  var ob = db.createOptions();
   ob.tuples("coag","actor","genre"); // first is tuple name. defaults to string, json namespace
-  var ob2 = new db.options();
+  var ob2 = db.createOptions();
   ob2.tuples("coay","actor","year"); // first is tuple name. defaults to string, json namespace
   &lt;/pre>
  *
  * @constructor
+ * @deprecated Use var db = new mljs(); db.createOptions(); instead
  */
 mljs.prototype.options = function() {
   this.options = {};
@@ -2802,7 +2955,7 @@ mljs.prototype.options.prototype.rangeConstraint = function(constraint_name_opt,
     constraint_name_opt = name_or_key;  
   }
   // output values here
-  mljs.defaultconnection.logger.debug("rangeConstraint(): cName: " + constraint_name_opt + 
+  this.__d("rangeConstraint(): cName: " + constraint_name_opt + 
     ", name_or_key: " + name_or_key + ", ns_opt: " + ns_opt + ", type_opt: " + type_opt + ", collation_opt: " + collation_opt +
     ", facet_opt: " + facet_opt + ", facet_options_opt: " + facet_options_opt);
   // now use values
@@ -3206,7 +3359,7 @@ mljs.prototype.query.prototype.collection = function(uri_opt,depth_opt) {
   } else if (Array.isArray(uri_opt)) {
     // TODO handle array of uris
   } else {
-    mljs.defaultconnection.logger.debug("WARNING: query.collection(): uri_opt not an array or string, but instead a '" + (typeof uri_opt) + "'");
+    this.__d("WARNING: query.collection(): uri_opt not an array or string, but instead a '" + (typeof uri_opt) + "'");
   }
   return undefined;
 };
@@ -3297,6 +3450,18 @@ mljs.prototype.query.prototype.uris = function(constraint_name,uris) {
   }
 };
 
+/**
+ * Term (Word or phrase, anywhere in a document) query
+ */
+mljs.prototype.query.prototype.term = function(wordOrPhrase) {
+  var tq = {
+    "term-query": {
+      "text": [wordOrPhrase]
+    }
+  };
+  return tq;
+};
+
 // TODO bounding box query
 
 // TODO within polygon query
@@ -3315,9 +3480,13 @@ mljs.prototype.query = function() {
 if (typeof(window) === 'undefined') {
   com = {};
   com.marklogic = {};
+  com.marklogic.events = {};
+  com.marklogic.semantic = {};
 } else {
   com = window.com || {};
   com.marklogic = window.com.marklogic || {};
+  com.marklogic.events = window.com.marklogic.events || {};
+  com.marklogic.semantic = window.com.marklogic.semantic || {};
 }
 com.marklogic.events = {};
 
@@ -3380,10 +3549,15 @@ com.marklogic.events.Publisher.prototype.publish = function(event) {
 
 
 
+
+
+
+
 /**
  * A Search Context links together any objects affecting the query, sorting, facets or that
  * wants to be notified of changes to those, and to any new results or pages being retrieved.
  * @constructor
+ * @deprecated Use var db = new mljs(); db.createSearchContext(); instead
  */
 mljs.prototype.searchcontext = function() {
   this._optionsbuilder = new mljs.prototype.options();
@@ -3401,6 +3575,8 @@ mljs.prototype.searchcontext = function() {
   this.optionsName = mljs.__dogenid();
   this.optionsExists = false;
   this.optionssavemode = "persist"; // persist or dynamic (v7 only)
+  
+  this.structuredContrib = new Array();
   
   this.collection = null;
   this.directory = null;
@@ -3433,9 +3609,6 @@ mljs.prototype.searchcontext = function() {
   this.errorPublisher = new com.marklogic.events.Publisher(); // errors occuring at search time
   this.simpleQueryPublisher = new com.marklogic.events.Publisher(); // simple query text
   
-  
-  // set default connection
-  this.db = mljs.defaultconnection;
 };
 
 
@@ -3492,6 +3665,8 @@ mljs.prototype.searchcontext.prototype.setOptions = function(name,options) {
   this.defaultSort = this._options.options["sort-order"];
   
   this.optionsPublisher.publish(this._options.options);
+  
+  this.structuredContrib = new Array();
   
   // TODO support V7 dynamic query options capability rather than always saving
   
@@ -3566,11 +3741,11 @@ mljs.prototype.searchcontext.prototype._parseQuery = function(q) {
   var sort = null;
   var parts = q.trim().split(" "); // handles spaces in facet values
   for (var i = 0;i &lt; parts.length;i++) {
-    this.db.logger.debug("searchbar._parseQuery: parts[" + i + "]: " + parts[i]);
+    this.__d("searchbar._parseQuery: parts[" + i + "]: " + parts[i]);
     var newIdx = i;
     var colonQuote = parts[i].indexOf(":\"");
     var finalQuote = parts[i].indexOf("\"",colonQuote + 2);
-    this.db.logger.debug("searchbar._parseQuery: colonQuote: " + colonQuote + ", finalQuote: " + finalQuote);
+    this.__d("searchbar._parseQuery: colonQuote: " + colonQuote + ", finalQuote: " + finalQuote);
     if (-1 != colonQuote && -1 == finalQuote) { // found first quote without end quote
       do {
         newIdx++;
@@ -3578,27 +3753,27 @@ mljs.prototype.searchcontext.prototype._parseQuery = function(q) {
           parts[i] = parts[i] + " " + parts[newIdx];
         }
       } while (newIdx &lt; parts.length && parts[newIdx].indexOf("\"") != parts[newIdx].length - 1);
-      this.db.logger.debug("searchbar._parseQuery: parts[" + i + "] now: " + parts[i]);
+      this.__d("searchbar._parseQuery: parts[" + i + "] now: " + parts[i]);
     }
       if (0 == parts[i].indexOf(this.sortWord + ":")) {
         sort = parts[i].substring(5);
       } else if (-1 != parts[i].indexOf(":")) {
-        this.db.logger.debug("FOUND A FACET IN QUERY: " + parts[i]);
+        this.__d("FOUND A FACET IN QUERY: " + parts[i]);
         var fv = parts[i].split(":");
-        this.db.logger.debug("Facet name: " + fv[0] + " value: " + fv[1]);
+        this.__d("Facet name: " + fv[0] + " value: " + fv[1]);
         if (0 == fv[1].indexOf("\"")) {
           fv[1] = fv[1].substring(1);
           if ((fv[1].length - 1) == fv[1].indexOf("\"")) {
             fv[1] = fv[1].substring(0,fv[1].length-1);
           }
         }
-        this.db.logger.debug("Facet info now name: " + fv[0] + " value: " + fv[1]);
+        this.__d("Facet info now name: " + fv[0] + " value: " + fv[1]);
         var found = false;
         for (var f = 0;f &lt; facets.length;f++) {
-          this.db.logger.debug(" - testing FACET: " + facets[f].name + " = " + facets[f].value);
+          this.__d(" - testing FACET: " + facets[f].name + " = " + facets[f].value);
           if (facets[f].name == fv[0] && facets[f].value == fv[1]) {
             // mark as found so we don't add this again as a facet. NB multiples for same facet are allowed, but not multiples of same facet value
-            this.db.logger.debug(" - facets match, marking as found");
+            this.__d(" - facets match, marking as found");
             found = true;
           }
         }
@@ -3629,6 +3804,61 @@ mljs.prototype.searchcontext.prototype._queryToText = function(parsed) {
 };
 
 /**
+ * Performs a structured query against this search context.
+ * 
+ * @param {json} q - The structured query JSON representation
+ * @param {integer} start - The start index (result number), starting at 1
+ */
+mljs.prototype.searchcontext.prototype.dostructuredquery = function(q,start) {
+  var self = this;
+  
+  self.resultsPublisher.publish(true); // forces refresh glyph to show
+  self.facetsPublisher.publish(true);
+  
+  var ourstart = 1;
+  if (0 != start && undefined != start) {
+    ourstart = start;
+  }
+  this.__d("searchcontext.dostructuredquery: " + JSON.stringify(q) + ", ourstart: " + ourstart);
+  
+  var dos = function() {
+   self.db.structuredSearch(q,self.optionsName,function(result) { 
+    if (result.inError) {
+      // report error on screen somewhere sensible (e.g. under search bar)
+      self.__d(result.error);
+      self.resultsPublisher.publish(false); // hides refresh glyth on error
+    } else {
+      self.resultsPublisher.publish(result.doc);
+    }
+   });
+  };
+  
+  this._persistAndDo(dos);
+};
+
+/**
+ * For situations where many objects are contributing top level structured query terms that need AND-ing together.
+ * 
+ * NOTE: queryTerm needs to be the result of queryBuilder.toJson().query[0] and not the top level query JSON itself - i.e. we need a term, not a full query object.
+ */
+mljs.prototype.searchcontext.prototype.contributeStructuredQuery = function(contributor,queryTerm,start_opt) {
+  this.structuredContrib[contributor] = queryTerm;
+  
+  // build structure query from all terms
+  var terms = new Array();
+  for (var cont in this.structuredContrib) {
+    if ("object" == typeof this.structuredContrib[cont]) {
+      terms.push(this.structuredContrib[cont]);
+    }
+  }
+  // execute structured query
+  var qb = new this.db.query();
+  qb.query(qb.and(terms));
+  //var allqueries = { query: {"and-query": terms}}; // TODO replace with query builder
+  this.dostructuredquery(qb.toJson());
+};
+
+/**
  * Fires a simple query as specified, updating all listeners when the result is returned.
  * @param {string} q - The simple text query using the grammar in the search options
  * @param {integer} start - The start index (result number), starting at 1
@@ -3648,14 +3878,14 @@ mljs.prototype.searchcontext.prototype.dosimplequery = function(q,start) {
   }
   
   // cleanse query value first
-  this.db.logger.debug("Query before: '" + q + "'");
+  this.__d("Query before: '" + q + "'");
   
   var parsed = self._parseQuery(q);
   
-  this.db.logger.debug("Query parsed: '" + JSON.stringify(parsed) + "'");
+  this.__d("Query parsed: '" + JSON.stringify(parsed) + "'");
   var cq = self._queryToText(parsed);
   q = cq;
-  this.db.logger.debug("Query after: '" + cq + "'");
+  this.__d("Query after: '" + cq + "'");
   
   // check for blank
   if ("" == cq.trim()) {
@@ -3686,7 +3916,7 @@ mljs.prototype.searchcontext.prototype.dosimplequery = function(q,start) {
    self.db.search(q,self.optionsName,ourstart,sprops,function(result) { 
     if (result.inError) {
       // report error on screen somewhere sensible (e.g. under search bar)
-      self.db.logger.debug(result.error);
+      self.__d(result.error);
       self.resultsPublisher.publish(false); // hides refresh glyth on error
     } else {
       self.resultsPublisher.publish(result.doc);
@@ -3697,10 +3927,10 @@ mljs.prototype.searchcontext.prototype.dosimplequery = function(q,start) {
   // check for options existance
   /*
   if (!this.optionsExists && "persist" == this.optionssavemode) {
-    this.db.logger.debug("searchbar: Saving search options prior to query");
+    this.__d("searchbar: Saving search options prior to query");
     this.db.saveSearchOptions(this.optionsName,this._options,function(result) {
       if (result.inError) {
-        self.db.logger.debug("Exception saving results: " + result.details);
+        self.__d("Exception saving results: " + result.details);
       } else {
         self.optionsExists = true; // to stop overwriting on subsequent requests
         dos();
@@ -3710,27 +3940,37 @@ mljs.prototype.searchcontext.prototype.dosimplequery = function(q,start) {
     dos();
   }*/
   
+  this._persistAndDo(dos);
+  
+};
+
+mljs.prototype.searchcontext.prototype.updateResults = function(msg) {
+  this.resultsPublisher.publish(msg);
+};
+
+mljs.prototype.searchcontext.prototype._persistAndDo = function(callback) {
+  var self = this;
   if ("persist" == this.optionssavemode) {
     //self.db.searchoptions(this.optionsName,function(result) {
-      //self.db.logger.debug("RESULT: " + JSON.stringify(result.doc));
+      //self.__d("RESULT: " + JSON.stringify(result.doc));
       //if (result.inError) {
-      //  self.db.logger.debug("Search options " + self.optionsName + " do not exist on the server. Search bar widget will auto create them on next search.");
-      //  self.db.logger.debug("ERROR: " + JSON.stringify(result.details));
+      //  self.__d("Search options " + self.optionsName + " do not exist on the server. Search bar widget will auto create them on next search.");
+      //  self.__d("ERROR: " + JSON.stringify(result.details));
       //} else {
         // no error, do nothing (dependant objects fetch options dynamically)
         // now save them
-        self.db.logger.debug("setOptions: saving search options: " + self.optionsName);
+        self.__d("setOptions: saving search options: " + self.optionsName);
         if (self.optionsExist) {
-          dos();
+          callback();
         } else {
         self.db.saveSearchOptions(self.optionsName,self._options,function(result) {
           if (result.inError) {
-            self.db.logger.debug("Error saving Search options " + self.optionsName); 
+            self.__d("Error saving Search options " + self.optionsName); 
           } else {
             self.optionsExists = true;
-            self.db.logger.debug("Saved Search options " + self.optionsName); 
+            self.__d("Saved Search options " + self.optionsName); 
             
-            dos();
+            callback();
           }
         });
       }
@@ -3883,6 +4123,752 @@ mljs.prototype.searchcontext.prototype.reset = function() {
   this.simpleQueryPublisher.publish(this.defaultQuery);
 };
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/**
+ * Relationships for content:-
+ *  - http://marklogic.com/semantic/ontology/derived_from (graph as subject)
+ *  - http://marklogic.com/semantic/ontology/defined_by (any entity as subject where triples were extracted)
+ * 
+ */
+
+
+
+
+
+
+/**
+ * Holds configuration for object to triple mappings
+ * 
+ * @constructor
+ */
+com.marklogic.semantic.tripleconfig = function() {
+  this.errorPublisher = new com.marklogic.events.Publisher();
+  
+  // TODO drastically simplify this data model
+  
+  //this.entities = new Array();
+  
+  this.validTriples = new Array();
+  
+  //this._predicates = new Array();
+  
+  // own extensions - need ontology somewhere for this!
+  
+  //this._predicatesShort = new Array();
+  
+  //this._iriPatterns = new Array();
+  
+  //this._rdfTypes = new Array();
+  
+  //this._rdfTypesShort = new Array();
+  
+  //this._commonNamePredicates = new Array();
+  
+  //this._properties = new Array(); // TODO other common properties, alpha order by name value
+  
+  // ANYTHING PAST THIS POINT IS REFACTORED AND AWESOME
+  
+  this._newentities = new Array(); // [name] => {name: "person", prefix: "http://xmlns.com/foaf/0.1/", iriPattern:, rdfTypeIri: , rdfTypeIriShort: , commonNamePredicate: 
+  // ..., properties: [{},{}, ...] }
+  
+  this._newPredicates = new Array(); // [commonname] => {iri: , iriShort: }
+  
+  // also keep _validTriples as-is
+  
+  // defaults
+  this.addFoaf();
+  this.addPlaces();
+  this.addFoafPlaces();
+  this.addTest();
+  this.addMovies();
+};
+
+/**
+ * Adds an error listener to this widget
+ * 
+ * @param {function(error)} fl - The error listener to add
+ */
+com.marklogic.semantic.tripleconfig.prototype.addErrorListener = function(fl) {
+  this.errorPublisher.subscribe(fl);
+};
+
+/**
+ * Removes an error listener
+ * 
+ * @param {function(error)} fl - The error listener to remove
+ */
+com.marklogic.semantic.tripleconfig.prototype.removeErrorListener = function(fl) {
+  this.errorPublisher.unsubscribe(fl);
+};
+
+/**
+ * Adds a new set of semantic objects to this configuration
+ * 
+ * @param {string} mapname - The unique name in this configuration for this entity
+ * @param {json} entityJson - The Entity JSON
+ * @param {Array} namedPredicateArray - An array with names (not integers) as position markers, with JSON predicate information
+ * @param {Array} validTriplesArray - Any new triples associated with just this entity class (E.g. valid relationships between People) as JSON valid triples
+ */
+com.marklogic.semantic.tripleconfig.prototype.addMappings = function(mapname,entityJson,namedPredicateArray,validTriplesArray) {
+  this._newentities[mapname] = entityJson;
+  for (var i = 0;i &lt; validTriplesArray.length;i++) {
+    this.validTriples.push(validTriplesArray[i]);
+  }
+  for (var predname in namedPredicateArray) {
+    //console.log("PREDNAME: " + predname);
+    if ("object" == typeof namedPredicateArray[predname]) { // check this is a JSON object, not a function
+      //console.log("ADDING PREDNAME: " + predname);
+      this._newPredicates[predname] = namedPredicateArray[predname];
+    }
+  }
+};
+
+/**
+ * Adds new valid triples.
+ * 
+ * @param {Array} validTriplesArray - Any new triples associated with multiple entity classes (E.g. relationships between people and places) as JSON valid triples
+ */
+com.marklogic.semantic.tripleconfig.prototype.addValidTriples = function(validTriplesArray) {
+  for (var i = 0;i &lt; validTriplesArray.length;i++) {
+    this.validTriples.push(validTriplesArray[i]);
+  }
+};
+
+com.marklogic.semantic.tripleconfig.prototype.addPlaces = function() {
+  //this.entities.push("placename");
+  
+  this.validTriples.push({subjectType: "placename", objectType: "placename", predicateArray: ["located_within","contains_location"]}); 
+  
+  //this._predicates["studies_at"] = "http://www.marklogic.com/ontology/0.1/studies_at";
+  //this._predicates["affiliated_with"] = "http://www.marklogic.com/ontology/0.1/affiliated_with";
+  //this._predicates["has_meetings_near"] = "http://www.marklogic.com/ontology/0.1/has_meetings_near";
+  //this._predicates["located_within"] = "http://www.marklogic.com/ontology/0.1/located_within";
+  //this._predicates["contains_location"] = "http://www.marklogic.com/ontology/0.1/contains_location";
+  
+  //this._iriPatterns["placename"] = "http://marklogic.com/semantic/targets/placename/#VALUE#";
+  //this._rdfTypes["placename"] = "http://schema.org/Place"; // geonames features are an extension of Place
+  //this._rdfTypesShort["placename"] = "so:Place"; // geonames features are an extension of Place
+  //this._commonNamePredicates["placename"] = "http://www.geonames.org/ontology#name";
+  //this._properties["placename"] = [{name: "name", iri: "http://www.geonames.org/ontology#name", shortiri: "geonames:name"}];
+  
+  
+  this._newentities["place"] = {name: "place", title: "Place", prefix: "http://www.geonames.org/ontology#", iriPattern: "http://marklogic.com/semantic/targets/organisation/#VALUE#", 
+    rdfTypeIri: "http://schema.org/Place", rdfTypeIriShort: "foaf:Organization", commonNamePredicate: "http://www.geonames.org/ontology#name",
+    properties: [{name: "name", iri: "http://www.geonames.org/ontology#name", shortiri: "geonames:name"}]};
+  
+  this._newPredicates["studies_at"] = {name: "studies_at", title: "Studies at", iri: "http://www.marklogic.com/ontology/0.1/studies_at", shortiri: "ml:studies_at"};
+  this._newPredicates["affiliated_with"] = {name: "affiliated_with", title: "Affiliated with", iri: "http://www.marklogic.com/ontology/0.1/affiliated_with", shortiri: "ml:affiliated_with"};
+  this._newPredicates["has_meetings_near"] = {name: "has_meetings_near", title: "Meets near", iri: "http://www.marklogic.com/ontology/0.1/has_meetings_near", shortiri: "ml:has_meetings_near"};
+  this._newPredicates["located_within"] = {name: "located_within", title: "Located within", iri: "http://www.marklogic.com/ontology/0.1/located_within", shortiri: "ml:located_within"};
+  this._newPredicates["contains_location"] = {name: "contains_location", title: "Contains", iri: "http://www.marklogic.com/ontology/0.1/contains_location", shortiri: "ml:contains_location"};
+};
+
+com.marklogic.semantic.tripleconfig.prototype.addMovies = function() {
+  this.validTriples.push({subjectType: "person", objectType: "movie", predicateArray: ["likesmovie"]});
+  
+  this._newentities["movie"] = {name: "movie", title: "Movie", prefix: "http://marklogic.com/semantic/ns/movie", iriPattern: "http://marklogic.com/semantic/targets/movies/#VALUE#",
+    rdfTypeIri: "http://marklogic.com/semantic/rdfTypes/movie", rdfTypeIriShort: "mov:movie", commonNamePredicate: "hastitle",
+    properties: [
+      {name: "hastitle", iri: "hastitle", shortiri: "mov:hastitle"},
+      {name: "hasactor", iri: "hasactor", shortiri: "mov:hasactor"},
+      {name: "hasgenre", iri: "hasgenre", shortiri: "mov:hasgenre"},
+      {name: "releasedin", iri: "releasedin", shortiri: "mov:releasedin"}
+    ]
+  };
+  this._newPredicates["likesmovie"] = {name: "likesmovie", title: "Likes movie", iri: "likesmovie", shortiri: "mov:likesmovie"};
+  this._newPredicates["hastitle"] = {name: "hastitle", title: "Has Title", iri: "hastitle", shortiri: "mov:hastitle"};
+  this._newPredicates["hasactor"] = {name: "hasactor", title: "Has Actor", iri: "hasactor", shortiri: "mov:hasactor"};
+  this._newPredicates["hasgenre"] = {name: "hasgenre", title: "Has Genre", iri: "hasgenre", shortiri: "mov:hasgenre"};
+  this._newPredicates["releasedin"] = {name: "releasedin", title: "Released In", iri: "releasedin", shortiri: "mov:releasedin"};
+};
+
+com.marklogic.semantic.tripleconfig.prototype.addTest = function() {
+  //this.entities.push("foodstuff");
+  
+  this.validTriples.push({subjectType: "person", objectType: "foodstuff", predicateArray: ["likes"]});
+  
+  // no special predicates in foodstuffs
+  
+  //this._iriPatterns["foodstuff"] = "http://marklogic.com/semantic/targets/foodstuffs/#VALUE#";
+  //this._rdfTypes["foodstuff"] = "http://marklogic.com/semantic/rdfTypes/foodstuff";
+  //this._rdfTypesShort["foodstuff"] = "fs:foodstuff";
+  //this._commonNamePredicates["foodstuff"] = "foodname";
+  //this._properties["foodstuff"] = [{name: "name", iri: "foodname", shortiri: "foodname"}];
+  
+  this._newentities["foodstuff"] = {name: "foodstuff", title: "Foodstuff", prefix: "http://marklogic.com/semantic/ns/foodstuff", iriPattern: "http://marklogic.com/semantic/targets/foodstuffs/#VALUE#", 
+    rdfTypeIri: "http://marklogic.com/semantic/rdfTypes/foodstuff", rdfTypeIriShort: "fs:foodstuff", commonNamePredicate: "foodname",
+    properties: [{name: "foodname", iri: "foodname", shortiri: "fs:foodname"}]};
+    
+  this._newPredicates["foodname"] = {name: "foodname", title: "Named", iri: "foodname", shortiri: "foodname"};
+  this._newPredicates["likes"] = {name: "likes", title: "Likes food", iri: "likes", shortiri: "fs:likes"};
+};
+
+com.marklogic.semantic.tripleconfig.prototype.addFoafPlaces = function() {
+  this.validTriples.push({subjectType: "person", objectType: "placename", predicateArray: ["based_near"]}); //NB based_near may not be a valid relationship class - may be lon/lat instead
+  this.validTriples.push({subjectType: "organisation", objectType: "placename", predicateArray: ["based_near","has_meetings_near"]}); 
+};
+
+com.marklogic.semantic.tripleconfig.prototype.addFoaf = function() {
+  this.validTriples.push({subjectType: "person", objectType: "person", predicateArray: ["knows","friendOf","enemyOf","childOf","parentOf","fundedBy"]});
+  this.validTriples.push({subjectType: "person", objectType: "organisation", predicateArray: ["member","studies_at"]});
+  this.validTriples.push({subjectType: "organisation", objectType: "organisation", predicateArray: ["member","parentOf","affiliated_with","fundedBy"]});
+  
+  //this._predicates["knows"] = "http://xmlns.com/foaf/0.1/knows";
+  //this._predicates["friendOf"] = "http://xmlns.com/foaf/0.1/friendOf";
+  //this._predicates["enemyOf"] = "http://xmlns.com/foaf/0.1/enemyOf";
+  //this._predicates["childOf"] = "http://xmlns.com/foaf/0.1/childOf";
+  //this._predicates["parentOf"] = "http://xmlns.com/foaf/0.1/parentOf";
+  //this._predicates["fundedBy"] = "http://xmlns.com/foaf/0.1/fundedBy";
+  //this._predicates["member"] = "http://xmlns.com/foaf/0.1/member";
+  //this._predicates["based_near"] = "http://xmlns.com/foaf/0.1/based_near";
+  //this._predicatesShort["knows"] = "foaf:knows";
+  //this._predicatesShort["friendOf"] = "foaf:friendOf";
+  //this._predicatesShort["enemyOf"] = "foaf:enemyOf";
+  //this._predicatesShort["childOf"] = "foaf:childOf";
+  //this._predicatesShort["parentOf"] = "foaf:parentOf";
+  //this._predicatesShort["fundedBy"] = "foaf:fundedBy";
+  //this._predicatesShort["member"] = "foaf:member";
+  //this._predicatesShort["based_near"] = "foaf:based_near";
+  
+  // DELETE THE FOLLOWING
+  /*
+  this.entities.push("person");
+  this.entities.push("organisation");
+  this._iriPatterns["person"] = "http://marklogic.com/semantic/targets/person/#VALUE#";
+  this._iriPatterns["organisation"] = "http://marklogic.com/semantic/targets/organisation/#VALUE#";
+  this._rdfTypes["person"] = "http://xmlns.com/foaf/0.1/Person";
+  this._rdfTypes["organisation"] = "http://xmlns.com/foaf/0.1/Organization";
+  this._rdfTypesShort["person"] = "foaf:Person";
+  this._rdfTypesShort["organisation"] = "foaf:Organization";
+  this._commonNamePredicates["person"] = "http://xmlns.com/foaf/0.1/name";
+  this._commonNamePredicates["organisation"] = "http://xmlns.com/foaf/0.1/name";
+  
+  this._properties["person"] = [{name: "name", iri: "http://xmlns.com/foaf/0.1/name", shortiri: "foaf:name"}];
+  this._properties["organisation"] = [{name: "name", iri: "http://xmlns.com/foaf/0.1/name", shortiri: "foaf:name"}];
+  // END DELETE
+  */
+  
+  this._newentities["person"] = {name: "person", title: "Person",prefix: "http://xmlns.com/foaf/0.1/", iriPattern: "http://marklogic.com/semantic/targets/person/#VALUE#", 
+    rdfTypeIri: "http://xmlns.com/foaf/0.1/Person", rdfTypeIriShort: "foaf:Person", commonNamePredicate: "http://xmlns.com/foaf/0.1/name",
+    properties: [{name: "name", iri: "http://xmlns.com/foaf/0.1/name", shortiri: "foaf:name"}]};
+    
+  this._newentities["organisation"] = {name: "organisation", title: "Organisation", prefix: "http://xmlns.com/foaf/0.1/", iriPattern: "http://marklogic.com/semantic/targets/organisation/#VALUE#", 
+    rdfTypeIri: "http://xmlns.com/foaf/0.1/Organization", rdfTypeIriShort: "foaf:Organization", commonNamePredicate: "http://xmlns.com/foaf/0.1/name",
+    properties: [{name: "name", iri: "http://xmlns.com/foaf/0.1/name", shortiri: "foaf:name"}]};
+  
+  this._newPredicates["knows"] = {name: "knows", title: "Knows", iri: "http://xmlns.com/foaf/0.1/knows", shortiri: "foaf:knows"};
+  this._newPredicates["friendOf"] = {name: "friendOf", title: "Friend", iri: "http://xmlns.com/foaf/0.1/friendOf", shortiri: "foaf:friendOf"};
+  this._newPredicates["enemyOf"] = {name: "enemyOf", title: "Enemy", iri: "http://xmlns.com/foaf/0.1/enemyOf", shortiri: "foaf:enemyOf"};
+  this._newPredicates["childOf"] = {name: "childOf", title: "Is a child of", iri: "http://xmlns.com/foaf/0.1/childOf", shortiri: "foaf:childOf"};
+  this._newPredicates["parentOf"] = {name: "parentOf", title: "Is a parent of", iri: "http://xmlns.com/foaf/0.1/parentOf", shortiri: "foaf:parentOf"};
+  this._newPredicates["fundedBy"] = {name: "fundedBy", title: "Funded by", iri: "http://xmlns.com/foaf/0.1/fundedBy", shortiri: "foaf:fundedBy"};
+  this._newPredicates["member"] = {name: "member", title: "Is a member of", iri: "http://xmlns.com/foaf/0.1/member", shortiri: "foaf:member"};
+  this._newPredicates["based_near"] = {name: "based_near", title: "Is based near", iri: "http://xmlns.com/foaf/0.1/based_near", shortiri: "foaf:based_near"};
+  
+};
+
+com.marklogic.semantic.tripleconfig.prototype.getValidPredicates = function(from,to) {
+  for (var i = 0;i &lt; this.validTriples.length;i++) {
+    if (this.validTriples[i].subjectType == from && this.validTriples[i].objectType == to) {
+      return this.validTriples[i].predicateArray;
+    }
+  }
+  return new Array();
+};
+
+com.marklogic.semantic.tripleconfig.prototype.getNameProperty = function(entity) {
+  this.__d("getNameProperty: entity=" + entity);
+  var cnp = this._newentities[entity].commonNamePredicate;
+  
+  var self = this
+  self.__d("Common name property: " + cnp);
+  for (var i = 0;i &lt; this._newentities[entity].properties.length;i++) {
+    self.__d("Property: " + i + " is: " + JSON.stringify(this._newentities[entity].properties[i]));
+    self.__d(" - IRI: " + this._newentities[entity].properties[i].iri);
+    if (cnp == this._newentities[entity].properties[i].iri) {
+      self.__d("MATCH: " + JSON.stringify(this._newentities[entity].properties[i]));
+      return this._newentities[entity].properties[i];
+    }
+  }
+  self.__d("getNameProperty: RETURNING NULL for entity: " + entity);
+  return null;
+};
+
+/**
+ * Fetch entity info for top level entities (not properties of entities)
+ */
+com.marklogic.semantic.tripleconfig.prototype.getEntityFromIRI = function(iri) {
+  for (var cn in this._newentities) {
+    var p = this._newentities[cn];
+    if (p.rdfTypeIri == iri) {
+      return p;
+    }
+  }
+};
+
+com.marklogic.semantic.tripleconfig.prototype.getEntityFromShortIRI = function(iri) {
+  for (var cn in this._newentities) {
+    var p = this._newentities[cn];
+    if (p.rdfTypeIriShort == iri) {
+      return p;
+    }
+  }
+};
+
+com.marklogic.semantic.tripleconfig.prototype.getEntityFromName = function(name) {
+  for (var cn in this._newentities) {
+    var p = this._newentities[cn];
+    if (p.name == name) {
+      return p;
+    }
+  }
+};
+
+com.marklogic.semantic.tripleconfig.prototype.getPredicateFromIRI = function(iri) {
+  for (var cn in this._newPredicates) {
+    var p = this._newPredicates[cn];
+    if (p.iri == iri) {
+      return p;
+    }
+  }
+};
+
+com.marklogic.semantic.tripleconfig.prototype.getPredicateFromShortIRI = function(iri) {
+  for (var cn in this._newPredicates) {
+    var p = this._newPredicates[cn];
+    if (p.shortiri == iri) {
+      return p;
+    }
+  }
+};
+
+com.marklogic.semantic.tripleconfig.prototype.getPredicateFromName = function(name) {
+  for (var cn in this._newPredicates) {
+    var p = this._newPredicates[cn];
+    if (p.name == name) {
+      return p;
+    }
+  }
+};
+
+com.marklogic.semantic.tripleconfig.prototype.getEntityProperty = function(entity, name) {
+  self.__d("getEntityProperty: " + name + " from entity: " + entity);
+  for (var i = 0;i &lt; entity.properties.length;i++) {
+    if (name == entity.properties[i].name) {
+      return entity.properties[i];
+    }
+  }
+  self.__d("getEntityProperty: RETURNING NULL for " + name + " from entity: " + entity);
+  return null;
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/**
+ * Semantic context object for finding entities and drilling down in to relationships. Abstracts performing SPARQL. Allows Caching of entity facts whilst browsing.
+ * @constructor
+ * @deprecated Use var db = new mljs(); db.createSemanticContext(); instead
+ */
+mljs.prototype.semanticcontext = function() {
+  // query modifiers
+  this._offset = 0;
+  this._limit = 10;
+  //this._distinct = true; // defined within subjectQuery
+  
+  this._tripleconfig = null;
+  
+  this._subjectQuery = ""; // SPARQL to execute for selecting subject
+  this._subjectResults = null; // SPARQL results JSON
+  
+  this._selectedSubject = ""; // IRI of selected subject
+  this._subjectFacts = new Array(); // IRI -> JSON SPARQL facts results object
+  
+  this._restrictSearchContext = null; // the searchcontext instance to update with a cts:triples-range-query when our subjectQuery is updated
+  this._contentSearchContext = null; // The search context to replace the query for when finding related content to this SPARQL query (where a result IRI is a document URI)
+  
+  this._contentMode = "full"; // or "contribute" - whether to executed a structured query (full) or just provide a single term (contribute)
+  
+  this._subjectResultsPublisher = new com.marklogic.events.Publisher();
+  this._subjectFactsPublisher = new com.marklogic.events.Publisher();
+  this._suggestionsPublisher = new com.marklogic.events.Publisher();
+  this._factsPublisher = new com.marklogic.events.Publisher(); // publish facts that can be associated to many subjects - normally for pulling back a result per subject, with many facts per 'row'
+  this._errorPublisher = new com.marklogic.events.Publisher();
+};
+
+mljs.prototype.semanticcontext.prototype.setContentMode = function(mode) {
+  this._contentMode = mode;
+};
+
+mljs.prototype.semanticcontext.prototype.getContentMode = function() {
+  return this._contentMode;
+};
+
+mljs.prototype.semanticcontext.prototype.setContentContext = function(ctx) {
+  this._contentSearchContext = ctx;
+};
+
+mljs.prototype.semanticcontext.prototype.getContentContext = function() {
+  return this._contentSearchContext;
+};
+
+mljs.prototype.semanticcontext.prototype.hasContentContext = function() {
+  return (null != this._contentSearchContext);
+};
+
+mljs.prototype.semanticcontext.prototype.getConfiguration = function() {
+  if (null == this._tripleconfig) {
+    this._tripleconfig = this.db.createTripleConfig();
+  }
+  return this._tripleconfig;
+};
+
+mljs.prototype.semanticcontext.prototype.setConfiguration = function(conf) {
+  this._tripleconfig = conf;
+};
+
+mljs.prototype.semanticcontext.prototype.register = function(obj) {
+  if (undefined != obj.setSemanticContext) {
+    obj.setSemanticContext(this);
+  }
+  
+  // check if this object can respond to our emitted events
+  if (undefined != obj.updateSubjectResults) {
+    this._subjectResultsPublisher.subscribe(function(results) {obj.updateSubjectResults(results)});
+  }
+  if (undefined != obj.updateSubjectFacts) {
+    this._subjectFactsPublisher.subscribe(function(facts) {obj.updateSubjectFacts(facts)});
+  }
+  if (undefined != obj.updateFacts) {
+    this._factsPublisher.subscribe(function(facts) {obj.updateFacts(facts)});
+  }
+  if (undefined != obj.updateSuggestions) {
+    this._suggestionsPublisher.subscribe(function(suggestions) {obj.updateSuggestions(suggestions)});
+  }
+  
+  // Where we listen to others' events
+  if (undefined != obj.addSubjectSelectionListener) {
+    obj.addSubjectSelectionListener(function(subjectIri) {this.subjectFacts(subjectIri)});
+  }
+  
+  
+  // also register with the content search context, if it exists
+  if (null != this._contentSearchContext) {
+    this._contentSearchContext.register(obj);
+  }
+};
+
+mljs.prototype.semanticcontext.prototype.subjectQuery = function(sparql,offset_opt,limit_opt) {
+  this._subjectQuery = sparql;
+  if (undefined != offset_opt) {
+    this._offset = offset_opt;
+    if (undefined != limit_opt) {
+      this._limit = limit_opt;
+    }
+  }
+  // perform query
+  this._doSubjectQuery();
+};
+
+mljs.prototype.semanticcontext.prototype.moveOffset = function(offset) {
+  this._offset = offset;
+  this._doSubjectQuery();
+};
+
+mljs.prototype.semanticcontext.prototype._doSubjectQuery = function() {
+  var self = this;
+  
+  var q = this._subjectQuery + " OFFSET " + this._offset + " LIMIT " + this._limit;
+  // execute function defined in our properties
+  this.db.sparql(q,function(result) {
+    self.__d("RESPONSE: " + JSON.stringify(result.doc));
+    if (result.inError) {
+      self._subjectResultsPublisher.publish(false);
+      self._errorPublisher.publish(result.error);
+    } else {
+      self._subjectResultsPublisher.publish(result.doc);
+    }
+  });
+};
+
+mljs.prototype.semanticcontext.prototype.subjectFacts = function(subjectIri) {
+  this._selectedSubject = subjectIri;
+  
+  // subject SPARQL
+  this.getFacts(subjectIri,true);
+};
+
+// NB subjectIri can be null if sparql contains multiple subjectIris
+mljs.prototype.semanticcontext.prototype.subjectContent = function(subjectIri,docSparql_opt) {
+  // update the linked searchcontext with a query related to documents that the facts relating to this subjectIri were inferred from
+  // TODO sparql query to fetch doc URIs (stored as derivedFrom IRIs)
+  // execute sparql for all facts  to do with current entity
+  var self = this;
+  if (null != this._contentSearchContext) {
+    this._contentSearchContext.updateResults(true);
+    
+    var sparql = "";
+    if (undefined == docSparql_opt) {
+      sparql += "PREFIX foaf: &lt;http://xmlns.com/foaf/0.1/>\nPREFIX rdfs: &lt;http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" + 
+        "SELECT ?docuri {\n  GRAPH ?graph {\n    ";
+      if (self.reverse) {
+        sparql += "?obj ?pred &lt;" + subjectIri + "> .";
+      } else {
+        sparql += "&lt;" + subjectIri + "> ?pred ?obj .";
+      }
+      sparql += "\n  }\n  ?graph &lt;http://marklogic.com/semantics/ontology/derived_from> ?docuri .\n" + 
+        "}";
+    } else {
+      sparql = docSparql_opt; // MUST return ?docuri somehow
+    }
+    sparql += " LIMIT 10";
+    
+    self.db.sparql(sparql,function(result) {
+        if (result.inError) {
+          self._contentSearchContext.updateResults(false);
+          self.errorPublisher.publish(result.error);
+        } else {
+      // use docuris as a shotgun or structured search
+      var qb = self.db.createQuery(); // TODO maintain link to parent connection instance
+      var uris = new Array();
+      for (var b = 0;b &lt; result.doc.results.bindings.length;b++) {
+        var res = result.doc.results.bindings[b];
+        uris.push(res.docuri.value);
+      }
+      qb.query(qb.uris("uris",uris));
+      var queryjson = qb.toJson();
+      self.__d("SEMANTIC CONTENT JSON QUERY: " + JSON.stringify(queryjson));
+      
+      if (self._contentMode == "full") {
+        self._contentSearchContext.dostructuredquery(queryjson,1);
+      } else if (self._contentMode == "contribute") {
+        self._contentSearchContext.contributeStructuredQuery("semanticcontext",queryjson.query); // only one sub query so don't treat it as an array
+      }
+      /*
+      mljs.defaultconnection.structuredSearch(queryjson,self._options,function(result) {
+        if (result.inError) {
+          self._contentWidget.updateResults(false);
+          self.errorPublisher.publish(result.error);
+        } else {
+          self._contentWidget.updateResults(result.doc);
+        }
+      });
+      */
+    }
+    });
+  }
+};
+
+mljs.prototype.semanticcontext.prototype.getFact = function(subjectIri,predicate,reload_opt) {
+  var facts = this._subjectFacts[subjectIri];
+  var bindings
+  var self = this;
+  var fireFact = function() {
+    var results = [];
+    for (var i = 0;i &lt; bindings.length;i++) {
+      if (undefined == bindings[i].predicate || predicate == bindings[i].predicate) { // if undefined, its a result of us asking for a specific predicate, and thus a matching predicate
+        results.push(bindings[i].predicate); // pushes type, value, xml:lang (if applicable) as JSON object to results array
+      }
+    }
+    self._subjectFactsPublisher.publish({subject: subjectIri,predicate: predicate,facts: bindings})
+  };
+  
+  if ((true==reload_opt) || undefined == facts) { 
+    var sparql = "SELECT * WHERE {&lt;" + subjectIri + "> &lt;" + predicate + "> ?object .}";
+  
+    // fetch info and refresh again
+    self.db.sparql(sparql,function(result) {
+      self.__d("RESPONSE: " + JSON.stringify(result.doc));
+      if (result.inError) {
+        self._errorPublisher.publish(result.error);
+      } else {
+        bindings = result.doc.results.bindings;
+        fireFact();
+      }
+    });
+  } else {
+    bindings = facts.results.bindings;
+    fireFact();
+  }
+};
+
+mljs.prototype.semanticcontext.prototype.getFacts = function(subjectIri,reload_opt) {
+  var self = this;
+  var facts = this._subjectFacts[subjectIri];
+  if ((true==reload_opt) || undefined == facts) { 
+    var sparql = "SELECT * WHERE {";
+    
+    // check for bnodes
+    if (!(subjectIri.indexOf("_:") == 0)) {
+      sparql += "&lt;";
+    }
+    sparql += subjectIri;
+    if (!(subjectIri.indexOf("_:") == 0)) {
+      sparql += ">";
+    }
+    sparql += " ?predicate ?object .}";
+  
+    // fetch info and refresh again
+    self.db.sparql(sparql,function(result) {
+      self.__d("RESPONSE: " + JSON.stringify(result.doc));
+      if (result.inError) {
+        self._subjectFactsPublisher.publish(false);
+        self._errorPublisher.publish(result.error);
+      } else {
+        self._subjectFacts[subjectIri] = result.doc;
+        self._subjectFactsPublisher.publish({subject: subjectIri,facts: result.doc});
+      }
+    });
+  } else {
+    self._subjectFactsPublisher.publish({subject: subjectIri,facts: facts});
+  }
+};
+
+/**
+ * This seems to kick the sparql query cache in to action. Even doing this for a different RdfType seems to help.
+ * This is really only applicable to demonstrations rather than production systems, as in production MarkLogic's
+ * triple algorithms over time change algorithms to a near-best option, and caches this for 10 minutes.
+ */
+mljs.prototype.semanticcontext.prototype.primeSimpleSuggest = function() {
+  this.__d("primeSimpleSuggest");
+  var sparql = "SELECT DISTINCT ?suggestion WHERE {\n  ?s a &lt;wibble> . \n  ?s &lt;hasflibble> ?suggestion . \n  FILTER regex(?suggestion, \"Abc.*\", \"i\") \n} ORDER BY ASC(?suggestion) LIMIT 10";
+  
+  this.__d("primeSimpleSuggest: SPARQL: " + sparql);
+  
+  var self = this;
+  
+  this.db.sparql(sparql,function(result) {
+    self.__d("primeSimpleSuggest: RESPONSE: " + JSON.stringify(result.doc));
+    // do nothing - we're just priming the MarkLogic server's triple algorithm cache
+  }); 
+};
+
+mljs.prototype.semanticcontext.prototype.simpleSuggest = function(rdfTypeIri,predicateIri,startString_opt) {
+  this.__d("simpleSuggest");
+  var sparql = "SELECT DISTINCT ?suggestion WHERE {\n  ?s a &lt;" + rdfTypeIri + "> . \n  ?s &lt;" + predicateIri + "> ?suggestion . \n";
+  if (undefined != startString_opt) {
+    sparql += "  FILTER regex(?suggestion, \"" + startString_opt + ".*\", \"i\") \n";
+  }
+  
+  sparql += "} ORDER BY ASC(?suggestion) LIMIT 10";
+  
+  this.__d("simpleSuggest: SPARQL: " + sparql);
+  
+  var self = this;
+  this.db.sparql(sparql,function(result) {
+    self.__d("RESPONSE: " + JSON.stringify(result.doc));
+    if (result.inError) {
+      self._errorPublisher.publish(result.error);
+    } else {
+      self._suggestionsPublisher.publish({rdfTypeIri: rdfTypeIri, predicate: predicateIri, suggestions: result.doc});
+    }
+  }); 
+};
+
+// now for generic triple search results
+mljs.prototype.semanticcontext.prototype.queryFacts = function(sparql) {
+  var self = this;
+  self.db.sparql(sparql,function(result) {
+    self.__d("semanticcontext: _queryFacts: RESPONSE: " + JSON.stringify(result.doc));
+    if (result.inError) {
+      self._errorPublisher.publish(result.error);
+    } else {
+      // pass facts on to listeners
+      self._factsPublisher.publish(result.doc);
+    }
+  });
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/****
+ * Functional mixin pattern for easier logging. Could be used for other functions too.
+ * See http://javascriptweblog.wordpress.com/2011/05/31/a-fresh-look-at-javascript-mixins/ for pattern details.
+ ****/
+(function () { // first IIFE definition ensures asLogSink does not end up as a global variable
+  var asLogSink = (function() {
+    function __d(msg) {
+      this.db.logger.debug(msg);
+    };
+    function __i(msg) {
+      this.db.logger.info(msg);
+    };
+    function __w(msg) {
+      this.db.logger.warn(msg);
+    };
+    function __e(msg) {
+      this.db.logger.error(msg);
+    };
+    return function() {
+      this.__d = __d;
+      this.__i = __i;
+      this.__w = __w;
+      this.__e = __e;
+      
+      return this;
+    };
+  })(); // second IIFE immediate call instantiates each function only once
+  
+  asLogSink.call(mljs.prototype.options.prototype);
+  asLogSink.call(mljs.prototype.query.prototype);
+  asLogSink.call(mljs.prototype.searchcontext.prototype);
+  asLogSink.call(com.marklogic.semantic.tripleconfig.prototype);
+  asLogSink.call(mljs.prototype.semanticcontext.prototype);
+})();
+
+
+
+
+
+
+/****
+ * Node JS mljs namespace function mappings
+ ****/
+mljs.prototype.textToXML = textToXML;
+mljs.prototype.xmlToJson = xmlToJson;
+
+
+
+
+
 </code></pre>
         </article>
     </section>
@@ -3893,13 +4879,13 @@ mljs.prototype.searchcontext.prototype.reset = function() {
 </div>
 
 <nav>
-    <h2><a href="index.html">Index</a></h2><h3>Classes</h3><ul><li><a href="BasicWrapper.html">BasicWrapper</a></li><li><a href="com.marklogic.events.Publisher.html">Publisher</a></li><li><a href="DigestWrapper.html">DigestWrapper</a></li><li><a href="mljs.html">mljs</a></li><li><a href="options.html">options</a></li><li><a href="query.html">query</a></li><li><a href="searchcontext.html">searchcontext</a></li><li><a href="PassThroughWrapper.html">PassThroughWrapper</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-001-intro.html">001-intro</a></li><li><a href="tutorial-002-widgets-search.html">002-widgets-search</a></li><li><a href="tutorial-003-widgets-search-render.html">003-widgets-search-render</a></li><li><a href="tutorial-004-widgets-highcharts.html">004-widgets-highcharts</a></li><li><a href="tutorial-011-browser-create-app.html">011-browser-create-app</a></li><li><a href="tutorial-012-browser-install-app.html">012-browser-install-app</a></li><li><a href="tutorial-013-browser-samples-app.html">013-browser-samples-app</a></li><li><a href="tutorial-999-samples.html">999-samples</a></li><li><a href="tutorial-all.html">all</a></li></ul><h3>Global</h3><ul><li><a href="global.html#padNC">padNC</a></li><li><a href="global.html#parseDigest">parseDigest</a></li><li><a href="global.html#textToXML">textToXML</a></li><li><a href="global.html#xmlToJson">xmlToJson</a></li><li><a href="global.html#xmlToJsonSearchResults">xmlToJsonSearchResults</a></li><li><a href="global.html#xmlToJsonStrict">xmlToJsonStrict</a></li></ul>
+    <h2><a href="index.html">Index</a></h2><h3>Classes</h3><ul><li><a href="BasicWrapper.html">BasicWrapper</a></li><li><a href="com.marklogic.events.Publisher.html">Publisher</a></li><li><a href="com.marklogic.semantic.tripleconfig.html">tripleconfig</a></li><li><a href="DigestWrapper.html">DigestWrapper</a></li><li><a href="mljs.html">mljs</a></li><li><a href="options.html">options</a></li><li><a href="query.html">query</a></li><li><a href="searchcontext.html">searchcontext</a></li><li><a href="semanticcontext.html">semanticcontext</a></li><li><a href="PassThroughWrapper.html">PassThroughWrapper</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-001-intro.html">001-intro</a></li><li><a href="tutorial-002-widgets-search.html">002-widgets-search</a></li><li><a href="tutorial-003-widgets-search-render.html">003-widgets-search-render</a></li><li><a href="tutorial-004-widgets-highcharts.html">004-widgets-highcharts</a></li><li><a href="tutorial-011-browser-create-app.html">011-browser-create-app</a></li><li><a href="tutorial-012-browser-install-app.html">012-browser-install-app</a></li><li><a href="tutorial-013-browser-samples-app.html">013-browser-samples-app</a></li><li><a href="tutorial-999-samples.html">999-samples</a></li><li><a href="tutorial-all.html">all</a></li></ul><h3>Global</h3><ul><li><a href="global.html#padNC">padNC</a></li><li><a href="global.html#parseDigest">parseDigest</a></li><li><a href="global.html#textToXML">textToXML</a></li><li><a href="global.html#xmlToJson">xmlToJson</a></li><li><a href="global.html#xmlToJsonSearchResults">xmlToJsonSearchResults</a></li><li><a href="global.html#xmlToJsonStrict">xmlToJsonStrict</a></li></ul>
 </nav>
 
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Tue Aug 13 2013 22:30:12 GMT+0100 (BST)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Mon Sep 09 2013 23:59:14 GMT+0100 (BST)
 </footer>
 
 <script> prettyPrint(); </script>

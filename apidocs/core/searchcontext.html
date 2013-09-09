@@ -71,6 +71,8 @@ wants to be notified of changes to those, and to any new results or pages being 
     
     
     
+        <dt class="important tag-deprecated">Deprecated:</dt><dd><ul class="dummy"><li>Use var db = new mljs(); db.createSearchContext(); instead</li><ul></dd>
+    
     
     
     
@@ -83,7 +85,7 @@ wants to be notified of changes to those, and to any new results or pages being 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3361">line 3361</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3535">line 3535</a>
     </li></ul></dd>
     
     
@@ -218,7 +220,7 @@ wants to be notified of changes to those, and to any new results or pages being 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3784">line 3784</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4024">line 4024</a>
     </li></ul></dd>
     
     
@@ -335,7 +337,7 @@ wants to be notified of changes to those, and to any new results or pages being 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3766">line 3766</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4006">line 4006</a>
     </li></ul></dd>
     
     
@@ -452,7 +454,7 @@ wants to be notified of changes to those, and to any new results or pages being 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3730">line 3730</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3970">line 3970</a>
     </li></ul></dd>
     
     
@@ -569,7 +571,77 @@ wants to be notified of changes to those, and to any new results or pages being 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3748">line 3748</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3988">line 3988</a>
+    </li></ul></dd>
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="contributeStructuredQuery"><span class="type-signature"></span>contributeStructuredQuery<span class="signature">()</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        <p>For situations where many objects are contributing top level structured query terms that need AND-ing together.</p>
+<p>NOTE: queryTerm needs to be the result of queryBuilder.toJson().query[0] and not the top level query JSON itself - i.e. we need a term, not a full query object.</p>
+    </div>
+    
+
+    
+    
+    
+    
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3817">line 3817</a>
     </li></ul></dd>
     
     
@@ -709,7 +781,147 @@ wants to be notified of changes to those, and to any new results or pages being 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3609">line 3609</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3839">line 3839</a>
+    </li></ul></dd>
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="dostructuredquery"><span class="type-signature"></span>dostructuredquery<span class="signature">(q, start)</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        <p>Performs a structured query against this search context.</p>
+    </div>
+    
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+		
+		<th>Type</th>
+		
+		
+		
+		
+		
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+	
+	<tbody>
+	
+	
+        <tr>
+            
+                <td class="name"><code>q</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">json</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last"><p>The structured query JSON representation</p></td>
+        </tr>
+	
+	
+	
+        <tr>
+            
+                <td class="name"><code>start</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">integer</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last"><p>The start index (result number), starting at 1</p></td>
+        </tr>
+	
+	
+	</tbody>
+</table>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3785">line 3785</a>
     </li></ul></dd>
     
     
@@ -826,7 +1038,7 @@ wants to be notified of changes to those, and to any new results or pages being 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3501">line 3501</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3676">line 3676</a>
     </li></ul></dd>
     
     
@@ -943,7 +1155,7 @@ wants to be notified of changes to those, and to any new results or pages being 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3793">line 3793</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4033">line 4033</a>
     </li></ul></dd>
     
     
@@ -1060,7 +1272,7 @@ wants to be notified of changes to those, and to any new results or pages being 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3775">line 3775</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4015">line 4015</a>
     </li></ul></dd>
     
     
@@ -1177,7 +1389,7 @@ wants to be notified of changes to those, and to any new results or pages being 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3739">line 3739</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3979">line 3979</a>
     </li></ul></dd>
     
     
@@ -1294,7 +1506,7 @@ wants to be notified of changes to those, and to any new results or pages being 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3757">line 3757</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3997">line 3997</a>
     </li></ul></dd>
     
     
@@ -1363,7 +1575,7 @@ wants to be notified of changes to those, and to any new results or pages being 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3850">line 3850</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4090">line 4090</a>
     </li></ul></dd>
     
     
@@ -1480,7 +1692,7 @@ wants to be notified of changes to those, and to any new results or pages being 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3437">line 3437</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3610">line 3610</a>
     </li></ul></dd>
     
     
@@ -1597,7 +1809,7 @@ wants to be notified of changes to those, and to any new results or pages being 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3493">line 3493</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3668">line 3668</a>
     </li></ul></dd>
     
     
@@ -1714,7 +1926,7 @@ wants to be notified of changes to those, and to any new results or pages being 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3479">line 3479</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3654">line 3654</a>
     </li></ul></dd>
     
     
@@ -1831,7 +2043,7 @@ wants to be notified of changes to those, and to any new results or pages being 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3446">line 3446</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3619">line 3619</a>
     </li></ul></dd>
     
     
@@ -1948,7 +2160,7 @@ wants to be notified of changes to those, and to any new results or pages being 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3428">line 3428</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3601">line 3601</a>
     </li></ul></dd>
     
     
@@ -2089,7 +2301,7 @@ In V7 this will be passed on the fly to MarkLogic.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3457">line 3457</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3630">line 3630</a>
     </li></ul></dd>
     
     
@@ -2206,7 +2418,7 @@ In V7 this will be passed on the fly to MarkLogic.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3721">line 3721</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3961">line 3961</a>
     </li></ul></dd>
     
     
@@ -2323,7 +2535,7 @@ In V7 this will be passed on the fly to MarkLogic.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3419">line 3419</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3592">line 3592</a>
     </li></ul></dd>
     
     
@@ -2441,7 +2653,7 @@ facetSelection = {name: facetName, value: facetValue}</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3802">line 3802</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4042">line 4042</a>
     </li></ul></dd>
     
     
@@ -2559,7 +2771,7 @@ json = {show: number, start: number}</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3816">line 3816</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4056">line 4056</a>
     </li></ul></dd>
     
     
@@ -2676,7 +2888,7 @@ json = {show: number, start: number}</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3830">line 3830</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4070">line 4070</a>
     </li></ul></dd>
     
     
@@ -2717,13 +2929,13 @@ json = {show: number, start: number}</p>
 </div>
 
 <nav>
-    <h2><a href="index.html">Index</a></h2><h3>Classes</h3><ul><li><a href="BasicWrapper.html">BasicWrapper</a></li><li><a href="com.marklogic.events.Publisher.html">Publisher</a></li><li><a href="DigestWrapper.html">DigestWrapper</a></li><li><a href="mljs.html">mljs</a></li><li><a href="options.html">options</a></li><li><a href="query.html">query</a></li><li><a href="searchcontext.html">searchcontext</a></li><li><a href="PassThroughWrapper.html">PassThroughWrapper</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-001-intro.html">001-intro</a></li><li><a href="tutorial-002-widgets-search.html">002-widgets-search</a></li><li><a href="tutorial-003-widgets-search-render.html">003-widgets-search-render</a></li><li><a href="tutorial-004-widgets-highcharts.html">004-widgets-highcharts</a></li><li><a href="tutorial-011-browser-create-app.html">011-browser-create-app</a></li><li><a href="tutorial-012-browser-install-app.html">012-browser-install-app</a></li><li><a href="tutorial-013-browser-samples-app.html">013-browser-samples-app</a></li><li><a href="tutorial-999-samples.html">999-samples</a></li><li><a href="tutorial-all.html">all</a></li></ul><h3>Global</h3><ul><li><a href="global.html#padNC">padNC</a></li><li><a href="global.html#parseDigest">parseDigest</a></li><li><a href="global.html#textToXML">textToXML</a></li><li><a href="global.html#xmlToJson">xmlToJson</a></li><li><a href="global.html#xmlToJsonSearchResults">xmlToJsonSearchResults</a></li><li><a href="global.html#xmlToJsonStrict">xmlToJsonStrict</a></li></ul>
+    <h2><a href="index.html">Index</a></h2><h3>Classes</h3><ul><li><a href="BasicWrapper.html">BasicWrapper</a></li><li><a href="com.marklogic.events.Publisher.html">Publisher</a></li><li><a href="com.marklogic.semantic.tripleconfig.html">tripleconfig</a></li><li><a href="DigestWrapper.html">DigestWrapper</a></li><li><a href="mljs.html">mljs</a></li><li><a href="options.html">options</a></li><li><a href="query.html">query</a></li><li><a href="searchcontext.html">searchcontext</a></li><li><a href="semanticcontext.html">semanticcontext</a></li><li><a href="PassThroughWrapper.html">PassThroughWrapper</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-001-intro.html">001-intro</a></li><li><a href="tutorial-002-widgets-search.html">002-widgets-search</a></li><li><a href="tutorial-003-widgets-search-render.html">003-widgets-search-render</a></li><li><a href="tutorial-004-widgets-highcharts.html">004-widgets-highcharts</a></li><li><a href="tutorial-011-browser-create-app.html">011-browser-create-app</a></li><li><a href="tutorial-012-browser-install-app.html">012-browser-install-app</a></li><li><a href="tutorial-013-browser-samples-app.html">013-browser-samples-app</a></li><li><a href="tutorial-999-samples.html">999-samples</a></li><li><a href="tutorial-all.html">all</a></li></ul><h3>Global</h3><ul><li><a href="global.html#padNC">padNC</a></li><li><a href="global.html#parseDigest">parseDigest</a></li><li><a href="global.html#textToXML">textToXML</a></li><li><a href="global.html#xmlToJson">xmlToJson</a></li><li><a href="global.html#xmlToJsonSearchResults">xmlToJsonSearchResults</a></li><li><a href="global.html#xmlToJsonStrict">xmlToJsonStrict</a></li></ul>
 </nav>
 
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Tue Aug 13 2013 22:30:15 GMT+0100 (BST)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Mon Sep 09 2013 23:59:16 GMT+0100 (BST)
 </footer>
 
 <script> prettyPrint(); </script>
