@@ -221,8 +221,7 @@ com.marklogic.widgets.docproperties.prototype._showPropertyEditor = function(pro
   var s = "";
   var el = document.getElementById(this.container + "-docproperties-editor");
   s += "<div class=\"overlay\"><div class=\"modaltable\"><div class=\"modalcell\"><div class=\"modalcontent\"> ";
-
-
+  
   s += "<h2 class=\"title\">Editing '" + prop.title + "'</h2><div id='" + this.container + "-docproperties-values' class='docproperties-values'>";
 
   // if cardinality is 1, show single textarea with current value

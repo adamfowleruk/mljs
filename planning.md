@@ -29,14 +29,18 @@ Targets for 12 Sep 2013
  - DONE Search by keywords (use keyword property facet)
  - DEFERRED Nice to have: Widgets: Find similar documents link support
 
-Targets for 1 Oct 2013
+Targets for 27 Sep
+ - SYTYCD TBD
+
+Targets for 15 Oct 2013
  - Widgets: Google maps (via OpenLayers only)
  - Widhets: Open Street Map
  - Widgets: Geospatial facets shown in maps, and not in facets widget
  - CSV Import improvements / testing
+  - Checkout XSLT upload and transform method
  - Nice to have: Widgets: Browse related Subjects in node diagram
  
-Targets for Mid Oct 2013
+Targets for Late Oct 2013
  - Widgets: SVG map viewer
   - Vector drawing of information
   - Rotation, translation (lateral movement) of map
@@ -105,7 +109,8 @@ Targets for 1.0 (End of Oct 2013)
   - Support FROM NAMED (limit results from set of named graphs) - http://www.w3.org/TR/2008/REC-rdf-sparql-query-20080115/#restrictByLabel
   - NA multiple listeners for this in same context - Multiple modes, one to contribute sparql query to a searchcontext, another to perform sparql query itself (to list entities)
   - NA Sparql 1.1 required - Allow less than / greater than rather than just equals, depending on property selected
- - Core: TripleConfig
+  - Aggregations of triples for Charts to work alongside facets of documents
+ - Core: TripleConfig improvements
   - rewrite how ontology information is provided, configured, accessed and managed - far too complex and buggy for the average developer at the moment
   - Support loading of OWL / other ontologies to populate triple config object
   - ontology builder object?
@@ -122,19 +127,6 @@ Targets for 1.0 (End of Oct 2013)
   - Auto complete, including constraint name suggestions
   - Phrase searches
   - Shadow queries (MLJS' alternative mechanism)
- - Beyond App Builder
-  - Action bar to do things with search results
-  - Multi page results selection
-  - More HighCharts chart types in search results page
-  - Multi axes in HighCharts
-  - Multiple facets in HighCharts
-  - HighCharts to support SPARQL facts results (aggregation workarounds?)
-  - Save search for later use
-  - V7 Search term boosting
-  - Test of standalone REST app via Roxy in V7
-  - Hover over search results fires documentcontext highlight action
-  - Document context highlighting configurable to fire get semantic info on MarkLogic document
-  - MarkLogic document ontology
  - IN PROGRESS NodeJS: Node.js tests for all functionality now in core MLJS
  - Docs: Video tutorials for all new functionality - Create a Semantic Application Series
   - Intro to semantics in MarkLogic
@@ -161,23 +153,26 @@ Targets for 1.0 (End of Oct 2013)
    - Show what parts of the spec are there, and which ones we're missing, but which ones *can* be provided with a little work
    - Inferencing - we've shown, but should mention here
    - aggregates (count, sum, avg, etc.)
+ - mljsme
+  - add option to also deploy -workplace mljs/main (Workplace) and -test mldbtest/*
+ - IN PROGRESS Docs: Document all core concepts currently part of MLJS
+  - IN PROGRESS searchcontext object
+  
+Targets for 1.1 (Nov 2013)
+ - IN PROGRESS Other cool things we could do with MarkLogic
+  - IN PROGRESS SYTYCD Combine triple search with content search - limit documents returned from triple store by term (word) query
+  - Alerting with triples (+drawbacks - document level, not triple level)
  - PROV-O ontology support
   - hide by default, show provenance button to view provenance and interrelationship of entities
   - requires node diagram for viewing effectively (use PROV-O diagram shapes/colours? Over-Time view?)
   - may be easiest to import OWL2 ontology in to triple config
- - IN PROGRESS Other cool things we could do with MarkLogic
-  - IN PROGRESS SYTYCD Combine triple search with content search - limit documents returned from triple store by term (word) query
-  - Alerting with triples (+drawbacks - document level, not triple level)
- - mljsme
-  - add option to also deploy -workplace mljs/main (Workplace) and -test mldbtest/*
  - Tools: Windows batch file versions of developer required (non build related) bash scripts, including mljsme
   - mljsme
   - TEST ml.bat roxy deploy
   - create-mldbtest
   - delete-mldbtest
   - upgraderoxy
- - IN PROGRESS Docs: Document all core concepts currently part of MLJS
-  - IN PROGRESS searchcontext object
+  
   
 Targets for 1.2 (Dec 2013)
  - Widgets: Workplace
@@ -204,6 +199,19 @@ Targets for 1.2 (Dec 2013)
   - OOTB Workplace examples
    - MLDBWebTest Workplace
    - Semantic Workplace
+ - Beyond App Builder
+  - Action bar to do things with search results
+  - Multi page results selection
+  - More HighCharts chart types in search results page
+  - Multi axes in HighCharts
+  - Multiple facets in HighCharts
+  - HighCharts to support SPARQL facts results (aggregation workarounds?)
+  - Save search for later use
+  - V7 Search term boosting
+  - Test of standalone REST app via Roxy in V7
+  - Hover over search results fires documentcontext highlight action
+  - Document context highlighting configurable to fire get semantic info on MarkLogic document
+  - MarkLogic document ontology
  - Detect V7 (HEAD to a V7 only endpoint?)
  - Auto install of extensions referenced by MLJS core via PUT /v1/ext endpoint
   - rdb2rdf
