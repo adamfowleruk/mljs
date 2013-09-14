@@ -92,7 +92,7 @@ com.marklogic.widgets.create.prototype._init = function() {
 com.marklogic.widgets.create.prototype._place = function(html,type,id) {
   if (this.override) {
     // override placement (allows containment within widget)
-    document.getElementById(this.overrideElementId).innerHTML += html;
+    com.marklogic.widgets.appendHTML(document.getElementById(this.overrideElementId),html);
   } else {
     // place the html in the 'current' position, and increment
     var cid = this.container + "-create-row-" + this.currentRow + "-col-" + this.currentColumn;
@@ -105,7 +105,7 @@ com.marklogic.widgets.create.prototype._place = function(html,type,id) {
       this.currentColumn++;
       // append column div to row element
       var h = "<div class='create-col' id='" + this.container + "-create-row-" + this.currentRow + "-col-" + this.currentColumn + "' style='float:left;'></div>";
-      document.getElementById(this.container + "-create-row-" + this.currentRow).innerHTML += h;
+      com.marklogic.widgets.appendHTML(document.getElementById(this.container + "-create-row-" + this.currentRow),h);
     }
   }
   
@@ -120,7 +120,7 @@ com.marklogic.widgets.create.prototype._place = function(html,type,id) {
  */
 com.marklogic.widgets.create.prototype.endRow = function() {
   // clear previous row
-  document.getElementById(this.container + "-create-row-" + this.currentRow).innerHTML += "<div style='clear:both'></div>";
+  com.marklogic.widgets.appendHTML(document.getElementById(this.container + "-create-row-" + this.currentRow),"<div style='clear:both'></div>");
   
     // create new row
     this.currentRow++;
@@ -131,7 +131,7 @@ com.marklogic.widgets.create.prototype.endRow = function() {
         "<div class='create-row' id='" + this.container + "-create-row-" + this.currentRow + "'>" +
           "<div class='create-col' id='" + this.container + "-create-row-" + this.currentRow + "-col-" + this.currentColumn + "' style='float:left;'></div>" +
         "</div>";
-    document.getElementById(this.container + "-create-form").innerHTML += h;
+    com.marklogic.widgets.appendHTML(document.getElementById(this.container + "-create-form").innerHTML,h);
     
   return this;
 };

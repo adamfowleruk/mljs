@@ -883,16 +883,57 @@ mljs.prototype.get = function(docuri,options_opt,callback_opt) {
  * @param {function} callback_opt - The optional callback to invoke after the method completes
  */
 mljs.prototype.metadata = function(docuri,callback_opt) {
-  if (undefined == callback_opt && typeof(docuri)==='function') {
-    callback_opt = docuri;
-    docuri = undefined;
-  }
   var options = {
     path: '/v1/documents?uri=' + encodeURI(docuri) + "&format=json&category=metadata",
     method: 'GET'
   };
   
-  this.__doreq("METADATA",options,null,callback_opt);
+  this.__doreq("METADATA",options,null,function (result) {
+    result.docuri = docuri;
+    (callback_opt||noop)(result);
+  });
+};
+
+/**
+ * <p>Fetches the properties for a document with the given URI. Properties document returned in result.doc
+ * </p><p>
+ * https://docs.marklogic.com/REST/GET/v1/documents
+ *</p>
+ * @param {string} docuri - The URI of the document whose properties you want to retrieve.
+ * @param {function} callback_opt - The optional callback to invoke after the method completes
+ */
+mljs.prototype.properties = function(docuri,callback_opt) {
+  var options = {
+    path: '/v1/documents?uri=' + encodeURI(docuri) + "&format=json&category=properties",
+    method: 'GET'
+  };
+  
+  this.__doreq("PROPERTIES",options,null,function (result) {
+    result.docuri = docuri;
+    (callback_opt||noop)(result);
+  });
+};
+
+/**
+ * <p>Save the properties for a document with the given URI. 
+ * </p><p>
+ * https://docs.marklogic.com/REST/PUT/v1/documents
+ *</p>
+ * @param {string} docuri - The URI of the document whose properties you want to retrieve.
+ * @param {JSON} properties - TJSON properties document.
+ * @param {function} callback_opt - The optional callback to invoke after the method completes
+ */
+mljs.prototype.saveProperties = function(docuri,properties,callback_opt) {
+  var options = {
+    path: '/v1/documents?uri=' + encodeURI(docuri) + "&format=json&category=properties",
+    method: 'PUT',
+    contentType: "application/json"
+  };
+  
+  this.__doreq("SAVEPROPERTIES",options,properties,function (result) {
+    result.docuri = docuri;
+    (callback_opt||noop)(result);
+  });
 };
 
 /**
@@ -1092,6 +1133,65 @@ mljs.prototype.__merge = function(json1,json2) {
     // return the second (new) value
     return json2;
   }
+};
+
+/**
+ * Uses MarkLogic V7's Patch support to replace or insert a property for the specified document.
+ * 
+ * https://docs.marklogic.com/REST/POST/v1/documents
+ * 
+ * @param {string} docuri - The URI of the document to patch
+ * @param {JSON} elementSelectJSON - JSON object containing a namespaces array with prefix and ns elements, an XPath 'context' (parent of the node to replace), and a 'select' XPath (remaining XPath to select child to replace) - {namespaces: [{prefix: "myns",ns: "http://myns.org/myns"}], context: "//myns:parent", select: "myns:child[1]"}
+ * @param {xml|text} content - The document properties context to save
+ * @param {function} callback_opt - The optional callback to invoke after the method completes
+ */
+mljs.prototype.replaceProperty = function(docuri,elementSelectJSON,content,callback_opt) {
+  /*
+  <rapi:patch xmlns:rapi="http://marklogic.com/rest-api">
+    <rapi:insert context="/inventory/history" position="last-child"><modified>2012-11-5</modified></rapi:insert>
+    <rapi:delete select="saleExpirationDate"/>
+    <rapi:replace select="price" apply="ml.multiply">1.1</rapi:replace>
+</rapi:patch>
+  */
+  
+  var s = "<rapi:patch xmlns:rapi=\"http://marklogic.com/rest-api\"";
+  
+  if (undefined != elementSelectJSON.namespaces) {
+    for (var i = 0, max = elementSelectJSON.namespaces.length;i < max;i++) {
+      s += " xmlns:" + elementSelectJSON.namespaces[i].prefix + "=\"" + elementSelectJSON.namespaces[i].ns + "\"";
+    }
+  }
+  var theContent = content;
+  if (content instanceof object) {
+    // assume an XMLElement
+    theContent = this.db.xmlToText(content);
+  }
+  
+  s += ">";
+  s += "  <rapi:replace-insert context=\"" + elementSelectJSON.context + "\" select=\"";
+  s += elementSelectJSON.select + "\">" + theContent + "</rapi:replace>";
+  s += "</rapi:patch>";
+  
+  var url = "/v1/documents?uri=" + encodeURI(docuri_opt) + "&category=properties";
+  
+  var options = {
+    path: url,
+    method: 'POST',
+    contentType: "application/xml",
+    headers: {
+      "X-HTTP-Method-Override": "PATCH"
+    }
+  };
+  
+  if (undefined != this.__transaction_id) {
+    options.path += "&txid=" + encodeURI(this.__transaction_id);
+  }
+  
+  this.__doreq("REPLACEPROPERTY",options,s,function(result) {
+    result.docuri = docuri;
+    (callback_opt||noop)(result);
+  });
+   
 };
 
 /**
@@ -2413,6 +2513,16 @@ mljs.prototype.createSearchContext = function() {
 
 
 /**
+ * Factory pattern. Creates a content search context object referring back to the current database connection. Useful to link to the correct logger, and db settings.
+ */
+mljs.prototype.createDocumentContext = function() {
+  var obj = new this.documentcontext();
+  obj.db = this;
+  return obj;
+};
+
+
+/**
  * Factory pattern. Creates a semantic config object referring back to the current database connection. Useful to link to the correct logger, and db settings.
  */
 mljs.prototype.createTripleConfig = function() {
@@ -2996,7 +3106,7 @@ mljs.prototype.options.prototype.collection = mljs.prototype.options.prototype.c
 /**
  * Create a geospatial element pair constraint, and adds it to the search options object
  * 
- * @param {string} constraint_name - Name of the constraint to create
+ * @param {string} constraint_name_opt - Optional name of the constraint to create
  * @param {string} parent - Parent element name
  * @param {string} ns_opt - Optional namespace of the parent element. If not provided, uses the default namespace
  * @param {string} element - Element name of the geospatial pair element
@@ -3046,6 +3156,27 @@ mljs.prototype.options.prototype.geoelempairConstraint = function() {
   // TODO geoelem pair
 };
 mljs.prototype.options.prototype.geoelempair = mljs.prototype.options.prototype.geoelempairConstraint;
+
+
+/**
+ * Adds a properties constraint to the search options
+ * 
+ * @param {string} constraint_name - Optional name of the constraint to create
+ */
+mljs.prototype.options.prototype.propertiesConstraint = function(constraint_name_opt) {
+  var con = { name: "just-props", "properties": null };
+  if (undefined != constraint_name_opt) {
+    con.name = constraint_name_opt;
+  }
+  this.addConstraint(con);
+  
+  return this;
+};
+mljs.prototype.options.prototype.properties = mljs.prototype.options.prototype.propertiesConstraint;
+
+
+
+// Other options features
 
 /**
  * Specifies the number of search results to return on each page
@@ -4527,6 +4658,8 @@ mljs.prototype.semanticcontext.prototype.setConfiguration = function(conf) {
 };
 
 mljs.prototype.semanticcontext.prototype.register = function(obj) {
+  var self = this;
+  
   if (undefined != obj.setSemanticContext) {
     obj.setSemanticContext(this);
   }
@@ -4547,7 +4680,7 @@ mljs.prototype.semanticcontext.prototype.register = function(obj) {
   
   // Where we listen to others' events
   if (undefined != obj.addSubjectSelectionListener) {
-    obj.addSubjectSelectionListener(function(subjectIri) {this.subjectFacts(subjectIri)});
+    obj.addSubjectSelectionListener(function(subjectIri) {self.subjectFacts(subjectIri)});
   }
   
   
@@ -4787,6 +4920,143 @@ mljs.prototype.semanticcontext.prototype.queryFacts = function(sparql) {
 
 
 
+/*****
+ * Document Context
+ *****/
+mljs.prototype.documentcontext = function() {
+  this._highlighted = null; // docuri
+  this._selected = null; // docuri
+  
+  this._allowableProperties = new Array(); // [{name: "keyword",title: "Keyword", cardinality: 1 | "*"}, ... ]
+  
+  this._highlightedPublisher = new com.marklogic.events.Publisher();
+  this._selectedPublisher = new com.marklogic.events.Publisher();
+  this._contentPublisher = new com.marklogic.events.Publisher();
+  this._propertiesPublisher = new com.marklogic.events.Publisher();
+  this._errorPublisher = new com.marklogic.events.Publisher();
+  this._confirmationPublisher = new com.marklogic.events.Publisher();
+};
+
+mljs.prototype.documentcontext.prototype.addAllowableProperty = function(json) {
+  this._allowableProperties.push(json);
+};
+
+mljs.prototype.documentcontext.prototype.getAllowableProperty = function(propname) {
+  for (var i = 0, max = this._allowableProperties.length,prop;i < max;i++) {
+    prop = this._allowableProperties[i];
+    if (prop.name == propname) {
+      return prop;
+    }
+  }
+  return null;
+};
+
+mljs.prototype.documentcontext.prototype.getAllowableProperties = function() {
+  return this._allowableProperties;
+};
+
+mljs.prototype.documentcontext.prototype.register = function (obj) {
+  var self = this;
+  
+  if (undefined != obj.setDocumentContext) {
+    obj.setDocumentContext(this);
+  }
+  
+  // check if this object can respond to our emitted events
+  if (undefined != obj.updateDocumentContent) {
+    this._contentPublisher.subscribe(function(results) {obj.updateDocumentContent(results)});
+  }
+  if (undefined != obj.updateDocumentProperties) {
+    this._propertiesPublisher.subscribe(function(results) {obj.updateDocumentProperties(results)});
+  }
+  if (undefined != obj.updateOperation) {
+    this._confirmationPublisher.subscribe(function(msg) {obj.updateOperation(msg)});
+  }
+  
+  // Where we listen to others' events
+  if (undefined != obj.addDocumentSelectionListener) {
+    obj.addDocumentSelectionListener(function(docuri) {self.select(docuri)});
+  }
+  if (undefined != obj.addDocumentHighlightListener) {
+    obj.addDocumentHighlightListener(function(docuri) {self.highlight(docuri)});
+  }
+};
+
+mljs.prototype.documentcontext.prototype.highlight = function(docuri) {
+  this._highlighted = docuri;
+  
+  this._highlightedPublisher.publish(docuri);
+};
+
+mljs.prototype.documentcontext.prototype.select = function(docuri) {
+  this._selected = docuri;
+  
+  this._selectedPublisher.publish(docuri);
+};
+
+mljs.prototype.documentcontext.prototype.getContent = function(docuri) {
+  var self = this;
+  
+  this.db.get(docuri,function(result) {
+    if (result.inError) {
+      self._errorPublisher.publish(result.detail);
+    } else {
+      self._contentPublisher.publish({docuri: docuri, doc: result.doc});
+    }
+  });
+};
+
+mljs.prototype.documentcontext.prototype.getProperties = function(docuri) {
+  var self = this;
+  
+  this.db.properties(docuri,function(result) {
+    if (result.inError) {
+      self._errorPublisher.publish(result.detail);
+    } else {
+      self._propertiesPublisher.publish({docuri: docuri, properties: result.doc});
+    }
+  });
+};
+
+mljs.prototype.documentcontext.prototype.setProperties = function(docuri,propertyJson) {
+  // V6 PUT /v1/documents?mode=metadata
+  var self = this;
+  this.db.saveProperties(docuri,propertyJson, function(result) {
+    
+    self._confirmationPublisher.publish({docuri: docuri, operation: "setProperties", success: !result.inError, error: result.detail});
+    
+    // perform properties refetching (will refresh display after edit)
+    self.getProperties(docuri);
+  });
+  
+  
+  // fire operation success so user knows on the UI that patch operation was successful - confirmationPublisher? Via operationId generated in this function, unique to this context?
+};
+
+mljs.prototype.documentcontext.prototype.patchProperty = function(docuri,propertyXpath,propertXml) {
+  // V7 POST /v1/documents?mode=metadata with HTTP PATCH EQUIV HEADER
+  // perform patch
+  
+  // perform properties refetching (will refresh display after edit)
+  
+  // fire operation success so user knows on the UI that patch operation was successful - confirmationPublisher? Via operationId generated in this function, unique to this context?
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -4823,6 +5093,7 @@ mljs.prototype.semanticcontext.prototype.queryFacts = function(sparql) {
   asLogSink.call(mljs.prototype.options.prototype);
   asLogSink.call(mljs.prototype.query.prototype);
   asLogSink.call(mljs.prototype.searchcontext.prototype);
+  asLogSink.call(mljs.prototype.documentcontext.prototype);
   asLogSink.call(com.marklogic.semantic.tripleconfig.prototype);
   asLogSink.call(mljs.prototype.semanticcontext.prototype);
 })();

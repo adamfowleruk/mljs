@@ -30,6 +30,7 @@ declare variable $q as xs:string? := vh:get("q");
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>{$title}</title>
     <link href="/css/themes/ui-lightness/jquery-ui.css" type="text/css" rel="stylesheet"/>
+    <link href="/css/bootstrap-roxy.css" rel="stylesheet"/>
     <link href="/css/one-column.less" type="text/css" rel="stylesheet/less"/>
     <link href="/css/app.less" type="text/css" rel="stylesheet/less"/>
     
@@ -60,7 +61,8 @@ declare variable $q as xs:string? := vh:get("q");
         <a href="/mldbtest/movies">Co-occurence</a> | 
         <a href="/mldbtest/error">Error</a> | 
         <a href="/mldbtest/kratu">Kratu</a>  |
-        <a href="/mldbtest/upload">Upload</a> 
+        <a href="/mldbtest/upload">Upload</a> |
+        <a href="/mldbtest/docview">View Doc</a> 
         <br/>
       V7+ (In development):
         <a href="/mldbtest/docbuilder">Document Builder</a> | 

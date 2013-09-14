@@ -130,3 +130,13 @@ declare function c:snippets() as item()*
   ch:use-layout("one-column","html"))
 
 };
+
+declare function c:docview() as item()*
+{
+  (
+  ch:add-value("message", "This is a test message."),
+  ch:add-value("title", "Document Viewer"),
+  ch:use-view((), "xml"),
+  ch:use-layout("one-column","html"))
+
+};

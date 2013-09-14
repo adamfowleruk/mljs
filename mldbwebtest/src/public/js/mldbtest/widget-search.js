@@ -335,7 +335,7 @@ com.marklogic.widgets.searchfacets.prototype._refresh = function() {
   var more = new Array();
   var extended = new Array();
   
-  var str = "<div class='mljswidget searchfacets'><div class='searchfacets-title'>Browse</div> <div id='" + this.container + "-facetinfo' class='search-facets'> ";
+  var str = "<div class='mljswidget searchfacets'><div class='title searchfacets-title'>Browse</div> <div id='" + this.container + "-facetinfo' class='search-facets'> ";
   
   // draw selected facets and deselectors
   var deselectionTodo = new Array();

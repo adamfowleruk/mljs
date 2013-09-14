@@ -483,3 +483,17 @@ com.marklogic.widgets.bits.done = function(elid,message_opt) {
   s += "</span>";
   return s;
 };
+
+/**
+ * Appends HTML safely to a DOM node. Avoids using innerHTML += which redraws ALL innerHTML content
+ * @param {DOMElement} el - The element to append the HTML to
+ * @param {string} s - The HTML String of the HTML to append to the element
+ */
+com.marklogic.widgets.appendHTML = function(el,s) {
+  var newcontent = document.createElement('div');
+  newcontent.innerHTML = s;
+  
+  while (newcontent.firstChild) {
+    el.appendChild(newcontent.firstChild);
+  }
+};

@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rest-client version="3.2.1"><request><http-version>1.1</http-version><http-follow-redirects/><URL>http://localhost:8120/v1/documents?uri=/mixed/4&amp;category=properties&amp;format=json</URL><method>PUT</method><auth><digest><username>admin</username><password>YWRtaW4=</password></digest></auth><body><string content-type="application/javascript" charset="UTF-8">{"properties":[]}</string></body></request></rest-client>
