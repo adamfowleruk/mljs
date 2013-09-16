@@ -220,9 +220,9 @@ com.marklogic.widgets.docproperties.prototype._showPropertyEditor = function(pro
   // draw HTML edit box
   var s = "";
   var el = document.getElementById(this.container + "-docproperties-editor");
-  s += "<div class=\"overlay\"><div class=\"modaltable\"><div class=\"modalcell\"><div class=\"modalcontent\"> ";
-  
-  s += "<h2 class=\"title\">Editing '" + prop.title + "'</h2><div id='" + this.container + "-docproperties-values' class='docproperties-values'>";
+  //s += "<div class=\"overlay\"><div class=\"modaltable\"><div class=\"modalcell\"><div class=\"modalcontent\"> ";
+  s += "<div class='semantic-content is-active' id='" + this.container + "-docproperties-container'><div class='modal-inner'>";
+  s += "<h2 class=\"title modal-label\">Editing '" + prop.title + "'</h2><div id='" + this.container + "-docproperties-values' class='docproperties-values modal-content'>";
 
   // if cardinality is 1, show single textarea with current value
   // otherwise, show list of values with clickable x to remove a value, and an input box to add a value
@@ -264,8 +264,9 @@ com.marklogic.widgets.docproperties.prototype._showPropertyEditor = function(pro
   s += "</div>";
   s += "</div>";
 
-  s += "</div></div></div></div>";
-
+  //s += "</div></div></div></div>";
+  s += "</div></div>";
+  
   el.innerHTML = s;
 
 
@@ -346,6 +347,8 @@ com.marklogic.widgets.docproperties.prototype._showPropertyEditor = function(pro
 
   // make visible
   com.marklogic.widgets.hide(el,false);
+  //var sc = document.getElementById(this.container + "-docproperties-container");
+  //com.marklogic.widgets.hide(sc,false);
 };
 
 com.marklogic.widgets.docproperties.prototype._editProperty = function(propname) {

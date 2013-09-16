@@ -17,7 +17,8 @@ Targets for 12 Sep 2013
   - DONE remove property option from allowed properties UI widget if one has been added
   - DONE Highlight/underline metadata you can edit -> Obvious edit button? Always underlined? (nah that'd look shabby)
   - TEST support very long, line wraping URIs in docheadviewer title
-  - Firefox transparency issue - modal dialog is still transparent!
+  - IN PROGRESS Firefox transparency issue - modal dialog is still transparent!
+    - Trying to use modal.css to get around issue
  - DEFERRED Widgets: Folksonomic keyword editing with auto suggest support
   - DEFERRED Core: Lexicon suggestions on V6
    - DEFERRED documentcontext (for properties)
@@ -159,6 +160,7 @@ Targets for 1.0 (End of Oct 2013)
   - IN PROGRESS searchcontext object
   
 Targets for 1.1 (Nov 2013)
+ - App Builder to MLJS+Roxy automated conversion
  - IN PROGRESS Other cool things we could do with MarkLogic
   - IN PROGRESS SYTYCD Combine triple search with content search - limit documents returned from triple store by term (word) query
   - Alerting with triples (+drawbacks - document level, not triple level)
