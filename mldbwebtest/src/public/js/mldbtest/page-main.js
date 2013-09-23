@@ -43,7 +43,9 @@ $(document).ready(function() {
           {subject: "http://marklogic.com/semantic/targets/people/adam", predicate: "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", object: "http://xmlns.com/foaf/0.1/Person"},
           {subject: "http://marklogic.com/semantic/targets/people/adam", predicate: "http://xmlns.com/foaf/0.1/name", string: "Adam Fowler", locale: "en"},
           {subject: "http://marklogic.com/semantic/targets/foodstuffs/cheese", predicate: "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", object: "http://marklogic.com/semantic/rdfTypes/foodstuff"},
-          {subject: "http://marklogic.com/semantic/targets/foodstuffs/cheese", predicate: "foodname", string: "Cheese", locale: "en"}
+          {subject: "http://marklogic.com/semantic/targets/foodstuffs/cheese", predicate: "foodname", string: "Cheese", locale: "en"},
+          {subject: "/mixed/4", predicate: "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", object: "http://marklogic.com/semantics/ontology/Document"},
+          {subject: "/mixed/4", predicate: "http://marklogic.com/semantics/ontology/Document#uri", string: "/mixed/4", locale: "en"}
         ];
         
         var triples2 = [
@@ -53,6 +55,7 @@ $(document).ready(function() {
           {subject: "http://marklogic.com/semantic/targets/people/wendy", predicate: "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", object: "http://xmlns.com/foaf/0.1/Person"},
           {subject: "http://marklogic.com/semantic/targets/people/wendy", predicate: "http://xmlns.com/foaf/0.1/name", string: "Wendy Fowler", locale: "en"},
           {subject: "http://marklogic.com/semantic/targets/people/wendy", predicate: "likes", object: "http://marklogic.com/semantic/targets/foodstuffs/cheese"},
+          {subject: "http://marklogic.com/semantic/targets/people/wendy", predicate: "mentioned_in", object: "/mixed/4"},
           {subject: "http://marklogic.com/semantic/targets/foodstuffs/cheese", predicate: "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", object: "http://marklogic.com/semantic/rdfTypes/foodstuff"},
           {subject: "http://marklogic.com/semantic/targets/foodstuffs/cheese", predicate: "foodname", string: "Cheese", locale: "en"}
         ];
@@ -133,7 +136,9 @@ $(document).ready(function() {
       .rangeConstraint("actor",["item-frequency"],"http://marklogic.com/collation/")
       .rangeConstraint("year",["item-order"],"http://marklogic.com/collation/")
       .rangeConstraint("city",["item-order"],"http://marklogic.com/collation/")
-      .rangeConstraint("month",["item-order"],"http://marklogic.com/collation/");
+      .rangeConstraint("month",["item-order"],"http://marklogic.com/collation/")
+      .rangeConstraint("Title","title","http://www.w3.org/1999/xhtml","xs:string","http://marklogic.com/collation/",true)
+      .rangeConstraint("Heading","h1","http://www.w3.org/1999/xhtml","xs:string","http://marklogic.com/collation/",true);
     
     var alloptions = [
       "page-charts-search",ob1.toJson(),
@@ -357,7 +362,7 @@ $(document).ready(function() {
                     textToXML("<documentelement><title>I am an XML file</title><summary>Some XML summary</summary></documentelement>"),
                     textToXML("<documentelement2><name>I am a generic XML file</name><desc>Generic XML description</desc></documentelement2>"),
                     textToXML("<documentelement3><wibble>Generic XML wibble file</wibble><flibble>Generic XML flibble element</flibble></documentelement3>"),
-                    textToXML("<html xmlns='http://www.w3.org/1999/xhtml/'><head><title>XHTML test doc</title><meta name='Author' content='Adam Fowler'/></head><body><h1>XHTML doc h1</h1><p>Lorem ipsum dolar sit amet</p><h2>Consecutor</h2><p>Wibble de flibble</p></body></html>"),
+                    textToXML("<html xmlns='http://www.w3.org/1999/xhtml'><head><title>XHTML test doc</title><meta name='Author' content='Adam Fowler'/></head><body><h1>XHTML doc h1</h1><p>Lorem ipsum dolar sit amet</p><h2>Consecutor</h2><p>Wibble de flibble</p></body></html>"),
                     {title: "Some JSON title", summary: "Some JSON summary"},
                     {name: "Generic JSON name", desc: "Generic JSON description"}
                   ];

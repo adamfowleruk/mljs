@@ -1464,7 +1464,7 @@ mljs.prototype.structuredSearch = function(query_opt,options_opt,callback) {
   //console.log("OPTIONS: " + JSON.stringify(options));
   this.__doreq("STRUCTUREDSEARCH",options,null,callback);
 };
-
+mljs.prototype.structuredQuery = mljs.prototype.structuredSearch;
 
 /**
  * <p>Saves search options with the given name. These are referred to by mljs.structuredSearch.</p><p>
@@ -4295,6 +4295,7 @@ com.marklogic.semantic.tripleconfig = function() {
   
   // defaults
   this.addFoaf();
+  this.addMarkLogic();
   this.addPlaces();
   this.addFoafPlaces();
   this.addTest();
@@ -4482,12 +4483,23 @@ com.marklogic.semantic.tripleconfig.prototype.addFoaf = function() {
   this._newPredicates["fundedBy"] = {name: "fundedBy", title: "Funded by", iri: "http://xmlns.com/foaf/0.1/fundedBy", shortiri: "foaf:fundedBy"};
   this._newPredicates["member"] = {name: "member", title: "Is a member of", iri: "http://xmlns.com/foaf/0.1/member", shortiri: "foaf:member"};
   this._newPredicates["based_near"] = {name: "based_near", title: "Is based near", iri: "http://xmlns.com/foaf/0.1/based_near", shortiri: "foaf:based_near"};
+  this._newPredicates["name"] = {name: "name", title: "Name", iri: "http://xmlns.com/foaf/0.1/name", shortiri: "foaf:name"};
   
+};
+
+com.marklogic.semantic.tripleconfig.prototype.addMarkLogic = function() {
+  this.validTriples.push({subjectType: "*", objectType: "mldocument", predicateArray: ["uri"]});
+  
+  this._newentities["mldocument"] = {name: "mldocument", title: "MarkLogic Document",prefix: "http://marklogic.com/semantics/ontology/Document", iriPattern: "http://marklogic.com/semantics/ontology/Document/#VALUE#", 
+    rdfTypeIri: "http://marklogic.com/semantics/ontology/Document", rdfTypeIriShort: "ml:Document", commonNamePredicate: "http://marklogic.com/semantics/ontology/Document#uri",
+    properties: [{name: "uri", iri: "http://marklogic.com/semantics/ontology/Document#uri", shortiri: "ml:uri"}]};
+  
+  this._newPredicates["uri"] = {name: "uri", title: "URI", iri: "http://marklogic.com/semantics/ontology/Document#uri", shortiri: "ml:uri"};
 };
 
 com.marklogic.semantic.tripleconfig.prototype.getValidPredicates = function(from,to) {
   for (var i = 0;i < this.validTriples.length;i++) {
-    if (this.validTriples[i].subjectType == from && this.validTriples[i].objectType == to) {
+    if ((this.validTriples[i].subjectType == from || "*" == this.validTriples[i].subjectType) && this.validTriples[i].objectType == to) {
       return this.validTriples[i].predicateArray;
     }
   }
@@ -4935,6 +4947,7 @@ mljs.prototype.documentcontext = function() {
   this._propertiesPublisher = new com.marklogic.events.Publisher();
   this._errorPublisher = new com.marklogic.events.Publisher();
   this._confirmationPublisher = new com.marklogic.events.Publisher();
+  this._facetsPublisher = new com.marklogic.events.Publisher();
 };
 
 mljs.prototype.documentcontext.prototype.addAllowableProperty = function(json) {
@@ -4971,6 +4984,9 @@ mljs.prototype.documentcontext.prototype.register = function (obj) {
   }
   if (undefined != obj.updateOperation) {
     this._confirmationPublisher.subscribe(function(msg) {obj.updateOperation(msg)});
+  }
+  if (undefined != obj.updateDocumentFacets) {
+    this._facetsPublisher.subscribe(function(msg) {obj.updateDocumentFacets(msg)});
   }
   
   // Where we listen to others' events
@@ -5040,6 +5056,76 @@ mljs.prototype.documentcontext.prototype.patchProperty = function(docuri,propert
   // perform properties refetching (will refresh display after edit)
   
   // fire operation success so user knows on the UI that patch operation was successful - confirmationPublisher? Via operationId generated in this function, unique to this context?
+};
+
+mljs.prototype.documentcontext.prototype.getFacets = function(docuri,optionsName) {
+  // perform a search but just for a single document (uri constraint) in order to load all its facets that are relevant for the interested object/widget
+  var b = this.db.createQuery();
+  b.query(b.uris("uriconstraint",docuri));
+  var qj = b.toJson();
+  
+  var self = this;
+  this.db.structuredSearch(qj,optionsName,function(result) {
+    
+    if (undefined != result.doc.facets) {
+      self._facetsPublisher.publish({docuri: docuri, facets: result.doc.facets});
+    }
+  });
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+/**
+ * var b = db.createSparqlBuilder()
+ * b.subject("JointCustomer").with(
+ *   b.subject("NKBCustomer").with(
+ *     b.subject("NKBAccount").has("balance", "<", 100).has("nkbaccountid")
+ *   ),
+ *   b.subject("NICClient").with(
+ *     b.subject("MLDocument").has("docuri")
+ *   ).has("nicclientid")
+ * );
+ * var sparql = b.toSparql();
+ * 
+ */
+
+mljs.prototype.sparqlbuilder = function() {
+  this._exposedVariables = new Array(); // string variable names
+  this._topTerms = new Array(); // {subject:, predicate: , object: , type: "property|rdftype|docuri|relationship"}
+  this._allTerms = new Array(); // as topTerms above
+  
+  this._nextTermID = 1;
+};
+
+mljs.prototype.sparqlbuilder.prototype.toSparql = function() {
+  // TODO 
+};
+
+
+// TODO the following should be mixed in to new Term objects
+
+mljs.prototype.sparqlbuilder.subject = function(rdftype) {
+  var tid = this._nextTermID++;
+  return {termID: tid, sparql: "  ?s" + tid + " a <" + rdftype + "> .\n"};
+};
+
+mljs.prototype.sparqlbuilder.prototype.has = function(predicateIri) {
+  var tid = this._nextTermID++;
+  return {termID: tid, sparql: "  ?s" + tid + " <" + predicateIri + "> ?o" + tid + " .\n"};
+};
+
+mljs.prototype.sparqlbuilder.prototype.with = function(childTerm) {
+  
 };
 
 

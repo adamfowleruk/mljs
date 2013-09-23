@@ -67,7 +67,8 @@ declare variable $q as xs:string? := vh:get("q");
       V7+ (In development):
         <a href="/mldbtest/docbuilder">Document Builder</a> | 
         <a href="/mldbtest/sparqlbar">Semantic (SPARQL) Search</a> | 
-        <a href="/mldbtest/collectionuris">Collection URIs</a> 
+        <a href="/mldbtest/collectionuris">Collection URIs</a> | 
+        <a href="/mldbtest/explorer">Explorer</a> 
         <br/>
       REST Extensions: <i>None</i>
         <br/>

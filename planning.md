@@ -16,7 +16,7 @@ Targets for 12 Sep 2013
   - DONE add property removal function (remove all values, property is removed)
   - DONE remove property option from allowed properties UI widget if one has been added
   - DONE Highlight/underline metadata you can edit -> Obvious edit button? Always underlined? (nah that'd look shabby)
-  - TEST support very long, line wraping URIs in docheadviewer title
+  - TEST support very long, line wrapping URIs in docheadviewer title
   - IN PROGRESS Firefox transparency issue - modal dialog is still transparent!
     - Trying to use modal.css to get around issue
  - DEFERRED Widgets: Folksonomic keyword editing with auto suggest support
@@ -30,12 +30,37 @@ Targets for 12 Sep 2013
  - DONE Search by keywords (use keyword property facet)
  - DEFERRED Nice to have: Widgets: Find similar documents link support
 
+Targets for 22 Sep
+ - SlideTunes demo - check it out first
+ - Send roxy install links to customer
+ - Strip out single slides from a slide deck
+ - Link back to original slide deck
+ - Preview for PPTX slides linked to images, and their properties
+ - Must load their title along with snippets, date created, by user
+  - Sounds like AJAX document loading is required
+ - Selection of search results across pages
+  - Document context to support multiple selection
+  - Button widget to respond to selected slides (becomes active upon selection)
+ - Date facet with buckets and selection of range
+  - Facet bucketed by date?
+ - Save a search, view in profile page
+ - My Documents - find all slides linked to my account/username/email
+ - Tag cloud based on facet and size (D3.js)
+
 Targets for 27 Sep
- - SYTYCD TBD
+ - Semantic/Data Explorer - HighCharts
+  - DONE basic view working
+  - DONE facets view working
+  - Link to originating SPARQL query for subject list
+  - Click on property to add to SPARQL results fetching query
+  - Lazy loading of facet values when added to output
+ - Re-work screen to support multiple results viewing tabs
+ - Hide of query area
+  
 
 Targets for 15 Oct 2013
  - Widgets: Google maps (via OpenLayers only)
- - Widhets: Open Street Map
+ - Widgets: Open Street Map (Use GB WMS Server, EPSG4326 or 27700 mode)
  - Widgets: Geospatial facets shown in maps, and not in facets widget
  - CSV Import improvements / testing
   - Checkout XSLT upload and transform method
@@ -115,7 +140,10 @@ Targets for 1.0 (End of Oct 2013)
   - rewrite how ontology information is provided, configured, accessed and managed - far too complex and buggy for the average developer at the moment
   - Support loading of OWL / other ontologies to populate triple config object
   - ontology builder object?
- - Core: Search Options builder - hide sem:triples elements from snippet highlighting
+ - Core: Search Options builder
+  - hide sem:triples elements from snippet highlighting
+  - actually write the pathConstraint function!
+  - Investigate why REST insists upon some elements having indexes in the JSON namespace as well as the one required (E.g. xhtml and h1) - because using JSON mode???
  - App Builder gap closing
   - Support for XSLT transformations on search results
   - Support for XSLT transformations on fetch documents in new window
