@@ -144,6 +144,8 @@ Targets for 1.0 (End of Oct 2013)
   - hide sem:triples elements from snippet highlighting
   - actually write the pathConstraint function!
   - Investigate why REST insists upon some elements having indexes in the JSON namespace as well as the one required (E.g. xhtml and h1) - because using JSON mode???
+ - NOT A BUG searchfacets or searchbar widgets using facet title, not constraint name, to indicate constraint added to searchbar (also for lookup/matching)
+  - Actually, there is no 'facet title' just that constraint name and field name are generally the same. Need to add Title support somehow
  - App Builder gap closing
   - Support for XSLT transformations on search results
   - Support for XSLT transformations on fetch documents in new window

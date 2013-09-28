@@ -579,9 +579,9 @@ mljs.prototype.__doreq_node = function(reqname,options,content,callback_opt) {
     var complete =  function() { 
       if (!completeRan) {
         completeRan = true; // idiot check - complete can be called from many places and events
-        self.logger.debug(reqname + " complete()");
+        //self.logger.debug(reqname + " complete()");
         if (res.statusCode.toString().substring(0,1) == ("4")) {
-          self.logger.debug(reqname + " error: " + body);
+          self.logger.error(reqname + " error: " + body);
           var details = body;
           if ("string" == typeof body) {
             details = textToXML(body);
@@ -594,7 +594,7 @@ mljs.prototype.__doreq_node = function(reqname,options,content,callback_opt) {
           // 2xx or 3xx response (200=OK, 303=Other(content created) )
           var jsonResult = {body: body, statusCode: res.statusCode,inError: false};
           if (options.method == "GET" && undefined != body && ""!=body) {
-            self.logger.debug("Response (Should be JSON): '" + body + "'");
+            //self.logger.debug("Response (Should be JSON): '" + body + "'");
             jsonResult.doc = JSON.parse(body);
           }
           if (res.statusCode == 303) {
@@ -610,25 +610,25 @@ mljs.prototype.__doreq_node = function(reqname,options,content,callback_opt) {
       }
     };
     res.on('end', function() {
-      self.logger.debug(reqname + " End. Body: " + body);
+      //self.logger.debug(reqname + " End. Body: " + body);
       complete();
     });
     res.on('close',function() {
-      self.logger.debug(reqname + " Close");
+      //self.logger.debug(reqname + " Close");
       complete();
     });
     res.on("error", function() {
-      self.logger.debug(reqname + " ERROR: " + res.statusCode);
+      //self.logger.debug(reqname + " ERROR: " + res.statusCode);
       completeRan = true;
       (callback_opt || noop)({statusCode: res.statusCode,error: body,inError: true});
     });
     
-    self.logger.debug("Method: " + options.method);
+    //self.logger.debug("Method: " + options.method);
     if (options.method == "PUT" || options.method == "DELETE") {
       complete();
     }
-    self.logger.debug(reqname + " End Response (sync)");
-    self.logger.debug("---- END " + reqname);
+    //self.logger.debug(reqname + " End Response (sync)");
+    //self.logger.debug("---- END " + reqname);
     
   });
   httpreq.on("error",function(e) {
@@ -647,7 +647,7 @@ mljs.prototype.__doreq_node = function(reqname,options,content,callback_opt) {
  * @private
  */
 mljs.prototype.__doreq = function(reqname,options,content,callback_opt) {
-  this.logger.debug("__doreq: reqname: " + reqname + ", method: " + options.method + ", uri: " + options.path);
+  //this.logger.debug("__doreq: reqname: " + reqname + ", method: " + options.method + ", uri: " + options.path);
   if (undefined == options.host) {
     options.host = this.dboptions.host;
   }
@@ -657,7 +657,7 @@ mljs.prototype.__doreq = function(reqname,options,content,callback_opt) {
   if (undefined == options.headers) {
     options.headers = {};
   } else {
-    this.logger.debug(reqname + " headers: " + JSON.stringify(options.headers))
+    //this.logger.debug(reqname + " headers: " + JSON.stringify(options.headers))
   }
   // Convert format=json in to a content type header (increases performance for some reason)
   var pos = options.path.indexOf("format=json");
@@ -671,7 +671,7 @@ mljs.prototype.__doreq = function(reqname,options,content,callback_opt) {
     if (undefined !== typeof options.headers["Accept"]) {
       options.headers["Accept"] = "application/json"; // NB check this is not explicitly defined by calling method first
     }
-    this.logger.debug("Converted format=json to Content-Type header. Path now: " + options.path + " , headers now: " + JSON.stringify(options.headers));
+    //this.logger.debug("Converted format=json to Content-Type header. Path now: " + options.path + " , headers now: " + JSON.stringify(options.headers));
   }
   
   this.__doreq_impl(reqname,options,content,callback_opt);
@@ -1438,7 +1438,7 @@ mljs.prototype.searchCollection = function(collection_opt,query_opt,options_opt,
  * </p><p>
  * Use this method in conjunction with the Query Builder {@see mljs.prototype.query}
  *</p>
- * @param {string} query_opt - The optional query string to restrict the results by
+ * @param {JSON} query_opt - The optional structured query JSON to restrict the results by
  * @param {string} options_opt - The optional name of the installed query options to use
  * @param {function} callback - The callback to invoke after the method completes
  */
@@ -2978,7 +2978,7 @@ mljs.prototype.options.prototype.elemattrRangeConstraint = function(constraint_n
  * @param {JSON} facet_opt - The optional facet JSON to use.
  * @param {JSON} facet_options_opt - The optional facet configuration JSON to use.
  */
-mljs.prototype.options.prototype.rangeConstraint = function(constraint_name_opt,name_or_key,ns_opt,type_opt,collation_opt,facet_opt,facet_options_opt) {
+mljs.prototype.options.prototype.rangeConstraint = function(constraint_name_opt,name_or_key,ns_opt,type_opt,collation_opt,facet_opt,facet_options_opt,fragmentScope) {
   this._includeSearchDefaults();
   if (undefined == facet_options_opt) {
     if (undefined != facet_opt && Array.isArray(facet_opt)) {
@@ -3056,6 +3056,9 @@ mljs.prototype.options.prototype.rangeConstraint = function(constraint_name_opt,
   }
   if (undefined != facet_options_opt) {
     range.range["facet-options"] = facet_options_opt;
+  }
+  if (undefined != fragmentScope) {
+    range.range["fragment-scope"] = fragmentScope;
   }
   
   // Create sort orders automatically

@@ -55,6 +55,24 @@ com.marklogic.widgets.searchhelper.processValue = function(str,mode) {
   return name;
 };
 
+com.marklogic.widgets.searchhelper.snippet = function(result) {
+  var resStr = "";
+  
+        for (var i = 0;i < result.matches.length;i++) {
+          resStr += "<div class='searchresults-snippet'>\"";
+          for (var m = 0;m < result.matches[i]["match-text"].length;m++) {
+            if ("string" == typeof result.matches[i]["match-text"][m]) {
+              resStr += result.matches[i]["match-text"][m] ;
+            } else {
+              resStr += "<span class='searchresults-snippet-highlight'>" + result.matches[i]["match-text"][m].highlight + "</span>";
+            }
+          }
+          resStr += "\"</div>";
+        }
+        
+  return resStr;
+};
+
 com.marklogic.widgets.searchhelper.splitdash = function(value,mode) {
   if (value == undefined || value == null) {
     mljs.defaultconnection.logger.warn("WARNING: splitdash(): value is " + value);
@@ -632,6 +650,9 @@ com.marklogic.widgets.searchresults = function(container) {
   
   this.detailsLink = null;
   
+  this.lazyId = 1;
+  this.lazyLoaders = new Array();
+  
   var self = this;
   
   var htmlRec = function(content) {
@@ -741,17 +762,10 @@ com.marklogic.widgets.searchresults = function(container) {
         //}
         var resStr = "<div class='searchresults-result'><h3>" + result.index + ". " + title + "</h3>";
         //resStr += "<div class='searchresults-snippet'>" + (new XMLSerializer()).serializeToString(xml.getElementsByTagName("body")[0]) + "</div>";
-        for (var i = 0;i < result.matches.length;i++) {
-          resStr += "<div class='searchresults-snippet'>\"";
-          for (var m = 0;m < result.matches[i]["match-text"].length;m++) {
-            if ("string" == typeof result.matches[i]["match-text"][m]) {
-              resStr += result.matches[i]["match-text"][m] ;
-            } else {
-              resStr += "<span class='searchresults-snippet-highlight'>" + result.matches[i]["match-text"][m].highlight + "</span>";
-            }
-          }
-          resStr += "\"</div>";
-        }
+        
+        
+        resStr += com.marklogic.widgets.searchhelper.snippet(result);
+        
         //resStr += "<div class='searchresults-snippet'>" + /*strip*/ txt + "</div>";
         //resStr += "<div class='searchresults-snippet'><iframe scrolling='no'>" + result.matches[0]["match-text"][0] + "</iframe></div>";
         
@@ -959,6 +973,7 @@ com.marklogic.widgets.searchresults.prototype._refresh = function() {
     }
     return;
   }
+  this.lazyLoaders = new Array();
   if (null == this.results || undefined == this.results.results || this.results.results.length == 0) {
     document.getElementById(this.container).innerHTML = 
       "<div class='mljswidget searchresults-inner'>" +
@@ -992,7 +1007,7 @@ com.marklogic.widgets.searchresults.prototype._refresh = function() {
         if (this.processors[pname].matcher(result)) {
           found = true;
           mljs.defaultconnection.logger.debug("found processor: " + pname);
-          var returned = this.processors[pname].processor(result);
+          var returned = this.processors[pname].processor(result,this);
           if (undefined != returned.nodeType) {
             var id = (uureplace++);
             resStr = "<div id='" + this.container + "-searchresults-xml-" + id + "'></div>";
@@ -1008,7 +1023,7 @@ com.marklogic.widgets.searchresults.prototype._refresh = function() {
           if ('object' == typeof(this.builtinProcessors[pname]) && this.builtinProcessors[pname].matcher(result)) {
             found = true;
             mljs.defaultconnection.logger.debug("found builtin processor: " + pname);
-            var returned = this.builtinProcessors[pname].processor(result);
+            var returned = this.builtinProcessors[pname].processor(result,this);
             if (undefined != returned.nodeType) {
               var id = (uureplace++);
               resStr = "<div id='" + this.container + "-searchresults-xml-" + id + "'></div>";
@@ -1051,7 +1066,21 @@ com.marklogic.widgets.searchresults.prototype._refresh = function() {
     for (var r = 1001;r < uureplace;r++) {
       document.getElementById(this.container + "-searchresults-xml-" + r).innerHTML = replacements[r]; // TODO verify we don't have to clone the XML document before insert (shouldn't need to)
     }
+    
+    // go through lazy loaders and run them
+    for (var i = 0;i < this.lazyLoaders.length;i++) {
+      var loader = this.lazyLoaders[i];
+      loader.callback(loader.docuri,loader.elid);
+    }
   }
+};
+
+com.marklogic.widgets.searchresults.prototype.generateLazyId = function() {
+  return this.lazyId++;
+};
+
+com.marklogic.widgets.searchresults.prototype.lazyLoad = function(docuri,elid,callback) {
+  this.lazyLoaders.push({docuri: docuri,elid: elid,callback: callback});
 };
 
 com.marklogic.widgets.searchresults.prototype._navigateTo = function(uri) {
