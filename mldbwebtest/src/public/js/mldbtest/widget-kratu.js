@@ -28,6 +28,7 @@ com.marklogic.widgets.kratu = function(container) {
   this.errorPublisher = new com.marklogic.events.Publisher(); 
   
   this.results = null;
+  this.facts = null;
   this.kratu = new Kratu();
   this.kratu.setRenderElement( document.getElementById(this.container) );
   
@@ -50,7 +51,7 @@ com.marklogic.widgets.kratu.prototype.render = function(render) {
 /**
  * Event target. Can be used with addResultsListener
  * 
- * @param {results} results - The REST API JSON results object to display. See GET /v1/search
+ * @param {JSON} results - The REST API JSON results object to display. See GET /v1/search
  */
 com.marklogic.widgets.kratu.prototype.updateResults = function(results) {
   this.results = results;
@@ -64,6 +65,32 @@ com.marklogic.widgets.kratu.prototype.updateResults = function(results) {
   } else {
     this.kratu.setEntities(this.results.results);
   }
+  this._refresh();
+};
+
+/**
+ * Draw sparql facts results as a table
+ * 
+ * @param {JSON} facts - the response from the REST API (W3C SPARQL Protocol) sparql endpoint, passed usually by the semanticcontext
+ */
+com.marklogic.widgets.kratu.prototype.updateFacts = function(facts) {
+  this.facts = facts;
+  
+  // build simpler JSON results object - rows
+  var rows = new Array();
+  for (var r = 0, max = facts.results.bindings.length;r < max;r++) {
+    var result = facts.results.bindings[r];
+    var res = {};
+    // one for each binding
+    for (var b = 0, maxb = facts.head.vars.length;b < maxb;b++) {
+      var varname = facts.head.vars[b];
+      res[varname] = result[varname].value;
+    }
+    rows.push(res);
+  }
+  
+  // show in Kratu
+  this.kratu.setEntities(rows);
   this._refresh();
 };
 
@@ -86,7 +113,7 @@ com.marklogic.widgets.kratu.prototype.removeErrorListener = function(fl) {
 };
 
 com.marklogic.widgets.kratu.prototype._refresh = function() {
-  if (null == this.results || undefined == this.results || "boolean" == this.results) {
+  if ( (null == this.results || undefined == this.results || "boolean" == typeof this.results) && (null == this.facts || undefined == this.facts || "boolean" == typeof this.facts)) {
     return; // draw nothing
   }
   this.kratu.renderReport();

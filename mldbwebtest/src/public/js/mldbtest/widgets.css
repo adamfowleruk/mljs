@@ -604,6 +604,12 @@ span.person {
 }
 
 
+/** Graph explorer **/
+.graphexplorer .highcharts-container {
+  border: 1px solid lightgrey;
+  overflow: scroll;
+}
+
 
 /** RDB2RDF **/
 .rdb2rdf-submit {

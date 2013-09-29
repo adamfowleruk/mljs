@@ -52,9 +52,53 @@ com.marklogic.widgets.graphexplorer = function(container) {
   this.columnCount = new Array(); // 1 based column number > count of widgets drawn in there
   
   this.searchOptionsName = "default";
+  
+  this.columnWidths = new Array(); // colnumber -> pixel width maximum in column
+  this.rowHeights = new Array(); // crownumber -> pixel height maximum in row
 
   this._init();
 };
+
+com.marklogic.widgets.graphexplorer.prototype.checkColumnWidth = function(colnum,width) {
+  var curwidth = this.columnWidths[colnum];
+  mljs.defaultconnection.logger.debug("checkColumnWidth: colnum: " + colnum + ", curwidth: " + curwidth + ", width: " + width);
+  if (undefined == curwidth) {
+    curwidth = 0;
+  }
+  if (curwidth < width) {
+    this.columnWidths[colnum] = width;
+  }
+};
+
+com.marklogic.widgets.graphexplorer.prototype.checkRowHeight = function(num,height) {
+  var cur = this.rowHeights[num];
+  mljs.defaultconnection.logger.debug("checkRowHeight: rownum: " + num + ", curheight: " + cur + ", height: " + height);
+  if (undefined == cur) {
+    cur = 0;
+  }
+  if (cur < height) {
+    this.rowHeights[num] = height;
+  }
+};
+
+com.marklogic.widgets.graphexplorer.prototype.widthBefore = function(column) {
+  var width = 0;
+  for (var i = 1;i < this.columnWidths.length && i < column;i++) {
+    mljs.defaultconnection.logger.debug("widthBefore: i=" + i + " => " + this.columnWidths[i]);
+    width += this.columnWidths[i];
+  }
+  return width;
+};
+
+com.marklogic.widgets.graphexplorer.prototype.heightBefore = function(row) {
+  var height = 0;
+  for (var i = 1;i < this.rowHeights.length && i < row;i++) {
+    mljs.defaultconnection.logger.debug("heightBefore: i=" + i + " => " + this.rowHeights[i]);
+    height += this.rowHeights[i];
+  }
+  return height;
+};
+
 
 com.marklogic.widgets.graphexplorer.prototype.setSearchOptionsName = function(name) {
   this.searchOptionsName = name;
@@ -90,7 +134,8 @@ com.marklogic.widgets.graphexplorer.prototype._init = function() {
   
     var chart = new Highcharts.Chart({
         title: {
-            text: 'Graph Explorer'
+            text: 'Graph Explorer',
+            align: "left"
         },
         chart: {
             renderTo: id,
@@ -98,9 +143,16 @@ com.marklogic.widgets.graphexplorer.prototype._init = function() {
                 load: function () {
                     
           }
-        }
+        },
+        width: 2000,
+        height: 2000
       }
     });
+    
+  var chartdiv = document.getElementById(this.container).childNodes[0];
+  chartdiv.style.overflow = "scroll";
+  chartdiv.style.width = "100%";
+  chartdiv.style.height = "2050px";
   
   this.chart = chart;
   this.renderer = chart.renderer;
@@ -251,8 +303,12 @@ com.marklogic.widgets.graphexplorer.prototype.drawSubject = function(subjectIri,
     if (1 == column && 1 == row) {
       this._incrementColumnCount(1);
     }
-    var x = 20 + (200 * (column - 1));
-    var y = 40 + (200 * (row - 1));
+    //var x = 20 + (200 * (column - 1));
+    //var y = 40 + (200 * (row - 1));
+    
+    var x = 20 + (100 * (column - 1)) + this.widthBefore(column);
+    var y = 40 + (20 * (row - 1)) + this.heightBefore(row);
+    mljs.defaultconnection.logger.debug("drawSubject: x=" + x + ", y=" + y);
     
     // draw subject box itself
     var ren = this.renderer;
@@ -303,8 +359,12 @@ com.marklogic.widgets.graphexplorer.prototype._drawSubjectDetail = function(subj
   var column = ent.column;
   var row = ent.row;
   
-  var x = 20 + (200 * (column - 1));
-  var y = 40 + (200 * (row - 1));
+    //var x = 20 + (200 * (column - 1));
+    //var y = 40 + (200 * (row - 1));
+    
+    var x = 20 + (100 * (column - 1)) + this.widthBefore(column);
+    var y = 40 + (20 * (row - 1)) + this.heightBefore(row);
+    mljs.defaultconnection.logger.debug("_drawSubjectDetail: x=" + x + ", y=" + y);
   
   // draw subject box itself
   
@@ -333,9 +393,13 @@ com.marklogic.widgets.graphexplorer.prototype._drawSubjectDetail = function(subj
         if (undefined != pinfo) {
           t = pinfo.title;
         }
+        var ttitle = t;
+        if (ttitle == predicate.value) {
+          ttitle = this._shortenSubjectIri(predicate.value);
+        }
         
         //props += "<b>" + t + ":</b> " + obj.value + "<br/>";
-        propValues[predicate.value] = {value: obj.value, title: t, type: obj.type};
+        propValues[predicate.value] = {value: obj.value, title: ttitle, type: obj.type};
 
         //s += "</p>";
       } else {
@@ -345,21 +409,35 @@ com.marklogic.widgets.graphexplorer.prototype._drawSubjectDetail = function(subj
     }
   
   var predEntity = scfg.getEntityFromIRI(type);
-  var namepredicate = scfg.getNameProperty(predEntity.name).iri;
-  //mljs.defaultconnection.logger.debug("Got name predicate: " + namepredicate);
-  
-  var predValue = propValues[namepredicate];
-  if (undefined != predValue) {
-    title = predValue.value;
+  var baseType = type;
+  mljs.defaultconnection.logger.debug("***PREDENTITY: " + JSON.stringify(predEntity));
+  if (undefined != predEntity && undefined != predEntity.name) {
+    type = predEntity.title;
+    var namepredicate = scfg.getNameProperty(predEntity.name).iri;
+    //mljs.defaultconnection.logger.debug("Got name predicate: " + namepredicate);
+    if (undefined != namepredicate) {
+      
+      var predValue = propValues[namepredicate];
+      if (undefined != predValue) {
+        title = predValue.value;
+      } else {
+        // leave title as iri
+      }
+    }
   } else {
-    // leave title as iri
+    type = this._shortenSubjectIri(type);
+  }
+  
+  if (title == subjectIri) {
+    title = this._shortenSubjectIri(subjectIri);
   }
   
   mljs.defaultconnection.logger.debug("Type Processing: " + type);
+  mljs.defaultconnection.logger.debug("Base Type Processing: " + baseType);
   
   var loadingContent = false;
   
-  if ("http://marklogic.com/semantics/ontology/Document" == type) {
+  if ("http://marklogic.com/semantics/ontology/Document" == baseType) {
     var facets = this.facetCache[subjectIri];
     if (null == facets) {
       mljs.defaultconnection.logger.debug("PROCESSING ML DOCUMENT SUBJECT: " + subjectIri);
@@ -386,7 +464,6 @@ com.marklogic.widgets.graphexplorer.prototype._drawSubjectDetail = function(subj
     }
   }
   
-  type = predEntity.title;
   
   var summaries = new Array(); // holds {subject: iri, element: elid} objects
   
@@ -417,12 +494,14 @@ com.marklogic.widgets.graphexplorer.prototype._drawSubjectDetail = function(subj
       // now draw a connector from mini box to top left of box
       var starttop = top + 5;
       var startleft = left + 5;
-      var endtop = 27 + 5 + (200 * (newrow - 1));
+      //var endtop = 27 + 5 + (200 * (newrow - 1));
+      var endtop = 27 + 5 + (20 * (newrow - 1)) + self.heightBefore(newrow);
       if (endtop < 52) {
         endtop = 52;
       }
       endtop += 25;
-      var endleft = 13 + (200 * (newcol - 1));
+      //var endleft = 13 + (200 * (newcol - 1));
+      var endleft = 13 + (100 * (newcol - 1)) + self.widthBefore(newcol);
       var dy = 1.0*(endtop - starttop);
       var dx = 1.0*(endleft - startleft);
       var theta = 1.0 * Math.atan(dy / dx); // Tan Theta = Opposite (height) / Adjacent (width)
@@ -445,6 +524,8 @@ com.marklogic.widgets.graphexplorer.prototype._drawSubjectDetail = function(subj
     
   };
   
+  var infos = new Array();
+  
   for (var propname in propValues) {
     if (propValues.hasOwnProperty(propname)) { // ensure property, not function
       mljs.defaultconnection.logger.debug("PROPERTY TO LIST: " + propname);
@@ -458,25 +539,28 @@ com.marklogic.widgets.graphexplorer.prototype._drawSubjectDetail = function(subj
           // load description later
           var propCount = this.propertyCount++;
           var elid = this.container + "-loadname-" + propCount;
-          propShow = "<span id='" + elid + "'>" + "<i>Loading...</i>" + "</span>";
+          //propShow = "<span id='" + elid + "'>" + "<i>Loading...</i>" + "</span>"; // not showing loading as we dont get a callback if there is no further details
+          propShow = "<span id='" + elid + "'>" + this._shortenSubjectIri(prop.value) + "</span>";
           summaries.push(prop.value);
         } else {
           propShow = relname;
-          
-          // draw relationship box instead
-          var left = x + 148 + 5;
-          var top = y + 7 + (17 * relnum++);
-          var relbox = ren.rect(left, top,10,10,2).attr({
-            'stroke-width': 4, stroke: colors[0], fill: colors[0]
-          }).add();
-          addshow(relbox,relname,left,top,propname,prop.value);
+          infos.push({relname: relname, propname:propname,propvalue:prop.value});
         }
       }
       props += "<b>" + prop.title + ":</b> " + propShow + "<br/>";
     }
   }
     
+  var drawrel = function(x,y,info) {
+    // draw relationship box instead
+    var left = x + 5 + 6; // X BOX POS - was 158? or 325 (wide) (6 is for the rect border not being taken into account with box.width)
+    var top = y + 7 + (17 * relnum++);
+    var relbox = ren.rect(left, top,10,10,2).attr({
+      'stroke-width': 4, stroke: colors[0], fill: colors[0]
+    }).add();
+    addshow(relbox,info.relname,left,top,info.propname,info.propvalue);
     
+  };
     
     
   var s = "<b>" + title + "</b><br/><i>" + type + "</i><br/><br/>" + props;
@@ -497,6 +581,14 @@ com.marklogic.widgets.graphexplorer.prototype._drawSubjectDetail = function(subj
   
   ent.jswrapper = box;
   
+  for (var i = 0, max = infos.length,info;i < max;i++) {
+    info = infos[i];
+    drawrel(x + box.width,y,info);
+  }
+  
+  this.checkColumnWidth(column,box.width);
+  this.checkRowHeight(row,box.height);
+  
   // load descriptions, element handler
   // CHECK DRAW ON COMPLETE DOESN'T ALREADY HOLD US - PREVENT WEIRD CIRCULAR REFERENCES AND INFINITE LOOPS
   var exists = false;
@@ -513,6 +605,16 @@ com.marklogic.widgets.graphexplorer.prototype._drawSubjectDetail = function(subj
   
 };
 
+com.marklogic.widgets.graphexplorer.prototype._shortenSubjectIri = function(iri) {
+  var pos = iri.lastIndexOf("#");
+  if (-1 == pos) {
+    pos = iri.lastIndexOf("/");
+    if (-1 == pos) {
+      return iri;
+    }
+  }
+  return iri.substring(pos + 1);
+};
 
 com.marklogic.widgets.graphexplorer.prototype._generateNameLink = function(subjectIri) {
   // NB return null if we don't have enough information yet
@@ -537,14 +639,30 @@ com.marklogic.widgets.graphexplorer.prototype._getSubjectName = function(subject
   }
   
   var type = this._getSubjectPredicate(cache,"http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
+  if (null == type) {
+    mljs.defaultconnection.logger.debug("getSubjectName: type null, returning shortened subject iri");
+    return this._shortenSubjectIri(subjectIri);
+  }
   
   var scfg = this.semanticContext.getConfiguration();
   
   var predEntity = scfg.getEntityFromIRI(type);
+  if (undefined == predEntity || undefined == predEntity.name) {
+    mljs.defaultconnection.logger.debug("getSubjectName: predEntity null, returning shortened subject iri");
+    return this._shortenSubjectIri(subjectIri);
+  }
   var namepredicate = scfg.getNameProperty(predEntity.name).iri;
+  if (undefined == namepredicate) {
+    mljs.defaultconnection.logger.debug("getSubjectName: namepredicate null, returning shortened subject iri");
+    return this._shortenSubjectIri(subjectIri);
+  }
   
-  return this._getSubjectPredicate(cache,namepredicate);
-  
+  var pred = this._getSubjectPredicate(cache,namepredicate);
+  if (null == pred) {
+    mljs.defaultconnection.logger.debug("getSubjectName: Cached predicate null, returning shortened subject iri");
+    return this._shortenSubjectIri(subjectIri);
+  }
+  return pred;
 };
 
 com.marklogic.widgets.graphexplorer.prototype._getSubjectPredicate = function(cache,predIri) {

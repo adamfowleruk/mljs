@@ -967,6 +967,10 @@ com.marklogic.widgets.sparqlresults.prototype.iriHandler = function(handler) {
   this._iriHandler = handler;
 };
 
+com.marklogic.widgets.sparqlresults.prototype.explore = function(link) {
+  this._exploreLink = link;
+};
+
 com.marklogic.widgets.sparqlresults.prototype._refresh = function() {
   var s = "<div id='" + this.container + "-sparqlresults' class='mljswidget sparqlresults'>";
   s += "<h2 class='title sparqlresults-title'>Subject Search Results</h2>";
@@ -990,6 +994,9 @@ com.marklogic.widgets.sparqlresults.prototype._refresh = function() {
 
     if (this._mode != "none") {
       s += "<div><a href='#' id='" + this.container + "-loadContent'>Load related content</a></div>";
+    }
+    if (this._exploreLink != null) {
+      s += "<div><a href='#' id='" + this.container + "-explore'>Explore</a></div>";
     }
 
     // process results, showing common information where appropriate
@@ -1033,6 +1040,13 @@ com.marklogic.widgets.sparqlresults.prototype._refresh = function() {
     if (null != contentLink) {
       var self = this;
       contentLink.onclick = function(e) {self._provenance();e.stopPropagation();return false;};
+    }
+  }
+  if (this._exploreLink != null) {
+    var explore = document.getElementById(this.container + "-explore");
+    if (null != explore) {
+      var self = this;
+      explore.onclick = function(e) {window.location = self._exploreLink;e.stopPropagation();return false;};
     }
   }
 };
