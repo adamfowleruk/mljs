@@ -31,32 +31,21 @@ Targets for 12 Sep 2013
  - DEFERRED Nice to have: Widgets: Find similar documents link support
 
 Targets for 22 Sep
- - SlideTunes demo - check it out first
- - Send roxy install links to customer
- - Strip out single slides from a slide deck
- - Link back to original slide deck
- - Preview for PPTX slides linked to images, and their properties
- - Must load their title along with snippets, date created, by user
-  - Sounds like AJAX document loading is required
  - Selection of search results across pages
   - Document context to support multiple selection
   - Button widget to respond to selected slides (becomes active upon selection)
  - Date facet with buckets and selection of range
   - Facet bucketed by date?
+ - DONE Profile info widget
  - Save a search, view in profile page
- - My Documents - find all slides linked to my account/username/email
- - Tag cloud based on facet and size (D3.js)
+ - Tag cloud based on facet and size (D3.js + SVG)
 
 Targets for 27 Sep
- - Semantic/Data Explorer - HighCharts
+ - DONE Semantic/Data Explorer - HighCharts
   - DONE basic view working
   - DONE facets view working
-  - Link to originating SPARQL query for subject list
-  - Click on property to add to SPARQL results fetching query
-  - Lazy loading of facet values when added to output
- - Re-work screen to support multiple results viewing tabs
- - Hide of query area
-  
+  - DONE Link to originating SPARQL query for subject list
+  - DONE Lazy loading of facet values when added to output
 
 Targets for 15 Oct 2013
  - Widgets: Google maps (via OpenLayers only)
