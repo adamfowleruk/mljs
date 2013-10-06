@@ -44,7 +44,7 @@ com.marklogic.widgets.rdb2rdf.prototype._highlightTab = function(tabId) {
   currentHighlightSpan.parent().html(priorTabText);
   
  // add highlight to newTab
-  var tab = $("#" + tabId);
+  var tab = $("#" + tabId); // TODO jQuery REMOVE
   var tabText = tab.text();
   tab.html("<span id='highlightedTab' class='label label-success'>" + tabText + "</span>")
 };
@@ -52,7 +52,7 @@ com.marklogic.widgets.rdb2rdf.prototype._highlightTab = function(tabId) {
 
 com.marklogic.widgets.rdb2rdf.prototype._refresh = function() {
   // perform initial HTML drawing
-  var s = "";
+  var s = "<div id='" + this.container + "-rdb2rdf' class='rdb2rdf'>";
   
   // tab bar - feel free to replace with a widget of your choice (preferably not a large library required like jQuery)
   
@@ -198,6 +198,8 @@ com.marklogic.widgets.rdb2rdf.prototype._refresh = function() {
   s += "   </div>";
   s += " </form>";
   s += "</div></div>";
+  
+  s += "</div>";
   
   document.getElementById(this.container).innerHTML = s; // single hit for DOM performance
   

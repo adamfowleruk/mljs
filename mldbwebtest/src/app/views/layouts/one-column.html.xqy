@@ -64,15 +64,17 @@ declare variable $q as xs:string? := vh:get("q");
         <a href="/mldbtest/upload">Upload</a> |
         <a href="/mldbtest/docview">View Doc</a> 
         <br/>
-      V7+ (In development):
+      V7+:
         <a href="/mldbtest/docbuilder">Document Builder</a> | 
         <a href="/mldbtest/sparqlbar">Semantic (SPARQL) Search</a> | 
-        <a href="/mldbtest/collectionuris">Collection URIs</a> | 
         <a href="/mldbtest/explorer">Explorer</a> 
         <br/>
-      REST Extensions: <i>None</i>
+      REST Extensions:  
+        <a href="/mldbtest/rdb2rdf">RDB2RDF</a> 
         <br/>
-      In Development:  <i>None</i>
+      In Development:  
+        <a href="/mldbtest/workplace">Workplace</a> | 
+        <a href="/mldbtest/collectionuris">Collection URIs</a>
       </div>
       
       <div class="content">

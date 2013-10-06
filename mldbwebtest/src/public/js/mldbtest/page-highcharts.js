@@ -81,7 +81,7 @@ $(document).ready(function() {
   tempscolumn.options.chart.type = "column";
   tempscolumn.options.plotOptions = {column: {stacking: 'normal',dataLabels: {enabled: true,color: (Highcharts.theme && Highcharts.theme.dataLabelsColor) || 'white'}}};
   
-  var qb = new db.query();
+  var qb = db.createQuery();
   qb.query(qb.and([qb.collection("testdata"),qb.collection("temperatures")]));
   var query = qb.toJson();
   

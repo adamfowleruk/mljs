@@ -55,7 +55,7 @@ Targets for 15 Oct 2013
   - Checkout XSLT upload and transform method
  - Nice to have: Widgets: Browse related Subjects in node diagram
  
-Targets for Late Oct 2013
+Targets for Late Oct 2013 (LOW PRIORITY)
  - Widgets: SVG map viewer
   - Vector drawing of information
   - Rotation, translation (lateral movement) of map
@@ -148,6 +148,10 @@ Targets for 1.0 (End of Oct 2013)
   - Phrase searches
   - Shadow queries (MLJS' alternative mechanism)
  - IN PROGRESS NodeJS: Node.js tests for all functionality now in core MLJS
+ - IN PROGRESS Widget: RDB2RDF in test app
+  - Remove jQuery specific code
+  - IN PROGRESS Check Roxy installation of REST extension works automatically
+  - IN PROGRESS validate CSS works correctly on all pages
  - Docs: Video tutorials for all new functionality - Create a Semantic Application Series
   - Intro to semantics in MarkLogic
    - Manually load in some triple in N-triples format, and query this in QConsole and rest to show the ideas behind what we're doing
@@ -197,16 +201,17 @@ Targets for 1.1 (Nov 2013)
   
 Targets for 1.2 (Dec 2013)
  - Widgets: Workplace
-  - Each username has a workplace in the content store saved as an XML config file
+  - Each username has a workplace in the content store saved as a JSON config file
   - Defines what pages are available, the layout of those pages, and what is shown on each
   - Removes any code anyone needs to write to use MLJS widgets
   - Alter mljsme.sh to copy in a Roxy controller and view using default configured layout - equiv of ml create mljs/main html followed by copying scripts over
   - If no Workplace detected, create a generic search page with a Workplace edit button
-  - Widget initialisation for each page done dynamically
-   - Requires dynamic loading of scripts, or importing of all scripts (do latter for now)
+  - IN PROGRESS Widget initialisation for each page done dynamically
+   - NA (For first version require all to be on import path) Requires dynamic loading of scripts, or importing of all scripts (do latter for now)
   - Ability to link widgets together. E.g. dropping a searchbar creates a searchcontext - list which have endpoints to link to which contexts' functions - like Yahoo Pipes
    - By default, every page has a searchcontext and a semanticcontext, and all widgets by default linked to both, where applicable
-  - How to manage this linking dynamically in code?
+  - DONE How to manage this linking dynamically in code?
+   - DONE List contexts and map them to widgets
   - Workplace configuration widgets required
    - Separate panel for linking
    - Edit mode shows this panel
@@ -218,7 +223,7 @@ Targets for 1.2 (Dec 2013)
    - Allow users to switch their Workplace on the fly
    - Support Duplicating existing Workplace
   - OOTB Workplace examples
-   - MLDBWebTest Workplace
+   - IN PROGRESS MLDBWebTest Workplace
    - Semantic Workplace
  - Beyond App Builder
   - Action bar to do things with search results
@@ -235,12 +240,13 @@ Targets for 1.2 (Dec 2013)
   - MarkLogic document ontology
  - Detect V7 (HEAD to a V7 only endpoint?)
  - Auto install of extensions referenced by MLJS core via PUT /v1/ext endpoint
-  - rdb2rdf
+  - IN PROGRESS rdb2rdf
   - savedsearch
   - alerts
   - version detect (future proofing)
   - dls
   - whoami
+  - Test pages for each of the above too
  - Widgets: Document properties and view widget
  - Widgets: Folder browsing widget (Probably easiest to do like Mac child folders, left to right, rather than a tree structure)
  - Widgets: Navigable charts / co-occurence - clicking sets facet value
@@ -249,7 +255,7 @@ Targets for 1.2 (Dec 2013)
   - triples-range-query support
  - Widgets: Support facet hierarchies
  - Widgets: D3.js network/hive diagram - http://www.hiveplot.net
- - Widgets: InfoVis network diagram
+ - NA Use highcharts explore instead - Widgets: InfoVis network diagram
  - Core: Support all search functions not currently provided in query builder
  - IN PROGRESS Core: Extra query builder options (all constraints supported by options, plus sorting)
   - DONE Term query

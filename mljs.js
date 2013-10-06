@@ -1495,13 +1495,14 @@ mljs.prototype.saveSearchOptions = function(name,searchoptions,callback_opt) {
  * @param {string} name - The name of the installed search options to retrieve as JSON
  * @param {function} callback - The callback to invoke after the method completes
  */
-mljs.prototype.searchoptions = function(name,callback) {
+mljs.prototype.searchOptions = function(name,callback) {
   var options = {
     path: "/v1/config/query/" + name + "?format=json",
     method: "GET"
   };
   this.__doreq("SEARCHOPTIONS",options,null,callback);
 };
+mljs.prototype.searchoptions = mljs.prototype.searchOptions; // typo workaround for backwards compatibility
 
 /**
  * <p>Fetches values from a lexicon or computes 2-way co-occurence.</p><p>

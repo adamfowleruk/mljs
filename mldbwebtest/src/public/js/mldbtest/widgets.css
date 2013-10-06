@@ -621,6 +621,39 @@ span.person {
   padding: 4px;
 }
 
+#wizard-headline {
+    margin-bottom: 5px;
+}
+
+.rdb2rdf .breadcrumb {
+    background-color: rgba(0, 0, 0, 0);
+    padding-left: 0;
+}
+.rdb2rdf .breadcrumb .label {
+    font-size: 100%;
+    font-weight: normal;
+}
+.rdb2rdf .lead-smaller {
+    font-size: 17px;
+    margin-bottom: 7px;
+}
+.rdb2rdf .list-group {
+    margin-bottom: 20px;
+}
+.rdb2rdf .list-group .list-group-item {
+    font-size: 11px;
+    padding: 5px 5px 4px 7px;
+}
+.rdb2rdf .import-checker {
+    display: none;
+}
+.rdb2rdf #import-completed {
+    color: #468847;
+}
+.rdb2rdf #wizard-close-button {
+    display: none;
+}
+
 
 
 /** Bits **/

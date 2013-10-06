@@ -7,7 +7,7 @@ $(document).ready(function() {
   
   try {
  
-  var wgt = new com.marklogic.widgets.rdb2rdf("rdb2rdf");
+  var wgt = new com.marklogic.widgets.rdb2rdf("wizard");
   
   } catch (err) {
     error.show(err.message);

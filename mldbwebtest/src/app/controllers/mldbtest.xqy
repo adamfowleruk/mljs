@@ -150,3 +150,21 @@ declare function c:explorer() as item()*
   ch:use-layout("one-column","html"))
 
 };
+
+declare function c:workplace() as item()*
+{
+  (
+  ch:add-value("message", "This is a test message."),
+  ch:add-value("title", "Workplace"),
+  ch:use-view((), "xml"),
+  ch:use-layout("one-column","html"))
+};
+
+declare function c:rdb2rdf() as item()*
+{
+  (
+  ch:add-value("message", "This is a test message."),
+  ch:add-value("title", "RDB2RDF Import Wizard"),
+  ch:use-view((), "xml"),
+  ch:use-layout("one-column","html"))
+};
