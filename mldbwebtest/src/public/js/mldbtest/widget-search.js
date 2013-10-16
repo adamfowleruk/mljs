@@ -291,11 +291,14 @@ com.marklogic.widgets.searchbar.prototype.setContext = function(context) {
 com.marklogic.widgets.searchfacets = function(container) {
   this.container = container;
   
+  // Publicly settable properties
   this.listSize = 5;
   this.extendedSize = 10;
   this.allowShowAll = true;
-  this.facetSettings = new Array();
   this.hideEmptyFacets = true;
+  
+  // Internal properties
+  this.facetSettings = new Array();
   
   this.results = null;
   
@@ -310,6 +313,27 @@ com.marklogic.widgets.searchfacets = function(container) {
   this.selectionPublisher = new com.marklogic.events.Publisher();
   
   // html
+  this._refresh();
+};
+
+com.marklogic.widgets.searchfacets.getConfigurationDefinition = function() {
+  return {
+    listSize: {type: "positiveInteger", minimum: 1, default: 5, title: "List Size", description: "How many facet values to show at first."},
+    extendedSize: {type: "positiveInteger", minimum: 1, default: 10, title: "Extended List Size", description: "How many values to show when a user clicks 'Show More'."},
+    allowShowAll: {type: "boolean", default: true, title: "Display Show All action", description: "Whether the Show All link should be allowed if there are more facet values than the value of Extended Size."},
+    hideEmptyFacets: {type: "boolean", default:true, title: "Hide Empty Facets", description: "Should facets with no values be hidden?"}
+  }
+  // TODO include facet name/value transform settings
+  // TODO include facet settings (if applicable?)
+};
+
+
+com.marklogic.widgets.searchfacets.prototype.setConfiguration = function(config) {
+  for (var prop in config) {
+    this[prop] = config[prop].value;
+  }
+  
+  // refresh display
   this._refresh();
 };
 
@@ -1160,7 +1184,7 @@ com.marklogic.widgets.searchresults.prototype.setProcessorPriority = function(pr
 com.marklogic.widgets.searchpager = function(container) {
   this.container = container;
   
-  this.perPage = 10;
+  this.perPage = 10; // TODO get this from search options / results
   this.start = 0;
   this.total = 0;
   

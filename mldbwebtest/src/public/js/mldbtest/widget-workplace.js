@@ -86,6 +86,11 @@ com.marklogic.widgets.workplace.prototype.loadPage = function(jsonOrString) {
     contexts[ctx.context] = inst;
     mljs.defaultconnection.logger.debug("Is context instance valid?: is object?: " + (typeof inst));
     
+    // initialise context configuration
+    if (undefined !== inst.setConfiguration && undefined !== ctx.config) {
+      inst.setConfiguration(ctx.config);
+    }
+    
     // register widgets with contexts
     for (var wid = 0, widmax = ctx.register.length,widgetid;wid < widmax;wid++) {
       widgetid = ctx.register[wid];
@@ -112,7 +117,10 @@ com.marklogic.widgets.workplace.prototype._createWidget = function(type,elementi
   mljs.defaultconnection.logger.debug("has widget instance been created? type is object?: " + (typeof wgt));
   
   
-  // TODO apply config to object
+  // apply config to object
+  if (undefined !== wgt.setConfiguration) { // backwards compatibility - widget may not have configuration
+    wgt.setConfiguration(config);
+  }
   
   return wgt;
 };
@@ -180,3 +188,30 @@ com.marklogic.widgets.layouts.thinthick.prototype._genZones = function(zone,arr)
   }
   document.getElementById(this.container + "-" + zone).innerHTML = s;
 };
+
+
+
+
+
+// ACTIONS
+com.marklogic.widgets.actions = {};
+com.marklogic.widgets.actions.javascript = function() {
+  this._config = {
+    targetObject: null,
+    methodName: null,
+    parameters: []
+  };
+};
+
+com.marklogic.widgets.actions.javascript.getConfigurationDefinition = function() {
+  
+};
+
+com.marklogic.widgets.actions.javascript.prototype.setConfiguration = function(config) {
+  this._config = config;
+};
+
+com.marklogic.widgets.actions.javascript.prototype.execute = function() {
+  
+};
+

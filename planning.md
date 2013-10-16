@@ -95,8 +95,9 @@ Targets for 1.0 (End of Oct 2013)
    - Core
    - Highcharts
   - underscores for private functions
+  - _configuration json object for Workplace compatible widgets/contexts
   - UpperCamelCase for constructors/objects
-  - lowerCamelCase for functions (searchcontext and mljs have some alllowercase methods)
+  - IN PROGRESS lowerCamelCase for functions (searchcontext and mljs have some alllowercase methods)
   - DONE Using Factory pattern. See mljs.create*() methods. Changed mljs.defaultconnection in core MLJS to instead access parent MLJS instance
   - DONE Using logger mixin. Logger's attached to DB, so have had to link tripleconfig to creating db via factory method. keep tripleconfig separate from core MLJS instantiator (as it never requires a connection to use), but allow a way to specify a logger and check for this (to avoid defaultconnection.logger)
   - DONE better way to access logging functionality by default - define _i(), _d() prototype methods for each subobject? Via a core mixin utility func? 
@@ -114,12 +115,15 @@ Targets for 1.0 (End of Oct 2013)
   - Find a better way to restrict what parts of the logging output are set to use debug (Perhaps a mixin to objects with lazy initialisation based on debug level specified, if any)
   - Use more high order functions (callbacks, replacing functionality within otherwise identical loops)
   - DONE Check for 'innerHTML += ' and replace with appendChild and temporary div trick
+  - Perform JavaScript profiling in FireBug to check for issues
+ - Widgets: Search Speed - As a tutorial for those wishing to contribute to MLJS
  - Widgets: Sparql: Other sparql improvements
   - Support OPTIONAL?
   - Support UNION?
   - IN PROGRESS Support FILTER?
    - DONE Used this for < > <= >= != for integer, double fields
    - Regex? (used by suggestions only at the moment)
+   - TODO validate string comparison instead of numeric comparison as reported by Ken Tune in SYTYCD demo
   - Support REDUCED? (Permits duplicates to be eliminated)
   - Support FROM NAMED (limit results from set of named graphs) - http://www.w3.org/TR/2008/REC-rdf-sparql-query-20080115/#restrictByLabel
   - NA multiple listeners for this in same context - Multiple modes, one to contribute sparql query to a searchcontext, another to perform sparql query itself (to list entities)
@@ -180,12 +184,12 @@ Targets for 1.0 (End of Oct 2013)
  - mljsme
   - add option to also deploy -workplace mljs/main (Workplace) and -test mldbtest/*
  - IN PROGRESS Docs: Document all core concepts currently part of MLJS
-  - IN PROGRESS searchcontext object
+  - IN PROGRESS Docs: searchcontext object
   
 Targets for 1.1 (Nov 2013)
  - App Builder to MLJS+Roxy automated conversion
- - IN PROGRESS Other cool things we could do with MarkLogic
-  - IN PROGRESS SYTYCD Combine triple search with content search - limit documents returned from triple store by term (word) query
+ - DONE Other cool things we could do with MarkLogic
+  - DONE SYTYCD Combine triple search with content search - limit documents returned from triple store by term (word) query
   - Alerting with triples (+drawbacks - document level, not triple level)
  - PROV-O ontology support
   - hide by default, show provenance button to view provenance and interrelationship of entities
@@ -200,30 +204,35 @@ Targets for 1.1 (Nov 2013)
   
   
 Targets for 1.2 (Dec 2013)
- - Widgets: Workplace
+ - Widgets: Navigable charts / co-occurence - clicking sets facet value
+ - IN PROGRESS Widgets: Workplace - Removes any code anyone needs to write to use MLJS widgets
   - Each username has a workplace in the content store saved as a JSON config file
-  - Defines what pages are available, the layout of those pages, and what is shown on each
-  - Removes any code anyone needs to write to use MLJS widgets
+  - IN PROGRESS Defines what pages are available, the layout of those pages, and what is shown on each
   - Alter mljsme.sh to copy in a Roxy controller and view using default configured layout - equiv of ml create mljs/main html followed by copying scripts over
-  - If no Workplace detected, create a generic search page with a Workplace edit button
+  - Load application wide Workplace configuration settings (Not just content DB wide - use domain name somehow)
+  - If no Workplace detected, create a generic search page with a Workplace edit button (depending on app wide settings)
   - IN PROGRESS Widget initialisation for each page done dynamically
    - NA (For first version require all to be on import path) Requires dynamic loading of scripts, or importing of all scripts (do latter for now)
   - Ability to link widgets together. E.g. dropping a searchbar creates a searchcontext - list which have endpoints to link to which contexts' functions - like Yahoo Pipes
    - By default, every page has a searchcontext and a semanticcontext, and all widgets by default linked to both, where applicable
   - DONE How to manage this linking dynamically in code?
    - DONE List contexts and map them to widgets
+  - IN PROGRESS Handle widget configuration, and actions
+   - TEST Instance widget configuration settings (Easier than using 'call javascript' action)
+   - IN PROGRESS On page load actions (execute search - context methods)
   - Workplace configuration widgets required
    - Separate panel for linking
-   - Edit mode shows this panel
+   - Edit mode shows this panel (powered by widget configuration object)
    - Show chosen layout with which widgets assigned to which place
    - Show widget palette and support drag and drop on to layout zones (in main page?)
    - Save configuration after every edit
-   - Reset to factory defaults option
+   - Reset to defaults option
    - Copy existing Workplace Page
    - Allow users to switch their Workplace on the fly
+    - Widget: Workplace selection widget (drawn manually at top of each page, or as an option in Workplace widget)
    - Support Duplicating existing Workplace
   - OOTB Workplace examples
-   - IN PROGRESS MLDBWebTest Workplace
+   - IN PROGRESS MLDBWebTest Animal Watch Workplace
    - Semantic Workplace
  - Beyond App Builder
   - Action bar to do things with search results
@@ -247,9 +256,8 @@ Targets for 1.2 (Dec 2013)
   - dls
   - whoami
   - Test pages for each of the above too
- - Widgets: Document properties and view widget
+ - IN PROGRESS Widgets: Document properties and view widget
  - Widgets: Folder browsing widget (Probably easiest to do like Mac child folders, left to right, rather than a tree structure)
- - Widgets: Navigable charts / co-occurence - clicking sets facet value
  - Core: Query Builder. 
   - Easy geospatial search (Already done?)
   - triples-range-query support

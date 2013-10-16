@@ -26,19 +26,106 @@ com.marklogic.widgets = window.com.marklogic.widgets || {};
  */
 com.marklogic.widgets.highcharts = function(container) {
   this.container = container;
-  this.errorPublisher = new com.marklogic.events.Publisher(); 
   
+  // publicly settable properties
   this.aggregateFunction = "mean"; // sum, max, min, no avg (mean, median, mode instead)
   this.nameSource = "title"; // e.g. city name
   this.valueSource = "value"; // e.g. temperature
   this.categorySource = "category"; // E.g. month
-  this.categoryOrdering = "month";
   this.autoCategories = false;
+  
+  // TODO expose the below as configuration
+  this.categoryOrdering = "month";
   this.categories = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  
+  // internal properties
   this.series = new Array();
+  
+  this.errorPublisher = new com.marklogic.events.Publisher(); 
   
   this._updateOptions();
   
+  this._refresh();
+};
+
+com.marklogic.widgets.highcharts.getConfigurationDefinition = function() {
+  return {
+    
+    title: {type: "string", default: "My Chart", title: "Chart Title", description: "Main chart title."},
+    subtitle: {type: "string", default: "", title: "Chart Subtitle", description: "Chart Subtitle."},
+    xTitle: {type: "string", default: "", title: "X Axis Title", description: "Category X Axis Title."},
+    yTitle: {type: "string", default: "Values", title: "Y Axis Title", description: "Value Y Axis Title."},
+    type: {type: "enum", default: "line",title: "Chart Type", description: "Which HighCharts chart to display",
+      options: [
+        {value: "line", title: "Line", decsription: "Line Chart"},
+        {value: "spline", title: "Line", decsription: "Spline Chart"},
+        {value: "bar", title: "Line", decsription: "Bar Chart"},
+        {value: "area", title: "Line", decsription: "Area Chart"},
+        {value: "column", title: "Line", decsription: "Column Chart"},
+        {value: "pie", title: "Line", decsription: "Pie Chart"}
+        // TODO support stacking too
+        // TODO support Hybrid charts
+      ]},
+    series: {type: "multiple", minimum: 1, default: [{
+      nameSourceType: {value: "element"},
+      nameSource: {value: "title"},
+      autoCategories: {value: true},
+      categorySourceType: {value: "element"},
+      categorySource: {value: "category"},
+      valueSourceType: {value: "element"},
+      valueSource: {value: "value"},
+      aggregateFunction: {value: "none"}
+     }], title: "Data Series", description: "Data Series to show in the same chart",
+      childDefinitions: {
+        nameSourceType: {type: "enum", default: "element", title: "Name Source Type", description: "Where to get the Series name from",
+          options: [
+            {value: "element", title: "Element or JSON key", description: "XML Element value or JSON key value"},
+            {value: "fixed", title: "Fixed value", description: "Fixed (Hardcoded) value"},
+            {value: "facet", title: "Facet", description: "Facet value"}
+          ]
+        },
+        nameSource: {type: "string", default: "title", title: "Name Source", description: "The element, JSON key, facet or hardcoded value to use to find the series name (dot delimited)."},
+        autoCategories: {type: "boolean", default: false, title: "Auto Categories", description: "Whether to replace the default categories (month names) with values automatically calculated from the Category Source definition."},
+        categorySourceType: {type: "enum", default: "element", title: "Name Source Type", description: "Where to get the Series name from",
+          options: [
+            {value: "element", title: "Element or JSON key", description: "XML Element value or JSON key value"},
+            {value: "facet", title: "Facet", description: "Facet value"}
+          ]
+        },
+        categorySource: {type: "string", default: "category", title: "Category Source", description: "The element, JSON key or facet to group the results by (dot delimited)."},
+        valueSourceType: {type: "enum", default: "element", title: "Name Source Type", description: "Where to get the Series name from",
+          options: [
+            {value: "element", title: "Element or JSON key", description: "XML Element value or JSON key value"},
+            {value: "facet", title: "Facet", description: "Facet value"}
+          ]
+        },
+        valueSource: {type: "string", default: "value", title: "Value Source", description: "The element, JSON key or facet value to use for a data value (dot delimited)."},
+        aggregateFunction: {type: "enum", default: "none", title: "Value Aggregation Function", description: "The client side aggregation function to use. E.g. if extracting value from a document's value. Should be set to 'none' for facet sourced values",
+          options: [
+            {value: "none", title: "None", description: "The value itself will be used"},
+            {value: "count", title: "Count", description: "Use the count of the number of documents with this value"},
+            {value: "mean", title: "Mean", description: "Use the mean average of all values"},
+            {value: "sum", title: "Sum", description: "Use the sum of all values"},
+            {value: "min", title: "Min", description: "Use the minimum value present"},
+            {value: "max", title: "Max", description: "Use the maximum value present"}
+          ]
+        }
+      }
+    }
+  }
+  // TODO include facet name/value transform settings
+  // TODO include facet settings (if applicable?)
+  // TODO dataLabels enabled
+  // TODO other internal HighCharts settings
+};
+
+
+com.marklogic.widgets.highcharts.prototype.setConfiguration = function(config) {
+  for (var prop in config) {
+    this[prop] = config[prop].value;
+  }
+  
+  // refresh display
   this._refresh();
 };
 

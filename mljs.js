@@ -3668,29 +3668,11 @@ com.marklogic.events.Publisher.prototype.publish = function(event) {
  * @deprecated Use var db = new mljs(); db.createSearchContext(); instead
  */
 mljs.prototype.searchcontext = function() {
-  this._optionsbuilder = new mljs.prototype.options();
   
-  this._querybuilder = new mljs.prototype.query();
-  
-  this._query = {};
-  this.simplequery = "";
-  
+  // Publicly accessible configuration
   this.sortWord = "sort";
   this.defaultQuery = ""; // should be set E.g. to "sort:relevance"
-  
-  this.defaultSort = [];
-  
   this.optionsName = mljs.__dogenid();
-  this.optionsExists = false;
-  this.optionssavemode = "persist"; // persist or dynamic (v7 only)
-  
-  this.structuredContrib = new Array();
-  
-  this.collection = null;
-  this.directory = null;
-  this.transform = null;
-  this.format = null;
-  
   this._options = {
                       options: {
                         "return-results": true,
@@ -3708,6 +3690,28 @@ mljs.prototype.searchcontext = function() {
       ]
                       }
   };
+  this.collection = null;
+  this.directory = null;
+  this.transform = null;
+  this.format = null;
+  
+  // Internal configuration
+  this._optionsbuilder = new mljs.prototype.options();
+  
+  this._querybuilder = new mljs.prototype.query();
+  
+  this._query = {};
+  this.simplequery = "";
+  
+  
+  this.defaultSort = [];
+  
+  this.optionsExists = false;
+  this.optionssavemode = "persist"; // persist or dynamic (v7 only)
+  
+  this.structuredContrib = new Array();
+  
+  
   
   // set up event handlers
   this.optionsPublisher = new com.marklogic.events.Publisher(); // updated search options JSON object, for parsing not storing a copy
