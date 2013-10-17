@@ -52,7 +52,7 @@ com.marklogic.widgets.workplace.prototype.editable = function(editme) {
 com.marklogic.widgets.workplace.prototype.loadPage = function(jsonOrString) {
   var json = jsonOrString; // TODO lookup json config if nothing or path specified
   
-  // load layout for this page (or panel we are managing, at least)
+  // load top level layout for this page (or panel we are managing, at least)
   mljs.defaultconnection.logger.debug("Creating layout");
   var layout = new (com.marklogic.widgets.layouts[json.layout])(this.container);
   
@@ -99,6 +99,8 @@ com.marklogic.widgets.workplace.prototype.loadPage = function(jsonOrString) {
     }
   }
   
+  // TODO call onload actions in order
+  
   mljs.defaultconnection.logger.debug("finished loading page");
 };
 
@@ -126,6 +128,12 @@ com.marklogic.widgets.workplace.prototype._createWidget = function(type,elementi
 };
 
 
+
+
+
+
+
+// LAYOUTS
 
 // thinthick layout
 com.marklogic.widgets.layouts = {};
@@ -193,6 +201,12 @@ com.marklogic.widgets.layouts.thinthick.prototype._genZones = function(zone,arr)
 
 
 
+
+
+
+
+
+
 // ACTIONS
 com.marklogic.widgets.actions = {};
 com.marklogic.widgets.actions.javascript = function() {
@@ -204,14 +218,19 @@ com.marklogic.widgets.actions.javascript = function() {
 };
 
 com.marklogic.widgets.actions.javascript.getConfigurationDefinition = function() {
-  
+  // TODO config definition
 };
 
 com.marklogic.widgets.actions.javascript.prototype.setConfiguration = function(config) {
   this._config = config;
 };
 
-com.marklogic.widgets.actions.javascript.prototype.execute = function() {
-  
+com.marklogic.widgets.actions.javascript.prototype.execute = function(executionContext) {
+  if ((null == this._config.targetObject) || (null == this._config.methodName)) {
+    return {executed: false, details: "targetObject or methodName are null"};
+  }
+  var obj = executionContext.getContextObject(this._config.targetObject);
+  var result = obj[this._config.methodName].call(obj,this._config.parameters);
+  return {executed:true, result: result, details: "Method executed successfully"};
 };
 
