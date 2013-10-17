@@ -146,7 +146,7 @@ com.marklogic.widgets.layouts.thinthick = function(container) {
 };
 
 com.marklogic.widgets.layouts.thinthick.prototype._init = function() {
-  var s = "<div id='" + this.container + "-layout' class='container_12 layout thinthick'>";
+  var s = "<div id='" + this.container + "-layout' class='container_12 mljswidget layout thinthick'>";
   s += "<div id='" + this.container + "-A' class='grid_4 thinthick-thin'></div>";
   s += "<div id='" + this.container + "-B' class='grid_8 thinthick-thick'></div>";
   s += "</div>";
