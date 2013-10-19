@@ -218,8 +218,19 @@ Targets for 1.2 (Dec 2013)
   - DONE How to manage this linking dynamically in code?
    - DONE List contexts and map them to widgets
   - IN PROGRESS Handle widget configuration, and actions
-   - TEST Instance widget configuration settings (Easier than using 'call javascript' action)
-   - IN PROGRESS On page load actions (execute search - context methods)
+   - DONE On page load actions (execute search - context methods)
+   - IN PROGRESS Instance widget configuration settings (Easier than using 'call javascript' action)
+    - DONE search widgets
+    - DONE high charts widgets
+    - DONE searchcontext
+    - semanticcontext
+    - tripleconfig
+    - documentcontext
+    - cooccurence
+    - kratu
+    - upload
+    - viewdoc properties
+    - triples widgets
   - Workplace configuration widgets required
    - Separate panel for linking
    - Edit mode shows this panel (powered by widget configuration object)
@@ -232,8 +243,9 @@ Targets for 1.2 (Dec 2013)
     - Widget: Workplace selection widget (drawn manually at top of each page, or as an option in Workplace widget)
    - Support Duplicating existing Workplace
   - OOTB Workplace examples
-   - IN PROGRESS MLDBWebTest Animal Watch Workplace
+   - DONE MLDBWebTest Animal Watch Workplace
    - Semantic Workplace
+   - Editable blank workplace sandbox page
  - Beyond App Builder
   - Action bar to do things with search results
   - Multi page results selection
