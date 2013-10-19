@@ -18,25 +18,25 @@ $(document).ready(function() {
   
     var page = { title: "Workplace test page", layout: "thinthick", urls: ["/mldbtest/workplace/","/mldbtest/workplace","/mldbtest/workplace.html"], widgets: [
       {widget: "searchfacets1", type: "com.marklogic.widgets.searchfacets", config: {
-        listSize: {value: 5}, extendedSize: {value: 10}, allowShowAll: {value: true}, hideEmptyFacets: {value:true}
+        listSize: 5, extendedSize: 10, allowShowAll: true, hideEmptyFacets: true
       }},
       {widget: "searchbar1", type: "com.marklogic.widgets.searchbar", config: {}},
       {widget: "highcharts1", type: "com.marklogic.widgets.highcharts", config: {
-        title: {value: "Animal Family"},
-        subtitle: {value: ""},
-        xTitle: {value: "Family"},
-        yTitle: {value: "Count"},
-        type: {value: "pie"},
-        series: { value: [{
-          nameSourceType: {value: "fixed"},
-          nameSource: {value: "Family"},
-          autoCategories: {value: true},
-          categorySourceType: {value: "element"}, // Not used
-          categorySource: {value: "category"}, // Not used
-          valueSourceType: {value: "facet"},
-          valueSource: {value: "family"},
-          aggregateFunction: {value: "none"}
-       }]}
+        title: "Animal Family",
+        subtitle: "",
+        xTitle: "Family",
+        yTitle: "Count",
+        type: "pie",
+        series: [{
+          nameSourceType: "fixed",
+          nameSource: "Family",
+          autoCategories: true,
+          categorySourceType: "element", // Not used
+          categorySource: "category", // Not used
+          valueSourceType: "facet",
+          valueSource: "family",
+          aggregateFunction: "none"
+       }]
       }},
       {widget: "searchresults1", type: "com.marklogic.widgets.searchresults", config: {}}
     ], assignments: [
@@ -46,8 +46,8 @@ $(document).ready(function() {
       {widget: "searchresults1", zone: "B", order: 3}
     ], contexts: [
       {context: "searchcontext1", type: "SearchContext", register: ["searchfacets1","searchbar1","highcharts1","searchresults1"], config: {
-        options: {value: options}, optionsName: {value: "mljs-search-pie-hybrid"}, sortWord: {value: "sort"},
-        defaultQuery: {value: ""}, collection: {value: "animals,testdata"}, directory: {value: null}, transform: {value: null}, format: {value: null}
+        options: options, optionsName: "mljs-search-pie-hybrid", sortWord: "sort",
+        defaultQuery: "", collection: "animals,testdata", directory: null, transform: null, format: null
       }}
     ], actions: {
       onload: [
