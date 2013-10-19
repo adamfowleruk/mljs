@@ -34,6 +34,13 @@ com.marklogic.widgets.highcharts = function(container) {
   this.categorySource = "category"; // E.g. month
   this.autoCategories = false;
   
+  this.title = "Title";
+  this.subtitle = "Subtitle";
+  this.xTitle = "Categories";
+  this.yTitle = "Values";
+  this.type = "line";
+  
+  
   // TODO expose the below as configuration
   this.categoryOrdering = "month";
   this.categories = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
@@ -122,11 +129,62 @@ com.marklogic.widgets.highcharts.getConfigurationDefinition = function() {
 
 com.marklogic.widgets.highcharts.prototype.setConfiguration = function(config) {
   for (var prop in config) {
-    this[prop] = config[prop].value;
+    if (prop == "title" || prop == "subtitle" || prop == "xTitle" || prop == "yTitle" || prop == "type") {
+      mljs.defaultconnection.logger.debug("Setting HighCharts options: " + prop + " to " + config[prop]);
+      this[prop] = config[prop];
+    }
+  }
+  this._updateOptions();
+  
+  for (var s = 0, max = config.series.length, series;s < max;s++) {
+    // TODO handle multiple series rendering
+    series = config.series[s];
+    var name = "";
+    var category = "";
+    var values = "";
+    switch (series.nameSourceType) {
+      case "element":
+        break;
+      case "fixed":
+        name = "#";
+        break;
+      case "facet":
+        name = "!";
+        break;
+      default:
+        break;
+    }
+    name += series.nameSource;
+    switch (series.categorySourceType) {
+      case "element":
+        break;
+      case "facet":
+        category = "!";
+        break;
+      default:
+        break;
+    }
+    category += series.categorySource;
+    switch (series.valueSourceType) {
+      case "element":
+        break;
+      case "facet":
+        values = "!";
+        break;
+      default:
+        break;
+    }
+    values += series.valueSource;
+    
+    mljs.defaultconnection.logger.debug("Series info: nameSource: " + name + ", categorySource: " + category + ", valueSource: " + values);
+    
+    this.setSeriesSources(name,category,values);
+    this.aggregateFunction = series.aggregateFunction;
+    this.autoCategories = series.autoCategories;
   }
   
   // refresh display
-  this._refresh();
+  //this._refresh();
 };
 
 /**
@@ -148,31 +206,31 @@ com.marklogic.widgets.highcharts.prototype.removeErrorListener = function(fl) {
 };
 
 com.marklogic.widgets.highcharts.prototype._updateOptions = function() {
+  var hc = this;
   this.options = {
     chart: {
-                type: 'line',
-				renderTo : this.container,
+        type: hc.type,
+				renderTo : hc.container
             },
             title: {
-                text: 'Title'
+                text: hc.title
             },
             subtitle: {
-                text: 'Subtitle'
+                text: hc.subtitle
             },
             xAxis: {
-              categories: this.categories
+              categories: hc.categories,
+              title: {
+                text: hc.xTitle
+              }
             },
             yAxis: {
                 title: {
-                    text: 'Y Axis'
+                    text: hc.yTitle
                 }
             },
             tooltip: {
-                enabled: true,
-                formatter: function() {
-                    return '<b>'+ this.series.name +'</b><br/>'+
-                        this.x +': '+ this.y;
-                }
+                enabled: true
             },
             plotOptions: {
                 line: {
@@ -184,6 +242,18 @@ com.marklogic.widgets.highcharts.prototype._updateOptions = function() {
             },
     series: this.series
   };
+  
+  if ("pie" == hc.options.chart.type) {
+    this.options.tooltip.pointFormat = '<b>{point.y}</b>';
+  } else {
+    this.options.tooltip.formatter = function() {
+      var str = '<b>'+ this.series.name +'</b><br/>';
+      str += this.x;
+      str += ': '+ this.y; 
+      return str;
+    };
+  }
+  
   mljs.defaultconnection.logger.debug("highcharts.prototype._updateOptions(): Options now: " + JSON.stringify(this.options));
 };
 
@@ -199,7 +269,7 @@ com.marklogic.widgets.highcharts.prototype.setAggregateFunction = function(fn) {
 com.marklogic.widgets.highcharts.prototype._refresh = function() {
   // draw data points
   
-  mljs.defaultconnection.logger.debug("Options: " + JSON.stringify(this.options));
+  mljs.defaultconnection.logger.debug("Options on refresh: " + JSON.stringify(this.options));
   
   //$("#" + this.container).highcharts(this.options);
   this.chart = new Highcharts.Chart(this.options);

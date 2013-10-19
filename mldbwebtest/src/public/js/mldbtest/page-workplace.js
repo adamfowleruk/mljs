@@ -31,10 +31,10 @@ $(document).ready(function() {
           nameSourceType: "fixed",
           nameSource: "Family",
           autoCategories: true,
-          categorySourceType: "element", // Not used
-          categorySource: "category", // Not used
-          valueSourceType: "facet",
-          valueSource: "family",
+          categorySourceType: "facet", // Not used
+          categorySource: "family", // Not used
+          valueSourceType: "element",
+          valueSource: null,
           aggregateFunction: "none"
        }]
       }},
@@ -51,7 +51,7 @@ $(document).ready(function() {
       }}
     ], actions: {
       onload: [
-        {type: "javascript", object: "searchcontext1", method: "doSimpleQuery", parameters: []}
+        {type: "javascript", config: {targetObject: "searchcontext1", methodName: "doSimpleQuery", parameters: []}}
       ]
     }};
     

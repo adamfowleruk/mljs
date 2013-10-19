@@ -330,7 +330,7 @@ com.marklogic.widgets.searchfacets.getConfigurationDefinition = function() {
 
 com.marklogic.widgets.searchfacets.prototype.setConfiguration = function(config) {
   for (var prop in config) {
-    this[prop] = config[prop].value;
+    this[prop] = config[prop];
   }
   
   // refresh display

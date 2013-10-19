@@ -3723,6 +3723,20 @@ mljs.prototype.searchcontext = function() {
   
 };
 
+mljs.prototype.searchcontext.getConfigurationDefinition = function() {
+  // TODO searchcontext config definition
+};
+
+mljs.prototype.searchcontext.prototype.setConfiguration = function(config) {
+  this._options = config.options;
+  this.optionsName = config.optionsName;
+  this.defaultQuery = config.defaultQuery;
+  this.sortWord = config.sortWord;
+  this.collection = config.collection;
+  this.directory = config.directory;
+  this.transform = config.transform;
+  this.format = config.format;
+};
 
 /**
  * Sets the name of the search transform to use. See GET /v1/search
@@ -3848,6 +3862,7 @@ mljs.prototype.searchcontext.prototype.register = function(searchWidget) {
 };
 
 mljs.prototype.searchcontext.prototype._parseQuery = function(q) {
+  this.__d("searchcontext._parseQuery: q: " + q + " type: " + (typeof q));
   var text = "";
   var facets = new Array();
   var sort = null;
@@ -3975,9 +3990,9 @@ mljs.prototype.searchcontext.prototype.contributeStructuredQuery = function(cont
  * @param {string} q - The simple text query using the grammar in the search options
  * @param {integer} start - The start index (result number), starting at 1
  */
-mljs.prototype.searchcontext.prototype.dosimplequery = function(q,start) {
+mljs.prototype.searchcontext.prototype.doSimpleQuery = function(q,start) {
   if (null == q || undefined == q) {
-    q = "";
+    q = this.defaultQuery; // was ""
   }
   
   
@@ -4055,6 +4070,7 @@ mljs.prototype.searchcontext.prototype.dosimplequery = function(q,start) {
   this._persistAndDo(dos);
   
 };
+mljs.prototype.searchcontext.prototype.dosimplequery = mljs.prototype.searchcontext.prototype.doSimpleQuery; // backwards compatibility
 
 mljs.prototype.searchcontext.prototype.updateResults = function(msg) {
   this.resultsPublisher.publish(msg);

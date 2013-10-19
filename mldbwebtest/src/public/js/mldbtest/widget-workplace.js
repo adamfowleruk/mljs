@@ -32,6 +32,8 @@ com.marklogic.widgets.workplace = function(container) {
   
   this._editable = false;
   
+  this._contexts = new Array(); // contextname => contextObject instance
+  
   this._init();
 };
 
@@ -87,7 +89,10 @@ com.marklogic.widgets.workplace.prototype.loadPage = function(jsonOrString) {
     mljs.defaultconnection.logger.debug("Is context instance valid?: is object?: " + (typeof inst));
     
     // initialise context configuration
-    if (undefined !== inst.setConfiguration && undefined !== ctx.config) {
+    mljs.defaultconnection.logger.debug("Config: " + JSON.stringify(ctx.config));
+    mljs.defaultconnection.logger.debug("Context Obj: " + JSON.stringify(inst));
+    if (undefined != inst.setConfiguration && undefined != ctx.config) {
+      mljs.defaultconnection.logger.debug("Setting context configuration");
       inst.setConfiguration(ctx.config);
     }
     
@@ -99,9 +104,30 @@ com.marklogic.widgets.workplace.prototype.loadPage = function(jsonOrString) {
     }
   }
   
-  // TODO call onload actions in order
+  this._contexts = contexts;
+  
+  // call onload actions in order
+  if (undefined != json.actions && undefined != json.actions.onload) {
+    mljs.defaultconnection.logger.debug("Processing onload actions");
+    for (var a = 0, max = json.actions.onload.length,action;a < max;a++) {
+      action = json.actions.onload[a];
+      mljs.defaultconnection.logger.debug("Processing onload action: " + JSON.stringify(action));
+      var actionObject = new(com.marklogic.widgets.actions[action.type])();
+      mljs.defaultconnection.logger.debug("Got instance. Calling setConfiguration()...");
+      actionObject.setConfiguration(action.config);
+      mljs.defaultconnection.logger.debug("Finished configuring. Caling execute(this)...");
+      var result = actionObject.execute(this);
+      mljs.defaultconnection.logger.debug("Got result: " + JSON.stringify(result));
+      // TODO do something with result
+    }
+    mljs.defaultconnection.logger.debug("COMPLETE processing onload actions");
+  }
   
   mljs.defaultconnection.logger.debug("finished loading page");
+};
+
+com.marklogic.widgets.workplace.prototype.getContextObject = function(name) {
+  return this._contexts[name];
 };
 
 com.marklogic.widgets.workplace.prototype._createWidget = function(type,elementid,config) {
@@ -230,7 +256,11 @@ com.marklogic.widgets.actions.javascript.prototype.execute = function(executionC
     return {executed: false, details: "targetObject or methodName are null"};
   }
   var obj = executionContext.getContextObject(this._config.targetObject);
-  var result = obj[this._config.methodName].call(obj,this._config.parameters);
+  mljs.defaultconnection.logger.debug("Got target object?: " + obj);
+  mljs.defaultconnection.logger.debug("Fetching method name: " + this._config.methodName);
+  var func = (obj[this._config.methodName]);
+  mljs.defaultconnection.logger.debug("Got target object function: " + func);
+  var result = func.call(obj); // TODO support parameters
   return {executed:true, result: result, details: "Method executed successfully"};
 };
 

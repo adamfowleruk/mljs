@@ -3668,29 +3668,11 @@ com.marklogic.events.Publisher.prototype.publish = function(event) {
  * @deprecated Use var db = new mljs(); db.createSearchContext(); instead
  */
 mljs.prototype.searchcontext = function() {
-  this._optionsbuilder = new mljs.prototype.options();
   
-  this._querybuilder = new mljs.prototype.query();
-  
-  this._query = {};
-  this.simplequery = "";
-  
+  // Publicly accessible configuration
   this.sortWord = "sort";
   this.defaultQuery = ""; // should be set E.g. to "sort:relevance"
-  
-  this.defaultSort = [];
-  
   this.optionsName = mljs.__dogenid();
-  this.optionsExists = false;
-  this.optionssavemode = "persist"; // persist or dynamic (v7 only)
-  
-  this.structuredContrib = new Array();
-  
-  this.collection = null;
-  this.directory = null;
-  this.transform = null;
-  this.format = null;
-  
   this._options = {
                       options: {
                         "return-results": true,
@@ -3708,6 +3690,28 @@ mljs.prototype.searchcontext = function() {
       ]
                       }
   };
+  this.collection = null;
+  this.directory = null;
+  this.transform = null;
+  this.format = null;
+  
+  // Internal configuration
+  this._optionsbuilder = new mljs.prototype.options();
+  
+  this._querybuilder = new mljs.prototype.query();
+  
+  this._query = {};
+  this.simplequery = "";
+  
+  
+  this.defaultSort = [];
+  
+  this.optionsExists = false;
+  this.optionssavemode = "persist"; // persist or dynamic (v7 only)
+  
+  this.structuredContrib = new Array();
+  
+  
   
   // set up event handlers
   this.optionsPublisher = new com.marklogic.events.Publisher(); // updated search options JSON object, for parsing not storing a copy
@@ -3719,6 +3723,20 @@ mljs.prototype.searchcontext = function() {
   
 };
 
+mljs.prototype.searchcontext.getConfigurationDefinition = function() {
+  // TODO searchcontext config definition
+};
+
+mljs.prototype.searchcontext.prototype.setConfiguration = function(config) {
+  this._options = config.options;
+  this.optionsName = config.optionsName;
+  this.defaultQuery = config.defaultQuery;
+  this.sortWord = config.sortWord;
+  this.collection = config.collection;
+  this.directory = config.directory;
+  this.transform = config.transform;
+  this.format = config.format;
+};
 
 /**
  * Sets the name of the search transform to use. See GET /v1/search
@@ -3844,6 +3862,7 @@ mljs.prototype.searchcontext.prototype.register = function(searchWidget) {
 };
 
 mljs.prototype.searchcontext.prototype._parseQuery = function(q) {
+  this.__d("searchcontext._parseQuery: q: " + q + " type: " + (typeof q));
   var text = "";
   var facets = new Array();
   var sort = null;
@@ -3971,9 +3990,9 @@ mljs.prototype.searchcontext.prototype.contributeStructuredQuery = function(cont
  * @param {string} q - The simple text query using the grammar in the search options
  * @param {integer} start - The start index (result number), starting at 1
  */
-mljs.prototype.searchcontext.prototype.dosimplequery = function(q,start) {
+mljs.prototype.searchcontext.prototype.doSimpleQuery = function(q,start) {
   if (null == q || undefined == q) {
-    q = "";
+    q = this.defaultQuery; // was ""
   }
   
   
@@ -4051,6 +4070,7 @@ mljs.prototype.searchcontext.prototype.dosimplequery = function(q,start) {
   this._persistAndDo(dos);
   
 };
+mljs.prototype.searchcontext.prototype.dosimplequery = mljs.prototype.searchcontext.prototype.doSimpleQuery; // backwards compatibility
 
 mljs.prototype.searchcontext.prototype.updateResults = function(msg) {
   this.resultsPublisher.publish(msg);
