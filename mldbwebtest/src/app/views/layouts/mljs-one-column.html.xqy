@@ -42,6 +42,34 @@ declare variable $q as xs:string? := vh:get("q");
     <script src="/js/lib/jquery-ui-1.8.18.min.js" type='text/javascript'></script>
     <script src="/js/two-column.js" type='text/javascript'></script>
     <script src="/js/app.js" type='text/javascript'></script>
+    
+    <!-- START MLJS INCLUDES. NB YOU SHOULD DO THIS PER PAGE, NOT ON LAYOUT. ONLY HERE FOR CONVENIENCE. -->
+    
+<link rel="stylesheet" type="text/css" href="/css/mljs/widgets.css" />
+<script type="text/javascript" src="/js/mljs/mljs.js"></script>
+<script type="text/javascript" src="/js/mljs/mljs-xhr2.js"></script>
+
+<script type="text/javascript" src="/js/highcharts.js"></script> <!-- dependency -->
+
+<script type="text/javascript" src="/js/mljs/widgets.js"></script>
+<script type="text/javascript" src="/js/mljs/widget-collections.js"></script>
+<script type="text/javascript" src="/js/mljs/widget-cooccurence.js"></script>
+<script type="text/javascript" src="/js/mljs/widget-dls.js"></script>
+<script type="text/javascript" src="/js/mljs/widget-docbuilder.js"></script>
+<script type="text/javascript" src="/js/mljs/widget-documents.js"></script>
+<script type="text/javascript" src="/js/mljs/widget-explore.js"></script>
+<script type="text/javascript" src="/js/mljs/widget-highcharts.js"></script>
+<!-- <script type="text/javascript" src="/js/mljs/widget-ingest.js"></script> not yet -->
+<script type="text/javascript" src="/js/mljs/widget-kratu.js"></script>
+<script type="text/javascript" src="/js/mljs/widget-markings.js"></script>
+<script type="text/javascript" src="/js/mljs/widget-profile.js"></script>
+<script type="text/javascript" src="/js/mljs/widget-rdb2rdf.js"></script>
+<script type="text/javascript" src="/js/mljs/widget-search.js"></script>
+<script type="text/javascript" src="/js/mljs/widget-triples.js"></script>
+<script type="text/javascript" src="/js/mljs/widget-workplace.js"></script>
+    
+    <!-- END MLJS INCLUDES -->
+    
     { vh:get("additional-js") }
   </head>
   <body>
@@ -53,28 +81,6 @@ declare variable $q as xs:string? := vh:get("q");
     }
     <div class="canvas">
       <div class="header" arcsize="5 5 0 0">
-        V6+: 
-        <a href="/mldbtest/search">Search</a> | 
-        <a href="/mldbtest/snippets">Search with Snippets</a> | 
-        <a href="/mldbtest/charts">Charts</a> | 
-        <a href="/mldbtest/chartsearch">Chart + Search</a> | 
-        <a href="/mldbtest/movies">Co-occurence</a> | 
-        <a href="/mldbtest/error">Error</a> | 
-        <a href="/mldbtest/kratu">Kratu</a>  |
-        <a href="/mldbtest/upload">Upload</a> |
-        <a href="/mldbtest/docview">View Doc</a> 
-        <br/>
-      V7+:
-        <a href="/mldbtest/docbuilder">Document Builder</a> | 
-        <a href="/mldbtest/sparqlbar">Semantic (SPARQL) Search</a> | 
-        <a href="/mldbtest/explorer">Explorer</a> 
-        <br/>
-      REST Extensions:  
-        <a href="/mldbtest/rdb2rdf">RDB2RDF</a> 
-        <br/>
-      In Development:  
-        <a href="/mldbtest/workplace">Workplace</a> | 
-        <a href="/mldbtest/collectionuris">Collection URIs</a>
       </div>
       
       <div class="content">

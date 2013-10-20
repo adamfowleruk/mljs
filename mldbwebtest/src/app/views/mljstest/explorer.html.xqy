@@ -22,18 +22,18 @@ declare option xdmp:mapping "false";
 <div xmlns="http://www.w3.org/1999/xhtml" class="mldbtest docbuilder">
 
 
-<link rel="stylesheet" type="text/css" href="/js/mldbtest/widgets.css" />
-<link rel="stylesheet" type="text/css" href="/js/mldbtest/modal.css" />
+<link rel="stylesheet" type="text/css" href="/css/mljs/widgets.css" />
+<link rel="stylesheet" type="text/css" href="/css/mljs/modal.css" />
 <script type="text/javascript" src="/js/lib/jquery-1.7.1.min.js"></script>
-<script type="text/javascript" src="/js/mldbtest/mljs.js"></script>
-<script type="text/javascript" src="/js/mldbtest/mljs-xhr2.js"></script>
+<script type="text/javascript" src="/js/mljs/mljs.js"></script>
+<script type="text/javascript" src="/js/mljs/mljs-xhr2.js"></script>
 
-<script type="text/javascript" src="/js/mldbtest/highcharts.js"></script>
-<script type="text/javascript" src="/js/mldbtest/widgets.js"></script>
+<script type="text/javascript" src="/js/highcharts.js"></script>
+<script type="text/javascript" src="/js/mljs/widgets.js"></script>
 
-<script type="text/javascript" src="/js/mldbtest/widget-triples.js"></script>
-<script type="text/javascript" src="/js/mldbtest/widget-explore.js"></script>
-<script type="text/javascript" src="/js/mldbtest/page-explorer.js"></script>
+<script type="text/javascript" src="/js/mljs/widget-triples.js"></script>
+<script type="text/javascript" src="/js/mljs/widget-explore.js"></script>
+<script type="text/javascript" src="/js/mljstest/page-mljstest-explorer.js"></script>
   
  <div class="container_12">  
   <div id="errors" class="grid_12"></div>

@@ -311,33 +311,33 @@ com.marklogic.widgets.highcharts.prototype.updateSubjectFacts = function(facts) 
   }
   
   mljs.defaultconnection.logger.debug("in highcharts.updateSubjectFacts()");
-  mljs.defaultconnection.logger.debug(" - results: " + JSON.stringify(results));
+  //mljs.defaultconnection.logger.debug(" - results: " + JSON.stringify(results));
   
     
   
   mljs.defaultconnection.logger.debug(" - looping over facts");
   for (var r = 0;r < facts.facts.bindings.length;r++) {
     var result = facts.facts.bindings[r];
-    mljs.defaultconnection.logger.debug(" - - result " + r + ": " + result);
+    //mljs.defaultconnection.logger.debug(" - - result " + r + ": " + result);
     // get name value
     var name = "";
     var resdoc = jsonOrXml(result);
-    mljs.defaultconnection.logger.debug(" -  -  - resdoc: " + resdoc);
-    mljs.defaultconnection.logger.debug(" -  -  - this.nameSource: " + this.nameSource);
-    mljs.defaultconnection.logger.debug(" -  -  - startsWith defined?: " + (undefined != this.nameSource.startsWith));
+    //mljs.defaultconnection.logger.debug(" -  -  - resdoc: " + resdoc);
+    //mljs.defaultconnection.logger.debug(" -  -  - this.nameSource: " + this.nameSource);
+    //mljs.defaultconnection.logger.debug(" -  -  - startsWith defined?: " + (undefined != this.nameSource.startsWith));
     if (this.nameSource.startsWith("#")) {
       // hardcoded value
       name = this.nameSource.substring(1);
     } else {
       name = extractValue(resdoc,this.nameSource);
     }
-    mljs.defaultconnection.logger.debug(" -  -  - name: " + name);
+    //mljs.defaultconnection.logger.debug(" -  -  - name: " + name);
     // get data value
     var value = extractValue(resdoc,this.valueSource);
-    mljs.defaultconnection.logger.debug(" -  -  - value: " + value);
+    //mljs.defaultconnection.logger.debug(" -  -  - value: " + value);
     
     var category = extractValue(resdoc,this.categorySource);
-    mljs.defaultconnection.logger.debug(" -  -  - category: " + category);
+    //mljs.defaultconnection.logger.debug(" -  -  - category: " + category);
     if (!allCategories.contains(category)) {
       allCategories.push(category);
     }
@@ -356,7 +356,7 @@ com.marklogic.widgets.highcharts.prototype.updateSubjectFacts = function(facts) 
     }
     seriesValues[name][category].push(value);
     seriesCounts[name][category] += 1;
-    mljs.defaultconnection.logger.debug(" -  - next...");
+    //mljs.defaultconnection.logger.debug(" -  - next...");
   }
   mljs.defaultconnection.logger.debug(" - finished looping over facts");
   
@@ -418,26 +418,26 @@ com.marklogic.widgets.highcharts.prototype.updateResults = function(results) {
   mljs.defaultconnection.logger.debug(" - looping over results");
   for (var r = 0;r < results.results.length;r++) {
     var result = results.results[r].content;
-    mljs.defaultconnection.logger.debug(" - - result " + r + ": " + result);
+    //mljs.defaultconnection.logger.debug(" - - result " + r + ": " + result);
     // get name value
     var name = "";
     var resdoc = jsonOrXml(result);
-    mljs.defaultconnection.logger.debug(" -  -  - resdoc: " + resdoc);
-    mljs.defaultconnection.logger.debug(" -  -  - this.nameSource: " + this.nameSource);
-    mljs.defaultconnection.logger.debug(" -  -  - startsWith defined?: " + (undefined != this.nameSource.startsWith));
+    //mljs.defaultconnection.logger.debug(" -  -  - resdoc: " + resdoc);
+    //mljs.defaultconnection.logger.debug(" -  -  - this.nameSource: " + this.nameSource);
+    //mljs.defaultconnection.logger.debug(" -  -  - startsWith defined?: " + (undefined != this.nameSource.startsWith));
     if (this.nameSource.startsWith("#")) {
       // hardcoded value
       name = this.nameSource.substring(1);
     } else {
       name = extractValue(resdoc,this.nameSource);
     }
-    mljs.defaultconnection.logger.debug(" -  -  - name: " + name);
+    //mljs.defaultconnection.logger.debug(" -  -  - name: " + name);
     // get data value
     var value = extractValue(resdoc,this.valueSource);
-    mljs.defaultconnection.logger.debug(" -  -  - value: " + value);
+    //mljs.defaultconnection.logger.debug(" -  -  - value: " + value);
     
     var category = extractValue(resdoc,this.categorySource);
-    mljs.defaultconnection.logger.debug(" -  -  - category: " + category);
+    //mljs.defaultconnection.logger.debug(" -  -  - category: " + category);
     if (!allCategories.contains(category)) {
       allCategories.push(category);
     }
@@ -456,7 +456,7 @@ com.marklogic.widgets.highcharts.prototype.updateResults = function(results) {
     }
     seriesValues[name][category].push(value);
     seriesCounts[name][category] += 1;
-    mljs.defaultconnection.logger.debug(" -  - next...");
+    //mljs.defaultconnection.logger.debug(" -  - next...");
   }
   mljs.defaultconnection.logger.debug(" - finished looping over results");
   

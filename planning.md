@@ -2,51 +2,6 @@
 
 ## Upcoming releases
 
-Targets for 12 Sep 2013
- - DONE Core: Document context for document viewing (not editing) type widgets
- - DONE Widgets: XHTML Document view
- - DONE Get Bootstrap JS working in mldbtest
- - DONE Fix widgets.css and one-column.less for working with bootstrap
- - DONE (Compatible with V6, JSON only) Widgets: Document properties viewing, and editing (via uriHandler, using patch in V7?)
-  - DONE JSON only. Check that mljs.properties in default JSON format mode actually works as expected. May be better to always default this to XML
-  - NA? May also be an idea to allow XPath selection of the subset to return, and allow conversion of that to JSON, if possible
-  - DONE Draw nice boxes around options
-  - DONE show modal popup for editor
-  - DONE test save function
-  - DONE add property removal function (remove all values, property is removed)
-  - DONE remove property option from allowed properties UI widget if one has been added
-  - DONE Highlight/underline metadata you can edit -> Obvious edit button? Always underlined? (nah that'd look shabby)
-  - TEST support very long, line wrapping URIs in docheadviewer title
-  - IN PROGRESS Firefox transparency issue - modal dialog is still transparent!
-    - Trying to use modal.css to get around issue
- - DEFERRED Widgets: Folksonomic keyword editing with auto suggest support
-  - DEFERRED Core: Lexicon suggestions on V6
-   - DEFERRED documentcontext (for properties)
-   - DEFERRED searchcontext (for any constraint/lexicon)
-  - DONE Core: setProperties using V6 JSON
-  - DEFERRED Core: replaceProperty using V7 PATCH /v1/documents
-  - DEFERRED Core: All properties (+XML, +all JSON types) support
- - DONE Search Structured Query: Support for constraints in properties fragment scope
- - DONE Search by keywords (use keyword property facet)
- - DEFERRED Nice to have: Widgets: Find similar documents link support
-
-Targets for 22 Sep
- - Selection of search results across pages
-  - Document context to support multiple selection
-  - Button widget to respond to selected slides (becomes active upon selection)
- - Date facet with buckets and selection of range
-  - Facet bucketed by date?
- - DONE Profile info widget
- - Save a search, view in profile page
- - Tag cloud based on facet and size (D3.js + SVG)
-
-Targets for 27 Sep
- - DONE Semantic/Data Explorer - HighCharts
-  - DONE basic view working
-  - DONE facets view working
-  - DONE Link to originating SPARQL query for subject list
-  - DONE Lazy loading of facet values when added to output
-
 Targets for 15 Oct 2013
  - Widgets: Google maps (via OpenLayers only)
  - Widgets: Open Street Map (Use GB WMS Server, EPSG4326 or 27700 mode)
@@ -54,68 +9,30 @@ Targets for 15 Oct 2013
  - CSV Import improvements / testing
   - Checkout XSLT upload and transform method
  - Nice to have: Widgets: Browse related Subjects in node diagram
- 
-Targets for Late Oct 2013 (LOW PRIORITY)
- - Widgets: SVG map viewer
-  - Vector drawing of information
-  - Rotation, translation (lateral movement) of map
-  - Edge of screen flashing alerts for new information of importance
-  - Command letter shortcuts
- - Widgets: Query configuration
-  - Document type to retrieve
-  - Geospatial co-ordinate selection
- - Widgets: Alert receiving (WebSockets)
- - Core: Incoming alerts added to Document Context
- - Widgets: Mini document preview
- - Core: Node.js Alerting middleware support
- - Widgets: Setting up system alerts (NOT V7 REST alerts) to send new docs to specified URL (as PUT or POST requests, configurable)
- - Widgets: Interactive query builder
-  - Lookup existing indexes
-  - Specify query option constraints
-  - Create constraint setting interactively
-  - Save this to named options document on server
- - Widgets: Moveable column layout handler
- - Widgets: Mini map to show activity just out of view
- 
 
 Targets for 1.0 (End of Oct 2013)
- - CSS best practice
-  - Use variables where it makes sense (title height, padding, etc.)
-  - minimise property name length and collisions with other css by using ``.mljswidget .docproperties {  .title {}  .name {} ... }`` style of CSS declarations
-  - Rejig H tags to be at a lower level (searchresults h5, subtitle h4, title h3) - leaves space for page title (h1) and panel/tab title (h2), and extra in widget title. E.g. search property value (h6)
-  - IN PROGRESS create generic classes for all widgets
-   - DONE title
-   - subtitle
-   - resulttitle (E.g. for search results, sparql subjects, other dynamically drawn h4 type tags)
-   - highlight
- - JavaScript best practices / conventions
-  - IN PROGRESS use var max = whatever.length in for loops - between 2 and 150 times faster than accessing the DOM on each iteration
-   - DONE Sparql (triple) widgets
-   - Search widgets
-   - Core
-   - Highcharts
-  - underscores for private functions
-  - _configuration json object for Workplace compatible widgets/contexts
+ - DONE Rework MLDBWEBTEST sample app so Dave Cassel can easily grab example controller for Roxy auto deployment
+  - DONE rename page js files to be page-controller-action.js
+  - DONE Move JS, CSS files to correct positions
+  - DONE Update build scripts to take new locations in to account, including mljsme
+  - DONE Rework layout files for Roxy for MLJS core including all widgets
+ - DONE JS Health Check
+  - DONE Perform Firebug comparison to check on speed of widgets
+   - searchpage (170ms, 14.5ms in widgets)
+   - searchpage+snippets (163ms, 10.7ms in widgets)
+   - charts (1273ms,<20ms in MLJS)
+   - charts+search (1003ms,<20ms in MLJS)
+   - cooccurence (173ms,0.873ms in widget)
+   - error (153ms, 0.597ms in widget)
+   - kratu (153ms, 0.237ms in widget)
+   - viewdoc (162ms, 1.2ms in widget)
+   - sparql - not tested - was on v6
+   - explorer - note tested - was on v6
+   - workplace (613ms, 12.2ms in widgets - 2 actions, load plus facet selection)
+ - JavaScript public API consistency changed
   - UpperCamelCase for constructors/objects
   - IN PROGRESS lowerCamelCase for functions (searchcontext and mljs have some alllowercase methods)
-  - DONE Using Factory pattern. See mljs.create*() methods. Changed mljs.defaultconnection in core MLJS to instead access parent MLJS instance
-  - DONE Using logger mixin. Logger's attached to DB, so have had to link tripleconfig to creating db via factory method. keep tripleconfig separate from core MLJS instantiator (as it never requires a connection to use), but allow a way to specify a logger and check for this (to avoid defaultconnection.logger)
-  - DONE better way to access logging functionality by default - define _i(), _d() prototype methods for each subobject? Via a core mixin utility func? 
-   - DONE (Could use same mechanism to provide correct 'this' reference from constructor function.)
-   - DONE Using mljs.create*() factory methods. Have mljs.prototype. constructor functions add a db property pointer to all created children
-  - NA Using factory pattern instead. Add check in constructor functions to ensure if not called via new MyObject(), that it returns a new instance anyway (location 1051)
-  - Double check isArray function definition for best practice (location 1110) - also check for splice()
-  - IN PROGRESS Done this for tripleconfig, not widgets and their contexts. Use self defining functions for lazy loading (E.g. semantic context creation), and any requiring extensive initialisation (Sparql widget?) (location 1515)
-  - Memoization (cache) pattern applied to sparql facts (location 1702)
   - Apply Configuration object pattern consistently with MLJS Core (E.g. search options), and add helper methods where this is complex for common use cases (location 1734)
-  - Apply Currying when calling the same function with mostly same parameters (if costly) (location 1860)
-  - Use Module pattern and closures to hide internal properties/private methods (location 2117) but with constructors (2139)
-  - DONE using for logging mixin on context objects. Apply Borrow and Bind pattern (mixin for functions) where applicable (to avoid any inheritance temptations) (location 2922)
-  - Apply Data Validation pattern to 'create' widget (When new functionality added - may be V 1.2?) (location 3254)
-  - Find a better way to restrict what parts of the logging output are set to use debug (Perhaps a mixin to objects with lazy initialisation based on debug level specified, if any)
-  - Use more high order functions (callbacks, replacing functionality within otherwise identical loops)
-  - DONE Check for 'innerHTML += ' and replace with appendChild and temporary div trick
-  - Perform JavaScript profiling in FireBug to check for issues
  - Widgets: Search Speed - As a tutorial for those wishing to contribute to MLJS
  - Widgets: Sparql: Other sparql improvements
   - Support OPTIONAL?
@@ -201,9 +118,19 @@ Targets for 1.1 (Nov 2013)
   - create-mldbtest
   - delete-mldbtest
   - upgraderoxy
-  
-  
-Targets for 1.2 (Dec 2013)
+ - Beyond App Builder
+  - Action bar to do things with search results
+  - DONE Multi page results selection
+  - More HighCharts chart types in search results page
+  - Multi axes in HighCharts
+  - Multi series in HighCharts (not just split by category)
+  - Multiple facets in HighCharts
+  - HighCharts to support SPARQL facts results (aggregation workarounds?)
+  - Save search for later use
+  - Test of standalone REST app via Roxy in V7
+  - Hover over search results fires searchcontext highlight action
+  - Document context highlighting configurable to fire get semantic info on MarkLogic document
+  - MarkLogic document ontology
  - Widgets: Navigable charts / co-occurence - clicking sets facet value
  - IN PROGRESS Widgets: Workplace - Removes any code anyone needs to write to use MLJS widgets
   - Each username has a workplace in the content store saved as a JSON config file
@@ -246,19 +173,45 @@ Targets for 1.2 (Dec 2013)
    - DONE MLDBWebTest Animal Watch Workplace
    - Semantic Workplace
    - Editable blank workplace sandbox page
- - Beyond App Builder
-  - Action bar to do things with search results
-  - Multi page results selection
-  - More HighCharts chart types in search results page
-  - Multi axes in HighCharts
-  - Multiple facets in HighCharts
-  - HighCharts to support SPARQL facts results (aggregation workarounds?)
-  - Save search for later use
-  - V7 Search term boosting
-  - Test of standalone REST app via Roxy in V7
-  - Hover over search results fires documentcontext highlight action
-  - Document context highlighting configurable to fire get semantic info on MarkLogic document
-  - MarkLogic document ontology
+  
+Targets for 1.2 (Dec 2013)
+ - CSS best practice
+  - Use variables where it makes sense (title height, padding, etc.)
+  - minimise property name length and collisions with other css by using ``.mljswidget .docproperties {  .title {}  .name {} ... }`` style of CSS declarations
+  - Rejig H tags to be at a lower level (searchresults h5, subtitle h4, title h3) - leaves space for page title (h1) and panel/tab title (h2), and extra in widget title. E.g. search property value (h6)
+  - IN PROGRESS create generic classes for all widgets
+   - DONE title
+   - subtitle
+   - listtitle (E.g. for search results, sparql subjects, other dynamically drawn h4 type tags)
+   - highlight
+   - selected
+ - JavaScript best practices / conventions
+  - IN PROGRESS use var max = whatever.length in for loops - between 2 and 150 times faster than accessing the DOM on each iteration
+   - DONE Sparql (triple) widgets
+   - Search widgets
+   - Core
+   - Highcharts
+  - underscores for private functions
+  - NA _configuration json object for Workplace compatible widgets/contexts
+  - UpperCamelCase for constructors/objects
+  - IN PROGRESS lowerCamelCase for functions (searchcontext and mljs have some alllowercase methods)
+  - DONE Using Factory pattern. See mljs.create*() methods. Changed mljs.defaultconnection in core MLJS to instead access parent MLJS instance
+  - DONE Using logger mixin. Logger's attached to DB, so have had to link tripleconfig to creating db via factory method. keep tripleconfig separate from core MLJS instantiator (as it never requires a connection to use), but allow a way to specify a logger and check for this (to avoid defaultconnection.logger)
+  - DONE better way to access logging functionality by default - define _i(), _d() prototype methods for each subobject? Via a core mixin utility func? 
+   - DONE (Could use same mechanism to provide correct 'this' reference from constructor function.)
+   - DONE Using mljs.create*() factory methods. Have mljs.prototype. constructor functions add a db property pointer to all created children
+  - NA Using factory pattern instead. Add check in constructor functions to ensure if not called via new MyObject(), that it returns a new instance anyway (location 1051)
+  - Double check isArray function definition for best practice (location 1110) - also check for splice()
+  - IN PROGRESS Done this for tripleconfig, not widgets and their contexts. Use self defining functions for lazy loading (E.g. semantic context creation), and any requiring extensive initialisation (Sparql widget?) (location 1515)
+  - Memoization (cache) pattern applied to sparql facts (location 1702)
+  - Apply Currying when calling the same function with mostly same parameters (if costly) (location 1860)
+  - Use Module pattern and closures to hide internal properties/private methods (location 2117) but with constructors (2139)
+  - DONE using for logging mixin on context objects. Apply Borrow and Bind pattern (mixin for functions) where applicable (to avoid any inheritance temptations) (location 2922)
+  - Apply Data Validation pattern to 'create' widget (When new functionality added - may be V 1.2?) (location 3254)
+  - Find a better way to restrict what parts of the logging output are set to use debug (Perhaps a mixin to objects with lazy initialisation based on debug level specified, if any)
+  - Use more high order functions (callbacks, replacing functionality within otherwise identical loops)
+  - DONE Check for 'innerHTML += ' and replace with appendChild and temporary div trick
+  - Perform JavaScript profiling in FireBug (again) to check for issues
  - Detect V7 (HEAD to a V7 only endpoint?)
  - Auto install of extensions referenced by MLJS core via PUT /v1/ext endpoint
   - IN PROGRESS rdb2rdf
@@ -323,6 +276,28 @@ Targets for 1.2 (Dec 2013)
    - Download CSV file of results
    - Download generated PNG from current visualisation div
   
+Targets for Dec 2013 (LOW PRIORITY)
+ - Widgets: SVG map viewer
+  - Vector drawing of information
+  - Rotation, translation (lateral movement) of map
+  - Edge of screen flashing alerts for new information of importance
+  - Command letter shortcuts
+ - Widgets: Query configuration
+  - Document type to retrieve
+  - Geospatial co-ordinate selection
+ - Widgets: Alert receiving (WebSockets)
+ - Core: Incoming alerts added to Document Context
+ - Widgets: Mini document preview
+ - Core: Node.js Alerting middleware support
+ - Widgets: Setting up system alerts (NOT V7 REST alerts) to send new docs to specified URL (as PUT or POST requests, configurable)
+ - Widgets: Interactive query builder
+  - Lookup existing indexes
+  - Specify query option constraints
+  - Create constraint setting interactively
+  - Save this to named options document on server
+ - Widgets: Moveable column layout handler
+ - Widgets: Mini map to show activity just out of view
+ 
 Floating as and when
  - MarkLogic reported bugs retesting
   - BUG (Product 6.0-2): plain text documents - text content not escaped properly
@@ -502,3 +477,50 @@ Targets for 0.9 (Sep 2013)
   - DONE addTriplesListener to replace addResultsListener
   - DONE Core: rework searchcontext to handle triples listener
   - NA we specify this through an Accept field - Core: mljs core to check /v1/sparql result for triple format type and place in result.tripleFormat (owl, n3, etc.)
+
+Targets for 12 Sep 2013
+ - DONE Core: Document context for document viewing (not editing) type widgets
+ - DONE Widgets: XHTML Document view
+ - DONE Get Bootstrap JS working in mldbtest
+ - DONE Fix widgets.css and one-column.less for working with bootstrap
+ - DONE (Compatible with V6, JSON only) Widgets: Document properties viewing, and editing (via uriHandler, using patch in V7?)
+  - DONE JSON only. Check that mljs.properties in default JSON format mode actually works as expected. May be better to always default this to XML
+  - NA? May also be an idea to allow XPath selection of the subset to return, and allow conversion of that to JSON, if possible
+  - DONE Draw nice boxes around options
+  - DONE show modal popup for editor
+  - DONE test save function
+  - DONE add property removal function (remove all values, property is removed)
+  - DONE remove property option from allowed properties UI widget if one has been added
+  - DONE Highlight/underline metadata you can edit -> Obvious edit button? Always underlined? (nah that'd look shabby)
+  - TEST support very long, line wrapping URIs in docheadviewer title
+  - IN PROGRESS Firefox transparency issue - modal dialog is still transparent!
+    - Trying to use modal.css to get around issue
+ - DEFERRED Widgets: Folksonomic keyword editing with auto suggest support
+  - DEFERRED Core: Lexicon suggestions on V6
+   - DEFERRED documentcontext (for properties)
+   - DEFERRED searchcontext (for any constraint/lexicon)
+  - DONE Core: setProperties using V6 JSON
+  - DEFERRED Core: replaceProperty using V7 PATCH /v1/documents
+  - DEFERRED Core: All properties (+XML, +all JSON types) support
+ - DONE Search Structured Query: Support for constraints in properties fragment scope
+ - DONE Search by keywords (use keyword property facet)
+ - DEFERRED Nice to have: Widgets: Find similar documents link support
+
+Targets for 22 Sep
+ - DONE Selection of search results across pages
+  - DONE Search context to support multiple selection
+  - NA Button widget to respond to selected slides (becomes active upon selection)
+  - DEFERRED change colour to indicate result is selected
+  - DEFERRED highlight previously selected results in search results
+ - DEFERRED Date facet with buckets and selection of range
+  - DEFERRED Facet bucketed by date?
+ - DONE Profile info widget
+ - DEFERRED Save a search, view in profile page
+ - DEFERRED Tag cloud based on facet and size (D3.js + SVG)
+
+Targets for 27 Sep
+ - DONE Semantic/Data Explorer - HighCharts
+  - DONE basic view working
+  - DONE facets view working
+  - DONE Link to originating SPARQL query for subject list
+  - DONE Lazy loading of facet values when added to output

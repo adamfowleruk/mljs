@@ -19,24 +19,19 @@ declare option xdmp:mapping "false";
   let $stuff := vh:get("stuff")
 :)
 
-<div xmlns="http://www.w3.org/1999/xhtml" class="mldbtest movies">
-
-<link rel="stylesheet" type="text/css" href="/js/mldbtest/widgets.css" />
+<div xmlns="http://www.w3.org/1999/xhtml" class="mljstest upload">
 <script type="text/javascript" src="/js/lib/jquery-1.7.1.min.js"></script>
-<script type="text/javascript" src="/js/mldbtest/mljs.js"></script>
-<script type="text/javascript" src="/js/mldbtest/mljs-xhr2.js"></script>
+<script type="text/javascript" src="/js/mljs/mljs.js"></script>
+<script type="text/javascript" src="/js/mljs/mljs-xhr2.js"></script>
+<script type="text/javascript" src="/js/mljs/widgets.js"></script>
+<script type="text/javascript" src="/js/mljs/widget-search.js"></script>
+<script type="text/javascript" src="/js/filedrop.js"></script>
+<script type="text/javascript" src="/js/mljs/widget-docbuilder.js"></script>
+<script type="text/javascript" src="/js/mljstest/page-mljstest-upload.js"></script>
 
-<script type="text/javascript" src="/js/mldbtest/widgets.js"></script>
-<script type="text/javascript" src="/js/mldbtest/widget-cooccurence.js"></script>
-<script type="text/javascript" src="/js/mldbtest/widget-search.js"></script>
-
-<script type="text/javascript" src="/js/mldbtest/page-movies.js"></script>
-  
  <div class="container_12">  
   <div id="errors" class="grid_12"></div>
  </div>
- <div class="container_12"> 
-  <div id="coag" class="grid_6">coag</div>
-  <div id="coay" class="grid_6">coay</div>
- </div>
+  <p id="log">Log info goes here</p>
+  <div id="upload">Upload widget goes here</div>
 </div>

@@ -21,14 +21,14 @@ declare option xdmp:mapping "false";
 
 <div xmlns="http://www.w3.org/1999/xhtml" class="mldbtest error">
 
-<link rel="stylesheet" type="text/css" href="/js/mldbtest/widgets.css" />
+<link rel="stylesheet" type="text/css" href="/css/mljs/widgets.css" />
 <script type="text/javascript" src="/js/lib/jquery-1.7.1.min.js"></script>
-<script type="text/javascript" src="/js/mldbtest/mljs.js"></script>
-<script type="text/javascript" src="/js/mldbtest/mljs-xhr2.js"></script>
+<script type="text/javascript" src="/js/mljs/mljs.js"></script>
+<script type="text/javascript" src="/js/mljs/mljs-xhr2.js"></script>
 
-<script type="text/javascript" src="/js/mldbtest/widgets.js"></script>
+<script type="text/javascript" src="/js/mljs/widgets.js"></script>
 
-<script type="text/javascript" src="/js/mldbtest/page-error.js"></script>
+<script type="text/javascript" src="/js/mljstest/page-mljstest-error.js"></script>
 
  
  <div id="error-basic">Basic</div>
