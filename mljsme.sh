@@ -18,12 +18,12 @@ fi
 # If not, assume ./public/js, ./public/images, ./public/css
 getopts "j:" MINUSJ
 if [ -z "$OPTARG" ]
-then J=$APP/src/public/js
+then J=$APP/src/public/js/mljs
 else J=$APP/$OPTARG
 fi
 getopts "c:" MINUSC
 if [ -z "$OPTARG" ]
-then C=$APP/src/public/css
+then C=$APP/src/public/css/mljs
 else C=$APP/$OPTARG
 fi
 getopts "i:" MINUSI
@@ -35,6 +35,11 @@ echo "-d=$APP -j=$J -i=$I -c=$C"
 
 # make new temp folder
 mkdir $T
+
+# Ensure destination folders exist
+mkdir -p $C
+mkdir -p $J
+mkdir -p $I
 
 # Fetch latest MLJS download tar.gz file
 cd $T
