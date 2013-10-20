@@ -3711,6 +3711,8 @@ mljs.prototype.searchcontext = function() {
   
   this.structuredContrib = new Array();
   
+  this._selectedResults = new Array(); // Array of document URIs
+  
   
   
   // set up event handlers
@@ -3720,6 +3722,7 @@ mljs.prototype.searchcontext = function() {
   this.sortPublisher = new com.marklogic.events.Publisher(); // publishes sort changes (from query bar)
   this.errorPublisher = new com.marklogic.events.Publisher(); // errors occuring at search time
   this.simpleQueryPublisher = new com.marklogic.events.Publisher(); // simple query text
+  this.selectionPublisher = new com.marklogic.events.Publisher(); // result selection uri array publisher
   
 };
 
@@ -3849,6 +3852,9 @@ mljs.prototype.searchcontext.prototype.register = function(searchWidget) {
   if ('function' === typeof(searchWidget.updateOptions)) {
     this.optionsPublisher.subscribe(function (options) {searchWidget.updateOptions(options);});
   }
+  if ('function' === typeof(searchWidget.updateDocumentSelection)) {
+    this.selectionPublisher.subscribe(function (selectionArray) {searchWidget.updateDocumentSelection(selectionArray);});
+  }
   var self = this;
   if ('function' === typeof(searchWidget.addSortListener)) {
     searchWidget.addSortListener(function (sort) {self.updateSort(sort);});
@@ -3858,6 +3864,9 @@ mljs.prototype.searchcontext.prototype.register = function(searchWidget) {
   }
   if ('function' === typeof(searchWidget.addPageListener)) {
     searchWidget.addPageListener(function (page) {self.updatePage(page);});
+  }
+  if ('function' === typeof(searchWidget.addResultSelectionListener)) {
+    searchWidget.addResultSelectionListener(function (selection) {self.updateSelection(selection);});
   }
 };
 
@@ -4201,6 +4210,25 @@ mljs.prototype.searchcontext.prototype.updateFacets = function(facetSelection) {
   var q = this._queryToText(parsed);
   
   this.dosimplequery(q);
+};
+
+mljs.prototype.searchcontext.prototype.updateSelection = function(resultSelection) {
+  if ("append" == resultSelection.mode) {
+    // check doc is not already selected
+    var found = false;
+    for (var i = 0;i < this._selectedResults.length && !found;i++) {
+      found = (this._selectedResults[i] == resultSelection.uri);
+    }
+    if (!found) {
+      this._selectedResults.push(resultSelection.uri);
+    }
+  } else if ("replace" == resultSelection.mode) {
+    this._selectedResults = new Array();
+    this._selectedResults.push(resultSelection.uri);
+  } else {
+    // should never happen
+  }
+  this.selectionPublisher.publish(this._selectedResults);
 };
 
 /**

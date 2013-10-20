@@ -38,14 +38,16 @@ $(document).ready(function() {
           aggregateFunction: "none"
        }]
       }},
-      {widget: "searchresults1", type: "com.marklogic.widgets.searchresults", config: {}}
+      {widget: "searchresults1", type: "com.marklogic.widgets.searchresults", config: {selectionMode: "append"}},
+      {widget: "selection1", type: "com.marklogic.widgets.selection", config: {}}
     ], assignments: [
       {widget: "searchfacets1", zone: "A", order: 1},
       {widget: "searchbar1", zone: "B", order: 1},
       {widget: "highcharts1", zone: "B", order: 2},
-      {widget: "searchresults1", zone: "B", order: 3}
+      {widget: "searchresults1", zone: "B", order: 3},
+      {widget: "selection1", zone: "A", order: 2}
     ], contexts: [
-      {context: "searchcontext1", type: "SearchContext", register: ["searchfacets1","searchbar1","highcharts1","searchresults1"], config: {
+      {context: "searchcontext1", type: "SearchContext", register: ["searchfacets1","searchbar1","highcharts1","searchresults1","selection1"], config: {
         options: options, optionsName: "mljs-search-pie-hybrid", sortWord: "sort",
         defaultQuery: "", collection: "animals,testdata", directory: null, transform: null, format: null
       }}

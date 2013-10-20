@@ -668,6 +668,11 @@ com.marklogic.widgets.searchresults = function(container) {
   
   this.ctx = mljs.defaultconnection.createSearchContext();
   
+  // publicly accessible configuration
+  this.selectionMode = "append"; // append or replace
+  
+  // private configuration
+  
   this.processors = new Array();
   this.availableProcessors = new Array();
   this.processorPriority = new Array();
@@ -949,6 +954,22 @@ com.marklogic.widgets.searchresults = function(container) {
   this.selectionPublisher = new com.marklogic.events.Publisher();
 };
 
+com.marklogic.widgets.searchresults.getConfigurationDefinition = function() {
+  return {
+    selectionMode: {type: "enum", default: "append", title: "Selection Mode", description: "If no action happens on click, which selection mode to use.",
+      options: [
+        {value: "append", title: "Append", decsription: "Append this document to the list of those selection"},
+        {value: "replace", title: "Replace", decsription: "Replace selection with the selected document only"}
+      ]}
+  }
+};
+
+com.marklogic.widgets.searchresults.prototype.setConfiguration = function(config) {
+  for (var p in config) {
+    this[p] = config[p];
+  }
+};
+
 com.marklogic.widgets.searchresults.prototype.setContext = function(context) {
   this.ctx = context;
 };
@@ -1015,7 +1036,8 @@ com.marklogic.widgets.searchresults.prototype._refresh = function() {
     var pointer = null != this.detailsLink;
     
     for (var i = 0;i < this.results.results.length;i++) {
-      resStr += "<div id='" + this.container + "-searchresults-wrapper-" + i + "' class='searchresults-wrapper"
+      var wrapperId = this.container + "-searchresults-wrapper-" + i;
+      resStr += "<div id='" + wrapperId + "' class='searchresults-wrapper"
       if (pointer) {
         resStr += " searchresults-navigable";
       }
@@ -1024,6 +1046,7 @@ com.marklogic.widgets.searchresults.prototype._refresh = function() {
         
       // run processors in order
       var result = this.results.results[i];
+      
       var found = false;
       for (var p = 0;!found && p < this.processorPriority.length;p++) {
         var pname = this.processorPriority[p];
@@ -1072,19 +1095,27 @@ com.marklogic.widgets.searchresults.prototype._refresh = function() {
     document.getElementById(this.container).innerHTML = resStr;
     
     // now add click handlers to each result div, if required
-    if (pointer) {
+    //if (pointer) {
       var self = this;
       var addPointerHandler = function(id,result) {
         document.getElementById(id).onclick = function(evt) {
           self._navigateTo(result.uri);
         }
+      };
+      if (!pointer) {
+        // fire selection event instead
+        addPointerHandler = function(id,result) {
+          document.getElementById(id).onclick = function(evt) {
+            self.selectionPublisher.publish({mode: self.selectionMode, uri: result.uri});
+          }
+        };
       }
       for (var i = 0;i < this.results.results.length;i++) {
         var id = this.container + "-searchresults-wrapper-" + i;
         var result = this.results.results[i];
         addPointerHandler(id,result);
       }
-    }
+    //}
     
     // now do any XML replacements
     for (var r = 1001;r < uureplace;r++) {
@@ -1117,7 +1148,7 @@ com.marklogic.widgets.searchresults.prototype._navigateTo = function(uri) {
  * 
  * @param {function(uri)} sl - Search listener function
  */
-com.marklogic.widgets.searchresults.prototype.addSelectionListener = function(sl) {
+com.marklogic.widgets.searchresults.prototype.addResultSelectionListener = function(sl) {
   this.selectionPublisher.subscribe(sl);
 };
 
@@ -1126,7 +1157,7 @@ com.marklogic.widgets.searchresults.prototype.addSelectionListener = function(sl
  * 
  * @param {function(uri)} sl - Search listener function
  */
-com.marklogic.widgets.searchresults.prototype.removeSelectionListener = function(sl) {
+com.marklogic.widgets.searchresults.prototype.removeResultSelectionListener = function(sl) {
   this.selectionPublisher.unsubscribe(sl);
 };
 
@@ -1522,6 +1553,54 @@ com.marklogic.widgets.searchsort.prototype.updateOptions = function(options) {
   }
   this._refresh();
 };
+
+
+
+
+
+
+
+
+
+/**
+ * Creates a new document selection widget, showing a list of document URIs that have been selected on this page.
+ * 
+ * @constructor
+ * @param {string} container - The HTML ID of the container within which to render this widget.
+ */
+com.marklogic.widgets.selection = function(container) {
+  this.container = container;
+  
+  this._selected = new Array(); // URI list
+  
+  this._refresh();
+};
+
+com.marklogic.widgets.selection.prototype._refresh = function() {
+  var str = "<div id='" + this.container + "-selection' class='mljswidget selection'>";
+  str += "<div class='title selection-title'>Selected Documents</div>";
+  if (0 == this._selected.length) {
+    str += "<i>None Selected</i>";
+  } else {
+    for (var i = 0,max = this._selected.length,sel;i < max;i++) {
+      sel = this._selected[i];
+      str += "<p>" + sel + "</p>"; // TODO allow editing of selection (removing selected docs) // TODO lookup doc summary somehow - title facet, etc.
+    }
+  }
+  str += "</div>";
+  document.getElementById(this.container).innerHTML = str;
+};
+
+/**
+ * Responds to a search context's update of the list of selected document URIs
+ * 
+ * @param {Array(string)} newsel - String array containing URIs of selected documents.
+ */
+com.marklogic.widgets.selection.prototype.updateDocumentSelection = function(newsel) {
+  this._selected = newsel;
+  this._refresh();
+};
+
 
 
 
