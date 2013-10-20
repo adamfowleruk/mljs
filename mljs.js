@@ -4224,7 +4224,9 @@ mljs.prototype.searchcontext.prototype.updateSelection = function(resultSelectio
     }
   } else if ("replace" == resultSelection.mode) {
     this._selectedResults = new Array();
-    this._selectedResults.push(resultSelection.uri);
+    if (null != resultSelection.uri) {
+      this._selectedResults.push(resultSelection.uri);
+    }
   } else {
     // should never happen
   }
