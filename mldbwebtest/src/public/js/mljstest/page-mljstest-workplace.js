@@ -16,7 +16,7 @@ $(document).ready(function() {
     
   var options = ob.toJson();
   
-    var page = { title: "Workplace test page", layout: "thinthick", urls: ["/mldbtest/workplace/","/mldbtest/workplace","/mldbtest/workplace.html"], widgets: [
+    var page = { title: "Workplace test page", layout: "thinthick", urls: ["/mljstest/workplace/","/mljstest/workplace","/mljstest/workplace.html"], widgets: [
       {widget: "searchfacets1", type: "com.marklogic.widgets.searchfacets", config: {
         listSize: 5, extendedSize: 10, allowShowAll: true, hideEmptyFacets: true
       }},
