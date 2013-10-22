@@ -4,7 +4,7 @@
 <ul>
   <li><a href=tutorial-001-intro.html>MLJS Intro</a></li>
   <li><a href=tutorial-002-intro-firstpage.html>Your first MLJS Search Page</a></li>
-  <li>Beyond a page - creating an application</li>
+  <li><a href=tutorial-014-browser-workplace.html>Beyond a page - creating an application</a></li>
   <li>An MLJS application without coding</li>
 </ul>
 
@@ -23,7 +23,7 @@
   <li><a href=tutorial-002-widgets-search.html>How Search Widgets Work</a></li>
   <li><a href=tutorial-003-widgets-search-render.html>About Search Result rendering</a></li>
   <li><a href=tutorial-004-widgets-highcharts.html>Using HighCharts widgets</a></li>
-  <li>The MLJS Workplace Widget</li>
+  <li><a href=tutorial-014-browser-workplace.html>The MLJS Workplace Widget</a></li>
 </ul>
 
 ## mljs Semantics
