@@ -62,7 +62,7 @@ There are then a set of predicates to be used within other Subjects in order to 
 These recommendations are personal notes and opinions. Please read them with an open mind and decide whether - in your scenario
  - it makes sense to follow them.
  
-- For triples that should always be modified when the document content is modified, store within the document (or a document property) - Example: You have done entity extraction on a document and found a <person-name>Adam Fowler</person-name> and a <organisation-name>MarkLogic</organisation-name> and your document creation process also expresses the fact 'Adam Fowler member_of MarkLogic' (issues around automatic assertions aside…)
+- For triples that should always be modified when the document content is modified, store within the document (or a document property) - Example: You have done entity extraction on a document and found a &lt;person-name&gt;Adam Fowler&lt;/person-name&gt; and a &lt;organisation-name&gt;MarkLogic&lt;/organisation-name&gt; and your document creation process also expresses the fact 'Adam Fowler member_of MarkLogic' (issues around automatic assertions aside…)
 - Conversely, only ever store triples in a document that should be replaced/updated every time the document is updated. Specifically, do NOT embed 'reference facts' that are not directly implied by the document. (i.e. don't 'enrich' your extracted facts within the document by adding wider facts around them) - to do so means you may inadvertantly blow away reference facts, or duplicate them across multiple documents.
 - Some document extracted 'facts' may require different security settings to the document, or different security to other facts extracted from the document. In this case store them in an XML document (NOT just a named graph) tightly linked to the document. This is easy to update via triggers or similar when you update the document - Example: /some/path/to/mydoc.xml/paragraph1.xml or /some/path/to/mydoc.xml/topsecret.xml), with the appropriate security set on it
 - Add a derived_from fact to named graphs you create to link the whole lot of facts as a single set back to the MarkLogic document) 
@@ -89,7 +89,7 @@ Now let's say you want to pull back all customers with claims that mention pedes
 sem:sparql( "select distinct ?subject, ?custnum where { ?subject a /ns/Customer . ?subject has_customer_number ?custnum . }", cts:term-query("pedestrian") )
 ```
 
-Pretty easy… But what if you want to combine this with checking their associated balance was < 100… you may be tempted to alter the Sparql to do this:-
+Pretty easy… But what if you want to combine this with checking their associated balance was &lt; 100… you may be tempted to alter the Sparql to do this:-
 
 ```sparql
 select distinct ?subject, ?custnum where { 
@@ -97,7 +97,7 @@ select distinct ?subject, ?custnum where {
   ?subject has_customer_number ?custnum . 
   ?subject has_account ?acc .
   ?acc has_balance ?bal .
-  FILTER (?bal < "100"^^<xs:double> ) 
+  FILTER (?bal &lt; "100"^^&lt;xs:double&gt; ) 
 }
 ```
 
@@ -106,7 +106,7 @@ All fine… except it will never return any results, because the cts:term-query 
 This leaves you with needing a way to answer the sparql query first to return a list of candidate document URIs instead - basically the pattern in reverse. Now you could just do this:-
 
 ```
-</ns/Customer/1234> <mentioned_in> "/mydocs/some/uri/claim.xml" .
+&lt;/ns/Customer/1234&gt; &lt;mentioned_in&gt; "/mydocs/some/uri/claim.xml" .
 ```
 
 The problem with this though is that you cannot hang other facts off of the URI. E.g. generated_by etc from PROV-O. This leaves us with having to use some sort of Entity class for MarkLogic documents. Indeed, if we do this and adopt the PROV-O relationships we find they are actually a very good fit. They support use cases of documents being updated over time, and altered as part of software processes. They can handle things like original documents, xhtml renderings, versions of documents, or alterations (E.g. enrichments) via external software agents. 
@@ -115,10 +115,10 @@ So in the above example, you would embed facts like these in the document:-
 
 /docs/some/uri/claim.xml:-
 ```
-</docs/some/uri/claim.xml> a <MarkLogicDocument> .
-</docs/some/uri/claim.xml> has_uri "/docs/some/uri/claim.xml" .
-</docs/some/uri/claim.xml> prov:version_of </docs/some/uri/claim.docx> .
-</ns/Customer1234> mentioned_in </docs/some/uri/claim.xml>
+&lt;/docs/some/uri/claim.xml&gt; a &lt;MarkLogicDocument&gt; .
+&lt;/docs/some/uri/claim.xml&gt; has_uri "/docs/some/uri/claim.xml" .
+&lt;/docs/some/uri/claim.xml&gt; prov:version_of &lt;/docs/some/uri/claim.docx&gt; .
+&lt;/ns/Customer1234&gt; mentioned_in &lt;/docs/some/uri/claim.xml&gt;
 ```
 
 Elsewhere in the triple store you have this customers record, accounts and balances.
@@ -131,7 +131,7 @@ select distinct ?subject, ?custnum, ?claimsdocuri where {
   ?subject has_customer_number ?custnum . 
   ?subject has_account ?acc .
   ?acc has_balance ?bal .
-  FILTER (?bal < "100"^^<xs:double> ) 
+  FILTER (?bal &lt; "100"^^&lt;xs:double&gt; ) 
   ?subject mentioned_in ?mldoc .
   ?mldoc has_uri ?claimsdocuri .
 }

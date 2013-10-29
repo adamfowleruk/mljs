@@ -8,14 +8,14 @@ This tutorial describes how to create an MLJS powered page from scratch.
 You first need to ensure that all CSS and JS files are included on your page. This can be achieved using statements in your page's HEAD like the below:-
 
 ```
-<link rel="stylesheet" type="text/css" href="/css/mljs/widgets.css" />
-<script type="text/javascript" src="/js/mljs/mljs.js"></script>
-<script type="text/javascript" src="/js/mljs/mljs-xhr2.js"></script>
+&lt;link rel="stylesheet" type="text/css" href="/css/mljs/widgets.css" /&gt;
+&lt;script type="text/javascript" src="/js/mljs/mljs.js"&gt;&lt;/script&gt;
+&lt;script type="text/javascript" src="/js/mljs/mljs-xhr2.js"&gt;&lt;/script&gt;
 
-<script type="text/javascript" src="/js/mljs/widgets.js"></script>
-<script type="text/javascript" src="/js/mljs/widget-search.js"></script>
+&lt;script type="text/javascript" src="/js/mljs/widgets.js"&gt;&lt;/script&gt;
+&lt;script type="text/javascript" src="/js/mljs/widget-search.js"&gt;&lt;/script&gt;
 
-<script type="text/javascript" src="/js/mljstest/page-mljstest-search.js"></script>
+&lt;script type="text/javascript" src="/js/mljstest/page-mljstest-search.js"&gt;&lt;/script&gt;
 ```
 
 The first part includes the MLJS Widgets CSS. Note also if you want to use MLJS' default layout styles then you will need to include 960.css too. 
@@ -69,15 +69,15 @@ You now need to ensure that somewhere in your page you have placeholders for you
 blank HTML tags (normally div tags) where widget's have complete control over the content within them.
 
 ```
- <div class="container_12">  
-  <div id="errors" class="grid_12"></div>
- </div>
- <div class="container_12">  
-  <div id="mysearchbar" class="grid_12"></div>
- </div>
- <div class="container_12">  
-  <div id="mysearchresults" class="grid_12"></div>
- </div>
+ &lt;div class="container_12"&gt;  
+  &lt;div id="errors" class="grid_12"&gt;&lt;/div&gt;
+ &lt;/div&gt;
+ &lt;div class="container_12"&gt;  
+  &lt;div id="mysearchbar" class="grid_12"&gt;&lt;/div&gt;
+ &lt;/div&gt;
+ &lt;div class="container_12"&gt;  
+  &lt;div id="mysearchresults" class="grid_12"&gt;&lt;/div&gt;
+ &lt;/div&gt;
 ```
 
 Note the use of the two 960.css classes of container_12 and grid_12. These specify a 'full width' vertical layout of my widgets.
