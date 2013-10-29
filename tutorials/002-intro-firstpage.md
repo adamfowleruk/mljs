@@ -7,7 +7,7 @@ This tutorial describes how to create an MLJS powered page from scratch.
 
 You first need to ensure that all CSS and JS files are included on your page. This can be achieved using statements in your page's HEAD like the below:-
 
-```html
+```
 <link rel="stylesheet" type="text/css" href="/css/mljs/widgets.css" />
 <script type="text/javascript" src="/js/mljs/mljs.js"></script>
 <script type="text/javascript" src="/js/mljs/mljs-xhr2.js"></script>
@@ -68,7 +68,7 @@ friendly manner.
 You now need to ensure that somewhere in your page you have placeholders for your widgets (like 'errors' above). These are
 blank HTML tags (normally div tags) where widget's have complete control over the content within them.
 
-```html
+```
  <div class="container_12">  
   <div id="errors" class="grid_12"></div>
  </div>

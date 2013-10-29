@@ -43,7 +43,7 @@ In various widgets I have support for related documents using a MarkLogic Docume
 | Fact | Predicate | Valid Values | Notes |
 | --- | --- | --- | --- |
 | RDF Type | a | http://marklogic.com/semantics/ontology/Document | Specifies this Subject is a MarkLogic document itself |
-| Has URI | http://marklogic.com/semantics/ontology/Document#uri | The document's URI within this MarkLogic database |
+| Has URI | http://marklogic.com/semantics/ontology/Document#uri | E.g. /some/path/to/mydoc.xml | The document's URI within this MarkLogic database |
 
 Note: It may be advantageous to use predicates within W3C PROV-O to relate Subjects to a MarkLogic Document, or to describe the document
 itself. (E.g. generated_by)
@@ -85,10 +85,13 @@ Let's say that it's a claim document instead. You know the client ID because it'
 
 Now let's say you want to pull back all customers with claims that mention pedestrians… Pretty straightforward in XQuery… something like this (cant remember exact syntax) :-
 
+```xquery
 sem:sparql( "select distinct ?subject, ?custnum where { ?subject a /ns/Customer . ?subject has_customer_number ?custnum . }", cts:term-query("pedestrian") )
+```
 
 Pretty easy… But what if you want to combine this with checking their associated balance was < 100… you may be tempted to alter the Sparql to do this:-
 
+```sparql
 select distinct ?subject, ?custnum where { 
   ?subject a /ns/Customer . 
   ?subject has_customer_number ?custnum . 
@@ -96,12 +99,13 @@ select distinct ?subject, ?custnum where {
   ?acc has_balance ?bal .
   FILTER (?bal < "100"^^<xs:double> ) 
 }
+```
 
 All fine… except it will never return any results, because the cts:term-query is restricting the documents that the triples are checked against. Because the account and balance facts exist external to a matching document, they will never be present, thus the above query will always return nothing.
 
 This leaves you with needing a way to answer the sparql query first to return a list of candidate document URIs instead - basically the pattern in reverse. Now you could just do this:-
 
-```text
+```
 </ns/Customer/1234> <mentioned_in> "/mydocs/some/uri/claim.xml" .
 ```
 
@@ -110,15 +114,18 @@ The problem with this though is that you cannot hang other facts off of the URI.
 So in the above example, you would embed facts like these in the document:-
 
 /docs/some/uri/claim.xml:-
+```
 </docs/some/uri/claim.xml> a <MarkLogicDocument> .
 </docs/some/uri/claim.xml> has_uri "/docs/some/uri/claim.xml" .
 </docs/some/uri/claim.xml> prov:version_of </docs/some/uri/claim.docx> .
 </ns/Customer1234> mentioned_in </docs/some/uri/claim.xml>
+```
 
 Elsewhere in the triple store you have this customers record, accounts and balances.
 
 You can now do this in just sparql:-
 
+```sparql
 select distinct ?subject, ?custnum, ?claimsdocuri where { 
   ?subject a /ns/Customer . 
   ?subject has_customer_number ?custnum . 
@@ -128,6 +135,7 @@ select distinct ?subject, ?custnum, ?claimsdocuri where {
   ?subject mentioned_in ?mldoc .
   ?mldoc has_uri ?claimsdocuri .
 }
+```
 
 Then you can take those URIs and do a document-query with your term query to get the relevant docs.
 
