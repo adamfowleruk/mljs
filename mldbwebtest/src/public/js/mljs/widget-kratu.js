@@ -59,7 +59,7 @@ com.marklogic.widgets.kratu.prototype.updateResults = function(results) {
   if ("content" == this.render) {
     var content = new Array();
     for (var i = 0;i < this.results.results.length;i++) {
-      content.push(this.results.results[i].content);
+      content.push(JSON.parse(this.results.results[i].content)); // TODO support XML and other types too
     }
     this.kratu.setEntities(content);
   } else {

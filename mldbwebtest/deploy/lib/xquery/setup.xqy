@@ -122,7 +122,7 @@ declare variable $http-server-settings :=
     <setting>root</setting>
     <setting>port</setting>
     <setting value="setup:get-appserver-modules-database($server-config)">modules-database</setting>
-    <setting value="setup:get-appserver-database($server-config)">database</setting>
+    <setting value="setup:get-appserver-content-database($server-config)">database</setting>
     <setting value="setup:get-last-login($server-config)">last-login</setting>
     <setting>display-last-login</setting>
     <setting>address</setting>
@@ -145,6 +145,7 @@ declare variable $http-server-settings :=
     <setting>debug-allow</setting>
     <setting>profile-allow</setting>
     <setting>default-xquery-version</setting>
+    <setting min-version="7.0-0">distribute-timestamps</setting>
     <setting>multi-version-concurrency-control</setting>
     <setting>output-sgml-character-entities</setting>
     <setting>output-encoding</setting>
@@ -177,13 +178,72 @@ declare variable $http-server-settings :=
   </settings>
 ;
 
+declare variable $webdav-server-settings :=
+  <settings>
+    <setting>enabled</setting>
+    <setting>root</setting>
+    <setting>port</setting>
+    <setting value="setup:get-appserver-content-database($server-config)">database</setting>
+    <setting value="setup:get-last-login($server-config)">last-login</setting>
+    <setting>display-last-login</setting>
+    <setting>address</setting>
+    <setting>backlog</setting>
+    <setting>threads</setting>
+    <setting>request-timeout</setting>
+    <setting>keep-alive-timeout</setting>
+    <setting>session-timeout</setting>
+    <setting>max-time-limit</setting>
+    <setting>default-time-limit</setting>
+    <setting>static-expires</setting>
+    <setting>pre-commit-trigger-depth</setting>
+    <setting>pre-commit-trigger-limit</setting>
+    <setting>collation</setting>
+    <setting>authentication</setting>
+    <setting value="setup:get-appserver-default-user($server-config)">default-user</setting>
+    <setting value="setup:get-appserver-privilege($server-config)">privilege2</setting>
+    <setting>concurrent-request-limit</setting>
+    <setting>compute-content-length</setting>
+    <setting>log-errors</setting>
+    <setting>debug-allow</setting>
+    <setting>profile-allow</setting>
+    <setting>default-xquery-version</setting>
+    <setting>multi-version-concurrency-control</setting>
+    <setting>output-sgml-character-entities</setting>
+    <setting>output-encoding</setting>
+    <setting>output-method</setting>
+    <setting>output-byte-order-mark</setting>
+    <setting>output-cdata-section-namespace-uri</setting>
+    <setting>output-cdata-section-localname</setting>
+    <setting>output-doctype-public</setting>
+    <setting>output-doctype-system</setting>
+    <setting>output-escape-uri-attributes</setting>
+    <setting>output-include-content-type</setting>
+    <setting>output-indent</setting>
+    <setting>output-indent-untyped</setting>
+    <setting>output-media-type</setting>
+    <setting>output-normalization-form</setting>
+    <setting>output-omit-xml-declaration</setting>
+    <setting>output-standalone</setting>
+    <setting>output-undeclare-prefixes</setting>
+    <setting>output-version</setting>
+    <setting>output-include-default-attributes</setting>
+    <setting min-version="6.0-1">rewrite-resolves-globally</setting>
+    <setting value="setup:get-ssl-certificate-template($server-config)">ssl-certificate-template</setting>
+    <setting>ssl-allow-sslv3</setting>
+    <setting>ssl-allow-tls</setting>
+    <setting>ssl-hostname</setting>
+    <setting>ssl-ciphers</setting>
+    <setting>ssl-require-client-certificate</setting>
+  </settings>
+;
+
 declare variable $xcc-server-settings :=
   <settings>
     <setting>enabled</setting>
     <setting>root</setting>
     <setting>port</setting>
     <setting value="setup:get-appserver-modules-database($server-config)">modules-database</setting>
-    <setting value="setup:get-appserver-database($server-config)">database</setting>
+    <setting value="setup:get-appserver-content-database($server-config)">database</setting>
     <setting value="setup:get-last-login($server-config)">last-login</setting>
     <setting>display-last-login</setting>
     <setting>address</setting>
@@ -204,6 +264,7 @@ declare variable $xcc-server-settings :=
     <setting>debug-allow</setting>
     <setting>profile-allow</setting>
     <setting>default-xquery-version</setting>
+    <setting min-version="7.0-0">distribute-timestamps</setting>
     <setting>multi-version-concurrency-control</setting>
     <setting>output-sgml-character-entities</setting>
     <setting>output-encoding</setting>
@@ -240,7 +301,7 @@ declare variable $odbc-server-settings :=
     <setting>root</setting>
     <setting>port</setting>
     <setting value="setup:get-appserver-modules-database($server-config)">modules-database</setting>
-    <setting value="setup:get-appserver-database($server-config)">database</setting>
+    <setting value="setup:get-appserver-content-database($server-config)">database</setting>
     <setting value="setup:get-last-login($server-config)">last-login</setting>
     <setting>display-last-login</setting>
     <setting>address</setting>
@@ -262,6 +323,7 @@ declare variable $odbc-server-settings :=
     <setting>debug-allow</setting>
     <setting>profile-allow</setting>
     <setting>default-xquery-version</setting>
+    <setting min-version="7.0-0">distribute-timestamps</setting>
     <setting>multi-version-concurrency-control</setting>
     <setting>output-sgml-character-entities</setting>
     <setting>output-encoding</setting>
@@ -410,7 +472,7 @@ declare function setup:do-setup($import-config as element(configuration)) as ite
   {
     xdmp:log($ex),
     setup:do-wipe(setup:get-rollback-config()),
-    $ex
+    fn:concat($ex/err:format-string/text(), '&#10;See MarkLogic Server error log for more details.')
   }
 };
 
@@ -669,12 +731,12 @@ declare function setup:find-forest-ids(
   $db-config as element(db:database)) as xs:unsignedLong*
 {
   let $admin-config := admin:get-configuration()
-  for $host in admin:group-get-host-ids($admin-config, xdmp:group())
+  for $host at $position in admin:group-get-host-ids($admin-config, xdmp:group()) 
   for $j in (1 to $db-config/db:forests-per-host)
   let $name :=
     fn:string-join((
       $db-config/db:database-name,
-      xdmp:host-name($host),
+      fn:format-number(xs:integer($position), "000"),
       xs:string($j)),
       "-")
   return
@@ -787,9 +849,9 @@ declare function setup:create-forests-from-count(
   $forests-per-host as xs:int) as item()*
 {
   let $data-directory := $db-config/db:forests/db:data-directory
-  for $host in admin:group-get-host-ids(admin:get-configuration(), xdmp:group())
+  for $host at $position in admin:group-get-host-ids(admin:get-configuration(), xdmp:group()) 
   for $j in (1 to $forests-per-host)
-  let $forest-name := fn:string-join(($database-name, xdmp:host-name($host), xs:string($j)), "-")
+  let $forest-name := fn:string-join(($database-name, fn:format-number(xs:integer($position), "000"), xs:string($j)), "-")
   return
     setup:create-forest(
       $forest-name,
@@ -803,9 +865,9 @@ declare function setup:validate-forests-from-count(
   $forests-per-host as xs:int)
 {
   let $data-directory := $db-config/db:forests/db:data-directory
-  for $host in admin:group-get-host-ids(admin:get-configuration(), xdmp:group())
+  for $host at $position in admin:group-get-host-ids(admin:get-configuration(), xdmp:group()) 
   for $j in (1 to $forests-per-host)
-  let $forest-name := fn:string-join(($database-name, xdmp:host-name($host), xs:string($j)), "-")
+  let $forest-name := fn:string-join(($database-name, fn:format-number(xs:integer($position), "000"), xs:string($j)), "-")
   return
     setup:validate-forest(
       $forest-name,
@@ -963,10 +1025,10 @@ declare function setup:validate-attached-forests-by-config(
 declare function setup:attach-forests-by-count($db-config as element(db:database)) as item()*
 {
   let $database-name := setup:get-database-name-from-database-config($db-config)
-  for $host in admin:group-get-host-ids(admin:get-configuration(), xdmp:group())
+  for $host at $position in admin:group-get-host-ids(admin:get-configuration(), xdmp:group()) 
   let $hostname := xdmp:host-name($host)
   for $j in (1 to setup:get-forests-per-host-from-database-config($db-config))
-  let $forest-name := fn:string-join(($database-name, $hostname, xs:string($j)), "-")
+  let $forest-name := fn:string-join(($database-name, fn:format-number(xs:integer($position), "000"), xs:string($j)), "-")
   return
     setup:attach-database-forest($database-name, $forest-name)
 };
@@ -974,10 +1036,10 @@ declare function setup:attach-forests-by-count($db-config as element(db:database
 declare function setup:validate-attached-forests-by-count($db-config as element(db:database))
 {
   let $database-name := setup:get-database-name-from-database-config($db-config)
-  for $host in admin:group-get-host-ids(admin:get-configuration(), xdmp:group())
+  for $host at $position in admin:group-get-host-ids(admin:get-configuration(), xdmp:group()) 
   let $hostname := xdmp:host-name($host)
   for $j in (1 to setup:get-forests-per-host-from-database-config($db-config))
-  let $forest-name := fn:string-join(($database-name, $hostname, xs:string($j)), "-")
+  let $forest-name := fn:string-join(($database-name, fn:format-number(xs:integer($position), "000"), xs:string($j)), "-")
   return
     setup:validate-attached-database-forest($database-name, $forest-name)
 };
@@ -1208,8 +1270,6 @@ declare function setup:apply-field-settings(
     for $setting in $field-settings/setting
     let $value := fn:data(xdmp:value(fn:concat("$field/db:", $setting)))
     let $min-version as xs:string? := $setting/@min-version
-    let $_ := xdmp:log("applying " || $setting || " setting; min-version=" || $min-version || "; apply?=" ||
-      (fn:exists($value) and (fn:empty($min-version) or setup:at-least-version($min-version))))
     where fn:exists($value) and (fn:empty($min-version) or setup:at-least-version($min-version))
     return
       xdmp:set(
@@ -2770,7 +2830,7 @@ declare function setup:create-appserver(
     else
       let $root := ($server-config/gr:root[fn:string-length(fn:string(.)) > 0], "/")[1]
       let $port := xs:unsignedLong($server-config/gr:port)
-      let $database := setup:get-appserver-database($server-config)
+      let $database := setup:get-appserver-content-database($server-config)
       let $admin-config := admin:get-configuration()
       let $admin-config :=
         if (xs:boolean($server-config/gr:webDAV)) then
@@ -2796,6 +2856,7 @@ declare function setup:create-appserver(
         if (admin:save-configuration-without-restart($admin-config)) then
           xdmp:set($restart-needed, fn:true())
         else (),
+        setup:add-rollback("http-servers", $server-config),
         fn:concat("HTTP Server ", $server-name, " succesfully created.")
       )
 };
@@ -2843,7 +2904,7 @@ declare function setup:create-odbcserver(
             (xs:QName("admin-config"), $admin-config,
              xs:QName("root"), ($server-config/gr:root[fn:string-length(fn:string(.)) > 0], "/")[1],
              xs:QName("port"), xs:unsignedLong($server-config/gr:port),
-             xs:QName("content-db"), setup:get-appserver-database($server-config),
+             xs:QName("content-db"), setup:get-appserver-content-database($server-config),
              xs:QName("default-group"), $default-group,
              xs:QName("server-name"), $server-name,
              xs:QName("modules-db"), setup:get-appserver-modules-database($server-config)))
@@ -2860,6 +2921,7 @@ declare function setup:create-odbcserver(
         if (admin:save-configuration-without-restart($admin-config)) then
           xdmp:set($restart-needed, fn:true())
         else (),
+        setup:add-rollback("odbc-servers", $server-config),
         fn:concat("ODBC Server ", $server-name, " succesfully created.")
       )
 };
@@ -2896,6 +2958,7 @@ declare function setup:create-xdbcserver(
         if (admin:save-configuration-without-restart($admin-config)) then
           xdmp:set($restart-needed, fn:true())
         else (),
+        setup:add-rollback("xdbc-servers", $server-config),
         fn:concat("XDBC Server ", $server-name, " succesfully created.")
       )
 };
@@ -2954,7 +3017,7 @@ declare function setup:configure-http-server(
   $server-config as element(gr:http-server)) as item()*
 {
   let $server-name as xs:string? := $server-config/gr:http-server-name[fn:string-length(fn:string(.)) > 0]
-  let $admin-config := setup:configure-server($server-config, xdmp:server($server-name), $http-server-settings)
+  let $admin-config := setup:configure-server($server-config, xdmp:server($server-name), if (xs:boolean($server-config/gr:webDAV)) then $webdav-server-settings else $http-server-settings)
   return
   (
     if (admin:save-configuration-without-restart($admin-config)) then
@@ -3686,14 +3749,6 @@ declare function setup:get-appserver-content-database($server-config as element(
   return
     if ($database) then xdmp:database($database)
     else 0
-};
-
-declare function setup:get-appserver-database($server-config as element()) as xs:unsignedLong
-{
-  if (xs:boolean($server-config/gr:webDAV)) then
-    setup:get-appserver-modules-database($server-config)
-  else
-    setup:get-appserver-content-database($server-config)
 };
 
 declare function setup:get-last-login($server-config as element()) as xs:unsignedLong

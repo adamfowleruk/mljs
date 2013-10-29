@@ -709,6 +709,38 @@ com.marklogic.widgets.searchresults = function(container) {
       return resStr;
     }
   };
+  var handleJson = function(result,json) {
+    
+        var resStr = "";
+        // parse each results and snippet / raw content
+        var title = result.uri;
+        if (undefined != json && undefined != json.title ) {
+          title = json.title;
+        }
+        var snippet = null;
+        // TODO show all content if snippeting mode is snippet
+        if (undefined != json && undefined != json.summary) {
+          snippet = json.summary;
+        } else if (undefined != json) {
+          //snippet = JSON.stringify(result.content); 
+          snippet = com.marklogic.widgets.searchhelper.jsontohtml(json);
+          // TODO check for XML (string not object) content in results.results[i].content
+        } else {
+          // no snippet available
+        }
+        
+        if (null == snippet) {
+          // TODO show JSON tree structure as HTML
+          self.ctx.db.logger.debug("defaultProcessor: No JSON summary, building JSON tree HTML output");
+        }
+        
+        resStr += "<div class='searchresults-result'><h3>" + result.index + ". " + title + "</h3>";
+        if (null != snippet) {
+          resStr += "<div class='searchresults-snippet'>" + snippet + "</div>";
+        }
+        resStr += "</div>";
+        return resStr;
+  };
   this.defaultProcessor = {
     matcher: function(result) {
       return true; // handles all results
@@ -725,7 +757,14 @@ com.marklogic.widgets.searchresults = function(container) {
         self.ctx.db.logger.debug("match text: " + result.matches[0]["match-text"]);
         self.ctx.db.logger.debug("match text 0: " + result.matches[0]["match-text"][0]);
       }
-      if ("string" == typeof result.content && -1 != result.content.indexOf("html")) { // TODO replace with XPath as this is very wide ranging - http://www.w3.org/1999/xhtml (escape dots?)
+      if ("string" == typeof result.content && result.content.substring(0,1) == "{") {
+        self.ctx.db.logger.debug("Found JSON string object");
+        var json = JSON.parse(result.content);
+        self.ctx.db.logger.debug("defaultProcessor:  - JSON parse successful...");
+        
+        // we hit this line if we succeed
+        return handleJson(result,json);
+      } else if ("string" == typeof result.content && -1 != result.content.substring(0,100).indexOf("<html")) { // TODO replace with XPath as this is very wide ranging - http://www.w3.org/1999/xhtml (escape dots?)
           // Get title from /html/head/title or /html/body/h1[1] or /html/body/h2[1] or /html/body/p[1]
           // don't rely on xml.evaluate() though
           self.ctx.db.logger.debug("searchresults: defaultProcesor: Got HTML content");
@@ -801,123 +840,109 @@ com.marklogic.widgets.searchresults = function(container) {
         resStr += "</div>";
         return resStr;
       } else if ("object" == typeof(result.content)) {
-        // TRY TO GUESS JSON CONTENT
+        // TRY TO GUESS JSON CONTENT - V6 and older V7 builds - now (29 Oct 2013) even JSON is escaped as a string!!!
         self.ctx.db.logger.debug("defaultProcessor: Got JSON Object content");
         
-        var resStr = "";
-        // parse each results and snippet / raw content
-        var title = result.uri;
-        if (undefined != result.content && undefined != result.content.title ) {
-          title = result.content.title;
-        }
-        var snippet = null;
-        // TODO show all content if snippeting mode is snippet
-        if (undefined != result.content && undefined != result.content.summary) {
-          snippet = result.content.summary;
-        } else if (undefined != result.content) {
-          //snippet = JSON.stringify(result.content); 
-          snippet = com.marklogic.widgets.searchhelper.jsontohtml(result.content);
-          // TODO check for XML (string not object) content in results.results[i].content
-        } else {
-          // no snippet available
-        }
-        
-        if (null == snippet) {
-          // TODO show JSON tree structure as HTML
-          self.ctx.db.logger.debug("defaultProcessor: No JSON summary, building JSON tree HTML output");
-        }
-        
-        resStr += "<div class='searchresults-result'><h3>" + result.index + ". " + title + "</h3>";
-        if (null != snippet) {
-          resStr += "<div class='searchresults-snippet'>" + snippet + "</div>";
-        }
-        resStr += "</div>";
-        return resStr;
+        return handleJson(result,result.content);
       } else {
         // ATTEMPT TO PARSE AS XML
-        self.ctx.db.logger.debug("defaultProcessor: Got suspected XML - last processor option anyway...");
+        self.ctx.db.logger.debug("defaultProcessor: Got escaped string - Could be XML or JSON ...");
+        
+        // try to parse as JSON first
         try {
-          var xmlDoc = textToXML(result.content);
-          self.ctx.db.logger.debug("defaultProcessor:  - XML parse successful...");
+          var json = JSON.parse(result.content);
+          self.ctx.db.logger.debug("defaultProcessor:  - JSON parse successful...");
           
-          var resStr = "";
-          // parse each results and snippet / raw content
-          var title = result.uri;
-          var snippet = null;
-          
-          if (undefined != xmlDoc.evaluate) {
-            // check for common title names - title, name, id, h1
-            var evalResult = xmlDoc.evaluate("//title[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
-            if (undefined == evalResult || "" == evalResult.stringValue) {
-              self.ctx.db.logger.debug("defaultProcessor: //title[1]/text() undefined");
-              evalResult = xmlDoc.evaluate("//name[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
-              
-              if (undefined == evalResult || "" == evalResult.stringValue) {
-              self.ctx.db.logger.debug("defaultProcessor: //name[1]/text() undefined");
-                evalResult = xmlDoc.evaluate("//id[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
-              
-                if (undefined == evalResult || "" == evalResult.stringValue) {
-              self.ctx.db.logger.debug("defaultProcessor: //id[1]/text() undefined");
-                  evalResult = xmlDoc.evaluate("//h1[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
-              
-                  if (undefined == evalResult || "" == evalResult.stringValue) {
-              self.ctx.db.logger.debug("defaultProcessor: //h1[1]/text() undefined");
-                    self.ctx.db.logger.debug("defaultProcessor: trying (//text())[1]");
-                    evalResult = xmlDoc.evaluate("(//text())[1]",xmlDoc,null,XPathResult.STRING_TYPE,null);
-                    self.ctx.db.logger.debug("defaultProcessor: output: " + evalResult.stringValue);
-                  }
-                }
-              }
-            }
-            if (undefined != evalResult && null != evalResult && "" != evalResult.stringValue) {
-              title = evalResult.stringValue;
-            }
-            // check for common snippet names - summary, synopsis, description, details
-            evalResult = xmlDoc.evaluate("//summary[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
-            if (undefined == evalResult || "" == evalResult.stringValue) {
-              self.ctx.db.logger.debug("defaultProcessor: //summary[1]/text() undefined");
-              evalResult = xmlDoc.evaluate("//synopsis[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
-              if (undefined == evalResult || "" == evalResult.stringValue) {
-              self.ctx.db.logger.debug("defaultProcessor: //synopsis[1]/text() undefined");
-                evalResult = xmlDoc.evaluate("//description[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
-                if (undefined == evalResult || "" == evalResult.stringValue) {
-              self.ctx.db.logger.debug("defaultProcessor: //description[1]/text() undefined");
-                  evalResult = xmlDoc.evaluate("//details[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
-                  
-                  if (undefined == evalResult || "" == evalResult.stringValue) {
-              self.ctx.db.logger.debug("defaultProcessor: //details[1]/text() undefined");
-                    self.ctx.db.logger.debug("defaultProcessor: trying (//text())[2]");
-                    evalResult = xmlDoc.evaluate("(//text())[2]",xmlDoc,null,XPathResult.STRING_TYPE,null);
-                    self.ctx.db.logger.debug("defaultProcessor: output: " + evalResult.stringValue);
-                  }
-                }
-              }
-            }
-            if (undefined != evalResult && null != evalResult && "" != evalResult.stringValue) {
-              snippet = evalResult.stringValue;
-            }
-          }
-        
-          if (null == snippet) {
-            // show XML tree structure as HTML
-            self.ctx.db.logger.debug("defaultProcessor: No XML summary, building XML tree HTML output");
-            
-            // display tree of XML
-            snippet = com.marklogic.widgets.searchhelper.xmltohtml(xmlDoc); // TODO
-          }
-          
-          if (null == snippet) {
-            snippet = result.content;
-          }
-        
-          resStr += "<div class='searchresults-result'><h3>" + result.index + ". " + title + "</h3>";
-          if (null != snippet) {
-            resStr += "<div class='searchresults-snippet'>" + snippet + "</div>";
-          }
-          resStr += "</div>";
-          return resStr;
+          // we hit this line if we succeed
+          return handleJson(result,json);
         } catch (err) {
-          self.ctx.db.logger.debug("defaultProcessor: XML mode: Failed to create XML document from text: " + result.content);
+          // try XML now        
+          try {
+            var xmlDoc = textToXML(result.content);
+            self.ctx.db.logger.debug("defaultProcessor:  - XML parse successful...");
+            
+            var resStr = "";
+            // parse each results and snippet / raw content
+            var title = result.uri;
+            var snippet = null;
+            
+            if (undefined != xmlDoc.evaluate) {
+              // check for common title names - title, name, id, h1
+              var evalResult = xmlDoc.evaluate("//title[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
+              if (undefined == evalResult || "" == evalResult.stringValue) {
+                self.ctx.db.logger.debug("defaultProcessor: //title[1]/text() undefined");
+                evalResult = xmlDoc.evaluate("//name[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
+                
+                if (undefined == evalResult || "" == evalResult.stringValue) {
+                  self.ctx.db.logger.debug("defaultProcessor: //name[1]/text() undefined");
+                  evalResult = xmlDoc.evaluate("//id[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
+                
+                  if (undefined == evalResult || "" == evalResult.stringValue) {
+                self.ctx.db.logger.debug("defaultProcessor: //id[1]/text() undefined");
+                    evalResult = xmlDoc.evaluate("//h1[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
+                
+                    if (undefined == evalResult || "" == evalResult.stringValue) {
+                      self.ctx.db.logger.debug("defaultProcessor: //h1[1]/text() undefined");
+                      self.ctx.db.logger.debug("defaultProcessor: trying (//text())[1]");
+                      evalResult = xmlDoc.evaluate("(//text())[1]",xmlDoc,null,XPathResult.STRING_TYPE,null);
+                      self.ctx.db.logger.debug("defaultProcessor: output: " + evalResult.stringValue);
+                    }
+                  }
+                }
+              }
+              if (undefined != evalResult && null != evalResult && "" != evalResult.stringValue) {
+                title = evalResult.stringValue;
+              }
+              // check for common snippet names - summary, synopsis, description, details
+              evalResult = xmlDoc.evaluate("//summary[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
+              if (undefined == evalResult || "" == evalResult.stringValue) {
+                self.ctx.db.logger.debug("defaultProcessor: //summary[1]/text() undefined");
+                evalResult = xmlDoc.evaluate("//synopsis[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
+                if (undefined == evalResult || "" == evalResult.stringValue) {
+                  self.ctx.db.logger.debug("defaultProcessor: //synopsis[1]/text() undefined");
+                  evalResult = xmlDoc.evaluate("//description[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
+                  if (undefined == evalResult || "" == evalResult.stringValue) {
+                    self.ctx.db.logger.debug("defaultProcessor: //description[1]/text() undefined");
+                    evalResult = xmlDoc.evaluate("//details[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
+                    
+                    if (undefined == evalResult || "" == evalResult.stringValue) {
+                      self.ctx.db.logger.debug("defaultProcessor: //details[1]/text() undefined");
+                      self.ctx.db.logger.debug("defaultProcessor: trying (//text())[2]");
+                      evalResult = xmlDoc.evaluate("(//text())[2]",xmlDoc,null,XPathResult.STRING_TYPE,null);
+                      self.ctx.db.logger.debug("defaultProcessor: output: " + evalResult.stringValue);
+                    }
+                  }
+                }
+              }
+              if (undefined != evalResult && null != evalResult && "" != evalResult.stringValue) {
+                snippet = evalResult.stringValue;
+              }
+            }
+          
+            if (null == snippet) {
+              // show XML tree structure as HTML
+              self.ctx.db.logger.debug("defaultProcessor: No XML summary, building XML tree HTML output");
+              
+              // display tree of XML
+              snippet = com.marklogic.widgets.searchhelper.xmltohtml(xmlDoc); // TODO
+            }
+            
+            if (null == snippet) {
+              snippet = result.content;
+            }
+          
+            resStr += "<div class='searchresults-result'><h3>" + result.index + ". " + title + "</h3>";
+            if (null != snippet) {
+              resStr += "<div class='searchresults-snippet'>" + snippet + "</div>";
+            }
+            resStr += "</div>";
+            return resStr;
+          } catch (err) {
+            self.ctx.db.logger.debug("defaultProcessor: XML mode: Failed to create XML document from text: " + result.content);
+          }
+          
+          
+          // end try XML noe
         }
       }
     }

@@ -27,6 +27,10 @@ class Help
        extend       Create a REST API service extension
        transform    Create a REST API transformation
 
+      Other commands:
+       upgrade      Upgrades the Roxy files
+       capture      Capture the source code of an existing App Builder application
+
       All commands can be run with -h for more information.
 
     DOC
@@ -154,12 +158,15 @@ class Help
       Usage: ml init [application-name] [options]
 
       Optional Parameters:
-        application-name    # The name of your application
+        application-name                  # The name of your application
+      Required option:
+        --server-version=version-number   # Version of target MarkLogic Server
+                                          # Must be 4, 5, 6, or 7
       General options:
-        --force             # Force reset all configuration files
-        --force-properties  # Force reset the properties file. (build.properties)
-        --force-config      # Force reset the configuration file (ml-config.xml)
-        -v, [--verbose]     # Verbose output
+        --force                           # Force reset all configuration files
+        --force-properties                # Force reset the properties file. (build.properties)
+        --force-config                    # Force reset the configuration file (ml-config.xml)
+        -v, [--verbose]                   # Verbose output
 
 
       Initializes your application by creating the necessary config files.
@@ -403,6 +410,30 @@ class Help
         $ ml transform sample xqy
         will create a sample.xqy library module in your rest-transform directory,
         using a built-in value as the prefix for the functions.
+    DOC
+  end
+
+  def self.upgrade
+    <<-DOC.strip_heredoc
+      Usage: ml upgrade --branch=[dev|master]
+        Upgrades Roxy files in the current project, using files from the
+        specified branch on GitHub. Any project will have its deploy directory
+        upgraded. Projects of app-type "mvc" or "hybrid" will also have their
+        src/roxy/ directory upgraded.
+
+      branch: (required)
+        The name of the Roxy GitHub branch to use for the upgrade.
+    DOC
+  end
+
+  def self.capture
+    <<-DOC.strip_heredoc
+      Usage: ml {env} capture --modules-db=[name of modules database]
+        Captures the source and REST API configuration for an existing
+        Application Builder-based application.
+
+      modules-db: (required)
+        The modules database of the App Builder application.
     DOC
   end
 

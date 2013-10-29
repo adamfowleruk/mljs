@@ -4456,20 +4456,32 @@ com.marklogic.semantic.tripleconfig.prototype.include = function(rdftype) {
   // TODO SIMPLIFY INTERNAL FORMAT OR AT LEAST RENAME CONFUSING PARTS!
   
   var ent = rdftype._config;
+  //this.__d("tripleconfig.include: Saving config: " + JSON.stringify(ent));
   //ent.name = ent.iri; // TODO auto value
   //ent.prefix = ent.iri; // TODO remove this entirely?
   //ent.iriPattern = ent.iri + "/#VALUE#"; // TODO remove this entirely?
   // DONE IN RDFTYPE OBJECT NOW ent.commonNamePredicate = "rdfs:label"; // TODO use long IRI version of this, which I currently can't remember!
   ent.properties = new Array();
   
+  // create sparql varname and cache for speed - E.g. /myontology/Person becomes ?person1 or similar, so varname is person
+  var hashPos = ent.iri.lastIndexOf("#");
+  var slashPos = ent.iri.lastIndexOf("/");
+  var pos = hashPos;
+  if (slashPos > hashPos) {
+    pos = slashPos;
+  }
+  var shortString = ent.iri.substring(pos + 1).toLowerCase().replace("-",""); // TODO other replaces as necessary
+  ent.variable = shortString;
+  
   // copy over predicates too
   for (var p = 0,max = rdftype._predicates.length,pred;p < max;p++) {
     pred = rdftype._predicates[p];
     var newpred = pred._config;
+    mljs.defaultconnection.logger.debug("adding predicate: " + JSON.stringify(newpred));
     //newpred.name = newpred.iri;
     
     ent.properties.push(newpred);
-    this._newPredicates[iri] = newpred; // TODO remove one of these - no point duplicating by default
+    this._newPredicates[newpred.iri] = newpred; // TODO remove one of these - no point duplicating by default
   }
   
   this._newentities[rdftype._config.iri] = ent;
@@ -4480,7 +4492,7 @@ com.marklogic.semantic.tripleconfig.prototype.include = function(rdftype) {
     if (typeof predArray == "string") {
       predArray = [pred.predicates];
     }
-    this.validTriples.push(ent.iri,pred.type,predArray);
+    this.validTriples.push({subjectType: ent.iri,objectType: pred.type,predicateArray: predArray});
   }
   
   for (var p = 0,max = rdftype._from.length,pred;p < max;p++) {
@@ -4489,7 +4501,7 @@ com.marklogic.semantic.tripleconfig.prototype.include = function(rdftype) {
     if (typeof predArray == "string") {
       predArray = [pred.predicates];
     }
-    this.validTriples.push(pred.type,ent.iri,predArray);
+    this.validTriples.push({subjectType: pred.type,objectType: ent.iri,predicateArray: predArray});
   }
 };
 
@@ -4674,7 +4686,7 @@ com.marklogic.semantic.tripleconfig.prototype.addTest = function() {
   //this._newPredicates["likes"] = {name: "likes", title: "Likes food", iri: "likes", shortiri: "fs:likes"};
   
   
-  var foodstuff = this.rdftype("http://marklogic.com/semantic/ns/foodstuff","foodname").title("Foodstuff")
+  var foodstuff = this.rdftype("http://marklogic.com/semantic/rdfTypes/foodstuff","foodname").title("Foodstuff")
     .from("http://xmlns.com/foaf/0.1/Person","likes");
   foodstuff.predicate("foodname").title("Named");
   foodstuff.predicate("likes").title("Likes");
@@ -4727,11 +4739,12 @@ com.marklogic.semantic.tripleconfig.prototype.addFoaf = function() {
   person.predicate("http://xmlns.com/foaf/0.1/member").title("Is a member of");
   person.predicate("http://xmlns.com/foaf/0.1/based_near").title("I based near");
   person.predicate("http://xmlns.com/foaf/0.1/name").title("Name");
+  mljs.defaultconnection.logger.debug("Person predicate: " + JSON.stringify(person));
   this.include(person);
   
   var org = this.rdftype("http://xmlns.com/foaf/0.1/Organization","http://xmlns.com/foaf/0.1/name").title("Organisation")
     .prefix("http://xmlns.com/foaf/0.1/").pattern("http://marklogic.com/semantic/targets/organisation/#VALUE#")
-    .to("http://xmlns.com/foaf/0.1/Organization".[
+    .to("http://xmlns.com/foaf/0.1/Organization",[
       "http://xmlns.com/foaf/0.1/member","http://xmlns.com/foaf/0.1/parentOf",
       "http://www.marklogic.com/ontology/0.1/affiliated_with","http://xmlns.com/foaf/0.1/fundedBy"
     ]);
@@ -4748,7 +4761,7 @@ com.marklogic.semantic.tripleconfig.prototype.addMarkLogic = function() {
   
   //this._newPredicates["uri"] = {name: "uri", title: "URI", iri: "http://marklogic.com/semantics/ontology/Document#uri", shortiri: "ml:uri"};
   
-  var doc = this.rdftype("http://marklogic.com/semantics/ontology/Document").title("MarkLogic Document")
+  var doc = this.rdftype("http://marklogic.com/semantics/ontology/Document","http://marklogic.com/semantics/ontology/Document#uri").title("MarkLogic Document")
     .prefix("http://marklogic.com/semantics/ontology/Document").pattern("http://marklogic.com/semantics/ontology/Document/#VALUE#")
     .from("*","http://marklogic.com/semantics/ontology/Document#uri");
   doc.predicate("http://marklogic.com/semantics/ontology/Document#uri").title("URI");
@@ -4757,8 +4770,10 @@ com.marklogic.semantic.tripleconfig.prototype.addMarkLogic = function() {
 
 com.marklogic.semantic.tripleconfig.prototype.getValidPredicates = function(from,to) {
   for (var i = 0;i < this.validTriples.length;i++) {
+    this.__d("getValidPredicates: Checking validTriples: " + JSON.stringify(this.validTriples[i]));
     if ((this.validTriples[i].subjectType == from || "*" == this.validTriples[i].subjectType) && 
         (this.validTriples[i].objectType == to || "*" == this.validTriples[i].objectType)) {
+      this.__d("getValidPredicates: got matching predicates: " + JSON.stringify(this.validTriples[i].predicateArray));
       return this.validTriples[i].predicateArray;
     }
   }
@@ -4787,12 +4802,14 @@ com.marklogic.semantic.tripleconfig.prototype.getNameProperty = function(entity)
  * Fetch entity info for top level entities (not properties of entities)
  */
 com.marklogic.semantic.tripleconfig.prototype.getEntityFromIRI = function(iri) {
+  return this._newentities[iri];
+  /*
   for (var cn in this._newentities) {
     var p = this._newentities[cn];
     if (p.rdfTypeIri == iri) {
       return p;
     }
-  }
+  }*/
 };
 
 com.marklogic.semantic.tripleconfig.prototype.getEntityFromShortIRI = function(iri) {
@@ -4814,12 +4831,15 @@ com.marklogic.semantic.tripleconfig.prototype.getEntityFromName = function(name)
 };
 
 com.marklogic.semantic.tripleconfig.prototype.getPredicateFromIRI = function(iri) {
+  /*
   for (var cn in this._newPredicates) {
     var p = this._newPredicates[cn];
     if (p.iri == iri) {
       return p;
     }
   }
+  */
+  return this._newPredicates[iri];
 };
 
 com.marklogic.semantic.tripleconfig.prototype.getPredicateFromShortIRI = function(iri) {
@@ -4840,14 +4860,14 @@ com.marklogic.semantic.tripleconfig.prototype.getPredicateFromName = function(na
   }
 };
 
-com.marklogic.semantic.tripleconfig.prototype.getEntityProperty = function(entity, name) {
-  self.__d("getEntityProperty: " + name + " from entity: " + entity);
+com.marklogic.semantic.tripleconfig.prototype.getEntityProperty = function(entity, iri) {
+  self.__d("getEntityProperty: " + iri + " from entity: " + entity);
   for (var i = 0;i < entity.properties.length;i++) {
-    if (name == entity.properties[i].name) {
+    if (iri == entity.properties[i].iri) {
       return entity.properties[i];
     }
   }
-  self.__d("getEntityProperty: RETURNING NULL for " + name + " from entity: " + entity);
+  self.__d("getEntityProperty: RETURNING NULL for " + iri + " from entity: " + entity);
   return null;
 };
 

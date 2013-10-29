@@ -11,7 +11,7 @@ $(document).ready(function() {
   var contentctx = db.createSearchContext();
   semctx.setContentContext(contentctx);
   
-  semctx.addTest(); // now done via semantic config builder functions
+  semctx.getConfiguration().addTest(); // now done via semantic config builder functions
  
   var wgt = new com.marklogic.widgets.searchresults("search-content");
   contentctx.register(wgt);

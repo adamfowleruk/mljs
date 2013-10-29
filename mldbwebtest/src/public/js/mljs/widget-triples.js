@@ -53,22 +53,23 @@ com.marklogic.widgets.semantichelper.summariseInto = function(ctx,iri,type,elid,
                     };
 
   var sumsimple = function(subjectIri) {
-
-    var s = ""
+    var theel = document.getElementById(elid);
+    if (undefined != theel) {
+      var s = "";
 	                  if (null != iriHandler) {
 	                    s += "<a href='#' id='" + elid + "-link'>";
 	                  }
-	                  s += subjectIri
+	                  s += subjectIri;
 	                  if (null != iriHandler) {
 	                    s += "</a>";
 	                  }
-                 document.getElementById(elid).innerHTML = s;
+                 theel.innerHTML = s;
                  var el = document.getElementById(elid + "-link");
                  mljs.defaultconnection.logger.debug("elid: " + elid);
                  mljs.defaultconnection.logger.debug("el: " + el);
                  mljs.defaultconnection.logger.debug("subjectIri: " + subjectIri);
                  addClickHandler(el,subjectIri);
-
+    }
   };
 
 
@@ -86,7 +87,7 @@ com.marklogic.widgets.semantichelper.summariseInto = function(ctx,iri,type,elid,
 
         var entityinfo = ctx.getConfiguration().getEntityFromIRI(firstbinding.rdftype.value);
         mljs.defaultconnection.logger.debug("semantichelper.summariseInto: entityInfo: " + JSON.stringify(entityinfo));
-        var nameprop = ctx.getConfiguration().getNameProperty(entityinfo.name).iri;
+        var nameprop = ctx.getConfiguration().getNameProperty(entityinfo.iri).iri;
         mljs.defaultconnection.logger.debug("semantichelper.summariseInto: nameprop: " + nameprop);
         if (undefined == nameprop) {
       sumsimple(lookupIri);
@@ -555,14 +556,18 @@ com.marklogic.widgets.sparqlbar.prototype._updateRelationships = function(tid) {
   var s = "";
   var me = document.getElementById(this.container + "-sparqlbar-term-relatedtype-" + tid).value;
   mljs.defaultconnection.logger.debug("_updateRelationships: RELATING PARENT: " + parentType + " TO ME: " + me);
-  var rels = this.semanticcontext.getConfiguration().getValidPredicates(parentType,me);
+  var config = this.semanticcontext.getConfiguration();
+  var rels = config.getValidPredicates(parentType,me);
   for (var i = 0, max = rels.length, rel; i < max;i++) {
     rel = rels[i];
+    // get rel title
+    var relinfo = config.getPredicateFromIRI(rel);
+    //mljs.defaultconnection.logger.debug("_updateRelationships: Showing rel: " + JSON.stringify(relinfo));
     s += "<option value='" + rel + "'";
     if (0 == i) {
       s += " selected='selected'";
     }
-    s += ">" + rel + "</option>";
+    s += ">" + relinfo.title + "</option>";
   }
 
   document.getElementById(this.container + "-sparqlbar-term-relationship-" + tid).innerHTML = s;
@@ -770,11 +775,11 @@ com.marklogic.widgets.sparqlbar.prototype._buildQuery = function() {
     s += "SELECT distinct ?g { GRAPH ?g {}}";
 
   } else {
-    var entity = this.semanticcontext.getConfiguration().getEntityFromName(what);
-    s += "SELECT distinct ?" + what + " WHERE {\n" + "  ?" + what + " rdfs:type <" + entity.rdfTypeIri + "> .\n";
+    var entity = this.semanticcontext.getConfiguration().getEntityFromIRI(what);
+    s += "SELECT distinct ?" + entity.variable + " WHERE {\n" + "  ?" + entity.variable + " rdfs:type <" + entity.iri + "> .\n";
 
     // build out top level terms
-    s += this._buildTerms(what,this._hierarchy,"",{tc: 1});
+    s += this._buildTerms(entity.variable,this._hierarchy,"",{tc: 1});
 
     s += "}";
   }
@@ -797,23 +802,23 @@ com.marklogic.widgets.sparqlbar.prototype._buildTerms = function(what,termArray,
 
       if ("*" == termWhat) {
         termType = document.getElementById(this.container + "-sparqlbar-term-relatedtype-" + tjson.tid).value;
+        termTypeObject = scfg.getEntityFromIRI(termType);
         termRel = document.getElementById(this.container + "-sparqlbar-term-relationship-" + tjson.tid).value;
         mljs.defaultconnection.logger.debug("_buildTerms: termRel: " + termRel + ", termType: " + termType);
         //console.log("termType: " + termType + ", termRel: " + termRel);
         if (undefined != termRel) {
           //var termPred = this._config._predicatesShort[termRel];
-          termPred = scfg.getPredicateFromName(termRel);
+          termPred = scfg.getPredicateFromIRI(termRel);
           mljs.defaultconnection.logger.debug("_buildTerms: termPred: " + JSON.stringify(termPred));
           if (undefined != termPred) {
             c = counterObject.tc++;
-            s += padding + "    ?" + what + " <" + termPred.iri + "> ?" + termType + c + " .\n" ;
-            termTypeObject = scfg.getEntityFromName(termType);
-            s += padding + "      ?" + termType + c + " rdfs:type <" + termTypeObject.rdfTypeIri + "> .\n";
+            s += padding + "    ?" + what + " <" + termPred.iri + "> ?" + termTypeObject.variable + c + " .\n" ;
+            s += padding + "      ?" + termTypeObject.variable + c + " rdfs:type <" + termTypeObject.iri + "> .\n";
 
             // TODO process child terms here
             if (tjson.children.length > 0) {
               mljs.defaultconnection.logger.debug("_buildTerms: Processing term pred children");
-              s += this._buildTerms(termType + c,tjson.children,padding + "  ",counterObject);
+              s += this._buildTerms(termTypeObject.variable + c,tjson.children,padding + "  ",counterObject);
             }
 
             s += padding /*+ "    } "*/;
@@ -821,7 +826,7 @@ com.marklogic.widgets.sparqlbar.prototype._buildTerms = function(what,termArray,
         }
       } else {
         // TODO property (=)
-        propentity = scfg.getEntityFromName(this._getParentType(tjson.tid));
+        propentity = scfg.getEntityFromIRI(this._getParentType(tjson.tid));
         propname = document.getElementById(this.container + "-sparqlbar-term-properties-" + tjson.tid).value;
         propvalue = document.getElementById(this.container + "-sparqlbar-term-value-" + tjson.tid).value;
         propinfo = scfg.getEntityProperty(propentity,propname);

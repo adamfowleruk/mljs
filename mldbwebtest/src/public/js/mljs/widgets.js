@@ -205,7 +205,11 @@ function jsonOrXml(jsonOrXmlOrString) {
   if ('object' == typeof(jsonOrXmlOrString) && undefined == jsonOrXml.nodeType) {
     return jsonOrXmlOrString;
   } else if ('string' == typeof(jsonOrXmlOrString)) {
-    return textToXML(jsonOrXmlOrString);
+    if (jsonOrXmlOrString.substring(0,1) == "{") {
+      return JSON.parse(jsonOrXmlOrString);
+    } else { 
+      return textToXML(jsonOrXmlOrString);
+    }
   } else if (undefined == jsonOrXmlOrString) {
     return null;
   } else {
