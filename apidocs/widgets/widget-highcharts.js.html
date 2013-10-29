@@ -53,20 +53,165 @@ com.marklogic.widgets = window.com.marklogic.widgets || {};
  */
 com.marklogic.widgets.highcharts = function(container) {
   this.container = container;
-  this.errorPublisher = new com.marklogic.events.Publisher(); 
   
+  // publicly settable properties
   this.aggregateFunction = "mean"; // sum, max, min, no avg (mean, median, mode instead)
   this.nameSource = "title"; // e.g. city name
   this.valueSource = "value"; // e.g. temperature
   this.categorySource = "category"; // E.g. month
-  this.categoryOrdering = "month";
   this.autoCategories = false;
+  
+  this.title = "Title";
+  this.subtitle = "Subtitle";
+  this.xTitle = "Categories";
+  this.yTitle = "Values";
+  this.type = "line";
+  
+  
+  // TODO expose the below as configuration
+  this.categoryOrdering = "month";
   this.categories = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  
+  // internal properties
   this.series = new Array();
+  
+  this.errorPublisher = new com.marklogic.events.Publisher(); 
   
   this._updateOptions();
   
   this._refresh();
+};
+
+com.marklogic.widgets.highcharts.getConfigurationDefinition = function() {
+  return {
+    
+    title: {type: "string", default: "My Chart", title: "Chart Title", description: "Main chart title."},
+    subtitle: {type: "string", default: "", title: "Chart Subtitle", description: "Chart Subtitle."},
+    xTitle: {type: "string", default: "", title: "X Axis Title", description: "Category X Axis Title."},
+    yTitle: {type: "string", default: "Values", title: "Y Axis Title", description: "Value Y Axis Title."},
+    type: {type: "enum", default: "line",title: "Chart Type", description: "Which HighCharts chart to display",
+      options: [
+        {value: "line", title: "Line", decsription: "Line Chart"},
+        {value: "spline", title: "Line", decsription: "Spline Chart"},
+        {value: "bar", title: "Line", decsription: "Bar Chart"},
+        {value: "area", title: "Line", decsription: "Area Chart"},
+        {value: "column", title: "Line", decsription: "Column Chart"},
+        {value: "pie", title: "Line", decsription: "Pie Chart"}
+        // TODO support stacking too
+        // TODO support Hybrid charts
+      ]},
+    series: {type: "multiple", minimum: 1, default: [{
+      nameSourceType: {value: "element"},
+      nameSource: {value: "title"},
+      autoCategories: {value: true},
+      categorySourceType: {value: "element"},
+      categorySource: {value: "category"},
+      valueSourceType: {value: "element"},
+      valueSource: {value: "value"},
+      aggregateFunction: {value: "none"}
+     }], title: "Data Series", description: "Data Series to show in the same chart",
+      childDefinitions: {
+        nameSourceType: {type: "enum", default: "element", title: "Name Source Type", description: "Where to get the Series name from",
+          options: [
+            {value: "element", title: "Element or JSON key", description: "XML Element value or JSON key value"},
+            {value: "fixed", title: "Fixed value", description: "Fixed (Hardcoded) value"},
+            {value: "facet", title: "Facet", description: "Facet value"}
+          ]
+        },
+        nameSource: {type: "string", default: "title", title: "Name Source", description: "The element, JSON key, facet or hardcoded value to use to find the series name (dot delimited)."},
+        autoCategories: {type: "boolean", default: false, title: "Auto Categories", description: "Whether to replace the default categories (month names) with values automatically calculated from the Category Source definition."},
+        categorySourceType: {type: "enum", default: "element", title: "Name Source Type", description: "Where to get the Series name from",
+          options: [
+            {value: "element", title: "Element or JSON key", description: "XML Element value or JSON key value"},
+            {value: "facet", title: "Facet", description: "Facet value"}
+          ]
+        },
+        categorySource: {type: "string", default: "category", title: "Category Source", description: "The element, JSON key or facet to group the results by (dot delimited)."},
+        valueSourceType: {type: "enum", default: "element", title: "Name Source Type", description: "Where to get the Series name from",
+          options: [
+            {value: "element", title: "Element or JSON key", description: "XML Element value or JSON key value"},
+            {value: "facet", title: "Facet", description: "Facet value"}
+          ]
+        },
+        valueSource: {type: "string", default: "value", title: "Value Source", description: "The element, JSON key or facet value to use for a data value (dot delimited)."},
+        aggregateFunction: {type: "enum", default: "none", title: "Value Aggregation Function", description: "The client side aggregation function to use. E.g. if extracting value from a document's value. Should be set to 'none' for facet sourced values",
+          options: [
+            {value: "none", title: "None", description: "The value itself will be used"},
+            {value: "count", title: "Count", description: "Use the count of the number of documents with this value"},
+            {value: "mean", title: "Mean", description: "Use the mean average of all values"},
+            {value: "sum", title: "Sum", description: "Use the sum of all values"},
+            {value: "min", title: "Min", description: "Use the minimum value present"},
+            {value: "max", title: "Max", description: "Use the maximum value present"}
+          ]
+        }
+      }
+    }
+  }
+  // TODO include facet name/value transform settings
+  // TODO include facet settings (if applicable?)
+  // TODO dataLabels enabled
+  // TODO other internal HighCharts settings
+};
+
+
+com.marklogic.widgets.highcharts.prototype.setConfiguration = function(config) {
+  for (var prop in config) {
+    if (prop == "title" || prop == "subtitle" || prop == "xTitle" || prop == "yTitle" || prop == "type") {
+      mljs.defaultconnection.logger.debug("Setting HighCharts options: " + prop + " to " + config[prop]);
+      this[prop] = config[prop];
+    }
+  }
+  this._updateOptions();
+  
+  for (var s = 0, max = config.series.length, series;s &lt; max;s++) {
+    // TODO handle multiple series rendering
+    series = config.series[s];
+    var name = "";
+    var category = "";
+    var values = "";
+    switch (series.nameSourceType) {
+      case "element":
+        break;
+      case "fixed":
+        name = "#";
+        break;
+      case "facet":
+        name = "!";
+        break;
+      default:
+        break;
+    }
+    name += series.nameSource;
+    switch (series.categorySourceType) {
+      case "element":
+        break;
+      case "facet":
+        category = "!";
+        break;
+      default:
+        break;
+    }
+    category += series.categorySource;
+    switch (series.valueSourceType) {
+      case "element":
+        break;
+      case "facet":
+        values = "!";
+        break;
+      default:
+        break;
+    }
+    values += series.valueSource;
+    
+    mljs.defaultconnection.logger.debug("Series info: nameSource: " + name + ", categorySource: " + category + ", valueSource: " + values);
+    
+    this.setSeriesSources(name,category,values);
+    this.aggregateFunction = series.aggregateFunction;
+    this.autoCategories = series.autoCategories;
+  }
+  
+  // refresh display
+  //this._refresh();
 };
 
 /**
@@ -88,31 +233,31 @@ com.marklogic.widgets.highcharts.prototype.removeErrorListener = function(fl) {
 };
 
 com.marklogic.widgets.highcharts.prototype._updateOptions = function() {
+  var hc = this;
   this.options = {
     chart: {
-                type: 'line',
-				renderTo : this.container,
+        type: hc.type,
+				renderTo : hc.container
             },
             title: {
-                text: 'Title'
+                text: hc.title
             },
             subtitle: {
-                text: 'Subtitle'
+                text: hc.subtitle
             },
             xAxis: {
-              categories: this.categories
+              categories: hc.categories,
+              title: {
+                text: hc.xTitle
+              }
             },
             yAxis: {
                 title: {
-                    text: 'Y Axis'
+                    text: hc.yTitle
                 }
             },
             tooltip: {
-                enabled: true,
-                formatter: function() {
-                    return '&lt;b>'+ this.series.name +'&lt;/b>&lt;br/>'+
-                        this.x +': '+ this.y;
-                }
+                enabled: true
             },
             plotOptions: {
                 line: {
@@ -124,6 +269,18 @@ com.marklogic.widgets.highcharts.prototype._updateOptions = function() {
             },
     series: this.series
   };
+  
+  if ("pie" == hc.options.chart.type) {
+    this.options.tooltip.pointFormat = '&lt;b>{point.y}&lt;/b>';
+  } else {
+    this.options.tooltip.formatter = function() {
+      var str = '&lt;b>'+ this.series.name +'&lt;/b>&lt;br/>';
+      str += this.x;
+      str += ': '+ this.y; 
+      return str;
+    };
+  }
+  
   mljs.defaultconnection.logger.debug("highcharts.prototype._updateOptions(): Options now: " + JSON.stringify(this.options));
 };
 
@@ -139,7 +296,7 @@ com.marklogic.widgets.highcharts.prototype.setAggregateFunction = function(fn) {
 com.marklogic.widgets.highcharts.prototype._refresh = function() {
   // draw data points
   
-  mljs.defaultconnection.logger.debug("Options: " + JSON.stringify(this.options));
+  mljs.defaultconnection.logger.debug("Options on refresh: " + JSON.stringify(this.options));
   
   //$("#" + this.container).highcharts(this.options);
   this.chart = new Highcharts.Chart(this.options);
@@ -181,33 +338,33 @@ com.marklogic.widgets.highcharts.prototype.updateSubjectFacts = function(facts) 
   }
   
   mljs.defaultconnection.logger.debug("in highcharts.updateSubjectFacts()");
-  mljs.defaultconnection.logger.debug(" - results: " + JSON.stringify(results));
+  //mljs.defaultconnection.logger.debug(" - results: " + JSON.stringify(results));
   
     
   
   mljs.defaultconnection.logger.debug(" - looping over facts");
   for (var r = 0;r &lt; facts.facts.bindings.length;r++) {
     var result = facts.facts.bindings[r];
-    mljs.defaultconnection.logger.debug(" - - result " + r + ": " + result);
+    //mljs.defaultconnection.logger.debug(" - - result " + r + ": " + result);
     // get name value
     var name = "";
     var resdoc = jsonOrXml(result);
-    mljs.defaultconnection.logger.debug(" -  -  - resdoc: " + resdoc);
-    mljs.defaultconnection.logger.debug(" -  -  - this.nameSource: " + this.nameSource);
-    mljs.defaultconnection.logger.debug(" -  -  - startsWith defined?: " + (undefined != this.nameSource.startsWith));
+    //mljs.defaultconnection.logger.debug(" -  -  - resdoc: " + resdoc);
+    //mljs.defaultconnection.logger.debug(" -  -  - this.nameSource: " + this.nameSource);
+    //mljs.defaultconnection.logger.debug(" -  -  - startsWith defined?: " + (undefined != this.nameSource.startsWith));
     if (this.nameSource.startsWith("#")) {
       // hardcoded value
       name = this.nameSource.substring(1);
     } else {
       name = extractValue(resdoc,this.nameSource);
     }
-    mljs.defaultconnection.logger.debug(" -  -  - name: " + name);
+    //mljs.defaultconnection.logger.debug(" -  -  - name: " + name);
     // get data value
     var value = extractValue(resdoc,this.valueSource);
-    mljs.defaultconnection.logger.debug(" -  -  - value: " + value);
+    //mljs.defaultconnection.logger.debug(" -  -  - value: " + value);
     
     var category = extractValue(resdoc,this.categorySource);
-    mljs.defaultconnection.logger.debug(" -  -  - category: " + category);
+    //mljs.defaultconnection.logger.debug(" -  -  - category: " + category);
     if (!allCategories.contains(category)) {
       allCategories.push(category);
     }
@@ -226,7 +383,7 @@ com.marklogic.widgets.highcharts.prototype.updateSubjectFacts = function(facts) 
     }
     seriesValues[name][category].push(value);
     seriesCounts[name][category] += 1;
-    mljs.defaultconnection.logger.debug(" -  - next...");
+    //mljs.defaultconnection.logger.debug(" -  - next...");
   }
   mljs.defaultconnection.logger.debug(" - finished looping over facts");
   
@@ -288,26 +445,26 @@ com.marklogic.widgets.highcharts.prototype.updateResults = function(results) {
   mljs.defaultconnection.logger.debug(" - looping over results");
   for (var r = 0;r &lt; results.results.length;r++) {
     var result = results.results[r].content;
-    mljs.defaultconnection.logger.debug(" - - result " + r + ": " + result);
+    //mljs.defaultconnection.logger.debug(" - - result " + r + ": " + result);
     // get name value
     var name = "";
     var resdoc = jsonOrXml(result);
-    mljs.defaultconnection.logger.debug(" -  -  - resdoc: " + resdoc);
-    mljs.defaultconnection.logger.debug(" -  -  - this.nameSource: " + this.nameSource);
-    mljs.defaultconnection.logger.debug(" -  -  - startsWith defined?: " + (undefined != this.nameSource.startsWith));
+    //mljs.defaultconnection.logger.debug(" -  -  - resdoc: " + resdoc);
+    //mljs.defaultconnection.logger.debug(" -  -  - this.nameSource: " + this.nameSource);
+    //mljs.defaultconnection.logger.debug(" -  -  - startsWith defined?: " + (undefined != this.nameSource.startsWith));
     if (this.nameSource.startsWith("#")) {
       // hardcoded value
       name = this.nameSource.substring(1);
     } else {
       name = extractValue(resdoc,this.nameSource);
     }
-    mljs.defaultconnection.logger.debug(" -  -  - name: " + name);
+    //mljs.defaultconnection.logger.debug(" -  -  - name: " + name);
     // get data value
     var value = extractValue(resdoc,this.valueSource);
-    mljs.defaultconnection.logger.debug(" -  -  - value: " + value);
+    //mljs.defaultconnection.logger.debug(" -  -  - value: " + value);
     
     var category = extractValue(resdoc,this.categorySource);
-    mljs.defaultconnection.logger.debug(" -  -  - category: " + category);
+    //mljs.defaultconnection.logger.debug(" -  -  - category: " + category);
     if (!allCategories.contains(category)) {
       allCategories.push(category);
     }
@@ -326,7 +483,7 @@ com.marklogic.widgets.highcharts.prototype.updateResults = function(results) {
     }
     seriesValues[name][category].push(value);
     seriesCounts[name][category] += 1;
-    mljs.defaultconnection.logger.debug(" -  - next...");
+    //mljs.defaultconnection.logger.debug(" -  - next...");
   }
   mljs.defaultconnection.logger.debug(" - finished looping over results");
   
@@ -446,13 +603,13 @@ com.marklogic.widgets.highcharts.prototype._displayResults = function(seriesName
 </div>
 
 <nav>
-    <h2><a href="index.html">Index</a></h2><h3>Classes</h3><ul><li><a href="com.marklogic.widgets.collectionuris.html">collectionuris</a></li><li><a href="com.marklogic.widgets.cooccurence.html">cooccurence</a></li><li><a href="com.marklogic.widgets.create.html">create</a></li><li><a href="com.marklogic.widgets.entityfacts.html">entityfacts</a></li><li><a href="com.marklogic.widgets.highcharts.html">highcharts</a></li><li><a href="com.marklogic.widgets.kratu.html">kratu</a></li><li><a href="com.marklogic.widgets.markings.html">markings</a></li><li><a href="com.marklogic.widgets.rdb2rdf.html">rdb2rdf</a></li><li><a href="com.marklogic.widgets.searchbar.html">searchbar</a></li><li><a href="com.marklogic.widgets.searchpage.html">searchpage</a></li><li><a href="com.marklogic.widgets.searchpager.html">searchpager</a></li><li><a href="com.marklogic.widgets.searchresults.html">searchresults</a></li><li><a href="com.marklogic.widgets.searchsort.html">searchsort</a></li><li><a href="com.marklogic.widgets.sparqlbar.html">sparqlbar</a></li><li><a href="com.marklogic.widgets.sparqlresults.html">sparqlresults</a></li></ul><h3>Namespaces</h3><ul><li><a href="com.marklogic.widgets.bits.html">bits</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-001-intro.html">001-intro</a></li><li><a href="tutorial-002-widgets-search.html">002-widgets-search</a></li><li><a href="tutorial-003-widgets-search-render.html">003-widgets-search-render</a></li><li><a href="tutorial-004-widgets-highcharts.html">004-widgets-highcharts</a></li><li><a href="tutorial-011-browser-create-app.html">011-browser-create-app</a></li><li><a href="tutorial-012-browser-install-app.html">012-browser-install-app</a></li><li><a href="tutorial-013-browser-samples-app.html">013-browser-samples-app</a></li><li><a href="tutorial-999-samples.html">999-samples</a></li><li><a href="tutorial-all.html">all</a></li></ul>
+    <h2><a href="index.html">Index</a></h2><h3>Classes</h3><ul><li><a href="com.marklogic.widgets.collectionuris.html">collectionuris</a></li><li><a href="com.marklogic.widgets.cooccurence.html">cooccurence</a></li><li><a href="com.marklogic.widgets.create.html">create</a></li><li><a href="com.marklogic.widgets.docviewer.html">docviewer</a></li><li><a href="com.marklogic.widgets.entityfacts.html">entityfacts</a></li><li><a href="com.marklogic.widgets.graphexplorer.html">graphexplorer</a></li><li><a href="com.marklogic.widgets.highcharts.html">highcharts</a></li><li><a href="com.marklogic.widgets.kratu.html">kratu</a></li><li><a href="com.marklogic.widgets.markings.html">markings</a></li><li><a href="com.marklogic.widgets.profile.html">profile</a></li><li><a href="com.marklogic.widgets.rdb2rdf.html">rdb2rdf</a></li><li><a href="com.marklogic.widgets.searchbar.html">searchbar</a></li><li><a href="com.marklogic.widgets.searchpage.html">searchpage</a></li><li><a href="com.marklogic.widgets.searchpager.html">searchpager</a></li><li><a href="com.marklogic.widgets.searchresults.html">searchresults</a></li><li><a href="com.marklogic.widgets.searchsort.html">searchsort</a></li><li><a href="com.marklogic.widgets.selection.html">selection</a></li><li><a href="com.marklogic.widgets.sparqlbar.html">sparqlbar</a></li><li><a href="com.marklogic.widgets.sparqlresults.html">sparqlresults</a></li><li><a href="com.marklogic.widgets.workplace.html">workplace</a></li></ul><h3>Namespaces</h3><ul><li><a href="com.marklogic.widgets.bits.html">bits</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-001-intro.html">001-intro</a></li><li><a href="tutorial-001-widgets-list.html">001-widgets-list</a></li><li><a href="tutorial-002-intro-firstpage.html">002-intro-firstpage</a></li><li><a href="tutorial-002-widgets-search.html">002-widgets-search</a></li><li><a href="tutorial-003-widgets-search-render.html">003-widgets-search-render</a></li><li><a href="tutorial-004-widgets-highcharts.html">004-widgets-highcharts</a></li><li><a href="tutorial-011-browser-create-app.html">011-browser-create-app</a></li><li><a href="tutorial-012-browser-install-app.html">012-browser-install-app</a></li><li><a href="tutorial-013-browser-samples-app.html">013-browser-samples-app</a></li><li><a href="tutorial-014-browser-workplace.html">014-browser-workplace</a></li><li><a href="tutorial-050-core-contexts.html">050-core-contexts</a></li><li><a href="tutorial-901-ontology.html">901-ontology</a></li><li><a href="tutorial-999-samples.html">999-samples</a></li><li><a href="tutorial-all.html">all</a></li></ul><h3>Global</h3><ul><li><a href="global.html#com">com</a></li></ul>
 </nav>
 
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Mon Sep 09 2013 23:59:32 GMT+0100 (BST)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Tue Oct 29 2013 11:53:10 GMT-0000 (GMT)
 </footer>
 
 <script> prettyPrint(); </script>

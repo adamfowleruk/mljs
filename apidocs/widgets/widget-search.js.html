@@ -82,6 +82,24 @@ com.marklogic.widgets.searchhelper.processValue = function(str,mode) {
   return name;
 };
 
+com.marklogic.widgets.searchhelper.snippet = function(result) {
+  var resStr = "";
+  
+        for (var i = 0;i &lt; result.matches.length;i++) {
+          resStr += "&lt;div class='searchresults-snippet'>\"";
+          for (var m = 0;m &lt; result.matches[i]["match-text"].length;m++) {
+            if ("string" == typeof result.matches[i]["match-text"][m]) {
+              resStr += result.matches[i]["match-text"][m] ;
+            } else {
+              resStr += "&lt;span class='searchresults-snippet-highlight'>" + result.matches[i]["match-text"][m].highlight + "&lt;/span>";
+            }
+          }
+          resStr += "\"&lt;/div>";
+        }
+        
+  return resStr;
+};
+
 com.marklogic.widgets.searchhelper.splitdash = function(value,mode) {
   if (value == undefined || value == null) {
     mljs.defaultconnection.logger.warn("WARNING: splitdash(): value is " + value);
@@ -300,11 +318,14 @@ com.marklogic.widgets.searchbar.prototype.setContext = function(context) {
 com.marklogic.widgets.searchfacets = function(container) {
   this.container = container;
   
+  // Publicly settable properties
   this.listSize = 5;
   this.extendedSize = 10;
   this.allowShowAll = true;
-  this.facetSettings = new Array();
   this.hideEmptyFacets = true;
+  
+  // Internal properties
+  this.facetSettings = new Array();
   
   this.results = null;
   
@@ -319,6 +340,27 @@ com.marklogic.widgets.searchfacets = function(container) {
   this.selectionPublisher = new com.marklogic.events.Publisher();
   
   // html
+  this._refresh();
+};
+
+com.marklogic.widgets.searchfacets.getConfigurationDefinition = function() {
+  return {
+    listSize: {type: "positiveInteger", minimum: 1, default: 5, title: "List Size", description: "How many facet values to show at first."},
+    extendedSize: {type: "positiveInteger", minimum: 1, default: 10, title: "Extended List Size", description: "How many values to show when a user clicks 'Show More'."},
+    allowShowAll: {type: "boolean", default: true, title: "Display Show All action", description: "Whether the Show All link should be allowed if there are more facet values than the value of Extended Size."},
+    hideEmptyFacets: {type: "boolean", default:true, title: "Hide Empty Facets", description: "Should facets with no values be hidden?"}
+  }
+  // TODO include facet name/value transform settings
+  // TODO include facet settings (if applicable?)
+};
+
+
+com.marklogic.widgets.searchfacets.prototype.setConfiguration = function(config) {
+  for (var prop in config) {
+    this[prop] = config[prop];
+  }
+  
+  // refresh display
   this._refresh();
 };
 
@@ -362,7 +404,7 @@ com.marklogic.widgets.searchfacets.prototype._refresh = function() {
   var more = new Array();
   var extended = new Array();
   
-  var str = "&lt;div class='mljswidget searchfacets'>&lt;div class='searchfacets-title'>Browse&lt;/div> &lt;div id='" + this.container + "-facetinfo' class='search-facets'> ";
+  var str = "&lt;div class='mljswidget searchfacets'>&lt;div class='title searchfacets-title'>Browse&lt;/div> &lt;div id='" + this.container + "-facetinfo' class='search-facets'> ";
   
   // draw selected facets and deselectors
   var deselectionTodo = new Array();
@@ -653,11 +695,19 @@ com.marklogic.widgets.searchresults = function(container) {
   
   this.ctx = mljs.defaultconnection.createSearchContext();
   
-  this.processors = new Array();
+  // publicly accessible configuration
+  this.selectionMode = "append"; // append or replace
+  
+  // private configuration
+  
+  this.processors = {}; // we never reference it numerically, only as a hash, to use a JSON object instead of an Array
   this.availableProcessors = new Array();
   this.processorPriority = new Array();
   
   this.detailsLink = null;
+  
+  this.lazyId = 1;
+  this.lazyLoaders = new Array();
   
   var self = this;
   
@@ -686,6 +736,38 @@ com.marklogic.widgets.searchresults = function(container) {
       return resStr;
     }
   };
+  var handleJson = function(result,json) {
+    
+        var resStr = "";
+        // parse each results and snippet / raw content
+        var title = result.uri;
+        if (undefined != json && undefined != json.title ) {
+          title = json.title;
+        }
+        var snippet = null;
+        // TODO show all content if snippeting mode is snippet
+        if (undefined != json && undefined != json.summary) {
+          snippet = json.summary;
+        } else if (undefined != json) {
+          //snippet = JSON.stringify(result.content); 
+          snippet = com.marklogic.widgets.searchhelper.jsontohtml(json);
+          // TODO check for XML (string not object) content in results.results[i].content
+        } else {
+          // no snippet available
+        }
+        
+        if (null == snippet) {
+          // TODO show JSON tree structure as HTML
+          self.ctx.db.logger.debug("defaultProcessor: No JSON summary, building JSON tree HTML output");
+        }
+        
+        resStr += "&lt;div class='searchresults-result'>&lt;h3>" + result.index + ". " + title + "&lt;/h3>";
+        if (null != snippet) {
+          resStr += "&lt;div class='searchresults-snippet'>" + snippet + "&lt;/div>";
+        }
+        resStr += "&lt;/div>";
+        return resStr;
+  };
   this.defaultProcessor = {
     matcher: function(result) {
       return true; // handles all results
@@ -702,7 +784,14 @@ com.marklogic.widgets.searchresults = function(container) {
         self.ctx.db.logger.debug("match text: " + result.matches[0]["match-text"]);
         self.ctx.db.logger.debug("match text 0: " + result.matches[0]["match-text"][0]);
       }
-      if ("string" == typeof result.content && -1 != result.content.indexOf("html")) { // TODO replace with XPath as this is very wide ranging - http://www.w3.org/1999/xhtml (escape dots?)
+      if ("string" == typeof result.content && result.content.substring(0,1) == "{") {
+        self.ctx.db.logger.debug("Found JSON string object");
+        var json = JSON.parse(result.content);
+        self.ctx.db.logger.debug("defaultProcessor:  - JSON parse successful...");
+        
+        // we hit this line if we succeed
+        return handleJson(result,json);
+      } else if ("string" == typeof result.content && -1 != result.content.substring(0,100).indexOf("&lt;html")) { // TODO replace with XPath as this is very wide ranging - http://www.w3.org/1999/xhtml (escape dots?)
           // Get title from /html/head/title or /html/body/h1[1] or /html/body/h2[1] or /html/body/p[1]
           // don't rely on xml.evaluate() though
           self.ctx.db.logger.debug("searchresults: defaultProcesor: Got HTML content");
@@ -768,140 +857,119 @@ com.marklogic.widgets.searchresults = function(container) {
         //}
         var resStr = "&lt;div class='searchresults-result'>&lt;h3>" + result.index + ". " + title + "&lt;/h3>";
         //resStr += "&lt;div class='searchresults-snippet'>" + (new XMLSerializer()).serializeToString(xml.getElementsByTagName("body")[0]) + "&lt;/div>";
-        for (var i = 0;i &lt; result.matches.length;i++) {
-          resStr += "&lt;div class='searchresults-snippet'>\"";
-          for (var m = 0;m &lt; result.matches[i]["match-text"].length;m++) {
-            if ("string" == typeof result.matches[i]["match-text"][m]) {
-              resStr += result.matches[i]["match-text"][m] ;
-            } else {
-              resStr += "&lt;span class='searchresults-snippet-highlight'>" + result.matches[i]["match-text"][m].highlight + "&lt;/span>";
-            }
-          }
-          resStr += "\"&lt;/div>";
-        }
+        
+        
+        resStr += com.marklogic.widgets.searchhelper.snippet(result);
+        
         //resStr += "&lt;div class='searchresults-snippet'>" + /*strip*/ txt + "&lt;/div>";
         //resStr += "&lt;div class='searchresults-snippet'>&lt;iframe scrolling='no'>" + result.matches[0]["match-text"][0] + "&lt;/iframe>&lt;/div>";
         
         resStr += "&lt;/div>";
         return resStr;
       } else if ("object" == typeof(result.content)) {
-        // TRY TO GUESS JSON CONTENT
+        // TRY TO GUESS JSON CONTENT - V6 and older V7 builds - now (29 Oct 2013) even JSON is escaped as a string!!!
         self.ctx.db.logger.debug("defaultProcessor: Got JSON Object content");
         
-        var resStr = "";
-        // parse each results and snippet / raw content
-        var title = result.uri;
-        if (undefined != result.content && undefined != result.content.title ) {
-          title = result.content.title;
-        }
-        var snippet = null;
-        // TODO show all content if snippeting mode is snippet
-        if (undefined != result.content && undefined != result.content.summary) {
-          snippet = result.content.summary;
-        } else if (undefined != result.content) {
-          //snippet = JSON.stringify(result.content); 
-          snippet = com.marklogic.widgets.searchhelper.jsontohtml(result.content);
-          // TODO check for XML (string not object) content in results.results[i].content
-        } else {
-          // no snippet available
-        }
-        
-        if (null == snippet) {
-          // TODO show JSON tree structure as HTML
-          self.ctx.db.logger.debug("defaultProcessor: No JSON summary, building JSON tree HTML output");
-        }
-        
-        resStr += "&lt;div class='searchresults-result'>&lt;h3>" + result.index + ". " + title + "&lt;/h3>";
-        if (null != snippet) {
-          resStr += "&lt;div class='searchresults-snippet'>" + snippet + "&lt;/div>";
-        }
-        resStr += "&lt;/div>";
-        return resStr;
+        return handleJson(result,result.content);
       } else {
         // ATTEMPT TO PARSE AS XML
-        self.ctx.db.logger.debug("defaultProcessor: Got suspected XML - last processor option anyway...");
+        self.ctx.db.logger.debug("defaultProcessor: Got escaped string - Could be XML or JSON ...");
+        
+        // try to parse as JSON first
         try {
-          var xmlDoc = textToXML(result.content);
-          self.ctx.db.logger.debug("defaultProcessor:  - XML parse successful...");
+          var json = JSON.parse(result.content);
+          self.ctx.db.logger.debug("defaultProcessor:  - JSON parse successful...");
           
-          var resStr = "";
-          // parse each results and snippet / raw content
-          var title = result.uri;
-          var snippet = null;
-          
-          if (undefined != xmlDoc.evaluate) {
-            // check for common title names - title, name, id, h1
-            var evalResult = xmlDoc.evaluate("//title[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
-            if (undefined == evalResult || "" == evalResult.stringValue) {
-              self.ctx.db.logger.debug("defaultProcessor: //title[1]/text() undefined");
-              evalResult = xmlDoc.evaluate("//name[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
-              
-              if (undefined == evalResult || "" == evalResult.stringValue) {
-              self.ctx.db.logger.debug("defaultProcessor: //name[1]/text() undefined");
-                evalResult = xmlDoc.evaluate("//id[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
-              
-                if (undefined == evalResult || "" == evalResult.stringValue) {
-              self.ctx.db.logger.debug("defaultProcessor: //id[1]/text() undefined");
-                  evalResult = xmlDoc.evaluate("//h1[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
-              
-                  if (undefined == evalResult || "" == evalResult.stringValue) {
-              self.ctx.db.logger.debug("defaultProcessor: //h1[1]/text() undefined");
-                    self.ctx.db.logger.debug("defaultProcessor: trying (//text())[1]");
-                    evalResult = xmlDoc.evaluate("(//text())[1]",xmlDoc,null,XPathResult.STRING_TYPE,null);
-                    self.ctx.db.logger.debug("defaultProcessor: output: " + evalResult.stringValue);
-                  }
-                }
-              }
-            }
-            if (undefined != evalResult && null != evalResult && "" != evalResult.stringValue) {
-              title = evalResult.stringValue;
-            }
-            // check for common snippet names - summary, synopsis, description, details
-            evalResult = xmlDoc.evaluate("//summary[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
-            if (undefined == evalResult || "" == evalResult.stringValue) {
-              self.ctx.db.logger.debug("defaultProcessor: //summary[1]/text() undefined");
-              evalResult = xmlDoc.evaluate("//synopsis[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
-              if (undefined == evalResult || "" == evalResult.stringValue) {
-              self.ctx.db.logger.debug("defaultProcessor: //synopsis[1]/text() undefined");
-                evalResult = xmlDoc.evaluate("//description[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
-                if (undefined == evalResult || "" == evalResult.stringValue) {
-              self.ctx.db.logger.debug("defaultProcessor: //description[1]/text() undefined");
-                  evalResult = xmlDoc.evaluate("//details[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
-                  
-                  if (undefined == evalResult || "" == evalResult.stringValue) {
-              self.ctx.db.logger.debug("defaultProcessor: //details[1]/text() undefined");
-                    self.ctx.db.logger.debug("defaultProcessor: trying (//text())[2]");
-                    evalResult = xmlDoc.evaluate("(//text())[2]",xmlDoc,null,XPathResult.STRING_TYPE,null);
-                    self.ctx.db.logger.debug("defaultProcessor: output: " + evalResult.stringValue);
-                  }
-                }
-              }
-            }
-            if (undefined != evalResult && null != evalResult && "" != evalResult.stringValue) {
-              snippet = evalResult.stringValue;
-            }
-          }
-        
-          if (null == snippet) {
-            // show XML tree structure as HTML
-            self.ctx.db.logger.debug("defaultProcessor: No XML summary, building XML tree HTML output");
-            
-            // display tree of XML
-            snippet = com.marklogic.widgets.searchhelper.xmltohtml(xmlDoc); // TODO
-          }
-          
-          if (null == snippet) {
-            snippet = result.content;
-          }
-        
-          resStr += "&lt;div class='searchresults-result'>&lt;h3>" + result.index + ". " + title + "&lt;/h3>";
-          if (null != snippet) {
-            resStr += "&lt;div class='searchresults-snippet'>" + snippet + "&lt;/div>";
-          }
-          resStr += "&lt;/div>";
-          return resStr;
+          // we hit this line if we succeed
+          return handleJson(result,json);
         } catch (err) {
-          self.ctx.db.logger.debug("defaultProcessor: XML mode: Failed to create XML document from text: " + result.content);
+          // try XML now        
+          try {
+            var xmlDoc = textToXML(result.content);
+            self.ctx.db.logger.debug("defaultProcessor:  - XML parse successful...");
+            
+            var resStr = "";
+            // parse each results and snippet / raw content
+            var title = result.uri;
+            var snippet = null;
+            
+            if (undefined != xmlDoc.evaluate) {
+              // check for common title names - title, name, id, h1
+              var evalResult = xmlDoc.evaluate("//title[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
+              if (undefined == evalResult || "" == evalResult.stringValue) {
+                self.ctx.db.logger.debug("defaultProcessor: //title[1]/text() undefined");
+                evalResult = xmlDoc.evaluate("//name[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
+                
+                if (undefined == evalResult || "" == evalResult.stringValue) {
+                  self.ctx.db.logger.debug("defaultProcessor: //name[1]/text() undefined");
+                  evalResult = xmlDoc.evaluate("//id[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
+                
+                  if (undefined == evalResult || "" == evalResult.stringValue) {
+                self.ctx.db.logger.debug("defaultProcessor: //id[1]/text() undefined");
+                    evalResult = xmlDoc.evaluate("//h1[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
+                
+                    if (undefined == evalResult || "" == evalResult.stringValue) {
+                      self.ctx.db.logger.debug("defaultProcessor: //h1[1]/text() undefined");
+                      self.ctx.db.logger.debug("defaultProcessor: trying (//text())[1]");
+                      evalResult = xmlDoc.evaluate("(//text())[1]",xmlDoc,null,XPathResult.STRING_TYPE,null);
+                      self.ctx.db.logger.debug("defaultProcessor: output: " + evalResult.stringValue);
+                    }
+                  }
+                }
+              }
+              if (undefined != evalResult && null != evalResult && "" != evalResult.stringValue) {
+                title = evalResult.stringValue;
+              }
+              // check for common snippet names - summary, synopsis, description, details
+              evalResult = xmlDoc.evaluate("//summary[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
+              if (undefined == evalResult || "" == evalResult.stringValue) {
+                self.ctx.db.logger.debug("defaultProcessor: //summary[1]/text() undefined");
+                evalResult = xmlDoc.evaluate("//synopsis[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
+                if (undefined == evalResult || "" == evalResult.stringValue) {
+                  self.ctx.db.logger.debug("defaultProcessor: //synopsis[1]/text() undefined");
+                  evalResult = xmlDoc.evaluate("//description[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
+                  if (undefined == evalResult || "" == evalResult.stringValue) {
+                    self.ctx.db.logger.debug("defaultProcessor: //description[1]/text() undefined");
+                    evalResult = xmlDoc.evaluate("//details[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
+                    
+                    if (undefined == evalResult || "" == evalResult.stringValue) {
+                      self.ctx.db.logger.debug("defaultProcessor: //details[1]/text() undefined");
+                      self.ctx.db.logger.debug("defaultProcessor: trying (//text())[2]");
+                      evalResult = xmlDoc.evaluate("(//text())[2]",xmlDoc,null,XPathResult.STRING_TYPE,null);
+                      self.ctx.db.logger.debug("defaultProcessor: output: " + evalResult.stringValue);
+                    }
+                  }
+                }
+              }
+              if (undefined != evalResult && null != evalResult && "" != evalResult.stringValue) {
+                snippet = evalResult.stringValue;
+              }
+            }
+          
+            if (null == snippet) {
+              // show XML tree structure as HTML
+              self.ctx.db.logger.debug("defaultProcessor: No XML summary, building XML tree HTML output");
+              
+              // display tree of XML
+              snippet = com.marklogic.widgets.searchhelper.xmltohtml(xmlDoc); // TODO
+            }
+            
+            if (null == snippet) {
+              snippet = result.content;
+            }
+          
+            resStr += "&lt;div class='searchresults-result'>&lt;h3>" + result.index + ". " + title + "&lt;/h3>";
+            if (null != snippet) {
+              resStr += "&lt;div class='searchresults-snippet'>" + snippet + "&lt;/div>";
+            }
+            resStr += "&lt;/div>";
+            return resStr;
+          } catch (err) {
+            self.ctx.db.logger.debug("defaultProcessor: XML mode: Failed to create XML document from text: " + result.content);
+          }
+          
+          
+          // end try XML noe
         }
       }
     }
@@ -936,6 +1004,22 @@ com.marklogic.widgets.searchresults = function(container) {
   
   // event handlers
   this.selectionPublisher = new com.marklogic.events.Publisher();
+};
+
+com.marklogic.widgets.searchresults.getConfigurationDefinition = function() {
+  return {
+    selectionMode: {type: "enum", default: "append", title: "Selection Mode", description: "If no action happens on click, which selection mode to use.",
+      options: [
+        {value: "append", title: "Append", decsription: "Append this document to the list of those selection"},
+        {value: "replace", title: "Replace", decsription: "Replace selection with the selected document only"}
+      ]}
+  }
+};
+
+com.marklogic.widgets.searchresults.prototype.setConfiguration = function(config) {
+  for (var p in config) {
+    this[p] = config[p];
+  }
 };
 
 com.marklogic.widgets.searchresults.prototype.setContext = function(context) {
@@ -986,6 +1070,7 @@ com.marklogic.widgets.searchresults.prototype._refresh = function() {
     }
     return;
   }
+  this.lazyLoaders = new Array();
   if (null == this.results || undefined == this.results.results || this.results.results.length == 0) {
     document.getElementById(this.container).innerHTML = 
       "&lt;div class='mljswidget searchresults-inner'>" +
@@ -1003,7 +1088,8 @@ com.marklogic.widgets.searchresults.prototype._refresh = function() {
     var pointer = null != this.detailsLink;
     
     for (var i = 0;i &lt; this.results.results.length;i++) {
-      resStr += "&lt;div id='" + this.container + "-searchresults-wrapper-" + i + "' class='searchresults-wrapper"
+      var wrapperId = this.container + "-searchresults-wrapper-" + i;
+      resStr += "&lt;div id='" + wrapperId + "' class='searchresults-wrapper"
       if (pointer) {
         resStr += " searchresults-navigable";
       }
@@ -1012,6 +1098,7 @@ com.marklogic.widgets.searchresults.prototype._refresh = function() {
         
       // run processors in order
       var result = this.results.results[i];
+      
       var found = false;
       for (var p = 0;!found && p &lt; this.processorPriority.length;p++) {
         var pname = this.processorPriority[p];
@@ -1019,7 +1106,7 @@ com.marklogic.widgets.searchresults.prototype._refresh = function() {
         if (this.processors[pname].matcher(result)) {
           found = true;
           mljs.defaultconnection.logger.debug("found processor: " + pname);
-          var returned = this.processors[pname].processor(result);
+          var returned = this.processors[pname].processor(result,this);
           if (undefined != returned.nodeType) {
             var id = (uureplace++);
             resStr = "&lt;div id='" + this.container + "-searchresults-xml-" + id + "'>&lt;/div>";
@@ -1035,7 +1122,7 @@ com.marklogic.widgets.searchresults.prototype._refresh = function() {
           if ('object' == typeof(this.builtinProcessors[pname]) && this.builtinProcessors[pname].matcher(result)) {
             found = true;
             mljs.defaultconnection.logger.debug("found builtin processor: " + pname);
-            var returned = this.builtinProcessors[pname].processor(result);
+            var returned = this.builtinProcessors[pname].processor(result,this);
             if (undefined != returned.nodeType) {
               var id = (uureplace++);
               resStr = "&lt;div id='" + this.container + "-searchresults-xml-" + id + "'>&lt;/div>";
@@ -1060,25 +1147,47 @@ com.marklogic.widgets.searchresults.prototype._refresh = function() {
     document.getElementById(this.container).innerHTML = resStr;
     
     // now add click handlers to each result div, if required
-    if (pointer) {
+    //if (pointer) {
       var self = this;
       var addPointerHandler = function(id,result) {
         document.getElementById(id).onclick = function(evt) {
           self._navigateTo(result.uri);
         }
+      };
+      if (!pointer) {
+        // fire selection event instead
+        addPointerHandler = function(id,result) {
+          document.getElementById(id).onclick = function(evt) {
+            self.selectionPublisher.publish({mode: self.selectionMode, uri: result.uri});
+          }
+        };
       }
       for (var i = 0;i &lt; this.results.results.length;i++) {
         var id = this.container + "-searchresults-wrapper-" + i;
         var result = this.results.results[i];
         addPointerHandler(id,result);
       }
-    }
+    //}
     
     // now do any XML replacements
     for (var r = 1001;r &lt; uureplace;r++) {
       document.getElementById(this.container + "-searchresults-xml-" + r).innerHTML = replacements[r]; // TODO verify we don't have to clone the XML document before insert (shouldn't need to)
     }
+    
+    // go through lazy loaders and run them
+    for (var i = 0;i &lt; this.lazyLoaders.length;i++) {
+      var loader = this.lazyLoaders[i];
+      loader.callback(loader.docuri,loader.elid);
+    }
   }
+};
+
+com.marklogic.widgets.searchresults.prototype.generateLazyId = function() {
+  return this.lazyId++;
+};
+
+com.marklogic.widgets.searchresults.prototype.lazyLoad = function(docuri,elid,callback) {
+  this.lazyLoaders.push({docuri: docuri,elid: elid,callback: callback});
 };
 
 com.marklogic.widgets.searchresults.prototype._navigateTo = function(uri) {
@@ -1091,7 +1200,7 @@ com.marklogic.widgets.searchresults.prototype._navigateTo = function(uri) {
  * 
  * @param {function(uri)} sl - Search listener function
  */
-com.marklogic.widgets.searchresults.prototype.addSelectionListener = function(sl) {
+com.marklogic.widgets.searchresults.prototype.addResultSelectionListener = function(sl) {
   this.selectionPublisher.subscribe(sl);
 };
 
@@ -1100,7 +1209,7 @@ com.marklogic.widgets.searchresults.prototype.addSelectionListener = function(sl
  * 
  * @param {function(uri)} sl - Search listener function
  */
-com.marklogic.widgets.searchresults.prototype.removeSelectionListener = function(sl) {
+com.marklogic.widgets.searchresults.prototype.removeResultSelectionListener = function(sl) {
   this.selectionPublisher.unsubscribe(sl);
 };
 
@@ -1158,7 +1267,7 @@ com.marklogic.widgets.searchresults.prototype.setProcessorPriority = function(pr
 com.marklogic.widgets.searchpager = function(container) {
   this.container = container;
   
-  this.perPage = 10;
+  this.perPage = 10; // TODO get this from search options / results
   this.start = 0;
   this.total = 0;
   
@@ -1505,6 +1614,54 @@ com.marklogic.widgets.searchsort.prototype.updateOptions = function(options) {
 
 
 
+/**
+ * Creates a new document selection widget, showing a list of document URIs that have been selected on this page.
+ * 
+ * @constructor
+ * @param {string} container - The HTML ID of the container within which to render this widget.
+ */
+com.marklogic.widgets.selection = function(container) {
+  this.container = container;
+  
+  this._selected = new Array(); // URI list
+  
+  this._refresh();
+};
+
+com.marklogic.widgets.selection.prototype._refresh = function() {
+  var str = "&lt;div id='" + this.container + "-selection' class='mljswidget selection'>";
+  str += "&lt;div class='title selection-title'>Selected Documents&lt;/div>";
+  if (0 == this._selected.length) {
+    str += "&lt;i>None Selected&lt;/i>";
+  } else {
+    for (var i = 0,max = this._selected.length,sel;i &lt; max;i++) {
+      sel = this._selected[i];
+      str += "&lt;p>" + sel + "&lt;/p>"; // TODO allow editing of selection (removing selected docs) // TODO lookup doc summary somehow - title facet, etc.
+    }
+  }
+  str += "&lt;/div>";
+  document.getElementById(this.container).innerHTML = str;
+};
+
+/**
+ * Responds to a search context's update of the list of selected document URIs
+ * 
+ * @param {Array(string)} newsel - String array containing URIs of selected documents.
+ */
+com.marklogic.widgets.selection.prototype.updateDocumentSelection = function(newsel) {
+  this._selected = newsel;
+  this._refresh();
+};
+
+
+
+
+
+
+
+
+
+
 
 // SEARCH PAGE ELEMENT (combines others)
 
@@ -1576,6 +1733,21 @@ com.marklogic.widgets.searchpage = function(container) {
   this.db = mljs.defaultconnection;
 };
 
+
+com.marklogic.widgets.searchpage.prototype.setSearchContext = function(ctx) {
+  this.context = ctx;
+  
+  this.context.register(this.bar);
+  this.context.register(this.sort);
+  this.context.register(this.facets);
+  this.context.register(this.pager);
+  this.context.register(this.results);
+};
+
+com.marklogic.widgets.searchpage.prototype.getSearchContext = function() {
+  return this.context;
+};
+
 /**
  * Sets the options to be used by all the search page widgets
  *
@@ -1629,13 +1801,13 @@ com.marklogic.widgets.searchpage.reset = function() {
 </div>
 
 <nav>
-    <h2><a href="index.html">Index</a></h2><h3>Classes</h3><ul><li><a href="com.marklogic.widgets.collectionuris.html">collectionuris</a></li><li><a href="com.marklogic.widgets.cooccurence.html">cooccurence</a></li><li><a href="com.marklogic.widgets.create.html">create</a></li><li><a href="com.marklogic.widgets.entityfacts.html">entityfacts</a></li><li><a href="com.marklogic.widgets.highcharts.html">highcharts</a></li><li><a href="com.marklogic.widgets.kratu.html">kratu</a></li><li><a href="com.marklogic.widgets.markings.html">markings</a></li><li><a href="com.marklogic.widgets.rdb2rdf.html">rdb2rdf</a></li><li><a href="com.marklogic.widgets.searchbar.html">searchbar</a></li><li><a href="com.marklogic.widgets.searchpage.html">searchpage</a></li><li><a href="com.marklogic.widgets.searchpager.html">searchpager</a></li><li><a href="com.marklogic.widgets.searchresults.html">searchresults</a></li><li><a href="com.marklogic.widgets.searchsort.html">searchsort</a></li><li><a href="com.marklogic.widgets.sparqlbar.html">sparqlbar</a></li><li><a href="com.marklogic.widgets.sparqlresults.html">sparqlresults</a></li></ul><h3>Namespaces</h3><ul><li><a href="com.marklogic.widgets.bits.html">bits</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-001-intro.html">001-intro</a></li><li><a href="tutorial-002-widgets-search.html">002-widgets-search</a></li><li><a href="tutorial-003-widgets-search-render.html">003-widgets-search-render</a></li><li><a href="tutorial-004-widgets-highcharts.html">004-widgets-highcharts</a></li><li><a href="tutorial-011-browser-create-app.html">011-browser-create-app</a></li><li><a href="tutorial-012-browser-install-app.html">012-browser-install-app</a></li><li><a href="tutorial-013-browser-samples-app.html">013-browser-samples-app</a></li><li><a href="tutorial-999-samples.html">999-samples</a></li><li><a href="tutorial-all.html">all</a></li></ul>
+    <h2><a href="index.html">Index</a></h2><h3>Classes</h3><ul><li><a href="com.marklogic.widgets.collectionuris.html">collectionuris</a></li><li><a href="com.marklogic.widgets.cooccurence.html">cooccurence</a></li><li><a href="com.marklogic.widgets.create.html">create</a></li><li><a href="com.marklogic.widgets.docviewer.html">docviewer</a></li><li><a href="com.marklogic.widgets.entityfacts.html">entityfacts</a></li><li><a href="com.marklogic.widgets.graphexplorer.html">graphexplorer</a></li><li><a href="com.marklogic.widgets.highcharts.html">highcharts</a></li><li><a href="com.marklogic.widgets.kratu.html">kratu</a></li><li><a href="com.marklogic.widgets.markings.html">markings</a></li><li><a href="com.marklogic.widgets.profile.html">profile</a></li><li><a href="com.marklogic.widgets.rdb2rdf.html">rdb2rdf</a></li><li><a href="com.marklogic.widgets.searchbar.html">searchbar</a></li><li><a href="com.marklogic.widgets.searchpage.html">searchpage</a></li><li><a href="com.marklogic.widgets.searchpager.html">searchpager</a></li><li><a href="com.marklogic.widgets.searchresults.html">searchresults</a></li><li><a href="com.marklogic.widgets.searchsort.html">searchsort</a></li><li><a href="com.marklogic.widgets.selection.html">selection</a></li><li><a href="com.marklogic.widgets.sparqlbar.html">sparqlbar</a></li><li><a href="com.marklogic.widgets.sparqlresults.html">sparqlresults</a></li><li><a href="com.marklogic.widgets.workplace.html">workplace</a></li></ul><h3>Namespaces</h3><ul><li><a href="com.marklogic.widgets.bits.html">bits</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-001-intro.html">001-intro</a></li><li><a href="tutorial-001-widgets-list.html">001-widgets-list</a></li><li><a href="tutorial-002-intro-firstpage.html">002-intro-firstpage</a></li><li><a href="tutorial-002-widgets-search.html">002-widgets-search</a></li><li><a href="tutorial-003-widgets-search-render.html">003-widgets-search-render</a></li><li><a href="tutorial-004-widgets-highcharts.html">004-widgets-highcharts</a></li><li><a href="tutorial-011-browser-create-app.html">011-browser-create-app</a></li><li><a href="tutorial-012-browser-install-app.html">012-browser-install-app</a></li><li><a href="tutorial-013-browser-samples-app.html">013-browser-samples-app</a></li><li><a href="tutorial-014-browser-workplace.html">014-browser-workplace</a></li><li><a href="tutorial-050-core-contexts.html">050-core-contexts</a></li><li><a href="tutorial-901-ontology.html">901-ontology</a></li><li><a href="tutorial-999-samples.html">999-samples</a></li><li><a href="tutorial-all.html">all</a></li></ul><h3>Global</h3><ul><li><a href="global.html#com">com</a></li></ul>
 </nav>
 
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Mon Sep 09 2013 23:59:32 GMT+0100 (BST)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Tue Oct 29 2013 11:53:10 GMT-0000 (GMT)
 </footer>
 
 <script> prettyPrint(); </script>

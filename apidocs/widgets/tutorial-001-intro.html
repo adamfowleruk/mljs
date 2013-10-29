@@ -31,7 +31,38 @@
     <p><a href="tutorial-all.html">Back to All Tutorials list</a></p>
 <h1>MLJS Introduction</h1>
 <p>MLJS is a JavaScript wrapper around the MarkLogic REST API in MarkLogic server versions 6 & 7. MLJS consists of
-a core API defined in mljs.js, a set of communication and security wrappers, and some browser widgets. The
+a core API defined in mljs.js, a set of communication and security wrappers, and some browser widgets. </p>
+<h2>Why you should use MLJS</h2>
+<p>MLJS abstracts the dull, repetitive or difficult work associated with working with the MarkLogic REST API so that
+you can concentrate on developing awesome applications. You want to spend time creating a tailored search app
+for your clients, not figuring out the intricacies of HTTP Digest authentication, or the exact JSON format
+search query to perform a simple search in MarkLogic.</p>
+<p>MLJS handles all this complexity for you. The heart of the Core API is the MLJS object itself. This acts like a 
+client connection object. It provides methods like save(), get(), delete() and search() that take simple parameters
+and do exactly what they say.</p>
+<p>MLJS underneath these methods is handling the exact type of REST call (GET, PUT, POST), the destination URL, query
+string parameters, document to send, how to handle the response, managing any errors, and the underlying authentication.
+All you need do is read a method's documentation and provide the simple parameters in order to connect to MarkLogic.
+There are even administration methods to create and destroy entire REST server instances.</p>
+<p>Above this are the context objects. These handle common situations where the calling of one method may affect several
+objects 'listening' for particular actions. Consider 5 different search based widgets on a single page, all responding
+to an executed search but all displaying different things - like the results, the facets, the pagination, the sorting allowed.
+This is common functionality you'll want to re-use, but not write from scratch each time.</p>
+<p>Layered over the top of this API are the Widget libraries. These provide JavaScript backed XHTML 1.0 and HTML 5 compatible
+web widgets for integration in your web applications. These use the context objects usually rather than MLJS Core directly
+in order to provide an interactive UI to your application. </p>
+<p>Example include a simple search bar using google-esque simple
+search grammar, or a chart summarising facet information, or a document upload widget. You can choose to mix and match these
+widgets on a particular page in order to power your application.</p>
+<p>All this means one thing - a lot less code to write from scratch to get your application up and running. I've personally been
+using MLJS to power all my demonstrations of MarkLogic since December 2012. I estimate for what would have taken me 2-3 weeks to write
+in a mix of XQuery and Roxy and HTML and JavaScript now takes me on average 4 days. All through re-use and using a standard API.</p>
+<p>Even when I have to add functionality it takes much less time - because I re-use what's there. Need to add a chart widget over the search
+results? I've got a searchcontext and the event handlers and underlying functionality to do that - all I need to do is write the small
+amount of code to power the chart. Easy.</p>
+<p><strong><em>MLJS saves time, is easier to learn that the REST API itself, and provides rich functionality OOTB, ready to demo. This is why you should invest time in learning and using MLJS yourself.</em></strong></p>
+<h2>What is provided by MLJS?</h2>
+<p>The
 complete set of functionality can be seen in the following diagram.</p>
 <p><img src="./images/mljs-diagrams.002.png" alt="MLJS API" title="MLJS API"></p>
 <p>As you can see above, there is a core API highlighted in red. The Green boxes are communication and security 
@@ -63,13 +94,13 @@ I have created in MLJS.</p>
 </div>
 
 <nav>
-    <h2><a href="index.html">Index</a></h2><h3>Classes</h3><ul><li><a href="com.marklogic.widgets.collectionuris.html">collectionuris</a></li><li><a href="com.marklogic.widgets.cooccurence.html">cooccurence</a></li><li><a href="com.marklogic.widgets.create.html">create</a></li><li><a href="com.marklogic.widgets.entityfacts.html">entityfacts</a></li><li><a href="com.marklogic.widgets.highcharts.html">highcharts</a></li><li><a href="com.marklogic.widgets.kratu.html">kratu</a></li><li><a href="com.marklogic.widgets.markings.html">markings</a></li><li><a href="com.marklogic.widgets.rdb2rdf.html">rdb2rdf</a></li><li><a href="com.marklogic.widgets.searchbar.html">searchbar</a></li><li><a href="com.marklogic.widgets.searchpage.html">searchpage</a></li><li><a href="com.marklogic.widgets.searchpager.html">searchpager</a></li><li><a href="com.marklogic.widgets.searchresults.html">searchresults</a></li><li><a href="com.marklogic.widgets.searchsort.html">searchsort</a></li><li><a href="com.marklogic.widgets.sparqlbar.html">sparqlbar</a></li><li><a href="com.marklogic.widgets.sparqlresults.html">sparqlresults</a></li></ul><h3>Namespaces</h3><ul><li><a href="com.marklogic.widgets.bits.html">bits</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-001-intro.html">001-intro</a></li><li><a href="tutorial-002-widgets-search.html">002-widgets-search</a></li><li><a href="tutorial-003-widgets-search-render.html">003-widgets-search-render</a></li><li><a href="tutorial-004-widgets-highcharts.html">004-widgets-highcharts</a></li><li><a href="tutorial-011-browser-create-app.html">011-browser-create-app</a></li><li><a href="tutorial-012-browser-install-app.html">012-browser-install-app</a></li><li><a href="tutorial-013-browser-samples-app.html">013-browser-samples-app</a></li><li><a href="tutorial-999-samples.html">999-samples</a></li><li><a href="tutorial-all.html">all</a></li></ul>
+    <h2><a href="index.html">Index</a></h2><h3>Classes</h3><ul><li><a href="com.marklogic.widgets.collectionuris.html">collectionuris</a></li><li><a href="com.marklogic.widgets.cooccurence.html">cooccurence</a></li><li><a href="com.marklogic.widgets.create.html">create</a></li><li><a href="com.marklogic.widgets.docviewer.html">docviewer</a></li><li><a href="com.marklogic.widgets.entityfacts.html">entityfacts</a></li><li><a href="com.marklogic.widgets.graphexplorer.html">graphexplorer</a></li><li><a href="com.marklogic.widgets.highcharts.html">highcharts</a></li><li><a href="com.marklogic.widgets.kratu.html">kratu</a></li><li><a href="com.marklogic.widgets.markings.html">markings</a></li><li><a href="com.marklogic.widgets.profile.html">profile</a></li><li><a href="com.marklogic.widgets.rdb2rdf.html">rdb2rdf</a></li><li><a href="com.marklogic.widgets.searchbar.html">searchbar</a></li><li><a href="com.marklogic.widgets.searchpage.html">searchpage</a></li><li><a href="com.marklogic.widgets.searchpager.html">searchpager</a></li><li><a href="com.marklogic.widgets.searchresults.html">searchresults</a></li><li><a href="com.marklogic.widgets.searchsort.html">searchsort</a></li><li><a href="com.marklogic.widgets.selection.html">selection</a></li><li><a href="com.marklogic.widgets.sparqlbar.html">sparqlbar</a></li><li><a href="com.marklogic.widgets.sparqlresults.html">sparqlresults</a></li><li><a href="com.marklogic.widgets.workplace.html">workplace</a></li></ul><h3>Namespaces</h3><ul><li><a href="com.marklogic.widgets.bits.html">bits</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-001-intro.html">001-intro</a></li><li><a href="tutorial-001-widgets-list.html">001-widgets-list</a></li><li><a href="tutorial-002-intro-firstpage.html">002-intro-firstpage</a></li><li><a href="tutorial-002-widgets-search.html">002-widgets-search</a></li><li><a href="tutorial-003-widgets-search-render.html">003-widgets-search-render</a></li><li><a href="tutorial-004-widgets-highcharts.html">004-widgets-highcharts</a></li><li><a href="tutorial-011-browser-create-app.html">011-browser-create-app</a></li><li><a href="tutorial-012-browser-install-app.html">012-browser-install-app</a></li><li><a href="tutorial-013-browser-samples-app.html">013-browser-samples-app</a></li><li><a href="tutorial-014-browser-workplace.html">014-browser-workplace</a></li><li><a href="tutorial-050-core-contexts.html">050-core-contexts</a></li><li><a href="tutorial-901-ontology.html">901-ontology</a></li><li><a href="tutorial-999-samples.html">999-samples</a></li><li><a href="tutorial-all.html">all</a></li></ul><h3>Global</h3><ul><li><a href="global.html#com">com</a></li></ul>
 </nav>
 
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Mon Sep 09 2013 23:59:34 GMT+0100 (BST)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Tue Oct 29 2013 11:53:11 GMT-0000 (GMT)
 </footer>
 
 <script> prettyPrint(); </script>

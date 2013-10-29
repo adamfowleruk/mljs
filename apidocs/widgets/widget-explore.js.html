@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: widget-explore.js</title>
+    
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+    
+    <h1 class="page-title">Source: widget-explore.js</h1>
+    
+    
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source"><code>/*
+Copyright 2012 MarkLogic Corporation
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+// global variable definitions
+com = window.com || {};
+com.marklogic = window.com.marklogic || {};
+com.marklogic.widgets = window.com.marklogic.widgets || {};
+
+
+
+/**
+ * This widget allows a user to explore a graph of data starting with a specified subject.
+ * The widget is also capable of showing each node's properties, and relationship information.
+ * Additionally, if a node is of type MarkLogicDocument then it's facet information is loaded
+ * as property values.
+ * 
+ * This widget will also support dynamically generating SPARQL and structured queries necessary
+ * to create a report. This will be done by dragging and dropping properties/facets on to a
+ * receiver object. Each receiver object will have it's semantic context updated with the dropped
+ * property (and thus high level 'select' sparql query, and document value query).
+ *
+ * @constructor
+ * @param {string} container - The ID of the HTML element to draw this widget within.
+ */
+com.marklogic.widgets.graphexplorer = function(container) {
+  this.container = container;
+
+  this.documentContext = null;
+  this.semanticContext = null; // used for querying for information to display ONLY
+  
+  this.entities = new Array(); // {"subjectparam": "ent1", "", queryterms : {semantic:  some query, content: some config}, parentiri: , subjectiri: , docuri: , subjectsfacts: , column: , row: , jswrapper: }
+
+  this.properties = new Array(); // {htmlid: "span3456", parentid: "div1234", predicate: ""}
+  
+  this.propertyCache = new Array(); // subjectiri -> facts json
+  this.facetCache = new Array(); // subjectIri -> facets json
+  
+  this.drawWhenComplete = new Array(); // JSON object {subject: iri, dependencies: [string dep iri]}
+  
+  this.columnCount = new Array(); // 1 based column number > count of widgets drawn in there
+  
+  this.searchOptionsName = "default";
+  
+  this.columnWidths = new Array(); // colnumber -> pixel width maximum in column
+  this.rowHeights = new Array(); // crownumber -> pixel height maximum in row
+
+  this._init();
+};
+
+com.marklogic.widgets.graphexplorer.prototype.checkColumnWidth = function(colnum,width) {
+  var curwidth = this.columnWidths[colnum];
+  mljs.defaultconnection.logger.debug("checkColumnWidth: colnum: " + colnum + ", curwidth: " + curwidth + ", width: " + width);
+  if (undefined == curwidth) {
+    curwidth = 0;
+  }
+  if (curwidth &lt; width) {
+    this.columnWidths[colnum] = width;
+  }
+};
+
+com.marklogic.widgets.graphexplorer.prototype.checkRowHeight = function(num,height) {
+  var cur = this.rowHeights[num];
+  mljs.defaultconnection.logger.debug("checkRowHeight: rownum: " + num + ", curheight: " + cur + ", height: " + height);
+  if (undefined == cur) {
+    cur = 0;
+  }
+  if (cur &lt; height) {
+    this.rowHeights[num] = height;
+  }
+};
+
+com.marklogic.widgets.graphexplorer.prototype.widthBefore = function(column) {
+  var width = 0;
+  for (var i = 1;i &lt; this.columnWidths.length && i &lt; column;i++) {
+    mljs.defaultconnection.logger.debug("widthBefore: i=" + i + " => " + this.columnWidths[i]);
+    width += this.columnWidths[i];
+  }
+  return width;
+};
+
+com.marklogic.widgets.graphexplorer.prototype.heightBefore = function(row) {
+  var height = 0;
+  for (var i = 1;i &lt; this.rowHeights.length && i &lt; row;i++) {
+    mljs.defaultconnection.logger.debug("heightBefore: i=" + i + " => " + this.rowHeights[i]);
+    height += this.rowHeights[i];
+  }
+  return height;
+};
+
+
+com.marklogic.widgets.graphexplorer.prototype.setSearchOptionsName = function(name) {
+  this.searchOptionsName = name;
+};
+
+com.marklogic.widgets.graphexplorer.prototype.getSearchOptionsName = function() {
+  return this.searchOptionsName;
+};
+
+com.marklogic.widgets.graphexplorer.prototype.setDocumentContext = function(ctx) {
+  this.documentContext = ctx;
+};
+
+com.marklogic.widgets.graphexplorer.prototype.getDocumentContext = function() {
+  return this.documentContext;
+};
+
+com.marklogic.widgets.graphexplorer.prototype.setSemanticContext = function(ctx) {
+  this.semanticContext = ctx;
+};
+
+com.marklogic.widgets.graphexplorer.prototype.getSemanticContext = function() {
+  return this.semanticContext;
+};
+
+com.marklogic.widgets.graphexplorer.prototype._init = function() {
+  var id = this.container + "-graphexplorer";
+  var html = "&lt;div id='" + id + "' class='mljswidget graphexplorer'>&lt;/div>";
+  
+  document.getElementById(this.container).innerHTML = html;
+  
+  // set up highcharts
+  
+    var chart = new Highcharts.Chart({
+        title: {
+            text: 'Graph Explorer',
+            align: "left"
+        },
+        chart: {
+            renderTo: id,
+            events: {
+                load: function () {
+                    
+          }
+        },
+        width: 2000,
+        height: 2000
+      }
+    });
+    
+  var chartdiv = document.getElementById(this.container).childNodes[0];
+  chartdiv.style.overflow = "scroll";
+  chartdiv.style.width = "100%";
+  chartdiv.style.height = "2050px";
+  
+  this.chart = chart;
+  this.renderer = chart.renderer;
+  
+  /*
+                    // Draw the flow chart
+                    var ren = chart.renderer,
+                        colors = Highcharts.getOptions().colors,
+                        rightArrow = ['M', 0, 0, 'L', 100, 0, 'L', 95, 5, 'M', 100, 0, 'L', 95, -5],
+                        leftArrow = ['M', 100, 0, 'L', 0, 0, 'L', 5, 5, 'M', 0, 0, 'L', 5, -5],
+                        seArrow = ['M', 145, 115, 'L', 220, 235, 'L',215,235,'M',220,230,'L',220,235],
+                        swAnti = ['M',80,120,'L',80,245,'C',80,270,80,270,105,270,'L',210,270,'L',205,265,'M',205,275,'L',210,270];
+                        
+                        ren.path(['M', 235, 185, 'L', 235, 155, 'C', 235, 130, 235, 130, 215, 130, 
+                              'L', 95, 130, 'L', 100, 125, 'M', 95, 130, 'L', 100, 135])
+                         .attr({
+                             'stroke-width': 2,
+                             stroke: colors[3]
+                         })
+                         .add();
+                    
+                    var jc = ren.label('&lt;b>Adam Fowler&lt;/b>&lt;br/>&lt;b>&lt;i>(Joint Customer)&lt;/i>&lt;/b>&lt;br/>&lt;br/>&lt;b>Prop 1:&lt;/b> Value 1&lt;br/>&lt;b>Prop 2:&lt;/b> Value 2', 20, 40)
+                        .attr({
+                            fill: "white",
+                            stroke: colors[0],
+                            'stroke-width': 4,
+                            padding: 6,
+                            r: 8
+                        })
+                        .css({
+                            color: colors[0]
+                        })
+                        .add()
+                        .shadow(true);
+                    
+                    // Headers
+                    var nkb = ren.label('&lt;b>Fowler&lt;/b>&lt;br/>&lt;b>&lt;i>(NKB Customer)&lt;/i>&lt;/b>&lt;br/>&lt;br/>&lt;b>Prop 1:&lt;/b> Value 1&lt;br/>&lt;b>Prop 2:&lt;/b> Value 2', 220, 40)
+                        .attr({
+                            fill: "white",
+                            stroke: colors[0],
+                            'stroke-width': 4,
+                            padding: 6,
+                            r: 8
+                        })
+                        .css({
+                            color: colors[0]
+                        })
+                        .add()
+                        .shadow(true);
+                        
+                        
+                    var nic = ren.label('&lt;b>A Fowler&lt;/b>&lt;br/>&lt;b>&lt;i>(NIC Client)&lt;/i>&lt;/b>&lt;br/>&lt;br/>&lt;b>Prop 1:&lt;/b> Value 1', 220, 240)
+                        .attr({
+                            fill: "white",
+                            stroke: colors[0],
+                            'stroke-width': 4,
+                            padding: 6,
+                            r: 8
+                        })
+                        .css({
+                            color: colors[0]
+                        })
+                        .add()
+                        .shadow(true);
+                        
+                  var jcbb = jc.getBBox();
+                  mljs.defaultconnection.logger.debug("JCBB: " + JSON.stringify(jcbb));
+                  var nicbb = nic.getBBox();
+                  mljs.defaultconnection.logger.debug("NICBB: " + JSON.stringify(nicbb));
+                        
+                  ren.path(swAnti
+                    //['M',(jcbb.x + (0.5 * jcbb.width)),(jcbb.y + jcbb.height + 10),'L',80,245,'C',80,270,80,270,105,270,'L',210,270,'L',205,265,'M',205,275,'L',210,270]
+                    ).attr({
+                             'stroke-width': 2,
+                             stroke: colors[4]
+                         })
+                         .add();
+                         
+                  ren.path(seArrow).attr({
+                             'stroke-width': 2,
+                             stroke: colors[4]
+                         })
+                         .add();
+  
+  */
+  
+  
+};
+
+com.marklogic.widgets.graphexplorer.prototype._entityFromUI = function(elid) {
+  for (var i = 0, max = this.entities.length, ent;i &lt; max;i++) {
+    ent = this.entities[i];
+    if (ent.htmlid == elid) {
+      return ent;
+    }
+  }
+  return null;
+};
+
+com.marklogic.widgets.graphexplorer.prototype._entityFromIRI = function(iri) {
+  for (var i = 0, max = this.entities.length, ent;i &lt; max;i++) {
+    ent = this.entities[i];
+    if (ent.subjectiri == iri) {
+      return ent;
+    }
+  }
+  return null;
+};
+
+com.marklogic.widgets.graphexplorer.prototype._propertyFromUI = function(elid) {
+  for (var i = 0, max = this.properties.length, prop;i &lt; max;i++) {
+    prop = this.properties[i];
+    if (prop.htmlid == elid) {
+      return prop;
+    }
+  }
+  return null;
+};
+
+com.marklogic.widgets.graphexplorer.prototype._loadSubjectInformation = function(iri) {
+  this.semanticContext.getFacts(iri,false);
+};
+
+com.marklogic.widgets.graphexplorer.prototype.updateSelectedSubject = function(subjectIri) {
+  // find primary node in diagram
+  // create if does not exist
+  // replace with content of new node
+};
+
+
+com.marklogic.widgets.graphexplorer.prototype._incrementColumnCount = function(column) {
+  var count = this._getColumnCount(column) + 1;
+  this.columnCount[column] = count;
+  return count;
+};
+
+
+com.marklogic.widgets.graphexplorer.prototype._getColumnCount = function(column) {
+  var count = this.columnCount[column];
+  if (undefined == count || "number" !== typeof (count)) {
+    count = 0;
+    this.columnCount[column] = count;
+  }
+  return count;
+};
+
+com.marklogic.widgets.graphexplorer.prototype.drawSubject = function(subjectIri,parentIri,column,row) {
+    if (1 == column && 1 == row) {
+      this._incrementColumnCount(1);
+    }
+    //var x = 20 + (200 * (column - 1));
+    //var y = 40 + (200 * (row - 1));
+    
+    var x = 20 + (100 * (column - 1)) + this.widthBefore(column);
+    var y = 40 + (20 * (row - 1)) + this.heightBefore(row);
+    mljs.defaultconnection.logger.debug("drawSubject: x=" + x + ", y=" + y);
+    
+    // draw subject box itself
+    var ren = this.renderer;
+    var colors = Highcharts.getOptions().colors;
+    
+    // show 'properties/rels loading'
+    var box = ren.label('&lt;b>Loading...&lt;/b>', x, y).attr({
+      fill: "white",
+      stroke: colors[0],
+      'stroke-width': 4,
+      padding: 6,
+      r: 8
+    }).css({
+      color: colors[0]
+    }).add().shadow(true);
+    
+    // save our config in a JS object
+    var ent = {parentiri: parentIri, subjectiri: subjectIri, docuri: null , subjectsfacts:new Array(), column:column , row: row, jswrapper: box};
+    this.entities.push(ent);
+    // load properties of subject
+    this.semanticContext.getFacts(subjectIri,false);
+    
+    /*
+  if (null == this.propertyCache[subjectIri]) {
+  } else {
+    this._drawSubjectDetail(subjectIri,this.propertyCache[subjectIri]);
+  }*/
+};
+
+com.marklogic.widgets.graphexplorer.prototype._drawSubjectDetail = function(subjectIri,facts) {
+  // get entity from saved details
+  var ent = this._entityFromIRI(subjectIri);
+  if (null == ent) {
+    mljs.defaultconnection.logger.debug("graphexplorer._drawSubjectDetail: No node for element: " + subjectIri + ", so not drawing anything to represent it.");
+    return;
+  }
+  if (null != ent.jswrapper) {
+    ent.jswrapper.destroy();
+  }
+  
+  var ren = this.renderer;
+  var colors = Highcharts.getOptions().colors;
+  
+  // get JS box
+  // remove from graph
+  
+  // generate new box
+  var column = ent.column;
+  var row = ent.row;
+  
+    //var x = 20 + (200 * (column - 1));
+    //var y = 40 + (200 * (row - 1));
+    
+    var x = 20 + (100 * (column - 1)) + this.widthBefore(column);
+    var y = 40 + (20 * (row - 1)) + this.heightBefore(row);
+    mljs.defaultconnection.logger.debug("_drawSubjectDetail: x=" + x + ", y=" + y);
+  
+  // draw subject box itself
+  
+  // use semantic config to find common name and type (use summarise into code)
+  var scfg = this.semanticContext.getConfiguration();
+  
+  
+  var propValues = new Array();
+    
+  // show properties within box
+  var props = "";
+  var title = subjectIri;
+  var type = "Unknown";
+    for (var b = 0,bindings = facts.results.bindings, max = bindings.length, predicate, obj, binding;b &lt; max;b++) {
+      binding = bindings[b];
+      predicate = binding.predicate;
+      //mljs.defaultconnection.logger.debug("OUR PREDICATE: " + JSON.stringify(predicate));
+      var pinfo = scfg.getPredicateFromIRI(predicate.value);
+      //mljs.defaultconnection.logger.debug("OUR PINFO: " + JSON.stringify(pinfo));
+      var obj = binding.object;
+      //mljs.defaultconnection.logger.debug("OUR OBJECT: " + JSON.stringify(obj));
+      //mljs.defaultconnection.logger.debug("OUR BINDING: " + JSON.stringify(binding));
+
+      if (predicate.value != "http://www.w3.org/1999/02/22-rdf-syntax-ns#type") {
+        var t = predicate.value;
+        if (undefined != pinfo) {
+          t = pinfo.title;
+        }
+        var ttitle = t;
+        if (ttitle == predicate.value) {
+          ttitle = this._shortenSubjectIri(predicate.value);
+        }
+        
+        //props += "&lt;b>" + t + ":&lt;/b> " + obj.value + "&lt;br/>";
+        propValues[predicate.value] = {value: obj.value, title: ttitle, type: obj.type};
+
+        //s += "&lt;/p>";
+      } else {
+        // got rdftype
+        type = obj.value;
+      }
+    }
+  
+  var predEntity = scfg.getEntityFromIRI(type);
+  var baseType = type;
+  mljs.defaultconnection.logger.debug("***PREDENTITY: " + JSON.stringify(predEntity));
+  if (undefined != predEntity && undefined != predEntity.name) {
+    type = predEntity.title;
+    var namepredicate = scfg.getNameProperty(predEntity.name).iri;
+    //mljs.defaultconnection.logger.debug("Got name predicate: " + namepredicate);
+    if (undefined != namepredicate) {
+      
+      var predValue = propValues[namepredicate];
+      if (undefined != predValue) {
+        title = predValue.value;
+      } else {
+        // leave title as iri
+      }
+    }
+  } else {
+    type = this._shortenSubjectIri(type);
+  }
+  
+  if (title == subjectIri) {
+    title = this._shortenSubjectIri(subjectIri);
+  }
+  
+  mljs.defaultconnection.logger.debug("Type Processing: " + type);
+  mljs.defaultconnection.logger.debug("Base Type Processing: " + baseType);
+  
+  var loadingContent = false;
+  
+  if ("http://marklogic.com/semantics/ontology/Document" == baseType) {
+    var facets = this.facetCache[subjectIri];
+    if (null == facets) {
+      mljs.defaultconnection.logger.debug("PROCESSING ML DOCUMENT SUBJECT: " + subjectIri);
+      
+      loadingContent = true;
+      
+      this.documentContext.getFacets(subjectIri,this.searchOptionsName); // TODO in future may change this to the URI property rather than relying on the URI as the subjectIri (incase many entities link to the same doc)
+    } else {
+      for (facet in facets) {
+        var values = facets[facet].facetValues;
+        var max = values.length;
+        var facetValues = "";
+        for (var v = 0;v &lt; max;v++) {
+          var fv = values[v];
+          if (v > 0) {
+            facetValues += ", ";
+          }
+          facetValues += fv.name;
+        }
+        if ("" != facetValues) {
+          propValues[facet] = {value: facetValues, title: facet, type: "facet"};
+        }
+      }
+    }
+  }
+  
+  
+  var summaries = new Array(); // holds {subject: iri, element: elid} objects
+  
+  var relnum = 0;
+  
+  var self = this;
+  var addshow = function(relbox,rn,left,top,piri,riri) {
+    var msgbox;
+    relbox.on("mouseover",function(){
+      msgbox = ren.label(rn,left+18,top-7).attr({
+        fill: "white",
+        stroke: colors[4],
+        'stroke-width': 4,
+        padding: 6,
+        r: 8
+      }).css({
+        color: colors[0]
+      }).add().shadow(true);
+    }).on("mouseout",function() {
+      msgbox.destroy();
+    }).on("click",function() {
+      // TODO load related object
+      mljs.defaultconnection.logger.debug("RELATION CLICKED: piri: " + piri + ", riri: " + riri);
+      var newcol = ent.column + 1;
+      var newrow = self._incrementColumnCount(newcol);
+      self.drawSubject(riri,piri,newcol,newrow);
+      
+      // now draw a connector from mini box to top left of box
+      var starttop = top + 5;
+      var startleft = left + 5;
+      //var endtop = 27 + 5 + (200 * (newrow - 1));
+      var endtop = 27 + 5 + (20 * (newrow - 1)) + self.heightBefore(newrow);
+      if (endtop &lt; 52) {
+        endtop = 52;
+      }
+      endtop += 25;
+      //var endleft = 13 + (200 * (newcol - 1));
+      var endleft = 13 + (100 * (newcol - 1)) + self.widthBefore(newcol);
+      var dy = 1.0*(endtop - starttop);
+      var dx = 1.0*(endleft - startleft);
+      var theta = 1.0 * Math.atan(dy / dx); // Tan Theta = Opposite (height) / Adjacent (width)
+      var length = 7.0;
+      var fourtyfive = Math.PI * 0.25;
+      var beta = theta + fourtyfive;
+      var alpha = fourtyfive - theta;
+      mljs.defaultconnection.logger.debug("startleft: " + startleft + ", starttop: " + starttop + ", endleft: " + endleft + ", endtop: " + endtop + ", dy: " + dy + ", dx: " + dx + ", theta: " + theta + ", alpha: " + alpha + ", beta: " + beta + ", length: " + length);
+      var aLeftTop = (1.0*endtop) - (length * Math.cos(alpha));
+      var aLeftLeft = (1.0*endleft) - (length * Math.sin(alpha));
+      //var aRightTop = (1.0*endtop) + (length * Math.sin(90.0 - 45.0 - theta));
+      //var aRightLeft = (1.0*endleft) - (length * Math.cos(90.0 - 45.0 - theta));
+      //var aLeftTop = (1.0*endtop) - (length * Math.sin(beta));
+      //var aLeftLeft = (1.0*endleft) - (length * Math.cos(beta));
+      var aRightTop = (1.0*endtop) + (length * Math.cos(beta));
+      var aRightLeft = (1.0*endleft) - (length * Math.sin(beta));
+      var pth = ren.path(['M', startleft, starttop, 'L', endleft, endtop, 'L',aLeftLeft,aLeftTop,'M',aRightLeft,aRightTop,'L',endleft,endtop]).attr({
+        'stroke-width': 2,stroke: colors[0] }).add();
+    });
+    
+  };
+  
+  var infos = new Array();
+  
+  for (var propname in propValues) {
+    if (propValues.hasOwnProperty(propname)) { // ensure property, not function
+      mljs.defaultconnection.logger.debug("PROPERTY TO LIST: " + propname);
+      prop = propValues[propname];
+      var propShow = prop.value;
+      if ("uri" == prop.type) {
+        // FIRST CHECK TO SEE IF THE RELATED OBJECT'S PROPERTIES ARE CACHED
+        // IF NOT, LOAD
+        var relname = this._generateNameLink(prop.value);
+        if (null == relname) {
+          // load description later
+          var propCount = this.propertyCount++;
+          var elid = this.container + "-loadname-" + propCount;
+          //propShow = "&lt;span id='" + elid + "'>" + "&lt;i>Loading...&lt;/i>" + "&lt;/span>"; // not showing loading as we dont get a callback if there is no further details
+          propShow = "&lt;span id='" + elid + "'>" + this._shortenSubjectIri(prop.value) + "&lt;/span>";
+          summaries.push(prop.value);
+        } else {
+          propShow = relname;
+          infos.push({relname: relname, propname:propname,propvalue:prop.value});
+        }
+      }
+      props += "&lt;b>" + prop.title + ":&lt;/b> " + propShow + "&lt;br/>";
+    }
+  }
+    
+  var drawrel = function(x,y,info) {
+    // draw relationship box instead
+    var left = x + 5 + 6; // X BOX POS - was 158? or 325 (wide) (6 is for the rect border not being taken into account with box.width)
+    var top = y + 7 + (17 * relnum++);
+    var relbox = ren.rect(left, top,10,10,2).attr({
+      'stroke-width': 4, stroke: colors[0], fill: colors[0]
+    }).add();
+    addshow(relbox,info.relname,left,top,info.propname,info.propvalue);
+    
+  };
+    
+    
+  var s = "&lt;b>" + title + "&lt;/b>&lt;br/>&lt;i>" + type + "&lt;/i>&lt;br/>&lt;br/>" + props;
+  if (loadingContent) {
+    s += "&lt;br/>&lt;b>&lt;i>Loading...&lt;/i>&lt;/b>";
+  }
+  
+  // if an ML document, go load the facets (or show if already loaded)
+  var box = ren.label(s, x, y).attr({
+    fill: "white",
+    stroke: colors[0],
+    'stroke-width': 4,
+    padding: 6,
+    r: 8
+  }).css({
+    color: colors[0]
+  }).add().shadow(true);
+  
+  ent.jswrapper = box;
+  
+  for (var i = 0, max = infos.length,info;i &lt; max;i++) {
+    info = infos[i];
+    drawrel(x + box.width,y,info);
+  }
+  
+  this.checkColumnWidth(column,box.width);
+  this.checkRowHeight(row,box.height);
+  
+  // load descriptions, element handler
+  // CHECK DRAW ON COMPLETE DOESN'T ALREADY HOLD US - PREVENT WEIRD CIRCULAR REFERENCES AND INFINITE LOOPS
+  var exists = false;
+  for (var i = 0;!exists && i &lt; this.drawWhenComplete.length;i++) {
+    exists = (this.drawWhenComplete[i].subject == subjectIri);
+  }
+  if (!exists) {
+    this.drawWhenComplete.push({subject: subjectIri,dependencies: summaries});
+    for (var i = 0, max = summaries.length,summary;i &lt; max;i++) {
+      summary = summaries[i];
+      this.semanticContext.getFacts(summary);
+    }
+  }
+  
+};
+
+com.marklogic.widgets.graphexplorer.prototype._shortenSubjectIri = function(iri) {
+  var pos = iri.lastIndexOf("#");
+  if (-1 == pos) {
+    pos = iri.lastIndexOf("/");
+    if (-1 == pos) {
+      return iri;
+    }
+  }
+  return iri.substring(pos + 1);
+};
+
+com.marklogic.widgets.graphexplorer.prototype._generateNameLink = function(subjectIri) {
+  // NB return null if we don't have enough information yet
+  // get subject rdf type
+  // if blank, we've not loaded their info yet
+  // if exists, use to find common name of entity in entityInfo
+  // now load name property
+  // if blank, we've not loaded their info yet
+  var name = this._getSubjectName(subjectIri);
+  if (null == name) {
+    return null;
+  } else {
+    return name; // TODO may want to format this in to a link to load related elements
+  }
+};
+
+com.marklogic.widgets.graphexplorer.prototype._getSubjectName = function(subjectIri) {
+  var cache = this.propertyCache[subjectIri];
+  mljs.defaultconnection.logger.debug("getSubjectName: properties for: " + subjectIri + " :- " + JSON.stringify(cache));
+  if (null == cache) {
+    return null;
+  }
+  
+  var type = this._getSubjectPredicate(cache,"http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
+  if (null == type) {
+    mljs.defaultconnection.logger.debug("getSubjectName: type null, returning shortened subject iri");
+    return this._shortenSubjectIri(subjectIri);
+  }
+  
+  var scfg = this.semanticContext.getConfiguration();
+  
+  var predEntity = scfg.getEntityFromIRI(type);
+  if (undefined == predEntity || undefined == predEntity.name) {
+    mljs.defaultconnection.logger.debug("getSubjectName: predEntity null, returning shortened subject iri");
+    return this._shortenSubjectIri(subjectIri);
+  }
+  var namepredicate = scfg.getNameProperty(predEntity.name).iri;
+  if (undefined == namepredicate) {
+    mljs.defaultconnection.logger.debug("getSubjectName: namepredicate null, returning shortened subject iri");
+    return this._shortenSubjectIri(subjectIri);
+  }
+  
+  var pred = this._getSubjectPredicate(cache,namepredicate);
+  if (null == pred) {
+    mljs.defaultconnection.logger.debug("getSubjectName: Cached predicate null, returning shortened subject iri");
+    return this._shortenSubjectIri(subjectIri);
+  }
+  return pred;
+};
+
+com.marklogic.widgets.graphexplorer.prototype._getSubjectPredicate = function(cache,predIri) {
+  mljs.defaultconnection.logger.debug("_getSubjectPredicate: loading predicate from cache. Predicate: " + predIri + " cache:- " + JSON.stringify(cache));
+  
+  for (var b = 0,bindings = cache.results.bindings, max = bindings.length, predicate, obj, binding;b &lt; max;b++) {
+    binding = bindings[b];
+    predicate = binding.predicate;
+    if (predIri == predicate.value) {
+      return binding.object.value;
+    }
+  }
+  return null;
+};
+
+
+com.marklogic.widgets.graphexplorer.prototype.updateSubjectFacts = function(result) {
+  mljs.defaultconnection.logger.debug("graphexplorer.updateSubjectFacts: " + result.subject);
+  
+  // get parentiri, subjectiri, rdftype and group facts to these three
+  // find relevant parent-subject iri nodes on the display
+  // update this particular data node
+  this.propertyCache[result.subject] = result.facts;
+  this._drawSubjectDetail(result.subject,result.facts);
+  
+  // check against draw when complete too
+  // TODO make this more efficient by removing subjects that have been complete from dependencies
+  var newDrawWhenComplete = new Array();
+  mljs.defaultconnection.logger.debug("graphexplorer.updateSubjectFacts: Entering drawWhenComplete loop...");
+  for (var i = 0, max = this.drawWhenComplete.length,doc;i &lt; max;i++) {
+    doc = this.drawWhenComplete[i];
+    mljs.defaultconnection.logger.debug("graphexplorer.updateSubjectFacts: drawWhenComplete subject: " + doc.subject);
+    
+    // check all child IRIs
+    var gotall = true;
+    for (var s = 0, smax = doc.dependencies.length,dep;s &lt; smax && gotall;s++) {
+      dep = doc.dependencies[s];
+      mljs.defaultconnection.logger.debug("graphexplorer.updateSubjectFacts: drawWhenComplete subject: " + doc.subject + " dependency: " + dep);
+      if (null == this.propertyCache[dep]) {
+        gotall = false;
+      }
+    }
+    
+    if (gotall) {
+      mljs.defaultconnection.logger.debug("graphexplorer.updateSubjectFacts: Got All for: " + doc.subject + ", redrawing");
+      // redraw subject
+      this._drawSubjectDetail(doc.subject,this.propertyCache[doc.subject]);
+    } else {
+      mljs.defaultconnection.logger.debug("graphexplorer.updateSubjectFacts: Not got all for: " + doc.subject + " after loading facts for: " + result.subject);
+      newDrawWhenComplete.push(doc);
+    }
+  }
+  mljs.defaultconnection.logger.debug("graphexplorer.updateSubjectFacts: Left drawWhenComplete loop.");
+  this.drawWhenComplete = newDrawWhenComplete;
+};
+
+com.marklogic.widgets.graphexplorer.prototype.updateDocumentFacets = function(result) {
+  // TODO for each result, lookup MLDocument node with the docuri predicate matching each docuri of the result
+  // TODO SHOULD be a single document result as we're only ever looking up 1 doc at a time by URI
+  // TODO show facet information as properties of the single doc (as each result set only contains 1 document)
+  
+  this.facetCache[result.docuri] = result.facets;
+  
+  this._drawSubjectDetail(result.docuri,this.propertyCache[result.docuri]); // TODO replace this with lookup of subjects related to the same document - possible with multiple document entities
+};
+
+com.marklogic.widgets.graphexplorer.prototype._dropped = function(propelid) {
+  var prop = this._propertyFromUI(propelid);
+  var entity = this._entityFromUI(prop.parentid);
+  
+  // get predicate info from semantic configuration object
+  var scfg = this.semanticContext.getConfiguration();
+  var predicate = scfg.getPredicateInfo(prop.predicate); // TODO verify this call is correct name
+  
+  // add predicate to our built SPARQL query
+  // TODO if a Document Facet, save parent's docuri predicate as SPARQL query value, link name to new supplementary content query
+  
+  // Fire semantic query builder update event
+};
+
+
+
+
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Index</a></h2><h3>Classes</h3><ul><li><a href="com.marklogic.widgets.collectionuris.html">collectionuris</a></li><li><a href="com.marklogic.widgets.cooccurence.html">cooccurence</a></li><li><a href="com.marklogic.widgets.create.html">create</a></li><li><a href="com.marklogic.widgets.docviewer.html">docviewer</a></li><li><a href="com.marklogic.widgets.entityfacts.html">entityfacts</a></li><li><a href="com.marklogic.widgets.graphexplorer.html">graphexplorer</a></li><li><a href="com.marklogic.widgets.highcharts.html">highcharts</a></li><li><a href="com.marklogic.widgets.kratu.html">kratu</a></li><li><a href="com.marklogic.widgets.markings.html">markings</a></li><li><a href="com.marklogic.widgets.profile.html">profile</a></li><li><a href="com.marklogic.widgets.rdb2rdf.html">rdb2rdf</a></li><li><a href="com.marklogic.widgets.searchbar.html">searchbar</a></li><li><a href="com.marklogic.widgets.searchpage.html">searchpage</a></li><li><a href="com.marklogic.widgets.searchpager.html">searchpager</a></li><li><a href="com.marklogic.widgets.searchresults.html">searchresults</a></li><li><a href="com.marklogic.widgets.searchsort.html">searchsort</a></li><li><a href="com.marklogic.widgets.selection.html">selection</a></li><li><a href="com.marklogic.widgets.sparqlbar.html">sparqlbar</a></li><li><a href="com.marklogic.widgets.sparqlresults.html">sparqlresults</a></li><li><a href="com.marklogic.widgets.workplace.html">workplace</a></li></ul><h3>Namespaces</h3><ul><li><a href="com.marklogic.widgets.bits.html">bits</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-001-intro.html">001-intro</a></li><li><a href="tutorial-001-widgets-list.html">001-widgets-list</a></li><li><a href="tutorial-002-intro-firstpage.html">002-intro-firstpage</a></li><li><a href="tutorial-002-widgets-search.html">002-widgets-search</a></li><li><a href="tutorial-003-widgets-search-render.html">003-widgets-search-render</a></li><li><a href="tutorial-004-widgets-highcharts.html">004-widgets-highcharts</a></li><li><a href="tutorial-011-browser-create-app.html">011-browser-create-app</a></li><li><a href="tutorial-012-browser-install-app.html">012-browser-install-app</a></li><li><a href="tutorial-013-browser-samples-app.html">013-browser-samples-app</a></li><li><a href="tutorial-014-browser-workplace.html">014-browser-workplace</a></li><li><a href="tutorial-050-core-contexts.html">050-core-contexts</a></li><li><a href="tutorial-901-ontology.html">901-ontology</a></li><li><a href="tutorial-999-samples.html">999-samples</a></li><li><a href="tutorial-all.html">all</a></li></ul><h3>Global</h3><ul><li><a href="global.html#com">com</a></li></ul>
+</nav>
+
+<br clear="both">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Tue Oct 29 2013 11:53:10 GMT-0000 (GMT)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
