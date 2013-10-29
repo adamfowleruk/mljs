@@ -76,6 +76,12 @@ class ServerConfig < MLClient
         @properties["ml.bootstrap-port"] = @bootstrap_port
       end
     end
+
+    if @properties['ml.qconsole-port']
+      @qconsole_port = @properties['ml.qconsole-port']
+    else
+      @qconsole_port = @bootstrap_port
+    end
   end
 
   def self.pwd
@@ -88,7 +94,7 @@ class ServerConfig < MLClient
 
   def info
     logger.info "Properties:"
-    @properties.each do |k, v|
+    @properties.sort {|x,y| y <=> x}.each do |k, v|
       logger.info k + ": " + v
     end
   end
@@ -107,6 +113,12 @@ class ServerConfig < MLClient
     force_props = find_arg(['--force-properties']).present?
     force_config = find_arg(['--force-config']).present?
     app_type = find_arg(['--app-type'])
+    server_version = find_arg(['--server-version'])
+
+    # Check for required --server-version argument value
+    if (!server_version.present? || server_version == '--server-version' || !(%w(4 5 6 7).include? server_version))
+      server_version = prompt_server_version
+    end
 
     error_msg = []
     if !force && !force_props && File.exists?(build_properties)
@@ -141,6 +153,9 @@ class ServerConfig < MLClient
         random = (0...20).map{ o[rand(o.length)].chr }.join
         "=#{random}"
       end
+
+      # Update properties file to set server-version to value specified on command-line
+      properties_file.gsub!(/server-version=6/, "server-version=#{server_version}")
 
       # save the replacements
       open(build_properties, 'w') {|f| f.write(properties_file) }
@@ -179,6 +194,15 @@ class ServerConfig < MLClient
     else
       FileUtils.cp sample_config, target_config
     end
+  end
+
+  def self.prompt_server_version
+    puts 'Required option --server-version=[version] not specified with valid value.
+
+What is the version number of the target MarkLogic server? [4, 5, 6, or 7]'
+    server_version = $stdin.gets.chomp.to_i
+    server_version = 6 if server_version == 0
+    server_version
   end
 
   def self.index
@@ -352,7 +376,7 @@ class ServerConfig < MLClient
 
     logger.debug r.body
 
-    if r.body.match("<error:error")
+    if r.body.match("error log")
       logger.error r.body
       logger.error "... Bootstrap FAILED"
       return false
@@ -602,15 +626,27 @@ class ServerConfig < MLClient
     thread_count = thread_count.to_i
     module_root = find_arg(['--root']) || '"/"'
     modules_database = @properties['ml.modules-db']
-    install = find_arg(['--install']) == "true"
+    install = find_arg(['--install']) == "true" || uris_module == '""'
 
+    # Find the XCC jar
     matches = Dir.glob(File.expand_path("../java/*xcc*.jar", __FILE__))
     raise "Missing XCC Jar." if matches.length == 0
-
     xcc_file = matches[0]
-    runme = %Q{java -cp #{File.expand_path("../java/corb.jar", __FILE__)}#{path_separator}#{xcc_file} com.marklogic.developer.corb.Manager #{connection_string} #{collection_name} #{xquery_module} #{thread_count} #{uris_module} #{module_root} #{modules_database} #{install}}
-    logger.info runme
-    `#{runme}`
+
+    if install
+      # If we're installing, we need to change directories to the source
+      # directory, so that the xquery_modules will be visible with the
+      # same path that will be used to see it in the modules database.
+      Dir.chdir(@properties['ml.xquery.dir']) do
+        runme = %Q{java -cp #{File.expand_path("../java/corb.jar", __FILE__)}#{path_separator}#{xcc_file} com.marklogic.developer.corb.Manager #{connection_string} #{collection_name} #{xquery_module} #{thread_count} #{uris_module} #{module_root} #{modules_database} #{install}}
+        logger.info runme
+        `#{runme}`
+      end
+    else
+      runme = %Q{java -cp #{File.expand_path("../java/corb.jar", __FILE__)}#{path_separator}#{xcc_file} com.marklogic.developer.corb.Manager #{connection_string} #{collection_name} #{xquery_module} #{thread_count} #{uris_module} #{module_root} #{modules_database} #{install}}
+      logger.info runme
+      `#{runme}`
+    end
   end
 
   def credentials
@@ -650,7 +686,101 @@ class ServerConfig < MLClient
     logger.info "wrote #{properties_file}"
   end
 
+  def capture
+
+    if @properties['ml.app-type'] != 'rest'
+      raise ExitException.new("This is a #{@properties['ml.app-type']} application; capture only works for app-type=rest")
+    end
+
+    target_db = find_arg(['--modules-db'])
+
+    if target_db == nil
+      raise HelpException.new("capture", "modules-db is required")
+    end
+
+    tmp_dir = Dir.mktmpdir
+    logger.debug "using temp dir " + tmp_dir
+    logger.info "Retrieving source and REST config from #{target_db}..."
+
+    save_files_to_fs(target_db, "#{tmp_dir}/src")
+
+    # set up the options
+    FileUtils.cp_r(
+      "#{tmp_dir}/src/#{@properties['ml.group']}/" + target_db.sub("-modules", "") + "/rest-api/.",
+      @properties['ml.rest-options.dir']
+    )
+    FileUtils.rm_rf("#{tmp_dir}/src/#{@properties['ml.group']}/")
+
+    # If we have an application/custom directory, we've probably done a capture
+    # before. Don't overwrite that directory. Kill the downloaded custom directory
+    # to avoid overwriting.
+    if Dir.exists? "#{@properties["ml.xquery.dir"]}/application/custom"
+      FileUtils.rm_rf("#{tmp_dir}/src/application/custom")
+    end
+
+    FileUtils.cp_r("#{tmp_dir}/src/.", @properties["ml.xquery.dir"])
+
+    FileUtils.rm_rf(tmp_dir)
+  end
+
 private
+
+  def save_files_to_fs(target_db, target_dir)
+    # Get the list of URIs. We get them in order because Ruby's Dir.mkdir
+    # command doesn't have a -p option (create parent).
+    dirs = execute_query %Q{
+      xquery version "1.0-ml";
+
+      for $uri in cts:uris()
+      order by $uri
+      return $uri
+    },
+    { :db_name => target_db }
+
+    if dirs.body.empty?
+      raise ExitException.new("Found no URIs in the modules database -- no code to capture")
+    end
+
+    # target_dir gets created when we do mkdir on "/"
+    if ['5', '6'].include? @properties['ml.server-version']
+      # In ML5 and ML6, the response was a bunch of text. Split on the newlines.
+      dirs.body.split(/\r?\n/).each do |uri|
+        if (uri.end_with?("/"))
+          # create the directory so that it will exist when we try to save files
+          Dir.mkdir("#{target_dir}" + uri)
+        else
+          r = execute_query %Q{
+            fn:doc("#{uri}")
+          },
+          { :db_name => target_db }
+
+          File.open("#{target_dir}#{uri}", 'w') { |file| file.write(r.body) }
+        end
+      end
+    else
+      # In ML7, the response is JSON
+      # [
+      #  {"qid":null, "type":"string", "result":"\/"},
+      #  {"qid":null, "type":"string", "result":"\/application\/"}
+      #  ...
+      JSON.parse(dirs.body).each do |item|
+        uri = item['result']
+        if (uri.end_with?("/"))
+          # create the directory so that it will exist when we try to save files
+          Dir.mkdir("#{target_dir}" + uri)
+        else
+          r = execute_query %Q{
+            fn:doc("#{uri}")
+          },
+          { :db_name => target_db }
+
+          body = JSON.parse(r.body)[0]['result']
+          File.open("#{target_dir}#{uri}", 'w') { |file| file.write(body) }
+        end
+      end
+    end
+
+  end
 
   # Build an array of role/capability objects.
   def permissions(role, capabilities)
@@ -692,6 +822,8 @@ private
     app_config_file = File.join xquery_dir, "/app/config/config.xqy"
     test_config_file = File.join test_dir, "/test-config.xqy"
     load_html_as_xml = @properties['ml.load-html-as-xml']
+    load_js_as_binary = @properties['ml.load-js-as-binary']
+    load_css_as_binary = @properties['ml.load-css-as-binary']
 
     modules_databases.each do |dest_db|
       ignore_us = []
@@ -704,11 +836,13 @@ private
                               :remove_prefix => xquery_dir,
                               :db => dest_db,
                               :ignore_list => ignore_us,
-                              :load_html_as_xml => load_html_as_xml
+                              :load_html_as_xml => load_html_as_xml,
+                              :load_js_as_binary => load_js_as_binary,
+                              :load_css_as_binary => load_css_as_binary
 
       if File.exist? app_config_file
         buffer = File.read app_config_file
-        @properties.each do |k, v|
+        @properties.sort {|x,y| y <=> x}.each do |k, v|
           buffer.gsub!("@#{k}", v)
         end
 
@@ -721,7 +855,7 @@ private
 
       if deploy_tests?(dest_db) && File.exist?(test_config_file)
         buffer = File.read test_config_file
-        @properties.each do |k, v|
+        @properties.sort {|x,y| y <=> x}.each do |k, v|
           buffer.gsub!("@#{k}", v)
         end
 
@@ -742,21 +876,29 @@ private
           },
           { :db_name => dest_db }
 
-        if (@properties.has_key?('ml.rest-options.dir') && File.exist?(@properties['ml.rest-options.dir']))
-          total_count += load_data @properties['ml.rest-options.dir'],
-              :add_prefix => "/#{@properties['ml.group']}/#{@properties['ml.app-name']}/rest-api",
-              :remove_prefix => @properties['ml.rest-options.dir'],
-              :db => dest_db
-        else
-          logger.error "Could not find REST API options directory: #{@properties['ml.rest-options.dir']}\n";
-        end
-
       end
 
       logger.info "\nLoaded #{total_count} #{pluralize(total_count, "document", "documents")} from #{xquery_dir} to #{xcc.hostname}:#{xcc.port}/#{dest_db} at #{DateTime.now.strftime('%m/%d/%Y %I:%M:%S %P')}\n"
     end
 
+    # Deploy options, extensions, and transforms to the REST API server
     if ['rest', 'hybrid'].include? @properties["ml.app-type"]
+      # Figure out where we need to deploy this stuff
+      rest_modules_db = ''
+      if @properties.has_key?('ml.rest-port') and @properties['ml.rest-port'] != ''
+        rest_modules_db = "#{@properties['ml.app-name']}-rest-modules"
+      else
+        rest_modules_db = @properties['ml.modules-db']
+      end
+
+      if (@properties.has_key?('ml.rest-options.dir') && File.exist?(@properties['ml.rest-options.dir']))
+        load_data @properties['ml.rest-options.dir'],
+            :add_prefix => "/#{@properties['ml.group']}/#{@properties['ml.app-name']}/rest-api",
+            :remove_prefix => @properties['ml.rest-options.dir'],
+            :db => rest_modules_db
+      else
+        logger.debug "Could not find REST API options directory: #{@properties['ml.rest-options.dir']}\n";
+      end
       if (@properties.has_key?('ml.rest-ext.dir') && File.exist?(@properties['ml.rest-ext.dir']))
         logger.info "\nLoading REST extensions from #{@properties['ml.rest-ext.dir']}\n"
         mlRest.install_extensions(File.expand_path(@properties['ml.rest-ext.dir']))
@@ -840,7 +982,7 @@ private
       ERR
     else
       cpf_config = File.read File.expand_path("../../pipeline-config.xml", __FILE__)
-      @properties.each do |k, v|
+      @properties.sort {|x,y| y <=> x}.each do |k, v|
         cpf_config.gsub!("@#{k}", v)
       end
       cpf_code = File.read File.expand_path('../xquery/cpf.xqy', __FILE__)
@@ -873,7 +1015,8 @@ private
         :user_name => @ml_username,
         :password => @ml_password,
         :server => @hostname,
-        :port => @properties["ml.app-port"],
+        :app_port => @properties["ml.app-port"],
+        :rest_port => @properties["ml.rest-port"],
         :logger => @logger
       })
     else
@@ -949,7 +1092,7 @@ private
 
     if db_id.present?
       logger.debug "using dbid: #{db_id}"
-      r = go "http://#{@hostname}:#{@bootstrap_port}/qconsole/endpoints/eval.xqy", "post", {}, {
+      r = go "http://#{@hostname}:#{@qconsole_port}/qconsole/endpoints/eval.xqy", "post", {}, {
         :dbid => db_id,
         :resulttype => "text",
         :q => query
@@ -957,7 +1100,7 @@ private
       logger.debug r.body
     else
       logger.debug "using sid: #{sid}"
-      r = go "http://#{@hostname}:#{@bootstrap_port}/qconsole/endpoints/eval.xqy", "post", {}, {
+      r = go "http://#{@hostname}:#{@qconsole_port}/qconsole/endpoints/eval.xqy", "post", {}, {
         :sid => sid,
         :resulttype => "text",
         :q => query
@@ -988,20 +1131,18 @@ private
 
     if db_id.present?
       logger.debug "using dbid: #{db_id}"
-      r = go_7 "http://#{@hostname}:#{@bootstrap_port}/qconsole/endpoints/evaler.xqy", "post", {}, {
-        :dbid => db_id,
-        :action => "eval",
-        :querytype => "xquery"
-      },
-      query
+      r = go("http://#{@hostname}:#{@qconsole_port}/qconsole/endpoints/evaler.xqy?dbid=#{db_id}&action=eval&querytype=xquery",
+             "post",
+             {},
+             nil,
+             query)
     else
       logger.debug "using sid: #{sid}"
-      r = go_7 "http://#{@hostname}:#{@bootstrap_port}/qconsole/endpoints/evaler.xqy", "post", {}, {
-        :sid => sid,
-        :action => "eval",
-        :querytype => "xquery"
-      },
-      query
+      r = go("http://#{@hostname}:#{@qconsole_port}/qconsole/endpoints/evaler.xqy?sid=#{sid}&action=eval&querytype=xquery",
+             "post",
+             {},
+             nil,
+             query)
     end
 
     raise ExitException.new(JSON.pretty_generate(JSON.parse(r.body))) if r.body.match(/\{"error"/)
@@ -1059,6 +1200,16 @@ private
     end
 
     properties
+  end
+
+  def conditional_prop(prop, default_prop)
+
+    value = @properties[prop]
+    if !@properties[prop].present?
+      value = @properties[default_prop]
+    end
+
+    value
   end
 
   def build_config(config_file)
@@ -1168,14 +1319,9 @@ private
       })
 
       # The modules database for the test server can be different from the app one
-      test_modules_db = @properties['ml.test-modules-db']
-      if !@properties['ml.test-modules-db'].present?
-        test_modules_db = @properties['ml.app-modules-db']
-      end
-      test_auth_method = @properties['ml.authentication-method']
-      if @properties['ml.test-authentication-method'].present?
-        test_auth_method = @properties['ml.test-authentication-method']
-      end
+      test_modules_db = conditional_prop('ml.test-modules-db', 'ml.app-modules-db')
+      test_auth_method = conditional_prop('ml.test-authentication-method', 'ml.authentication-method')
+      test_default_user = conditional_prop('ml.test-default-user', 'ml.default-user')
 
       config.gsub!("@ml.test-appserver",
       %Q{
@@ -1185,6 +1331,7 @@ private
           <database name="@ml.test-content-db"/>
           <modules name="#{test_modules_db}"/>
           <authentication>#{test_auth_method}</authentication>
+          <default-user name="#{test_default_user}"/>
         </http-server>
       })
 
@@ -1217,6 +1364,49 @@ private
       config.gsub!("@ml.test-modules-db-xml", "")
     end
 
+    if @properties['ml.rest-port'].present?
+      # Set up a REST API app server, distinct from the main application.
+
+      rest_auth_method = conditional_prop('ml.rest-authentication-method', 'ml.authentication-method')
+      rest_default_user = conditional_prop('ml.rest-default-user', 'ml.default-user')
+
+      config.gsub!("@ml.rest-appserver",
+      %Q{
+        <http-server import="@ml.app-name">
+          <http-server-name>@ml.app-name-rest</http-server-name>
+          <port>@ml.rest-port</port>
+          <database name="@ml.content-db"/>
+          <modules name="@ml.app-name-rest-modules"/>
+          <authentication>#{rest_auth_method}</authentication>
+          <default-user name="#{test_default_user}"/>
+          <url-rewriter>/MarkLogic/rest-api/rewriter.xqy</url-rewriter>
+          <error-handler>/MarkLogic/rest-api/error-handler.xqy</error-handler>
+          <rewrite-resolves-globally>true</rewrite-resolves-globally>
+        </http-server>
+      })
+
+      config.gsub!("@ml.rest-modules-db-xml",
+      %Q{
+        <database>
+          <database-name>@ml.app-name-rest-modules</database-name>
+          <forests>
+            <forest-id name="@ml.app-name-rest-modules"/>
+          </forests>
+        </database>
+      })
+
+      config.gsub!("@ml.rest-modules-db-assignment",
+      %Q{
+        <assignment>
+          <forest-name>@ml.app-name-rest-modules</forest-name>
+        </assignment>
+      })
+
+    else
+      config.gsub!("@ml.rest-appserver", "")
+      config.gsub!("@ml.rest-modules-db-xml", "")
+      config.gsub!("@ml.rest-modules-db-assignment", "")
+    end
 
     config.gsub!("@ml.forest-data-dir-xml",
       %Q{
@@ -1236,7 +1426,7 @@ private
     else
       config.gsub!("@ml.rewrite-resolves-globally", "")
     end
-    @properties.each do |k, v|
+    @properties.sort {|x,y| y <=> x}.each do |k, v|
       config.gsub!("@#{k}", v)
     end
 

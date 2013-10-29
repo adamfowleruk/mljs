@@ -48,12 +48,13 @@ This file describes changes made to Roxy per release
 * \#61 Make problems in suite-setup.xqy etc easier to detect
 * \#67 Reversed sense of facet-value @name and lexical
 
-## 1.4 (branch: dev)
+## 1.4 (branch: master)
 
 ### New Features
 * \#63 Use --app-type parameter with ml new to create mvc, rest, or hybrid apps
 * \#82 Use Corb with the deployer
 * \#88 Deploy REST API extensions
+* \#90 Allowed setting rewriter and error handler to blank
 * \#92 Scaffolding for REST API extensions
 * \#94 Create ODBC app servers
 * \#97 Added a test-authentication-method property, allowing for different methods between test and main
@@ -62,8 +63,11 @@ This file describes changes made to Roxy per release
 * \#103 Bootstrap an HTTP server with SSL
 * \#107 Deploy REST API transformations
 * \#108 Create skeleton REST API transformations
+* \#112 Added ml capture command
 * \#113 Override response types
 * \#117 Support new ML7 database settings
+* \#120 Require server-version parameter for ml new/init
+* \#121 Added "ml upgrade" command
 
 ### Resolved Issues
 * \#93 Fixed the deployer so it works with ML7 EA1.
@@ -71,3 +75,14 @@ This file describes changes made to Roxy per release
 * \#104 Deployer was ignoring the forest-data-dir property
 * \#110 Updated bootstrap procedure to work with new ML7 endpoint
 * \#118 Apply field settings
+* \#119 Make Roxy more forgiving about import error
+* \#123 Accept a broader range of affirmative responses when upgrading
+* \#124 Fixed corb integration bug
+* \#126 Don't overwrite application/custom when running "ml capture"
+
+## 1.5 (branch: dev)
+
+### New Features
+* \#138 Allow loading CSS, JS as binary instead of text
+
+### Resolved Issues

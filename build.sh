@@ -19,7 +19,10 @@ mkdir dist/mljs/browser-minified/images
 mkdir dist/mljs/browser-minified/test
 
 P=../mljs-pages/apidocs
-S=./mldbwebtest/src/public/js/mldbtest
+CS=./mldbwebtest/src/public/css/mljs
+S=./mldbwebtest/src/public/js/mljs
+SJ=./mldbwebtest/src/public/js
+ST=./mldbwebtest/src/public/js/mljstest
 L=./lib
 D=./dist/mljs/browser-minified
 DJ=$D/js
@@ -36,7 +39,7 @@ cp mljs.js $RJ/
 cp mljs.js $N/
 cp $S/mljs-*.js $RJ/
 cp $S/widget*.js $RJ/
-cp $S/highcharts.js $RJ/
+cp $SJ/highcharts.js $RJ/
 
 $J < $S/mljs.js > $DJ/mljs.js
 cp $DJ/mljs.js $NM/
@@ -50,23 +53,29 @@ $J < $S/mljs-prototype.js > $DJ/mljs-prototype.js
 $J < $S/mljs-xhr.js > $DJ/mljs-xhr.js 
 $J < $S/mljs-xhr2.js > $DJ/mljs-xhr2.js 
 
-$J < $S/highcharts.js > $DJ/highcharts.js 
+$J < $SJ/highcharts.js > $DJ/highcharts.js 
 $J < $S/widget-collections.js > $DJ/widget-collections.js 
 $J < $S/widget-cooccurence.js > $DJ/widget-cooccurence.js 
 $J < $S/widget-dls.js > $DJ/widget-dls.js 
 $J < $S/widget-docbuilder.js > $DJ/widget-docbuilder.js 
+$J < $S/widget-documents.js > $DJ/widget-documents.js 
+$J < $S/widget-explore.js > $DJ/widget-explore.js 
 $J < $S/widget-highcharts.js > $DJ/widget-highcharts.js 
 $J < $S/widget-kratu.js > $DJ/widget-kratu.js 
 $J < $S/widget-markings.js > $DJ/widget-markings.js 
+$J < $S/widget-profile.js > $DJ/widget-profile.js 
+$J < $S/widget-rdb2rdf.js > $DJ/widget-rdb2rdf.js 
 $J < $S/widget-search.js > $DJ/widget-search.js 
+$J < $S/widget-triples.js > $DJ/widget-triples.js 
+$J < $S/widget-workplace.js > $DJ/widget-workplace.js 
 $J < $S/widgets.js > $DJ/widgets.js 
 
-cp $S/widgets.css $D/css/widgets.css
-cp $S/widgets.css $R/css/widgets.css
+cp $CS/widgets.css $D/css/widgets.css
+cp $CS/widgets.css $R/css/widgets.css
 
 # tests
-cp $S/page*.js $R/test/
-cp $S/page*.js $D/test/
+cp $ST/page*.js $R/test/
+cp $ST/page*.js $D/test/
 
 # docs
 cp browser.md $D/README.md
@@ -76,10 +85,10 @@ cp core.md $NM/README.md
 
 # jsdocs
 # disabled when in one of the dev branches
-./gendocs.sh
-tar czf ./dist/mljs-docs.tar.gz ./dist/docs
-zip -vr ./dist/mljs-docs.zip ./dist/docs
-rm -rf dist/docs
+#./gendocs.sh
+#tar czf ./dist/mljs-docs.tar.gz ./dist/docs
+#zip -vr ./dist/mljs-docs.zip ./dist/docs
+#rm -rf dist/docs
 
 # zips and tars
 tar czf ./dist/mljs-browser.tar.gz $R
