@@ -10,14 +10,12 @@ Targets for 15 Oct 2013
   - Checkout XSLT upload and transform method
  - Nice to have: Widgets: Browse related Subjects in node diagram
 
-Targets for 1.0 (End of Oct 2013)
+Targets for 1.0 (End of Oct 2013) (Published early due to serious changes to V7 affecting functionality)
  - DONE Rework MLDBWEBTEST sample app so Dave Cassel can easily grab example controller for Roxy auto deployment
   - DONE rename page js files to be page-controller-action.js
   - DONE Move JS, CSS files to correct positions
   - DONE Update build scripts to take new locations in to account, including mljsme
   - DONE Rework layout files for Roxy for MLJS core including all widgets
- - mljsme.sh improvements
-  - Copy dependant files - 960 CSS folder, bootstrap-roxy.css, one-layout.less, mljs-one-layout.html.xqy, highcharts.js
  - DONE JS Health Check
   - DONE Perform Firebug comparison to check on speed of widgets
    - searchpage (170ms, 14.5ms in widgets)
@@ -31,12 +29,21 @@ Targets for 1.0 (End of Oct 2013)
    - sparql - not tested - was on v6
    - explorer - note tested - was on v6
    - workplace (613ms, 12.2ms in widgets - 2 actions, load plus facet selection)
+ - DONE V7 update fixes
+  - DONE BUG: search results JSON content being returned as String not object in recent V7 builds (workaround for both approaches)
+ - DONE tripleconfig ontology builder
+  - DONE Added rdftype() function to better manage adding new Entity classes to an ontology (Works like the options builder object, with method chaining)
+  - DONEAdded include() function to take this JSON configuration and apply it to the tripleconfig object
+  
+Targets for 1.0 Interim release (Start Nov 2013)
  - IN PROGRESS JavaScript public API consistency changed
   - UpperCamelCase for constructors/objects
   - IN PROGRESS lowerCamelCase for functions (searchcontext and mljs have some alllowercase methods)
   - Apply Configuration object pattern consistently with MLJS Core (E.g. search options), and add helper methods where this is complex for common use cases (location 1734)
   - alias options.sortOrderScore() to options.relevance()
   - support snippet size too (extended snippets) in search options builder
+ - mljsme.sh improvements
+  - Copy dependant files - 960 CSS folder, bootstrap-roxy.css, one-layout.less, mljs-one-layout.html.xqy, highcharts.js
  - Widgets: Search Speed - As a tutorial for those wishing to contribute to MLJS by creating new widgets of their own
  - Widgets: Sparql: Other sparql improvements
   - Support OPTIONAL?

@@ -16,7 +16,7 @@ echo "Generating core documentation..."
 $JSDOC -u ./tutorials -c jsdoc-conf.json -d $D/core mljs.js ./lib/basic-wrapper.js ./lib/digest-wrapper.js ./lib/noop.js ./lib/passthrough-wrapper.js core.md
 echo "...done."
 echo "Generating widget documentation..."
-$JSDOC -u ./tutorials -c jsdoc-conf.json -d $D/widgets ./mldbwebtest/src/public/js/mldbtest/mljs-*.js ./mldbwebtest/src/public/js/mldbtest/widget*.js browser.md
+$JSDOC -u ./tutorials -c jsdoc-conf.json -d $D/widgets ./mldbwebtest/src/public/js/mljs/mljs-*.js ./mldbwebtest/src/public/js/mljs/widget*.js browser.md
 echo "...done."
 
 cp -R $D/core $P/

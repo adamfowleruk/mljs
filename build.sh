@@ -85,10 +85,10 @@ cp core.md $NM/README.md
 
 # jsdocs
 # disabled when in one of the dev branches
-#./gendocs.sh
-#tar czf ./dist/mljs-docs.tar.gz ./dist/docs
-#zip -vr ./dist/mljs-docs.zip ./dist/docs
-#rm -rf dist/docs
+./gendocs.sh
+tar czf ./dist/mljs-docs.tar.gz ./dist/docs
+zip -vr ./dist/mljs-docs.zip ./dist/docs
+rm -rf dist/docs
 
 # zips and tars
 tar czf ./dist/mljs-browser.tar.gz $R
