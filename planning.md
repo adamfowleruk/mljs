@@ -16,6 +16,8 @@ Targets for 1.0 (End of Oct 2013)
   - DONE Move JS, CSS files to correct positions
   - DONE Update build scripts to take new locations in to account, including mljsme
   - DONE Rework layout files for Roxy for MLJS core including all widgets
+ - mljsme.sh improvements
+  - Copy dependant files - 960 CSS folder, bootstrap-roxy.css, one-layout.less, mljs-one-layout.html.xqy, highcharts.js
  - DONE JS Health Check
   - DONE Perform Firebug comparison to check on speed of widgets
    - searchpage (170ms, 14.5ms in widgets)
@@ -29,14 +31,17 @@ Targets for 1.0 (End of Oct 2013)
    - sparql - not tested - was on v6
    - explorer - note tested - was on v6
    - workplace (613ms, 12.2ms in widgets - 2 actions, load plus facet selection)
- - JavaScript public API consistency changed
+ - IN PROGRESS JavaScript public API consistency changed
   - UpperCamelCase for constructors/objects
   - IN PROGRESS lowerCamelCase for functions (searchcontext and mljs have some alllowercase methods)
   - Apply Configuration object pattern consistently with MLJS Core (E.g. search options), and add helper methods where this is complex for common use cases (location 1734)
- - Widgets: Search Speed - As a tutorial for those wishing to contribute to MLJS
+  - alias options.sortOrderScore() to options.relevance()
+  - support snippet size too (extended snippets) in search options builder
+ - Widgets: Search Speed - As a tutorial for those wishing to contribute to MLJS by creating new widgets of their own
  - Widgets: Sparql: Other sparql improvements
   - Support OPTIONAL?
   - Support UNION?
+  - Sparql query builder in mljs core?
   - IN PROGRESS Support FILTER?
    - DONE Used this for < > <= >= != for integer, double fields
    - Regex? (used by suggestions only at the moment)
@@ -46,60 +51,38 @@ Targets for 1.0 (End of Oct 2013)
   - NA multiple listeners for this in same context - Multiple modes, one to contribute sparql query to a searchcontext, another to perform sparql query itself (to list entities)
   - NA Sparql 1.1 required - Allow less than / greater than rather than just equals, depending on property selected
   - Aggregations of triples for Charts to work alongside facets of documents
- - Core: TripleConfig improvements
-  - rewrite how ontology information is provided, configured, accessed and managed - far too complex and buggy for the average developer at the moment
+ - IN PROGRESS Core: TripleConfig improvements
+  - TEST rewrite how ontology information is provided, configured, accessed and managed - far too complex and buggy for the average developer at the moment
+  - TripleConfig internal array and function rewrite to remove duplication of predicate information
   - Support loading of OWL / other ontologies to populate triple config object
-  - ontology builder object?
+  - TEST ontology builder object - use methods on tripleconfig
  - Core: Search Options builder
-  - hide sem:triples elements from snippet highlighting
+  - hide sem:triple elements from snippet highlighting
+  - Don't return sem:triples documents at all by default
   - actually write the pathConstraint function!
   - Investigate why REST insists upon some elements having indexes in the JSON namespace as well as the one required (E.g. xhtml and h1) - because using JSON mode???
  - NOT A BUG searchfacets or searchbar widgets using facet title, not constraint name, to indicate constraint added to searchbar (also for lookup/matching)
-  - Actually, there is no 'facet title' just that constraint name and field name are generally the same. Need to add Title support somehow
+  - NA Actually, there is no 'facet title' just that constraint name and field name are generally the same. Need to add Title support somehow
  - Widget: Error
   - Ensure this is invoked correctly, and all contexts and test pages work with it
  - App Builder gap closing
   - Support for XSLT transformations on search results
   - Support for XSLT transformations on fetch documents in new window
-  - Support for bucketing in facets
-  - Date time facets
+  - Support for bucketing in facets (numeric)
+  - Date time facets (and bucketing by day)
   - Facet ordering (other than frequency)
   - Simple/complex view of results
-  - Embedding charts within search page
+  - Embedding charts within search page widget like AppBuilder
   - Support for multiple layouts in search page
   - Auto complete, including constraint name suggestions
   - Phrase searches
   - Shadow queries (MLJS' alternative mechanism)
+  - Widgets: Navigable charts / co-occurence - clicking sets facet value
  - IN PROGRESS NodeJS: Node.js tests for all functionality now in core MLJS
  - IN PROGRESS Widget: RDB2RDF in test app
   - Remove jQuery specific code
   - IN PROGRESS Check Roxy installation of REST extension works automatically
   - IN PROGRESS validate CSS works correctly on all pages
- - Docs: Video tutorials for all new functionality - Create a Semantic Application Series
-  - Intro to semantics in MarkLogic
-   - Manually load in some triple in N-triples format, and query this in QConsole and rest to show the ideas behind what we're doing
-    - Include a sprinkling of 'why do this with triples?' / 'why triples are cool!' type slides
-   - Do a query that you can't do in relational / document search alone -> Idea of context, defining the 'relationship' not just the presence of data
-  - Manually define a new triple (mention we'll suggest triples in the future) for a XHTML document
-   - Includes setting up your own ontology in the semanticcontext object
-   - Include 'automatically link root entity back to document' via documentcontext object (to be created)
-  - Add sparql query widget using same ontology
-   - Add entity facts and content linking search widget
-   - Add relationship visualisation widget
-  - Implying triples from document content 
-   - define a trigger to highlight key XML with known terms
-   - link these xml elements to the ontology via the suggestions widget
-  - Inferencing
-   - Start with a query for which you have the data, but which creating a sparql query is non trivial
-   - Use inferencing as a way to suggest triples that would make the query simpler
-   - Show the new query, and that the same answers are produced
-  - Avoiding sparql/xquery inferencing
-   - Is there a navigation process possible via existing widgets that would allow you to discover all related subjects and information you need, and produce a report off of the back of it?
-   - Embed BI type summaries too? (E.g. facet graphs from document query results)
-  - Sparql 1.1 in MarkLogic 7
-   - Show what parts of the spec are there, and which ones we're missing, but which ones *can* be provided with a little work
-   - Inferencing - we've shown, but should mention here
-   - aggregates (count, sum, avg, etc.)
  - mljsme
   - add option to also deploy -workplace mljs/main (Workplace) and -test mldbtest/*
  - IN PROGRESS Docs: Document all core concepts currently part of MLJS
@@ -107,9 +90,21 @@ Targets for 1.0 (End of Oct 2013)
   
 Targets for 1.1 (Nov 2013)
  - App Builder to MLJS+Roxy automated conversion
+  - Point at Roxy generated App Builder download / local file system copy of appbuilder folder
+  - Copy over rest extensions as required
+  - Support pure REST and hybrid modes for app generation
+  - Generate standard "/" page and register as workplace page JSON editable by admin account
+   - Layout thinthick | thinthick1chart | thinthick2chart
+   - Widget assignment and default config
+  - Copy over search options (and thus facet info) - from the db?
+  - Facet display names from JSON config file
+  - REST request re-writer to point to Workplace page (mljs-workplace.html.xqy), pass on other requests to REST API
+  - Document preview page (may apply XSLT) on /view?uri= - check the appbuilder URL for this
  - DONE Other cool things we could do with MarkLogic
   - DONE SYTYCD Combine triple search with content search - limit documents returned from triple store by term (word) query
   - Alerting with triples (+drawbacks - document level, not triple level)
+  - Widgets: InfoBox based on common name of search via updateResults (or updateQuery?) - Matt W
+  - Widgets: Potentially of interest. Spelling correction and/or thesaurus lookup of search query word(s), then use those for subject lookup - Matt W
  - PROV-O ontology support
   - hide by default, show provenance button to view provenance and interrelationship of entities
   - requires node diagram for viewing effectively (use PROV-O diagram shapes/colours? Over-Time view?)
@@ -133,7 +128,6 @@ Targets for 1.1 (Nov 2013)
   - Hover over search results fires searchcontext highlight action
   - Document context highlighting configurable to fire get semantic info on MarkLogic document
   - MarkLogic document ontology
- - Widgets: Navigable charts / co-occurence - clicking sets facet value
  - IN PROGRESS Widgets: Workplace - Removes any code anyone needs to write to use MLJS widgets
   - Each username has a workplace in the content store saved as a JSON config file
   - IN PROGRESS Defines what pages are available, the layout of those pages, and what is shown on each
@@ -175,6 +169,31 @@ Targets for 1.1 (Nov 2013)
    - DONE MLDBWebTest Animal Watch Workplace
    - Semantic Workplace
    - Editable blank workplace sandbox page
+ - Docs: Video tutorials for all new functionality - Create a Semantic Application Series
+  - Intro to semantics in MarkLogic
+   - Manually load in some triple in N-triples format, and query this in QConsole and rest to show the ideas behind what we're doing
+    - Include a sprinkling of 'why do this with triples?' / 'why triples are cool!' type slides
+   - Do a query that you can't do in relational / document search alone -> Idea of context, defining the 'relationship' not just the presence of data
+  - Manually define a new triple (mention we'll suggest triples in the future) for a XHTML document
+   - Includes setting up your own ontology in the semanticcontext object
+   - Include 'automatically link root entity back to document' via documentcontext object (to be created)
+  - Add sparql query widget using same ontology
+   - Add entity facts and content linking search widget
+   - Add relationship visualisation widget
+  - Implying triples from document content 
+   - define a trigger to highlight key XML with known terms
+   - link these xml elements to the ontology via the suggestions widget
+  - Inferencing
+   - Start with a query for which you have the data, but which creating a sparql query is non trivial
+   - Use inferencing as a way to suggest triples that would make the query simpler
+   - Show the new query, and that the same answers are produced
+  - Avoiding sparql/xquery inferencing
+   - Is there a navigation process possible via existing widgets that would allow you to discover all related subjects and information you need, and produce a report off of the back of it?
+   - Embed BI type summaries too? (E.g. facet graphs from document query results)
+  - Sparql 1.1 in MarkLogic 7
+   - Show what parts of the spec are there, and which ones we're missing, but which ones *can* be provided with a little work
+   - Inferencing - we've shown, but should mention here
+   - aggregates (count, sum, avg, etc.)
   
 Targets for 1.2 (Dec 2013)
  - CSS best practice

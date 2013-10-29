@@ -2921,8 +2921,33 @@ mljs.prototype.options.prototype.defaultNamespace = function(ns) {
 /**
  * Generates a new Xpath constraint - TODO
  */
-mljs.prototype.options.prototype.pathConstraint = function() {
-  // TODO path range constraint
+mljs.prototype.options.prototype.pathConstraint = function(constraint_name,xpath,namespaces,type_opt,collation_opt,facet_opt,facet_options_opt) {
+  var range = {name: constraint_name,
+    range: {
+      type: type_opt || this.defaults.type, 
+      "path-index": {
+        text: xpath, namespaces : namespaces
+      }
+    }
+  };
+  if ("xs:string" == type_opt) {
+    range.range.collation = collation_opt || this.defaults.collation;
+  }
+  if (undefined != facet_opt || undefined != facet_options_opt) {
+    range.range.facet = facet_opt || true;
+  }
+  if (undefined != facet_options_opt) {
+    range.range["facet-options"] = facet_options_opt;
+  }
+  
+  // Create sort orders automatically
+  //this.sortOrder(this.defaultSortDirection,type_opt || this.defaults.type,element,collation_opt || this.defaults.collation); 
+  // TODO sort order - REST API V7 DOES NOT support ordering for path range indexes!!!
+  // see http://docs-ea.marklogic.com/guide/rest-dev/appendixa#id_97031
+  
+  this.addConstraint(range);
+  
+  return this;
 };
 mljs.prototype.options.prototype.path = mljs.prototype.options.prototype.pathConstraint;
 
@@ -2949,10 +2974,12 @@ mljs.prototype.options.prototype.elemattrRangeConstraint = function(constraint_n
       attribute: {
         name: attr,
         ns: namespace || this.defaults.namespace
-      },
-      collation: collation_opt || this.defaults.collation
+      }
     }
   };
+  if ("xs:string" == type_opt) {
+    range.collation = collation_opt || this.defaults.collation;
+  }
   if (undefined != facet_opt || undefined != facet_options_opt) {
     range.range.facet = true;
   }
@@ -3221,6 +3248,7 @@ mljs.prototype.options.prototype.raw = function() {
   this.options["transform-results"].apply = "raw";
   this.options["transform-results"].ns = undefined;
   this.options["transform-results"].at = undefined;
+  return this;
 };
 
 /**
@@ -3228,11 +3256,18 @@ mljs.prototype.options.prototype.raw = function() {
  *
  * http://docs.marklogic.com/guide/rest-dev/appendixa#id_48012
  */
-mljs.prototype.options.prototype.snippet = function() {
+mljs.prototype.options.prototype.snippet = function(preferredElements_opt,maxMatches_opt) {
   this._includeSearchDefaults();
   this.options["transform-results"].apply = "snippet";
   this.options["transform-results"].ns = undefined;
   this.options["transform-results"].at = undefined;
+  if (undefined != preferredElements_opt) {
+    this.options["transform-results"]["preferred-elements"] = preferredElements_opt;
+  }
+  if (undefined != maxMatches_opt) {
+    this.options["transform-results"]["max-matches"] = maxMatches_opt;
+  }
+  return this;
 };
 
 /**
@@ -3245,6 +3280,7 @@ mljs.prototype.options.prototype.empty = function() {
   this.options["transform-results"].apply = "empty-snippet";
   this.options["transform-results"].ns = undefined;
   this.options["transform-results"].at = undefined;
+  return this;
 };
 
 /**
@@ -3257,6 +3293,7 @@ mljs.prototype.options.prototype.metadata = function() {
   this.options["transform-results"].apply = "metadata-snippet";
   this.options["transform-results"].ns = undefined;
   this.options["transform-results"].at = undefined;
+  return this;
 };
 
 /**
@@ -3274,7 +3311,19 @@ mljs.prototype.options.prototype.sortOrderClear = function() {
 mljs.prototype.options.prototype.sortOrderScore = function() {
   this._includeSearchDefaults();
   // TODO add check to see if we already exist
-  this.options["sort-order"].push({"direction": "descending","score": null});
+  this.options["sort-order"].push({"direction": "descending","score": null, "annotation": ["Relevancy (Descending)"]});
+  return this;
+};
+
+//http://docs-ea.marklogic.com/guide/rest-dev/appendixa#id_65046
+mljs.prototype.options.prototype.searchableExpression = function(expression, namespaces_opt) {
+  this._includeSearchDefaults();
+  this.options["searchable-expression"] = {
+    text: expression
+  };
+  if (undefined != namespaces_opt) {
+    this.options["searchable-expression"].namespaces = namespaces_opt;
+  }
   return this;
 };
 
@@ -4352,7 +4401,7 @@ com.marklogic.semantic.tripleconfig = function() {
   this.addMarkLogic();
   this.addPlaces();
   this.addFoafPlaces();
-  this.addTest();
+  //this.addTest();
   this.addMovies();
 };
 
@@ -4397,6 +4446,132 @@ com.marklogic.semantic.tripleconfig.prototype.addMappings = function(mapname,ent
 };
 
 /**
+ * Includes the specified MLJS RDF Type JavaScript object as an RDF Entity type in this Triple Config object.
+ * 
+ * @param {JSON} rdftype - The RDFType description object to include in this configuration
+ **/
+com.marklogic.semantic.tripleconfig.prototype.include = function(rdftype) {
+  // copy rdftype JSON _config structures to our own internal format
+  
+  // TODO SIMPLIFY INTERNAL FORMAT OR AT LEAST RENAME CONFUSING PARTS!
+  
+  var ent = rdftype._config;
+  //ent.name = ent.iri; // TODO auto value
+  //ent.prefix = ent.iri; // TODO remove this entirely?
+  //ent.iriPattern = ent.iri + "/#VALUE#"; // TODO remove this entirely?
+  // DONE IN RDFTYPE OBJECT NOW ent.commonNamePredicate = "rdfs:label"; // TODO use long IRI version of this, which I currently can't remember!
+  ent.properties = new Array();
+  
+  // copy over predicates too
+  for (var p = 0,max = rdftype._predicates.length,pred;p < max;p++) {
+    pred = rdftype._predicates[p];
+    var newpred = pred._config;
+    //newpred.name = newpred.iri;
+    
+    ent.properties.push(newpred);
+    this._newPredicates[iri] = newpred; // TODO remove one of these - no point duplicating by default
+  }
+  
+  this._newentities[rdftype._config.iri] = ent;
+  
+  for (var p = 0,max = rdftype._to.length,pred;p < max;p++) {
+    pred = rdftype._to[p];
+    var predArray = pred.predicates;
+    if (typeof predArray == "string") {
+      predArray = [pred.predicates];
+    }
+    this.validTriples.push(ent.iri,pred.type,predArray);
+  }
+  
+  for (var p = 0,max = rdftype._from.length,pred;p < max;p++) {
+    pred = rdftype._from[p];
+    var predArray = pred.predicates;
+    if (typeof predArray == "string") {
+      predArray = [pred.predicates];
+    }
+    this.validTriples.push(pred.type,ent.iri,predArray);
+  }
+};
+
+/**
+ * Creates a chainable RDF type JavaScript object. Provides easy creation of a semantic config.
+ * 
+ * @param {string} rdfTypeIri - The IRI of this RDF Type
+ * @param {string} opt_commonNamePredicate - The optional predicate to use as the 'common name' for display. Defaults to rdfs:label
+ */
+com.marklogic.semantic.tripleconfig.prototype.rdftype = function(rdfTypeIri,opt_commonNamePredicate) {
+  var self = this;
+  var rdftype = {
+    _config: {
+      title: null,
+      iri: rdfTypeIri,
+      name: rdfTypeIri, // TODO remove - just use IRI instead internally
+      prefix: rdfTypeIri, // TODO remove - just use IRI
+      iriPattern: rdfTypeIri + "/#VALUE#",
+      commonNamePredicate: opt_commonNamePredicate || "rdfs:label" // TODO replace this with full URL and check it works
+    },
+    _predicates: [], // predicate JSON
+    _to: [], // {type: "*" or string, predicates: [] or "" }
+    _from: [], // {type: "*" or string, predicates: [] or "" }
+    predicate: function(predIri,opt_type) {
+      // default to RDF Object type
+      var pred = {
+        _config: {
+          iri: predIri,
+          name: predIri, // TODO remove - just use predIri instead
+          title: null,
+          type: opt_type || "xs:string", // TODO verify this works as expected
+          locale: null
+        },
+        title: function(theTitle) {
+          pred._config.title = theTitle;
+          return pred; // chaining
+        },
+        type: function(theType) {
+          pred._config.type = theType;
+          return pred; // chaining
+        },
+        locale: function(theLocale) {
+          pred._config.locale = theLocale;
+          return pred; // chaining
+        },
+        name: function(theName) {
+          pred._config.name = theName;
+          return pred; // chaining
+        }
+      }
+      rdftype._predicates.push(pred);
+      return pred;
+    },
+    title: function(theTitle) {
+      rdftype._config.title = theTitle;
+      return rdftype; // chaining
+    },
+    to: function(type,predicateOrArray) {
+      rdftype._to.push({type: type, predicates: predicateOrArray});
+      return rdftype; // chaining
+    },
+    from: function(type,predicateOrArray) {
+      rdftype._from.push({type: type, predicates: predicateOrArray});
+      return rdftype; // chaining
+    },
+    prefix: function(thePrefix) {
+      rdftype._config.prefix = thePrefix;
+      return rdftype; // chaining
+    },
+    pattern: function(thePattern) {
+      rdftype._config.iriPattern = thePattern;
+      return rdftype; // chaining
+    },
+    name: function(theName) {
+      rdftype._config.name = theName;
+      return rdftype; // chaining
+    }
+  };
+  return rdftype; // chaining
+};
+
+/**
  * Adds new valid triples.
  * 
  * @param {Array} validTriplesArray - Any new triples associated with multiple entity classes (E.g. relationships between people and places) as JSON valid triples
@@ -4408,72 +4583,102 @@ com.marklogic.semantic.tripleconfig.prototype.addValidTriples = function(validTr
 };
 
 com.marklogic.semantic.tripleconfig.prototype.addPlaces = function() {
-  //this.entities.push("placename");
+  ////this.entities.push("placename");
   
-  this.validTriples.push({subjectType: "placename", objectType: "placename", predicateArray: ["located_within","contains_location"]}); 
+  //this.validTriples.push({subjectType: "placename", objectType: "placename", predicateArray: ["located_within","contains_location"]}); 
   
-  //this._predicates["studies_at"] = "http://www.marklogic.com/ontology/0.1/studies_at";
-  //this._predicates["affiliated_with"] = "http://www.marklogic.com/ontology/0.1/affiliated_with";
-  //this._predicates["has_meetings_near"] = "http://www.marklogic.com/ontology/0.1/has_meetings_near";
-  //this._predicates["located_within"] = "http://www.marklogic.com/ontology/0.1/located_within";
-  //this._predicates["contains_location"] = "http://www.marklogic.com/ontology/0.1/contains_location";
+  ////this._predicates["studies_at"] = "http://www.marklogic.com/ontology/0.1/studies_at";
+  ////this._predicates["affiliated_with"] = "http://www.marklogic.com/ontology/0.1/affiliated_with";
+  ////this._predicates["has_meetings_near"] = "http://www.marklogic.com/ontology/0.1/has_meetings_near";
+  ////this._predicates["located_within"] = "http://www.marklogic.com/ontology/0.1/located_within";
+  ////this._predicates["contains_location"] = "http://www.marklogic.com/ontology/0.1/contains_location";
   
-  //this._iriPatterns["placename"] = "http://marklogic.com/semantic/targets/placename/#VALUE#";
-  //this._rdfTypes["placename"] = "http://schema.org/Place"; // geonames features are an extension of Place
-  //this._rdfTypesShort["placename"] = "so:Place"; // geonames features are an extension of Place
-  //this._commonNamePredicates["placename"] = "http://www.geonames.org/ontology#name";
-  //this._properties["placename"] = [{name: "name", iri: "http://www.geonames.org/ontology#name", shortiri: "geonames:name"}];
+  ////this._iriPatterns["placename"] = "http://marklogic.com/semantic/targets/placename/#VALUE#";
+  ////this._rdfTypes["placename"] = "http://schema.org/Place"; // geonames features are an extension of Place
+  ////this._rdfTypesShort["placename"] = "so:Place"; // geonames features are an extension of Place
+  ////this._commonNamePredicates["placename"] = "http://www.geonames.org/ontology#name";
+  ////this._properties["placename"] = [{name: "name", iri: "http://www.geonames.org/ontology#name", shortiri: "geonames:name"}];
   
   
-  this._newentities["place"] = {name: "place", title: "Place", prefix: "http://www.geonames.org/ontology#", iriPattern: "http://marklogic.com/semantic/targets/organisation/#VALUE#", 
-    rdfTypeIri: "http://schema.org/Place", rdfTypeIriShort: "foaf:Organization", commonNamePredicate: "http://www.geonames.org/ontology#name",
-    properties: [{name: "name", iri: "http://www.geonames.org/ontology#name", shortiri: "geonames:name"}]};
+  //this._newentities["place"] = {name: "place", title: "Place", prefix: "http://www.geonames.org/ontology#", iriPattern: "http://marklogic.com/semantic/targets/organisation/#VALUE#", 
+  //  rdfTypeIri: "http://schema.org/Place", rdfTypeIriShort: "foaf:Organization", commonNamePredicate: "http://www.geonames.org/ontology#name",
+  //  properties: [{name: "name", iri: "http://www.geonames.org/ontology#name", shortiri: "geonames:name"}]};
   
-  this._newPredicates["studies_at"] = {name: "studies_at", title: "Studies at", iri: "http://www.marklogic.com/ontology/0.1/studies_at", shortiri: "ml:studies_at"};
-  this._newPredicates["affiliated_with"] = {name: "affiliated_with", title: "Affiliated with", iri: "http://www.marklogic.com/ontology/0.1/affiliated_with", shortiri: "ml:affiliated_with"};
-  this._newPredicates["has_meetings_near"] = {name: "has_meetings_near", title: "Meets near", iri: "http://www.marklogic.com/ontology/0.1/has_meetings_near", shortiri: "ml:has_meetings_near"};
-  this._newPredicates["located_within"] = {name: "located_within", title: "Located within", iri: "http://www.marklogic.com/ontology/0.1/located_within", shortiri: "ml:located_within"};
-  this._newPredicates["contains_location"] = {name: "contains_location", title: "Contains", iri: "http://www.marklogic.com/ontology/0.1/contains_location", shortiri: "ml:contains_location"};
+  //this._newPredicates["studies_at"] = {name: "studies_at", title: "Studies at", iri: "http://www.marklogic.com/ontology/0.1/studies_at", shortiri: "ml:studies_at"};
+  //this._newPredicates["affiliated_with"] = {name: "affiliated_with", title: "Affiliated with", iri: "http://www.marklogic.com/ontology/0.1/affiliated_with", shortiri: "ml:affiliated_with"};
+  //this._newPredicates["has_meetings_near"] = {name: "has_meetings_near", title: "Meets near", iri: "http://www.marklogic.com/ontology/0.1/has_meetings_near", shortiri: "ml:has_meetings_near"};
+  //this._newPredicates["located_within"] = {name: "located_within", title: "Located within", iri: "http://www.marklogic.com/ontology/0.1/located_within", shortiri: "ml:located_within"};
+  //this._newPredicates["contains_location"] = {name: "contains_location", title: "Contains", iri: "http://www.marklogic.com/ontology/0.1/contains_location", shortiri: "ml:contains_location"};
+  
+  // NEW builder method
+  var place = this.rdftype("http://schema.org/Place","http://www.geonames.org/ontology#name").title("Place").prefix("http://www.geonames.org/ontology#")
+    .pattern("http://marklogic.com/semantic/targets/organisation/#VALUE#")
+    .to("http://schema.org/Place",["http://www.marklogic.com/ontology/0.1/located_within","http://www.marklogic.com/ontology/0.1/contains_location"]);
+  place.predicate("http://www.marklogic.com/ontology/0.1/studies_at").title("Studies at");
+  place.predicate("http://www.marklogic.com/ontology/0.1/affiliated_with").title("Affiliated with");
+  place.predicate("http://www.marklogic.com/ontology/0.1/has_meetings_near").title("Meets near");
+  place.predicate("http://www.marklogic.com/ontology/0.1/located_within").title("Located within");
+  place.predicate("http://www.marklogic.com/ontology/0.1/contains_location").title("Contains");
+  
+  this.include(place);
 };
 
 com.marklogic.semantic.tripleconfig.prototype.addMovies = function() {
-  this.validTriples.push({subjectType: "person", objectType: "movie", predicateArray: ["likesmovie"]});
+  //this.validTriples.push({subjectType: "person", objectType: "movie", predicateArray: ["likesmovie"]});
   
-  this._newentities["movie"] = {name: "movie", title: "Movie", prefix: "http://marklogic.com/semantic/ns/movie", iriPattern: "http://marklogic.com/semantic/targets/movies/#VALUE#",
-    rdfTypeIri: "http://marklogic.com/semantic/rdfTypes/movie", rdfTypeIriShort: "mov:movie", commonNamePredicate: "hastitle",
-    properties: [
-      {name: "hastitle", iri: "hastitle", shortiri: "mov:hastitle"},
-      {name: "hasactor", iri: "hasactor", shortiri: "mov:hasactor"},
-      {name: "hasgenre", iri: "hasgenre", shortiri: "mov:hasgenre"},
-      {name: "releasedin", iri: "releasedin", shortiri: "mov:releasedin"}
-    ]
-  };
-  this._newPredicates["likesmovie"] = {name: "likesmovie", title: "Likes movie", iri: "likesmovie", shortiri: "mov:likesmovie"};
-  this._newPredicates["hastitle"] = {name: "hastitle", title: "Has Title", iri: "hastitle", shortiri: "mov:hastitle"};
-  this._newPredicates["hasactor"] = {name: "hasactor", title: "Has Actor", iri: "hasactor", shortiri: "mov:hasactor"};
-  this._newPredicates["hasgenre"] = {name: "hasgenre", title: "Has Genre", iri: "hasgenre", shortiri: "mov:hasgenre"};
-  this._newPredicates["releasedin"] = {name: "releasedin", title: "Released In", iri: "releasedin", shortiri: "mov:releasedin"};
+  //this._newentities["movie"] = {name: "movie", title: "Movie", prefix: "http://marklogic.com/semantic/ns/movie", iriPattern: "http://marklogic.com/semantic/targets/movies/#VALUE#",
+  //  rdfTypeIri: "http://marklogic.com/semantic/rdfTypes/movie", rdfTypeIriShort: "mov:movie", commonNamePredicate: "hastitle",
+  //  properties: [
+  //    {name: "hastitle", iri: "hastitle", shortiri: "mov:hastitle"},
+  //    {name: "hasactor", iri: "hasactor", shortiri: "mov:hasactor"},
+  //    {name: "hasgenre", iri: "hasgenre", shortiri: "mov:hasgenre"},
+  //    {name: "releasedin", iri: "releasedin", shortiri: "mov:releasedin"}
+  //  ]
+  //};
+  //this._newPredicates["likesmovie"] = {name: "likesmovie", title: "Likes movie", iri: "likesmovie", shortiri: "mov:likesmovie"};
+  //this._newPredicates["hastitle"] = {name: "hastitle", title: "Has Title", iri: "hastitle", shortiri: "mov:hastitle"};
+  //this._newPredicates["hasactor"] = {name: "hasactor", title: "Has Actor", iri: "hasactor", shortiri: "mov:hasactor"};
+  //this._newPredicates["hasgenre"] = {name: "hasgenre", title: "Has Genre", iri: "hasgenre", shortiri: "mov:hasgenre"};
+  //this._newPredicates["releasedin"] = {name: "releasedin", title: "Released In", iri: "releasedin", shortiri: "mov:releasedin"};
+  
+  var movie = this.rdftype("http://marklogic.com/semantic/rdfTypes/movie","hastitle").title("Movie")
+    .prefix("http://marklogic.com/semantic/ns/movie")
+    .pattern("http://marklogic.com/semantic/targets/movies/#VALUE#")
+    .from("http://xmlns.com/foaf/0.1/Person","likesmovie");
+  movie.predicate("likesmovie").title("Likes movie");
+  movie.predicate("hastitle").title("Has Title");
+  movie.predicate("hasactor").title("Has Actor");
+  movie.predicate("hasgenre").title("Has Genre");
+  movie.predicate("releasedin").title("Released In");
+  this.include(movie);
 };
 
 com.marklogic.semantic.tripleconfig.prototype.addTest = function() {
-  //this.entities.push("foodstuff");
+  ////this.entities.push("foodstuff");
   
-  this.validTriples.push({subjectType: "person", objectType: "foodstuff", predicateArray: ["likes"]});
+  //this.validTriples.push({subjectType: "person", objectType: "foodstuff", predicateArray: ["likes"]});
   
-  // no special predicates in foodstuffs
+  //// no special predicates in foodstuffs
   
-  //this._iriPatterns["foodstuff"] = "http://marklogic.com/semantic/targets/foodstuffs/#VALUE#";
-  //this._rdfTypes["foodstuff"] = "http://marklogic.com/semantic/rdfTypes/foodstuff";
-  //this._rdfTypesShort["foodstuff"] = "fs:foodstuff";
-  //this._commonNamePredicates["foodstuff"] = "foodname";
-  //this._properties["foodstuff"] = [{name: "name", iri: "foodname", shortiri: "foodname"}];
+  ////this._iriPatterns["foodstuff"] = "http://marklogic.com/semantic/targets/foodstuffs/#VALUE#";
+  ////this._rdfTypes["foodstuff"] = "http://marklogic.com/semantic/rdfTypes/foodstuff";
+  ////this._rdfTypesShort["foodstuff"] = "fs:foodstuff";
+  ////this._commonNamePredicates["foodstuff"] = "foodname";
+  ////this._properties["foodstuff"] = [{name: "name", iri: "foodname", shortiri: "foodname"}];
   
-  this._newentities["foodstuff"] = {name: "foodstuff", title: "Foodstuff", prefix: "http://marklogic.com/semantic/ns/foodstuff", iriPattern: "http://marklogic.com/semantic/targets/foodstuffs/#VALUE#", 
-    rdfTypeIri: "http://marklogic.com/semantic/rdfTypes/foodstuff", rdfTypeIriShort: "fs:foodstuff", commonNamePredicate: "foodname",
-    properties: [{name: "foodname", iri: "foodname", shortiri: "fs:foodname"}]};
+  //this._newentities["foodstuff"] = {name: "foodstuff", title: "Foodstuff", prefix: "http://marklogic.com/semantic/ns/foodstuff", iriPattern: "http://marklogic.com/semantic/targets/foodstuffs/#VALUE#", 
+  //  rdfTypeIri: "http://marklogic.com/semantic/rdfTypes/foodstuff", rdfTypeIriShort: "fs:foodstuff", commonNamePredicate: "foodname",
+  //  properties: [{name: "foodname", iri: "foodname", shortiri: "fs:foodname"}]};
     
-  this._newPredicates["foodname"] = {name: "foodname", title: "Named", iri: "foodname", shortiri: "foodname"};
-  this._newPredicates["likes"] = {name: "likes", title: "Likes food", iri: "likes", shortiri: "fs:likes"};
+  //this._newPredicates["foodname"] = {name: "foodname", title: "Named", iri: "foodname", shortiri: "foodname"};
+  //this._newPredicates["likes"] = {name: "likes", title: "Likes food", iri: "likes", shortiri: "fs:likes"};
+  
+  
+  var foodstuff = this.rdftype("http://marklogic.com/semantic/ns/foodstuff","foodname").title("Foodstuff")
+    .from("http://xmlns.com/foaf/0.1/Person","likes");
+  foodstuff.predicate("foodname").title("Named");
+  foodstuff.predicate("likes").title("Likes");
+  this.include(foodstuff);
 };
 
 com.marklogic.semantic.tripleconfig.prototype.addFoafPlaces = function() {
@@ -4482,78 +4687,78 @@ com.marklogic.semantic.tripleconfig.prototype.addFoafPlaces = function() {
 };
 
 com.marklogic.semantic.tripleconfig.prototype.addFoaf = function() {
-  this.validTriples.push({subjectType: "person", objectType: "person", predicateArray: ["knows","friendOf","enemyOf","childOf","parentOf","fundedBy"]});
-  this.validTriples.push({subjectType: "person", objectType: "organisation", predicateArray: ["member","studies_at"]});
-  this.validTriples.push({subjectType: "organisation", objectType: "organisation", predicateArray: ["member","parentOf","affiliated_with","fundedBy"]});
+  //this.validTriples.push({subjectType: "person", objectType: "person", predicateArray: ["knows","friendOf","enemyOf","childOf","parentOf","fundedBy"]});
+  //this.validTriples.push({subjectType: "person", objectType: "organisation", predicateArray: ["member","studies_at"]});
+  //this.validTriples.push({subjectType: "organisation", objectType: "organisation", predicateArray: ["member","parentOf","affiliated_with","fundedBy"]});
   
-  //this._predicates["knows"] = "http://xmlns.com/foaf/0.1/knows";
-  //this._predicates["friendOf"] = "http://xmlns.com/foaf/0.1/friendOf";
-  //this._predicates["enemyOf"] = "http://xmlns.com/foaf/0.1/enemyOf";
-  //this._predicates["childOf"] = "http://xmlns.com/foaf/0.1/childOf";
-  //this._predicates["parentOf"] = "http://xmlns.com/foaf/0.1/parentOf";
-  //this._predicates["fundedBy"] = "http://xmlns.com/foaf/0.1/fundedBy";
-  //this._predicates["member"] = "http://xmlns.com/foaf/0.1/member";
-  //this._predicates["based_near"] = "http://xmlns.com/foaf/0.1/based_near";
-  //this._predicatesShort["knows"] = "foaf:knows";
-  //this._predicatesShort["friendOf"] = "foaf:friendOf";
-  //this._predicatesShort["enemyOf"] = "foaf:enemyOf";
-  //this._predicatesShort["childOf"] = "foaf:childOf";
-  //this._predicatesShort["parentOf"] = "foaf:parentOf";
-  //this._predicatesShort["fundedBy"] = "foaf:fundedBy";
-  //this._predicatesShort["member"] = "foaf:member";
-  //this._predicatesShort["based_near"] = "foaf:based_near";
-  
-  // DELETE THE FOLLOWING
-  /*
-  this.entities.push("person");
-  this.entities.push("organisation");
-  this._iriPatterns["person"] = "http://marklogic.com/semantic/targets/person/#VALUE#";
-  this._iriPatterns["organisation"] = "http://marklogic.com/semantic/targets/organisation/#VALUE#";
-  this._rdfTypes["person"] = "http://xmlns.com/foaf/0.1/Person";
-  this._rdfTypes["organisation"] = "http://xmlns.com/foaf/0.1/Organization";
-  this._rdfTypesShort["person"] = "foaf:Person";
-  this._rdfTypesShort["organisation"] = "foaf:Organization";
-  this._commonNamePredicates["person"] = "http://xmlns.com/foaf/0.1/name";
-  this._commonNamePredicates["organisation"] = "http://xmlns.com/foaf/0.1/name";
-  
-  this._properties["person"] = [{name: "name", iri: "http://xmlns.com/foaf/0.1/name", shortiri: "foaf:name"}];
-  this._properties["organisation"] = [{name: "name", iri: "http://xmlns.com/foaf/0.1/name", shortiri: "foaf:name"}];
-  // END DELETE
-  */
-  
-  this._newentities["person"] = {name: "person", title: "Person",prefix: "http://xmlns.com/foaf/0.1/", iriPattern: "http://marklogic.com/semantic/targets/person/#VALUE#", 
-    rdfTypeIri: "http://xmlns.com/foaf/0.1/Person", rdfTypeIriShort: "foaf:Person", commonNamePredicate: "http://xmlns.com/foaf/0.1/name",
-    properties: [{name: "name", iri: "http://xmlns.com/foaf/0.1/name", shortiri: "foaf:name"}]};
+  //this._newentities["person"] = {name: "person", title: "Person",prefix: "http://xmlns.com/foaf/0.1/", iriPattern: "http://marklogic.com/semantic/targets/person/#VALUE#", 
+  //  rdfTypeIri: "http://xmlns.com/foaf/0.1/Person", rdfTypeIriShort: "foaf:Person", commonNamePredicate: "http://xmlns.com/foaf/0.1/name",
+  //  properties: [{name: "name", iri: "http://xmlns.com/foaf/0.1/name", shortiri: "foaf:name"}]};
     
-  this._newentities["organisation"] = {name: "organisation", title: "Organisation", prefix: "http://xmlns.com/foaf/0.1/", iriPattern: "http://marklogic.com/semantic/targets/organisation/#VALUE#", 
-    rdfTypeIri: "http://xmlns.com/foaf/0.1/Organization", rdfTypeIriShort: "foaf:Organization", commonNamePredicate: "http://xmlns.com/foaf/0.1/name",
-    properties: [{name: "name", iri: "http://xmlns.com/foaf/0.1/name", shortiri: "foaf:name"}]};
+  //this._newentities["organisation"] = {name: "organisation", title: "Organisation", prefix: "http://xmlns.com/foaf/0.1/", iriPattern: "http://marklogic.com/semantic/targets/organisation/#VALUE#", 
+  //  rdfTypeIri: "http://xmlns.com/foaf/0.1/Organization", rdfTypeIriShort: "foaf:Organization", commonNamePredicate: "http://xmlns.com/foaf/0.1/name",
+  //  properties: [{name: "name", iri: "http://xmlns.com/foaf/0.1/name", shortiri: "foaf:name"}]};
   
-  this._newPredicates["knows"] = {name: "knows", title: "Knows", iri: "http://xmlns.com/foaf/0.1/knows", shortiri: "foaf:knows"};
-  this._newPredicates["friendOf"] = {name: "friendOf", title: "Friend", iri: "http://xmlns.com/foaf/0.1/friendOf", shortiri: "foaf:friendOf"};
-  this._newPredicates["enemyOf"] = {name: "enemyOf", title: "Enemy", iri: "http://xmlns.com/foaf/0.1/enemyOf", shortiri: "foaf:enemyOf"};
-  this._newPredicates["childOf"] = {name: "childOf", title: "Is a child of", iri: "http://xmlns.com/foaf/0.1/childOf", shortiri: "foaf:childOf"};
-  this._newPredicates["parentOf"] = {name: "parentOf", title: "Is a parent of", iri: "http://xmlns.com/foaf/0.1/parentOf", shortiri: "foaf:parentOf"};
-  this._newPredicates["fundedBy"] = {name: "fundedBy", title: "Funded by", iri: "http://xmlns.com/foaf/0.1/fundedBy", shortiri: "foaf:fundedBy"};
-  this._newPredicates["member"] = {name: "member", title: "Is a member of", iri: "http://xmlns.com/foaf/0.1/member", shortiri: "foaf:member"};
-  this._newPredicates["based_near"] = {name: "based_near", title: "Is based near", iri: "http://xmlns.com/foaf/0.1/based_near", shortiri: "foaf:based_near"};
-  this._newPredicates["name"] = {name: "name", title: "Name", iri: "http://xmlns.com/foaf/0.1/name", shortiri: "foaf:name"};
+  //this._newPredicates["knows"] = {name: "knows", title: "Knows", iri: "http://xmlns.com/foaf/0.1/knows", shortiri: "foaf:knows"};
+  //this._newPredicates["friendOf"] = {name: "friendOf", title: "Friend", iri: "http://xmlns.com/foaf/0.1/friendOf", shortiri: "foaf:friendOf"};
+  //this._newPredicates["enemyOf"] = {name: "enemyOf", title: "Enemy", iri: "http://xmlns.com/foaf/0.1/enemyOf", shortiri: "foaf:enemyOf"};
+  //this._newPredicates["childOf"] = {name: "childOf", title: "Is a child of", iri: "http://xmlns.com/foaf/0.1/childOf", shortiri: "foaf:childOf"};
+  //this._newPredicates["parentOf"] = {name: "parentOf", title: "Is a parent of", iri: "http://xmlns.com/foaf/0.1/parentOf", shortiri: "foaf:parentOf"};
+  //this._newPredicates["fundedBy"] = {name: "fundedBy", title: "Funded by", iri: "http://xmlns.com/foaf/0.1/fundedBy", shortiri: "foaf:fundedBy"};
+  //this._newPredicates["member"] = {name: "member", title: "Is a member of", iri: "http://xmlns.com/foaf/0.1/member", shortiri: "foaf:member"};
+  //this._newPredicates["based_near"] = {name: "based_near", title: "Is based near", iri: "http://xmlns.com/foaf/0.1/based_near", shortiri: "foaf:based_near"};
+  //this._newPredicates["name"] = {name: "name", title: "Name", iri: "http://xmlns.com/foaf/0.1/name", shortiri: "foaf:name"};
   
+  var person = this.rdftype("http://xmlns.com/foaf/0.1/Person","http://xmlns.com/foaf/0.1/name").title("Person")
+    .prefix("http://xmlns.com/foaf/0.1/").pattern("http://marklogic.com/semantic/targets/person/#VALUE#")
+    .to("http://xmlns.com/foaf/0.1/Person",[
+      "http://xmlns.com/foaf/0.1/knows","http://xmlns.com/foaf/0.1/friendOf","http://xmlns.com/foaf/0.1/enemyOf",
+      "http://xmlns.com/foaf/0.1/childOf","http://xmlns.com/foaf/0.1/parentOf","http://xmlns.com/foaf/0.1/fundedBy"
+    ])
+    .to("http://xmlns.com/foaf/0.1/Organization",[
+      "http://xmlns.com/foaf/0.1/member","http://www.marklogic.com/ontology/0.1/studies_at"
+    ]);
+  person.predicate("http://xmlns.com/foaf/0.1/knows").title("Knows");
+  person.predicate("http://xmlns.com/foaf/0.1/friendOf").title("Friend");
+  person.predicate("http://xmlns.com/foaf/0.1/enemyOf").title("Enemy");
+  person.predicate("http://xmlns.com/foaf/0.1/childOf").title("Is a child of");
+  person.predicate("http://xmlns.com/foaf/0.1/parentOf").title("Is a parent of");
+  person.predicate("http://xmlns.com/foaf/0.1/fundedBy").title("Funded by");
+  person.predicate("http://xmlns.com/foaf/0.1/member").title("Is a member of");
+  person.predicate("http://xmlns.com/foaf/0.1/based_near").title("I based near");
+  person.predicate("http://xmlns.com/foaf/0.1/name").title("Name");
+  this.include(person);
+  
+  var org = this.rdftype("http://xmlns.com/foaf/0.1/Organization","http://xmlns.com/foaf/0.1/name").title("Organisation")
+    .prefix("http://xmlns.com/foaf/0.1/").pattern("http://marklogic.com/semantic/targets/organisation/#VALUE#")
+    .to("http://xmlns.com/foaf/0.1/Organization".[
+      "http://xmlns.com/foaf/0.1/member","http://xmlns.com/foaf/0.1/parentOf",
+      "http://www.marklogic.com/ontology/0.1/affiliated_with","http://xmlns.com/foaf/0.1/fundedBy"
+    ]);
+  // has some predicates in common with person, so no need to define separately
+  this.include(org);
 };
 
 com.marklogic.semantic.tripleconfig.prototype.addMarkLogic = function() {
-  this.validTriples.push({subjectType: "*", objectType: "mldocument", predicateArray: ["uri"]});
+  //this.validTriples.push({subjectType: "*", objectType: "mldocument", predicateArray: ["uri"]});
   
-  this._newentities["mldocument"] = {name: "mldocument", title: "MarkLogic Document",prefix: "http://marklogic.com/semantics/ontology/Document", iriPattern: "http://marklogic.com/semantics/ontology/Document/#VALUE#", 
-    rdfTypeIri: "http://marklogic.com/semantics/ontology/Document", rdfTypeIriShort: "ml:Document", commonNamePredicate: "http://marklogic.com/semantics/ontology/Document#uri",
-    properties: [{name: "uri", iri: "http://marklogic.com/semantics/ontology/Document#uri", shortiri: "ml:uri"}]};
+  //this._newentities["mldocument"] = {name: "mldocument", title: "MarkLogic Document",prefix: "http://marklogic.com/semantics/ontology/Document", iriPattern: "http://marklogic.com/semantics/ontology/Document/#VALUE#", 
+  //  rdfTypeIri: "http://marklogic.com/semantics/ontology/Document", rdfTypeIriShort: "ml:Document", commonNamePredicate: "http://marklogic.com/semantics/ontology/Document#uri",
+  //  properties: [{name: "uri", iri: "http://marklogic.com/semantics/ontology/Document#uri", shortiri: "ml:uri"}]};
   
-  this._newPredicates["uri"] = {name: "uri", title: "URI", iri: "http://marklogic.com/semantics/ontology/Document#uri", shortiri: "ml:uri"};
+  //this._newPredicates["uri"] = {name: "uri", title: "URI", iri: "http://marklogic.com/semantics/ontology/Document#uri", shortiri: "ml:uri"};
+  
+  var doc = this.rdftype("http://marklogic.com/semantics/ontology/Document").title("MarkLogic Document")
+    .prefix("http://marklogic.com/semantics/ontology/Document").pattern("http://marklogic.com/semantics/ontology/Document/#VALUE#")
+    .from("*","http://marklogic.com/semantics/ontology/Document#uri");
+  doc.predicate("http://marklogic.com/semantics/ontology/Document#uri").title("URI");
+  this.include(doc);
 };
 
 com.marklogic.semantic.tripleconfig.prototype.getValidPredicates = function(from,to) {
   for (var i = 0;i < this.validTriples.length;i++) {
-    if ((this.validTriples[i].subjectType == from || "*" == this.validTriples[i].subjectType) && this.validTriples[i].objectType == to) {
+    if ((this.validTriples[i].subjectType == from || "*" == this.validTriples[i].subjectType) && 
+        (this.validTriples[i].objectType == to || "*" == this.validTriples[i].objectType)) {
       return this.validTriples[i].predicateArray;
     }
   }

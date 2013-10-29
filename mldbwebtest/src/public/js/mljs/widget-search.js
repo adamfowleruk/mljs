@@ -673,7 +673,7 @@ com.marklogic.widgets.searchresults = function(container) {
   
   // private configuration
   
-  this.processors = new Array();
+  this.processors = {}; // we never reference it numerically, only as a hash, to use a JSON object instead of an Array
   this.availableProcessors = new Array();
   this.processorPriority = new Array();
   
@@ -1679,6 +1679,21 @@ com.marklogic.widgets.searchpage = function(container) {
   
   // set default connection
   this.db = mljs.defaultconnection;
+};
+
+
+com.marklogic.widgets.searchpage.prototype.setSearchContext = function(ctx) {
+  this.context = ctx;
+  
+  this.context.register(this.bar);
+  this.context.register(this.sort);
+  this.context.register(this.facets);
+  this.context.register(this.pager);
+  this.context.register(this.results);
+};
+
+com.marklogic.widgets.searchpage.prototype.getSearchContext = function() {
+  return this.context;
 };
 
 /**

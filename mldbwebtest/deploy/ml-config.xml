@@ -229,6 +229,15 @@
           <collation>http://marklogic.com/collation/</collation>
           <range-value-positions>false</range-value-positions>
         </range-element-index>
+
+        <range-element-index>
+          <scalar-type>string</scalar-type>
+          <namespace-uri>http://marklogic.com/xdmp/json/basic</namespace-uri>
+          <localname>h1</localname>
+          <collation>http://marklogic.com/collation/</collation>
+          <range-value-positions>false</range-value-positions>
+        </range-element-index>
+        
       </range-element-indexes>
       <range-element-attribute-indexes>
 <!--
