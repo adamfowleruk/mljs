@@ -12,7 +12,7 @@ Below is a complete list and description of what web widgets are available:-
 | searchpager | widget-search.js | Shows 'returned 1 to 10 of 55' results, previous, next, first and last pages links. |
 | searchsort | widget-search.js | Drop down to select sort order defined in search options |
 | cooccurence | widget-cooccurence.js | 2 way co-occurence widget. Uses MarkLogic Search co-occurence computed on the server |
-| highcharts | widget-highcharts.js | Renders JSON and XML document content or facet information as charts using the built in HighCharts library | Tested Line, bar, stacked bar, pie, column, stacked column charts |
+| highcharts | widget-highcharts.js | Renders JSON and XML document content or facet information as charts using the built in HighCharts library. Tested Line, bar, stacked bar, pie, column, stacked column charts |
 | kratu | widget-kratu.js | Uses the Google Kratu web widget to render JSON document content, or queryFacts() triple store results as a table. Great for exploring JSON data. |
 | markings | widget-markings.js | Used to render XHTML documents and assign document and paragraph level security. (Paragraph level requires custom XQuery rendering for all searches and document fetch requests.) Also can have triple suggestion turned on - if it sees two XML elements with particular names, it will suggest triples based on them being in the same paragraph. E.g. 'Adam lives in Sheffield'. It'll then save the document with permissions changes, and save the triples in a graph linked back to this document. |
 | create | widget-docbuilder.js | Generic table based form generator. Currently only supports an Upload widget, update permissions drop down, and read permissions drop down for the uploaded document. |

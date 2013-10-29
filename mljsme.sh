@@ -41,6 +41,13 @@ mkdir -p $C
 mkdir -p $J
 mkdir -p $I
 
+# TODO check for existence of wget or curl and use the most appropriate, or print a helpful error message about installation each
+# -bash: wget: command not found
+#adam-mac:~ adamfowler$ /bin/sh flibble
+#/bin/sh: flibble: No such file or directory
+#adam-mac:~ adamfowler$ flibble
+#-bash: flibble: command not found
+
 # Fetch latest MLJS download tar.gz file
 cd $T
 wget -nd --no-check-certificate https://raw.github.com/adamfowleruk/mljs/master/dist/mljs-browser.tar.gz

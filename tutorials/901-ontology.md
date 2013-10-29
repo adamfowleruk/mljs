@@ -41,6 +41,7 @@ that the fact they are contained within a document is never exposed. You need an
 In various widgets I have support for related documents using a MarkLogic Document RDF Type. Below are its available predicates/types.
 
 | Fact | Predicate | Valid Values | Notes |
+| --- | --- | --- | --- |
 | RDF Type | a | http://marklogic.com/semantics/ontology/Document | Specifies this Subject is a MarkLogic document itself |
 | Has URI | http://marklogic.com/semantics/ontology/Document#uri | The document's URI within this MarkLogic database |
 
@@ -52,6 +53,7 @@ itself. (E.g. generated_by)
 There are then a set of predicates to be used within other Subjects in order to relate them to a document Subject:-
 
 | Predicate | Applies to | Notes |
+| --- | --- | --- |
 | http://marklogic.com/semantics/ontology/mentioned_in | Any RDF Subject | This subject has been mentioned in the object (A MarkLogicDocument RDF Instance) |
 | http://marklogic.com/semantics/ontology/derived_from | A GRAPH ?graph name | Where this set of facts (named graph) were derived from |
 
@@ -99,7 +101,9 @@ All fine… except it will never return any results, because the cts:term-query 
 
 This leaves you with needing a way to answer the sparql query first to return a list of candidate document URIs instead - basically the pattern in reverse. Now you could just do this:-
 
+```text
 </ns/Customer/1234> <mentioned_in> "/mydocs/some/uri/claim.xml" .
+```
 
 The problem with this though is that you cannot hang other facts off of the URI. E.g. generated_by etc from PROV-O. This leaves us with having to use some sort of Entity class for MarkLogic documents. Indeed, if we do this and adopt the PROV-O relationships we find they are actually a very good fit. They support use cases of documents being updated over time, and altered as part of software processes. They can handle things like original documents, xhtml renderings, versions of documents, or alterations (E.g. enrichments) via external software agents. 
 
