@@ -369,12 +369,13 @@ com.marklogic.widgets.highcharts.prototype.updateSubjectFacts = function(facts) 
  * @param {results} results - REST API JSON Results object, as from GET /v1/search
  */
 com.marklogic.widgets.highcharts.prototype.updateResults = function(results) {
+  mljs.defaultconnection.logger.debug("in highcharts.updateResults()");
+  
   if (false == results || true == results ) {
     // TODO show/hide refresh image based on value of this.results (true|false)
     return;
   }
   
-  mljs.defaultconnection.logger.debug("in highcharts.updateResults()");
   mljs.defaultconnection.logger.debug(" - results: " + JSON.stringify(results));
   
   // go through each results and extract name and values, grouping by name

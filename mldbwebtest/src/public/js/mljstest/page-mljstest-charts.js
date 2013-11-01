@@ -87,6 +87,9 @@ $(document).ready(function() {
   
   db.saveSearchOptions(optionsName,options,function(result) {
     db.structuredSearch(query,optionsName,function(result) {
+      
+      mljs.defaultconnection.logger.debug("Got result in page JS: " + JSON.stringify(result));
+      
       tempchart.updateResults(result.doc);
       tempspline.updateResults(result.doc);
       tempbar.updateResults(result.doc);

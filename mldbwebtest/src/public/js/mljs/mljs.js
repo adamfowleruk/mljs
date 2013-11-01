@@ -866,13 +866,11 @@ mljs.prototype.get = function(docuri,options_opt,callback_opt) {
     options_opt = undefined;
   }
   var options = {
-    path: '/v1/documents?uri=' + encodeURI(docuri) + "&format=json",
+    path: '/v1/documents?uri=' + encodeURI(docuri) /* + "&format=json"*/,
     method: 'GET'
   };
   if (undefined != options_opt) {
-    if (undefined != options_opt.transform) {
-      options.path += "&transform=" + encodeURI(options_opt.transform)
-    }
+    options.path = this._applyTransformProperties(options.path);
   }
   
   this.__doreq("GET",options,null,function (result) {
@@ -1343,26 +1341,9 @@ mljs.prototype.search = function(query_opt,options_opt,start_opt,sprops_opt,call
       method = "POST"; // verify
     }*/
   }
-  var format = "&format=json";
-  if (undefined != sprops_opt) {
-    if (undefined != sprops_opt.collection) {
-      var cols = sprops_opt.collection.split(",");
-      for (var c = 0;c < cols.length;c++) {
-        url += "&collection=" + encodeURI(cols[c]);
-      }
-    }
-    if (undefined != sprops_opt.directory) {
-      url += "&directory=" + sprops_opt.directory;
-    }
-    if (undefined != sprops_opt.transform) {
-      // MarkLogic 7.0+ only
-      url += "&transform=" + sprops_opt.transform;
-    }
-    if (undefined != sprops_opt.format) {
-      format = "&format=" + sprops_opt.format;
-    }
-  }
-  url += format;
+  
+  url = this._applySearchProperties(url,sprops_opt);
+  
   if (undefined != start_opt) {
     url += "&start=" + start_opt;
   }
@@ -1414,20 +1395,28 @@ mljs.prototype.search = function(query_opt,options_opt,start_opt,sprops_opt,call
  * @param {string} collection_opt - The optional collection to restrict the results to
  * @param {string} query_opt - The optional query string
  * @param {string} options_opt - The optional name of the installed query options to use
+ * @param {JSON} sprops_opt - Additional optional search properties
  * @param {function} callback - The callback to invoke after the method completes
  */ 
-mljs.prototype.searchCollection = function(collection_opt,query_opt,options_opt,callback) { 
+mljs.prototype.searchCollection = function(collection_opt,query_opt,options_opt,sprops_opt,callback) { 
   if (callback == undefined && typeof(options_opt) === 'function') {
-    callback = options_opt;
-    options_opt = undefined;
+    if (undefined == sprops_opt) {
+      callback = options_opt;
+      options_opt = undefined;
+    } else {
+      callback = sprops_opt;
+      sprops_opt = undefined;
+    }
   }
-  var url = "/v1/search?q=" + encodeURI(query_opt) + "&format=json";
+  var url = "/v1/search?q=" + encodeURI(query_opt);
   if (undefined != collection_opt) {
     url += "&collection=" + encodeURI(collection_opt);
   }
   if (options_opt != undefined) {
     url += "&options=" + encodeURI(options_opt);
   }
+  
+  url = this._applySearchProperties(url,sprops_opt);
   
   // make transaction aware
   if (undefined != this.__transaction_id) {
@@ -1442,6 +1431,58 @@ mljs.prototype.searchCollection = function(collection_opt,query_opt,options_opt,
 };
 
 /**
+ * Used to consistenly manage transform properties. Used by search and doc get functions. Application of the JavaScript Configuration Pattern (location 1734).
+ * @private
+ */
+mljs.prototype._applyTransformProperties = function(url,sprops_opt) {
+  if (undefined != sprops_opt) {
+    if (undefined != sprops_opt.transform) {
+      // MarkLogic 7.0+ only
+      url += "&transform=" + sprops_opt.transform;
+      if (undefined != sprops_opt.transformParameters) {
+        for (var pname in sprops_opt.transformParameters) {
+          url += "&trans:" + pname + "=" + encodeURI(sprops_opt.transformParameters[pname]);
+        }
+      }
+    }
+  }
+  return url;
+};
+
+/**
+ * Used to consistenly manage search properties. Application of the JavaScript Configuration Pattern (location 1734).
+ * @private
+ */
+mljs.prototype._applySearchProperties = function(url,sprops_opt) {
+  // apply properties
+  var format = "&format=json";
+  
+  if (undefined != sprops_opt) {
+    if (undefined != sprops_opt.collection) {
+      var cols = sprops_opt.collection.split(",");
+      for (var c = 0;c < cols.length;c++) {
+        url += "&collection=" + encodeURI(cols[c]);
+      }
+    }
+    if (undefined != sprops_opt.directory) {
+      url += "&directory=" + sprops_opt.directory;
+    }
+    if (undefined != sprops_opt.transform) {
+      url = this._applyTransformProperties(url,sprops_opt); // equals not append
+    }
+    if (undefined != sprops_opt.format) {
+      format = "&format=" + sprops_opt.format;
+    }
+    if (undefined != sprops_opt.start_opt) {
+      url += "&start=" + sprops_opt.start_opt;
+    }
+  }
+  url += format;
+  
+  return url;
+};
+
+/**
  * Performs a structured search.
  * 
  * {@link http://docs.marklogic.com/REST/GET/v1/search}
@@ -1452,17 +1493,27 @@ mljs.prototype.searchCollection = function(collection_opt,query_opt,options_opt,
  * 
  * @param {JSON} query_opt - The optional structured query JSON to restrict the results by
  * @param {string} options_opt - The optional name of the installed query options to use
+ * @param {JSON} sprops_opt - Additional optional search properties
  * @param {function} callback - The callback to invoke after the method completes
  */
-mljs.prototype.structuredSearch = function(query_opt,options_opt,callback) {
-  if (callback == undefined && typeof(options_opt) === 'function') {
-    callback = options_opt;
-    options_opt = undefined;
+mljs.prototype.structuredSearch = function(query_opt,options_opt,sprops_opt,callback) {
+  if (callback == undefined) {
+    if (typeof(options_opt) === 'function') {
+      callback = options_opt;
+      options_opt = undefined;
+    } else {
+      if (typeof(sprops_opt) === 'function') {
+        callback = sprops_opt;
+        sprops_opt = undefined;
+      }
+    }
   }
-  var url = "/v1/search?structuredQuery=" + encodeURI(JSON.stringify(query_opt)) + "&format=json";
+  var url = "/v1/search?structuredQuery=" + encodeURI(JSON.stringify(query_opt));
   if (options_opt != undefined) {
     url += "&options=" + encodeURI(options_opt);
   }
+  
+  url = this._applySearchProperties(url,sprops_opt);
   
   // make transaction aware
   if (undefined != this.__transaction_id) {
@@ -1526,11 +1577,16 @@ mljs.prototype.searchoptions = mljs.prototype.searchOptions; // typo workaround 
  * @param {string|JSON} query - The query string (string) or structured query (object) to use to restrict the results
  * @param {string} tuplesname - The name of the tuples in the installed search options to return
  * @param {string} optionsname - The name of the installed search options to use
+ * @param {JSON} sprops_opt - Additional optional search properties
  * @param {function} callback_opt - The optional callback to invoke after the method completes
  */
-mljs.prototype.values = function(query,tuplesname,optionsname,callback_opt) {
+mljs.prototype.values = function(query,tuplesname,optionsname,sprops_opt,callback_opt) {
+  if (undefined == callback_opt && 'function' === typeof(sprops_opt)) {
+    callback_opt = sprops_opt;
+    sprops_opt = undefined;
+  }
   var options = {
-    path: "/v1/values/" + tuplesname + "?format=json&options=" + encodeURI(optionsname),
+    path: "/v1/values/" + tuplesname + "?options=" + encodeURI(optionsname),
     method: "GET"
   };
   if (typeof query == "string") {
@@ -1540,6 +1596,8 @@ mljs.prototype.values = function(query,tuplesname,optionsname,callback_opt) {
     // structured query
     options.path += "&structuredQuery=" + encodeURI(JSON.stringify(query));
   }
+  
+  options.path = this._applySearchProperties(options.path,sprops_opt);
   
   this.__doreq("VALUES",options,null,callback_opt);
 };
@@ -2670,9 +2728,30 @@ mljs.prototype.options.prototype._includeSearchDefaults = function() {
     this.options["sort-order"] = new Array(); // [ sort-order ],
     this.options["suggestion-source"] = new Array(); //[ suggestion-source ],
     
+    this._buckets = {}; // has to be done like this due to multiple function levels - { constraint_name: [{_list = [{ge,lt,name,label}, ... ], ...}], ... }
+    this._computedBuckets = {}; // has to be done like this due to multiple function levels - { constraint_name: [{_list = [{ge,lt,anchor,name,label}, ... ], ...}], ... }
+    
     // defaults
     this.sortOrderScore();
   }
+};
+
+/**
+ * Finds a constraint using its name
+ * @private
+ */
+mljs.prototype.options.prototype._findConstraint = function(cname) {
+  var con = null;
+  
+  for (var i = 0, max = this.options.constraint.length, c;null == c && i < max;i++) {
+    c = this.options.constraint[i];
+    
+    if (c.name == cname) {
+      con = c;
+    }
+  }
+  
+  return con;
 };
 
 /**
@@ -2680,7 +2759,31 @@ mljs.prototype.options.prototype._includeSearchDefaults = function() {
  */
 mljs.prototype.options.prototype.toJson = function() {
   // set empty arrays to undefined
-//  if (undefined != this.options[""])
+  //  if (undefined != this.options[""])
+  
+  for (var cname in this._buckets) {
+    var buckets = this._buckets[cname]; // returns JSON object with _list and bucket: function() members
+    var constraint = this._findConstraint[cname]; 
+    var nb = [];
+    for (var i = 0,max = buckets._list.length,bucket;i < max;i++) {
+      bucket = buckets._list[i];
+      nb[i] = bucket;
+    }
+    constraint.bucket = nb;
+  }
+  
+  // TODO throw an error if computed bucket is not over a xs:dateTime constraint
+  
+  for (var cname in this._computedBuckets) {
+    var buckets = this._computedBuckets[cname]; // returns JSON object with _list and bucket: function() members
+    var constraint = this._findConstraint[cname]; 
+    var nb = [];
+    for (var i = 0,max = buckets._list.length,bucket;i < max;i++) {
+      bucket = buckets._list[i];
+      nb[i] = bucket;
+    }
+    constraint["computed-bucket"] = nb;
+  }
   
   // return options object
   return {options: this.options};
@@ -3024,7 +3127,10 @@ mljs.prototype.options.prototype.elemattrRangeConstraint = function(constraint_n
   }
   
   // Create sort orders automatically
-  this.sortOrder(this.defaultSortDirection,type_opt || this.defaults.type,element,collation_opt || this.defaults.collation); // TODO verify this works with normal XML range indexes not json keys
+  var elspec = {
+    element: range.range.element.name, elementns: range.range.element.ns, attribute: range.range.attribute.name, attributens: range.range.attribute.ns
+  }
+  this.sortOrder(this.defaultSortDirection,type_opt || this.defaults.type,elspec,collation_opt || this.defaults.collation); // TODO verify this works with normal XML range indexes not json keys
   
   this.addConstraint(range);
   
@@ -3041,8 +3147,9 @@ mljs.prototype.options.prototype.elemattrRangeConstraint = function(constraint_n
  * @param {string} collation_opt - The optional string collation to used. If not specified, default collation is used
  * @param {JSON} facet_opt - The optional facet JSON to use.
  * @param {JSON} facet_options_opt - The optional facet configuration JSON to use.
+ * @param {string} fragmentScope_opt - The fragment to use (defaults to document)
  */
-mljs.prototype.options.prototype.rangeConstraint = function(constraint_name_opt,name_or_key,ns_opt,type_opt,collation_opt,facet_opt,facet_options_opt,fragmentScope) {
+mljs.prototype.options.prototype.rangeConstraint = function(constraint_name_opt,name_or_key,ns_opt,type_opt,collation_opt,facet_opt,facet_options_opt,fragmentScope_opt) {
   this._includeSearchDefaults();
   if (undefined == facet_options_opt) {
     if (undefined != facet_opt && Array.isArray(facet_opt)) {
@@ -3110,30 +3217,138 @@ mljs.prototype.options.prototype.rangeConstraint = function(constraint_name_opt,
     range: {
       type: type_opt || this.defaults.type, 
       element: {
-        name: name_or_key, ns : ns_opt || this.defaults.namespace
+        name: name_or_key, ns : ns_opt || this.defaults.namespace // NB this means if default namespace is not json, you must specify NS for ALL json rangeConstraints to be marklogic/basic full URL spec
       },
       collation: collation_opt || this.defaults.collation
     }
   };
-  if (undefined != facet_opt || undefined != facet_options_opt) {
+  if ((undefined != facet_opt && true===facet_opt) || undefined != facet_options_opt) {
     range.range.facet = true;
   }
   if (undefined != facet_options_opt) {
     range.range["facet-options"] = facet_options_opt;
   }
-  if (undefined != fragmentScope) {
-    range.range["fragment-scope"] = fragmentScope;
+  if (undefined != fragmentScope_opt) {
+    range.range["fragment-scope"] = fragmentScope_opt;
   }
   
   // Create sort orders automatically
-  this.sortOrder("ascending",type_opt || this.defaults.type,name_or_key,collation_opt || this.defaults.collation); // TODO verify this works with normal XML range indexes not json keys
-  this.sortOrder("descending",type_opt || this.defaults.type,name_or_key,collation_opt || this.defaults.collation); // TODO verify this works with normal XML range indexes not json keys
+  var elspec = name_or_key;
+  if (undefined != ns_opt) {
+    elspec = {
+      element: range.range.element.name, elementns: range.range.element.ns
+    };
+  }
+  this.sortOrder("ascending",type_opt || this.defaults.type,elspec,collation_opt || this.defaults.collation); // TODO verify this works with normal XML range indexes not json keys
+  this.sortOrder("descending",type_opt || this.defaults.type,elspec,collation_opt || this.defaults.collation); // TODO verify this works with normal XML range indexes not json keys
   
   this.addConstraint(range);
   
   return this;
 };
 mljs.prototype.options.prototype.range = mljs.prototype.options.prototype.rangeConstraint;
+
+/**
+ * Specifies a new field range constraint, and adds it to the search options object
+ * 
+ * @param {string} constraint_name - Constraint name to use
+ * @param {string} name - Field name to use
+ * @param {string} type_opt - xs:string or similar
+ * @param {string} collation_opt - The optional string collation to used. If not specified, default collation is used
+ * @param {JSON} facet_opt - The optional facet JSON to use.
+ * @param {JSON} facet_options_opt - The optional facet configuration JSON to use.
+ * @param {string} fragmentScope_opt - The fragment to use (defaults to document)
+ */
+mljs.prototype.options.prototype.fieldRangeConstraint = function(name,type_opt,collation_opt,facet_opt,facet_options_opt,fragmentScope_opt) {
+  var range = {name: constraint_name_opt,
+    range: {
+      type: type_opt || this.defaults.type, 
+      field: {
+        name: name
+      },
+      collation: collation_opt || this.defaults.collation
+    }
+  };
+  if ((undefined != facet_opt && true===facet_opt) || undefined != facet_options_opt) {
+    range.range.facet = true;
+  }
+  if (undefined != facet_options_opt) {
+    range.range["facet-options"] = facet_options_opt;
+  }
+  if (undefined != fragmentScope_opt) {
+    range.range["fragment-scope"] = fragmentScope_opt;
+  }
+  
+  // Create sort orders automatically
+  var elspec = {
+    field: range.range.field.name, collation: range.range.collation
+  };
+  this.sortOrder("ascending",type_opt || this.defaults.type,elspec,collation_opt || this.defaults.collation);
+  this.sortOrder("descending",type_opt || this.defaults.type,elspec,collation_opt || this.defaults.collation);
+  
+  this.addConstraint(range);
+  
+  return this;
+};
+mljs.prototype.options.prototype.field = mljs.prototype.options.prototype.fieldRangeConstraint;
+
+/**
+ * Adds fixed buckets for the specified constraint. Returns a JSON object that has a bucket(lt,ge,name_opt,label_opt) method.
+ * Used like this:-
+ * ```javascript
+ * var yearBuckets = ob.buckets(year);
+ * yearBuckets.bucket(1920,1929,"1920s","The 1920s").bucket(...).bucket(...);
+ * ```
+ * Note: If you don't specify name, MLJS will create a string based on "<ge-value>-<lt-value>". 
+ * If you don't specify label, it will default to the name specified or calculated by MLJS
+ * 
+ * @param {string} constraint_name - The name of the constraint to define buckets for.
+ */
+mljs.prototype.options.prototype.buckets = function(constraint_name) {
+  var bs = {
+    _list: new Array(),
+    bucket: function(ge,lt,name_opt,label_opt) {
+      var b = {
+        lt: lt, ge: ge
+      };
+      b.name_opt = name_opt || (ge + "-" + lt);
+      b.label_opt = label_opt || b.name_opt;
+      _list.push(b);
+      return bs;
+    }
+  };
+  this._buckets[constraint_name] = bs;
+  return bs;
+};
+
+/**
+ * Adds Computed buckets for the specified constraint. Returns a JSON object that has a bucket(lt,ge,name_opt,label_opt) method.
+ * Used like this:-
+ * ```javascript
+ * var timeBuckets = ob.buckets(updated);
+ * timeBuckets.bucket("P0D","P1D","now","today","Today").bucket(...).bucket(...);
+ * ```
+ * Note: If you don't specify name, MLJS will create a string based on "<ge-value>-<lt-value>". 
+ * If you don't specify label, it will default to the name specified or calculated by MLJS
+ * 
+ * @param {string} constraint_name - The name of the constraint to define buckets for.
+ */
+mljs.prototype.options.prototype.computedBuckets = function(constraint_name) {
+  var bs = {
+    _list: new Array(),
+    bucket: function(ge,lt,anchor,name_opt,label_opt) {
+      var b = {
+        lt: lt, ge: ge, anchor: anchor
+      };
+      b.name_opt = name_opt || (ge + "-" + lt);
+      b.label_opt = label_opt || b.name_opt;
+      _list.push(b);
+      return bs;
+    }
+  };
+  this._computedBuckets[constraint_name] = bs;
+  return bs;
+};
 
 /**
  * Adds any new constraint JSON to the search options object. Always called by the *Constraint methods themselves anyway. 
@@ -3377,13 +3592,47 @@ mljs.prototype.options.prototype.searchableExpression = function(expression, nam
  * 
  * @param {string} direction_opt - The direction (ascending or descending) to use. If not specified, uses the default direction.
  * @param {string} type_opt - The type of the sort element. If not specified uses the default type.
- * @param {string} key - The key (JSON key or element name) to use.
+ * @param {string|JSON} keyOrJSON - The JSON key or XML index JSON description to use. {element: "year", elementns: "http://...", attribute: "gregorian", attributens: "http://" OR FOR FIELD: field: "myfield", collation: "http://..." OR JSON key: "key"    -     All support annotation: "" | ["","",...]  }
  * @param {string} collation_opt - The optional collation to use. Uses the default collation if not specified.
  */
-mljs.prototype.options.prototype.sortOrder = function(direction_opt,type_opt,key,collation_opt) {
+mljs.prototype.options.prototype.sortOrder = function(direction_opt,type_opt,keyOrJSON,collation_opt) {
   this._includeSearchDefaults();
   // TODO check for unspecified type, direction, collation (and element + ns instead of key)
-  var so = {direction: direction_opt || this.defaults.sortDirection,type:type_opt || this.defaults.type,"json-key": key};
+  var so = {direction: direction_opt || this.defaults.sortDirection,type:type_opt || this.defaults.type};
+  if ("string" === typeof(keyOrJSON)) {
+    so["json-key"] = keyOrJSON;
+  } else {
+    if (undefined != keyOrJSON.element) {
+      so["element"] = {name: keyOrJSON.element};
+      if (undefined != keyOrJSON.elementns) {
+        so["element"].ns = keyOrJSON.elementns;
+      } else {
+        so["element"].ns = this.defaults.namespace;
+      }
+    }
+    if (undefined != keyOrJSON.attribute) {
+      so["attribute"] = {name: keyOrJSON.attribute};
+      if (undefined != keyOrJSON.attributens) {
+        so["attribute"].ns = keyOrJSON.attributens || so["element"].ns;
+      } else {
+        so["attribute"].ns = ""; // not using default in case attribute has actual no namespace
+      }
+      
+    }
+    if (undefined != keyOrJSON.field) {
+      so["field"] = {name: keyOrJSON.field, collation: keyOrJSON.collation}; // might not be the default value, could be null (optional)
+    }
+    if (undefined != keyOrJSON.key) {
+      so["json-key"] = keyOrJSON.key;
+    }
+    if (undefined != keyOrJSON.annotation) {
+      if ("string" == typeof(keyOrJSON.annotation)) {
+        so["annotation"] = [keyOrJSON.annotation];
+      } else {
+        so["annotation"] = keyOrJSON.annotation;
+      }
+    }
+  }
   if ("xs:string" == collation_opt) {
     so.collation = collation_opt || this.defaults.collation;
   }
@@ -3787,6 +4036,7 @@ mljs.prototype.searchcontext = function() {
   this.collection = null;
   this.directory = null;
   this.transform = null;
+  this.transformParameters = {};
   this.format = null;
   
   // Internal configuration
@@ -3840,6 +4090,7 @@ mljs.prototype.searchcontext.prototype.setConfiguration = function(config) {
   this.collection = config.collection;
   this.directory = config.directory;
   this.transform = config.transform;
+  this.transformParameters = config.transformParameters || {};
   this.format = config.format;
 };
 
@@ -3849,6 +4100,14 @@ mljs.prototype.searchcontext.prototype.setConfiguration = function(config) {
  */
 mljs.prototype.searchcontext.prototype.setTransform = function(t) {
   this.transform = t;
+};
+
+/**
+ * Sets the name of the search transform parameters to use. See GET /v1/search
+ * @param {JSON} tps - The transform parameter JSON object {paramname: "value", ...} to use
+ */
+mljs.prototype.searchcontext.prototype.setTransform = function(tps) {
+  this.transformParameters = tps;
 };
 
 /**
@@ -4148,6 +4407,7 @@ mljs.prototype.searchcontext.prototype.doSimpleQuery = function(q,start) {
    }
    if (null != self.transform) {
      sprops.transform = self.transform;
+     sprops.transformParameters = self.transformParameters;
    }
    if (null != self.format) {
      sprops.format = self.format;

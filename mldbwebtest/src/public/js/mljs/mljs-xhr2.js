@@ -111,7 +111,7 @@ b.xhr2.prototype.request = function(reqname,options,content,callback) {
           } else {
             try {
               self.logger.debug("XHR2: parsing xhr.responseText");
-              wibble = JSON.parse(xhr.responseText); // successes are JSON text (needs parsing)
+              wibble = JSON.parse(xhr.responseText); // successes are JSON text (needs parsing), could be anything though if GET /v1/documents ...
               res.format = "json";
               self.logger.debug("XHR2: js raw: " + wibble);
               self.logger.debug("XHR2: json str: " + JSON.stringify(wibble));

@@ -26,21 +26,24 @@ Targets for 1.1 Interim release (Start Nov 2013)
   - DONE Ensure it works with result objects (not result.error objects) and javascript errors
   - TEST Ensure this is invoked correctly, and all contexts and test pages work with it
  - App Builder gap closing
-  - Support for XSLT transformations on search results
-  - Support for XSLT transformations on fetch documents in new window
-  - Support for XQuery transformations on search results
-  - Support for XQuery transformations on fetch documents in new window
-  - Support for bucketing in facets (numeric)
-  - Date time facets (and bucketing by day)
-  - Facet ordering (other than frequency)
-  - Simple/complex view of results
-  - Embedding charts within search page widget like AppBuilder
-  - Support for multiple layouts in search page
-  - Auto complete (suggestions), including constraint name suggestions
+  - DONE via sprops_opt.transform and .transformParameters - Support for XSLT transformations on search results
+  - DONE via options_opt.transform and .transformParameters - Support for XSLT transformations on fetch documents in new window
+  - DONE via sprops_opt.transform and .transformParameters - Support for XQuery transformations on search results
+  - DONE via options_opt.transform and .transformParameters - Support for XQuery transformations on fetch documents in new window
+  - TEST Support for bucketing in facets (all types, including dynamic)
+  - DONE Just pass in as raw facet_options_opt string array: Facet ordering (other than frequency)
+  - Ensure 'Sort by relevancy' shows in sort drop down, when configured in the search
+  - NA Achieved via Workplace not alterations to searchpage - Embedding charts within search page widget like AppBuilder
+  - NA Achieved via Workplace not alterations to searchpage - Support for multiple layouts in search page
   - Phrase searches
-  - Shadow queries (MLJS' alternative mechanism)
+  - TEST Support Fields for range constraints
+  - BUG: Widgets: HighCharts - handle 'undefined' in label on pie charts (only happens on chartsearch page, not on workplace page)
   - Widgets: Navigable charts / co-occurence - clicking sets facet value
-  - BUG: Widgets: HighCharts - handle 'undefined' in label on pie charts
+  - Auto complete (suggestions), including constraint name suggestions
+  - Date time facet selection (column charts like markmail - allow vertical support (bar chart) too for better granularity)
+  - DONE dynamic and static: Date time bucketing
+  - Shadow queries (MLJS' alternative mechanism)
+  - Simple/complex view of results
  - IN PROGRESS NodeJS: Node.js tests for all functionality now in core MLJS
  - IN PROGRESS Widget: RDB2RDF in test app
   - Remove jQuery specific code
@@ -59,6 +62,8 @@ Targets for 1.1 Interim release (Start Nov 2013)
    - JSON internal rdf type format
    - JSON external rdf type format
    - documentcontext.allowableProperty JSON
+   - search properties transform parameters sprops_opt.transformParameters
+   - sortOrder element/field/attribute spec
   - DONE Core API jsdoc
   - Widget API jsdoc
  - NOT A BUG searchfacets or searchbar widgets using facet title, not constraint name, to indicate constraint added to searchbar (also for lookup/matching)
