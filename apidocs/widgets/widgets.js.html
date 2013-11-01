@@ -319,6 +319,11 @@ com.marklogic.widgets.hide = function(el,isHidden) {
 
 
 // our own global widgets here
+/**
+ * An error display wrapper widget
+ * 
+ * @constructor
+ */
 com.marklogic.widgets.error = function(container) {
   this.container = container;
   
@@ -341,17 +346,65 @@ com.marklogic.widgets.error.prototype.clear = function() {
   this.show(null);
 };
 
+/**
+ * Detect Javascript built in errors - https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error
+ * For available properties also see - https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/prototype
+ * @private
+ */
+com.marklogic.widgets.error.prototype._isJSError = function() {
+  //console.log("_isJSError: typeof: " + typeof this.error);
+  //console.log("_isJSError: content: " + JSON.stringify(this.error));
+  if (null == this.error) { return false; }
+  
+  var jserr = false;
+  this.jserrortype = null;
+  if (this.error instanceof EvalError) {
+    jserr = true;
+    this.jserrortype = "EvalError";
+  } else if (this.error instanceof RangeError) {
+    jserr = true;
+    this.jserrortype = "RangeError";
+  } else if (this.error instanceof ReferenceError) {
+    jserr = true;
+    this.jserrortype = "ReferenceError";
+  } else if (this.error instanceof SyntaxError) {
+    jserr = true;
+    this.jserrortype = "SyntaxError";
+  } else if (this.error instanceof TypeError) {
+    jserr = true;
+    this.jserrortype = "TypeError";
+  } else if (this.error instanceof URIError) {
+    jserr = true;
+    this.jserrortype = "URIError";
+  } else if (this.error instanceof Error) {
+    jserr = true;
+    this.jserrortype = "Error";
+    // generic handler
+  } else if (typeof this.error == "object" && undefined != this.error.fileName) {
+    jserr = true;
+    this.jserrortype = "JSONError";
+  }
+  return jserr;
+};
+
 com.marklogic.widgets.error.prototype._refresh = function() {
+  //if (null == this.error || undefined == this.error) { return; }
+  
+  if (this._isJSError()) {
+    // gen JS html error message
+    this._genjshtml();
+  } else
   if (null != this.error && "object" == typeof this.error) {
     // check if a result object or a error frame set, or an XML document
-    if (undefined != this.error.inError) {
+    if (undefined != this.error.inError) { // an operation response from MLJS 
       // mljs results object
-      if (this.error.inError) {
+      if (this.error.inError) { // an operation response from MLJS that IS in error
         if (this.error.format == "json") {
           mljs.defaultconnection.logger.debug("Error object is result, and json");
           this._genhtml(this.error);
         } else {
           mljs.defaultconnection.logger.debug("Error object is result, and xml");
+          mljs.defaultconnection.logger.debug("ERROR CURRENTLY: " + JSON.stringify(this.error));
           this._genhtml(xmlToJson(this.error.doc));
         }
         return true;
@@ -371,21 +424,106 @@ com.marklogic.widgets.error.prototype._refresh = function() {
       //this._genhtml(this.error);
     }
     // display pretty print JSON error
-  } else {
+  } else { // not an object - string? or null (blank)
     mljs.defaultconnection.logger.debug("Error object is simple string");
     // assume string
     if (null != this.error && undefined != this.error) {
-      var str = "&lt;div class='error-inner hidden' id='" + this.container + "-error-inner'>&lt;div class='error-message'>" + this.error + "&lt;/div>";
+      var str = "&lt;div class='error-inner' id='" + this.container + "-error-inner'>&lt;div class='error-message'>" + this.error + "&lt;/div>";
       str += "&lt;/div>";
       var el = document.getElementById(this.container);
       el.innerHTML = str;
     } else {
-      document.getElementById(this.container).innerHTML = "";
+      document.getElementById(this.container).innerHTML = ""; // blank error
     }
   }
 };
 
+com.marklogic.widgets.error.prototype._genjshtml = function() {
+  mljs.defaultconnection.logger.debug("_genjshtml");
+  var e = this.error;
+  var t = this.jserrortype;
+  mljs.defaultconnection.logger.debug("_genjshtml: error type: " + t);
+  
+  // Standard fields: message, name
+  // MS fields: description, number
+  // Firefox fields: fileName, lineNumber, columnName, stack (object)
+  
+  var str = "&lt;div class='error-inner' id='" + this.container + "-error-inner'>";
+  // do header
+  str += "&lt;div class='error-title'>" + e.name + ": " + e.message + "&lt;/div>";
+  
+  mljs.defaultconnection.logger.debug("_genjshtml: e info: " + e); 
+  mljs.defaultconnection.logger.debug("_genjshtml: e info json: " + JSON.stringify(e)); 
+  
+  // further details, line num, etc
+  if (this.showFirstCodefile) {
+    // FIREFOX SPECIFIC
+    if (undefined != e.lineNumber && undefined != e.fileName) {
+      str += "&lt;div class='error-pointer'>";
+      str += "&lt;p>Error occured at " + e.fileName + ":" + e.lineNumber + "&lt;/p>";
+      str += "&lt;/div>";
+    }
+    // MICROSOFT SPECIFIC
+    if (undefined != e.description && undefined != e.number) {
+      str += "&lt;div class='error-pointer'>";
+      str += "&lt;p>Error Number: " + e.number + ", Description: " + e.description + "&lt;/p>";
+      str += "&lt;/div>";
+    }
+  }
+  
+  if (this.allowDetails && undefined != e.stack) {
+    str += "&lt;div id='" + this.container + "-frame-details'>&lt;a class='error-show' id='" + this.container + "-frame-show' href='#'>Show Details&lt;/a>&lt;a class='hidden error-hide' id='" + this.container + "-frame-hide' href='#'>Hide Details&lt;/a>&lt;/div>&lt;div id='" + this.container + "-error-details-frames' class='hidden'>&lt;/div>";
+  }
+  
+  str += "&lt;/div>";
+  document.getElementById(this.container).innerHTML = str;
+  var self = this;
+  if (this.allowDetails) {
+    document.getElementById(this.container + "-frame-show").onclick = function(evt) {
+      self._showJSDetails();
+    };
+  }
+};
+
+com.marklogic.widgets.error.prototype._showJSDetails = function() {
+  var details = document.getElementById(this.container + "-error-details-frames");
+  
+  var e = this.error;
+  
+  var str = "";
+  //str += "&lt;div>Stack info: " + JSON.stringify(e.stack) + "&lt;/div>";
+  //for (var i = 0;i &lt; e.stack.length;i++) {
+  //  str += e.stack[i] + "&lt;br/>";
+  //}
+  str = e.stack.replace(/$/mg,"&lt;br/>");
+  
+  details.innerHTML = str;
+  
+  console.log("setting details class");
+  details.setAttribute("class","error-details-frames");
+  
+  console.log("setting show to invisible")
+  var show = document.getElementById(this.container + "-frame-show");
+  show.setAttribute("class","error-show hidden");
+  console.log("setting hide to visible");
+  var hide = document.getElementById(this.container + "-frame-hide");
+  hide.setAttribute("class","error-hide");
+  var self = this;
+  document.getElementById(this.container + "-frame-hide").onclick = function(evt) {
+    console.log("hide clicked");
+    self._hideDetails(); // same hide function as normal details box
+    console.log("hide clicked complete");
+  };
+  
+};
+
+/**
+ * Generates a HTML summary of a MarkLogic error XML document. Error object must have been converted to JSON using xmlToJson()
+ * @private
+ */
 com.marklogic.widgets.error.prototype._genhtml = function(obj) {
+  mljs.defaultconnection.logger.debug("_genhtml: Called with: " + JSON.stringify(obj));
+  
   var str = "&lt;div class='error-inner' id='" + this.container + "-error-inner'>";
   // do header
   str += "&lt;div class='error-title'>" + obj.error["format-string"] + "&lt;/div>";
@@ -410,26 +548,36 @@ com.marklogic.widgets.error.prototype._genhtml = function(obj) {
   }
 };
 
+/**
+ * Display MarkLogic server error frame details
+ * @private
+ */
 com.marklogic.widgets.error.prototype._showDetails = function() {
   var details = document.getElementById(this.container + "-error-details-frames");
   if (undefined == details) {
     // generate HTML
     var str = "&lt;div id='" + this.container + "-error-details-frames'>";
-    for (var f = 0;f &lt; this.error.error.stack.frame.length;f++) {
-      var frame = this.error.error.stack.frame[f];
-      str += "&lt;div class='error-frame'>";
-      
-      // show frame details
-      str += frame.uri + ":" + frame.line + "." + frame.column;
-      if (undefined != frame.operation) {
-        str += " " + frame.operation; 
+    // NB error.error may not exist - response could be plain text
+    if (undefined == this.error.error) {
+      // plain text
+      str += "Error details are plain text. No frames exist. Full details below:-&lt;br/>" + this.error.doc;
+    } else {
+      for (var f = 0;f &lt; this.error.error.error.stack.frame.length;f++) {
+        var frame = this.error.error.error.stack.frame[f];
+        str += "&lt;div class='error-frame'>";
+        
+        // show frame details
+        str += frame.uri + ":" + frame.line + "." + frame.column;
+        if (undefined != frame.operation) {
+          str += " " + frame.operation; 
+        }
+        
+        str += "&lt;/div>";
       }
-      
-      str += "&lt;/div>";
     }
     str += "&lt;/div>";
     var parent = document.getElementById(this.container + "-frame-details");
-    parent.innerHTML = parent.innerHTML + str;
+    parent.innerHTML = parent.innerHTML + str; // TODO REPLACE THIS AS BAD PRACTICE
     
     details = document.getElementById(this.container + "-error-details-frames");
   }
@@ -450,6 +598,10 @@ com.marklogic.widgets.error.prototype._showDetails = function() {
   };
 };
 
+/**
+ * Hide MarkLogic error frame details
+ * @private
+ */
 com.marklogic.widgets.error.prototype._hideDetails = function() {
   var details = document.getElementById(this.container + "-error-details-frames");
   details.setAttribute("class","error-details-frames hidden");
@@ -463,6 +615,14 @@ com.marklogic.widgets.error.prototype._hideDetails = function() {
     self._showDetails();
   };
 };
+
+
+
+
+
+
+
+
 
 /**
  *  Static functions that provide other widgets with useful, consistent elements.
@@ -537,13 +697,13 @@ com.marklogic.widgets.appendHTML = function(el,s) {
 </div>
 
 <nav>
-    <h2><a href="index.html">Index</a></h2><h3>Classes</h3><ul><li><a href="com.marklogic.widgets.collectionuris.html">collectionuris</a></li><li><a href="com.marklogic.widgets.cooccurence.html">cooccurence</a></li><li><a href="com.marklogic.widgets.create.html">create</a></li><li><a href="com.marklogic.widgets.docviewer.html">docviewer</a></li><li><a href="com.marklogic.widgets.entityfacts.html">entityfacts</a></li><li><a href="com.marklogic.widgets.graphexplorer.html">graphexplorer</a></li><li><a href="com.marklogic.widgets.highcharts.html">highcharts</a></li><li><a href="com.marklogic.widgets.kratu.html">kratu</a></li><li><a href="com.marklogic.widgets.markings.html">markings</a></li><li><a href="com.marklogic.widgets.profile.html">profile</a></li><li><a href="com.marklogic.widgets.rdb2rdf.html">rdb2rdf</a></li><li><a href="com.marklogic.widgets.searchbar.html">searchbar</a></li><li><a href="com.marklogic.widgets.searchpage.html">searchpage</a></li><li><a href="com.marklogic.widgets.searchpager.html">searchpager</a></li><li><a href="com.marklogic.widgets.searchresults.html">searchresults</a></li><li><a href="com.marklogic.widgets.searchsort.html">searchsort</a></li><li><a href="com.marklogic.widgets.selection.html">selection</a></li><li><a href="com.marklogic.widgets.sparqlbar.html">sparqlbar</a></li><li><a href="com.marklogic.widgets.sparqlresults.html">sparqlresults</a></li><li><a href="com.marklogic.widgets.workplace.html">workplace</a></li></ul><h3>Namespaces</h3><ul><li><a href="com.marklogic.widgets.bits.html">bits</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-001-intro.html">001-intro</a></li><li><a href="tutorial-001-widgets-list.html">001-widgets-list</a></li><li><a href="tutorial-002-intro-firstpage.html">002-intro-firstpage</a></li><li><a href="tutorial-002-widgets-search.html">002-widgets-search</a></li><li><a href="tutorial-003-widgets-search-render.html">003-widgets-search-render</a></li><li><a href="tutorial-004-widgets-highcharts.html">004-widgets-highcharts</a></li><li><a href="tutorial-011-browser-create-app.html">011-browser-create-app</a></li><li><a href="tutorial-012-browser-install-app.html">012-browser-install-app</a></li><li><a href="tutorial-013-browser-samples-app.html">013-browser-samples-app</a></li><li><a href="tutorial-014-browser-workplace.html">014-browser-workplace</a></li><li><a href="tutorial-050-core-contexts.html">050-core-contexts</a></li><li><a href="tutorial-901-ontology.html">901-ontology</a></li><li><a href="tutorial-999-samples.html">999-samples</a></li><li><a href="tutorial-all.html">all</a></li></ul><h3>Global</h3><ul><li><a href="global.html#com">com</a></li></ul>
+    <h2><a href="index.html">Index</a></h2><h3>Classes</h3><ul><li><a href="com.marklogic.widgets.collectionuris.html">collectionuris</a></li><li><a href="com.marklogic.widgets.cooccurence.html">cooccurence</a></li><li><a href="com.marklogic.widgets.create.html">create</a></li><li><a href="com.marklogic.widgets.docviewer.html">docviewer</a></li><li><a href="com.marklogic.widgets.entityfacts.html">entityfacts</a></li><li><a href="com.marklogic.widgets.error.html">error</a></li><li><a href="com.marklogic.widgets.graphexplorer.html">graphexplorer</a></li><li><a href="com.marklogic.widgets.highcharts.html">highcharts</a></li><li><a href="com.marklogic.widgets.kratu.html">kratu</a></li><li><a href="com.marklogic.widgets.markings.html">markings</a></li><li><a href="com.marklogic.widgets.profile.html">profile</a></li><li><a href="com.marklogic.widgets.rdb2rdf.html">rdb2rdf</a></li><li><a href="com.marklogic.widgets.searchbar.html">searchbar</a></li><li><a href="com.marklogic.widgets.searchpage.html">searchpage</a></li><li><a href="com.marklogic.widgets.searchpager.html">searchpager</a></li><li><a href="com.marklogic.widgets.searchresults.html">searchresults</a></li><li><a href="com.marklogic.widgets.searchsort.html">searchsort</a></li><li><a href="com.marklogic.widgets.selection.html">selection</a></li><li><a href="com.marklogic.widgets.sparqlbar.html">sparqlbar</a></li><li><a href="com.marklogic.widgets.sparqlresults.html">sparqlresults</a></li><li><a href="com.marklogic.widgets.workplace.html">workplace</a></li></ul><h3>Namespaces</h3><ul><li><a href="com.marklogic.widgets.bits.html">bits</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-001-intro.html">001-intro</a></li><li><a href="tutorial-001-widgets-list.html">001-widgets-list</a></li><li><a href="tutorial-002-intro-firstpage.html">002-intro-firstpage</a></li><li><a href="tutorial-002-widgets-search.html">002-widgets-search</a></li><li><a href="tutorial-003-widgets-search-render.html">003-widgets-search-render</a></li><li><a href="tutorial-004-widgets-highcharts.html">004-widgets-highcharts</a></li><li><a href="tutorial-011-browser-create-app.html">011-browser-create-app</a></li><li><a href="tutorial-012-browser-install-app.html">012-browser-install-app</a></li><li><a href="tutorial-013-browser-samples-app.html">013-browser-samples-app</a></li><li><a href="tutorial-014-browser-workplace.html">014-browser-workplace</a></li><li><a href="tutorial-050-core-contexts.html">050-core-contexts</a></li><li><a href="tutorial-901-ontology.html">901-ontology</a></li><li><a href="tutorial-999-samples.html">999-samples</a></li><li><a href="tutorial-all.html">all</a></li></ul><h3>Global</h3><ul><li><a href="global.html#com">com</a></li></ul>
 </nav>
 
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Thu Oct 31 2013 21:15:06 GMT-0000 (GMT)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Fri Nov 01 2013 15:33:59 GMT-0000 (GMT)
 </footer>
 
 <script> prettyPrint(); </script>
