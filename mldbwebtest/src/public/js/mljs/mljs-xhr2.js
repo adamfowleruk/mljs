@@ -157,12 +157,22 @@ b.xhr2.prototype.request = function(reqname,options,content,callback) {
             self.logger.debug("XHR2: Parsed JSON successfully");
             res.doc = wibble;
           } catch (ex) {
-            // do nothing - likely a blank XML document
-            self.logger.debug("XHR2: Exception: " + ex);
+            // try XML conversion
+            try {
+              res.doc = textToXML(xhr.responseText); // THIS IS A WORKAROUND FOR THE REST API RETURNING XML DOCS WITH Content-Type: text/plain instead of application/xml
+              // also create a JSON representation
+              res.error = xmlToJson(res.doc);
+              res.format = "xml";
+            } catch (ex) {
+              // do nothing - likely a blank XML document
+              self.logger.debug("XHR2: Exception: " + ex);
+            }
           }
         } // end if 404 check
       } else {
         res.format = "xml";
+        // also create a JSON representation
+        res.error = xmlToJson(res.doc);
       }
       res.details = res.doc;
       if ("string" == typeof res.details && xhr.status != 404) { // TODO add response content type check (document could be plain text!)

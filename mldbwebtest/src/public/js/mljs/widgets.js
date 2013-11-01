@@ -292,6 +292,11 @@ com.marklogic.widgets.hide = function(el,isHidden) {
 
 
 // our own global widgets here
+/**
+ * An error display wrapper widget
+ * 
+ * @constructor
+ */
 com.marklogic.widgets.error = function(container) {
   this.container = container;
   
@@ -314,17 +319,65 @@ com.marklogic.widgets.error.prototype.clear = function() {
   this.show(null);
 };
 
+/**
+ * Detect Javascript built in errors - https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error
+ * For available properties also see - https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/prototype
+ * @private
+ */
+com.marklogic.widgets.error.prototype._isJSError = function() {
+  //console.log("_isJSError: typeof: " + typeof this.error);
+  //console.log("_isJSError: content: " + JSON.stringify(this.error));
+  if (null == this.error) { return false; }
+  
+  var jserr = false;
+  this.jserrortype = null;
+  if (this.error instanceof EvalError) {
+    jserr = true;
+    this.jserrortype = "EvalError";
+  } else if (this.error instanceof RangeError) {
+    jserr = true;
+    this.jserrortype = "RangeError";
+  } else if (this.error instanceof ReferenceError) {
+    jserr = true;
+    this.jserrortype = "ReferenceError";
+  } else if (this.error instanceof SyntaxError) {
+    jserr = true;
+    this.jserrortype = "SyntaxError";
+  } else if (this.error instanceof TypeError) {
+    jserr = true;
+    this.jserrortype = "TypeError";
+  } else if (this.error instanceof URIError) {
+    jserr = true;
+    this.jserrortype = "URIError";
+  } else if (this.error instanceof Error) {
+    jserr = true;
+    this.jserrortype = "Error";
+    // generic handler
+  } else if (typeof this.error == "object" && undefined != this.error.fileName) {
+    jserr = true;
+    this.jserrortype = "JSONError";
+  }
+  return jserr;
+};
+
 com.marklogic.widgets.error.prototype._refresh = function() {
+  //if (null == this.error || undefined == this.error) { return; }
+  
+  if (this._isJSError()) {
+    // gen JS html error message
+    this._genjshtml();
+  } else
   if (null != this.error && "object" == typeof this.error) {
     // check if a result object or a error frame set, or an XML document
-    if (undefined != this.error.inError) {
+    if (undefined != this.error.inError) { // an operation response from MLJS 
       // mljs results object
-      if (this.error.inError) {
+      if (this.error.inError) { // an operation response from MLJS that IS in error
         if (this.error.format == "json") {
           mljs.defaultconnection.logger.debug("Error object is result, and json");
           this._genhtml(this.error);
         } else {
           mljs.defaultconnection.logger.debug("Error object is result, and xml");
+          mljs.defaultconnection.logger.debug("ERROR CURRENTLY: " + JSON.stringify(this.error));
           this._genhtml(xmlToJson(this.error.doc));
         }
         return true;
@@ -344,21 +397,106 @@ com.marklogic.widgets.error.prototype._refresh = function() {
       //this._genhtml(this.error);
     }
     // display pretty print JSON error
-  } else {
+  } else { // not an object - string? or null (blank)
     mljs.defaultconnection.logger.debug("Error object is simple string");
     // assume string
     if (null != this.error && undefined != this.error) {
-      var str = "<div class='error-inner hidden' id='" + this.container + "-error-inner'><div class='error-message'>" + this.error + "</div>";
+      var str = "<div class='error-inner' id='" + this.container + "-error-inner'><div class='error-message'>" + this.error + "</div>";
       str += "</div>";
       var el = document.getElementById(this.container);
       el.innerHTML = str;
     } else {
-      document.getElementById(this.container).innerHTML = "";
+      document.getElementById(this.container).innerHTML = ""; // blank error
     }
   }
 };
 
+com.marklogic.widgets.error.prototype._genjshtml = function() {
+  mljs.defaultconnection.logger.debug("_genjshtml");
+  var e = this.error;
+  var t = this.jserrortype;
+  mljs.defaultconnection.logger.debug("_genjshtml: error type: " + t);
+  
+  // Standard fields: message, name
+  // MS fields: description, number
+  // Firefox fields: fileName, lineNumber, columnName, stack (object)
+  
+  var str = "<div class='error-inner' id='" + this.container + "-error-inner'>";
+  // do header
+  str += "<div class='error-title'>" + e.name + ": " + e.message + "</div>";
+  
+  mljs.defaultconnection.logger.debug("_genjshtml: e info: " + e); 
+  mljs.defaultconnection.logger.debug("_genjshtml: e info json: " + JSON.stringify(e)); 
+  
+  // further details, line num, etc
+  if (this.showFirstCodefile) {
+    // FIREFOX SPECIFIC
+    if (undefined != e.lineNumber && undefined != e.fileName) {
+      str += "<div class='error-pointer'>";
+      str += "<p>Error occured at " + e.fileName + ":" + e.lineNumber + "</p>";
+      str += "</div>";
+    }
+    // MICROSOFT SPECIFIC
+    if (undefined != e.description && undefined != e.number) {
+      str += "<div class='error-pointer'>";
+      str += "<p>Error Number: " + e.number + ", Description: " + e.description + "</p>";
+      str += "</div>";
+    }
+  }
+  
+  if (this.allowDetails && undefined != e.stack) {
+    str += "<div id='" + this.container + "-frame-details'><a class='error-show' id='" + this.container + "-frame-show' href='#'>Show Details</a><a class='hidden error-hide' id='" + this.container + "-frame-hide' href='#'>Hide Details</a></div><div id='" + this.container + "-error-details-frames' class='hidden'></div>";
+  }
+  
+  str += "</div>";
+  document.getElementById(this.container).innerHTML = str;
+  var self = this;
+  if (this.allowDetails) {
+    document.getElementById(this.container + "-frame-show").onclick = function(evt) {
+      self._showJSDetails();
+    };
+  }
+};
+
+com.marklogic.widgets.error.prototype._showJSDetails = function() {
+  var details = document.getElementById(this.container + "-error-details-frames");
+  
+  var e = this.error;
+  
+  var str = "";
+  //str += "<div>Stack info: " + JSON.stringify(e.stack) + "</div>";
+  //for (var i = 0;i < e.stack.length;i++) {
+  //  str += e.stack[i] + "<br/>";
+  //}
+  str = e.stack.replace(/$/mg,"<br/>");
+  
+  details.innerHTML = str;
+  
+  console.log("setting details class");
+  details.setAttribute("class","error-details-frames");
+  
+  console.log("setting show to invisible")
+  var show = document.getElementById(this.container + "-frame-show");
+  show.setAttribute("class","error-show hidden");
+  console.log("setting hide to visible");
+  var hide = document.getElementById(this.container + "-frame-hide");
+  hide.setAttribute("class","error-hide");
+  var self = this;
+  document.getElementById(this.container + "-frame-hide").onclick = function(evt) {
+    console.log("hide clicked");
+    self._hideDetails(); // same hide function as normal details box
+    console.log("hide clicked complete");
+  };
+  
+};
+
+/**
+ * Generates a HTML summary of a MarkLogic error XML document. Error object must have been converted to JSON using xmlToJson()
+ * @private
+ */
 com.marklogic.widgets.error.prototype._genhtml = function(obj) {
+  mljs.defaultconnection.logger.debug("_genhtml: Called with: " + JSON.stringify(obj));
+  
   var str = "<div class='error-inner' id='" + this.container + "-error-inner'>";
   // do header
   str += "<div class='error-title'>" + obj.error["format-string"] + "</div>";
@@ -383,26 +521,36 @@ com.marklogic.widgets.error.prototype._genhtml = function(obj) {
   }
 };
 
+/**
+ * Display MarkLogic server error frame details
+ * @private
+ */
 com.marklogic.widgets.error.prototype._showDetails = function() {
   var details = document.getElementById(this.container + "-error-details-frames");
   if (undefined == details) {
     // generate HTML
     var str = "<div id='" + this.container + "-error-details-frames'>";
-    for (var f = 0;f < this.error.error.stack.frame.length;f++) {
-      var frame = this.error.error.stack.frame[f];
-      str += "<div class='error-frame'>";
-      
-      // show frame details
-      str += frame.uri + ":" + frame.line + "." + frame.column;
-      if (undefined != frame.operation) {
-        str += " " + frame.operation; 
+    // NB error.error may not exist - response could be plain text
+    if (undefined == this.error.error) {
+      // plain text
+      str += "Error details are plain text. No frames exist. Full details below:-<br/>" + this.error.doc;
+    } else {
+      for (var f = 0;f < this.error.error.error.stack.frame.length;f++) {
+        var frame = this.error.error.error.stack.frame[f];
+        str += "<div class='error-frame'>";
+        
+        // show frame details
+        str += frame.uri + ":" + frame.line + "." + frame.column;
+        if (undefined != frame.operation) {
+          str += " " + frame.operation; 
+        }
+        
+        str += "</div>";
       }
-      
-      str += "</div>";
     }
     str += "</div>";
     var parent = document.getElementById(this.container + "-frame-details");
-    parent.innerHTML = parent.innerHTML + str;
+    parent.innerHTML = parent.innerHTML + str; // TODO REPLACE THIS AS BAD PRACTICE
     
     details = document.getElementById(this.container + "-error-details-frames");
   }
@@ -423,6 +571,10 @@ com.marklogic.widgets.error.prototype._showDetails = function() {
   };
 };
 
+/**
+ * Hide MarkLogic error frame details
+ * @private
+ */
 com.marklogic.widgets.error.prototype._hideDetails = function() {
   var details = document.getElementById(this.container + "-error-details-frames");
   details.setAttribute("class","error-details-frames hidden");
@@ -436,6 +588,14 @@ com.marklogic.widgets.error.prototype._hideDetails = function() {
     self._showDetails();
   };
 };
+
+
+
+
+
+
+
+
 
 /**
  *  Static functions that provide other widgets with useful, consistent elements.

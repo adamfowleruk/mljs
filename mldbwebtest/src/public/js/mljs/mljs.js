@@ -108,11 +108,18 @@ function textToXML(text){
  * @param {string} xml - The XML Document object to conver to JSON
  */
 function xmlToJson(xml) {
+  if (typeof xml == "string") {
+    throw new TypeError("XML parameter should be an XML Document. It is currently a string.");
+    //xml = textToXML(xml);
+  }
+  //console.log("XML: " + JSON.stringify(xml));
+  //console.log("XML: node type: " + xml.nodeType);
+  //console.log("XML: node value: " + xml.nodeValue);
   if (null == xml || undefined == xml) {
     return {};
   }
   var obj = {};
-  if (xml.nodeType == 1) {                
+  if (xml.nodeType == 1) { // element      
     if (xml.attributes.length > 0) {
       //obj["@attributes"] = {};
       for (var j = 0; j < xml.attributes.length; j++) {
@@ -125,7 +132,7 @@ function xmlToJson(xml) {
         obj[nodeName] = attribute.value;
       }
     }
-  } else if (xml.nodeType == 3) { 
+  } else if (xml.nodeType == 3) { // attribute
     obj = xml.nodeValue;
   }            
   if (undefined != xml.childNodes) {

@@ -30,15 +30,22 @@ declare option xdmp:mapping "false";
 
 <script type="text/javascript" src="/js/mljstest/page-mljstest-error.js"></script>
 
- 
+ Just the error message itself, around a string:-
  <div id="error-basic">Basic</div>
  <hr />
+ A brief summary, around an MLJS communication error:-
  <div id="error-summary">Summary</div>
  <hr />
+ A brief summary with the first line of the error, around an MLJS communication error:-
  <div id="error-pointer">Pointer</div>
  <hr />
+ Full details available, around an MLJS communication error:-
  <div id="error-details">Details</div>
  <hr />
- <div id="error">Errors here:-<br/> 
+ Handling of non MLJS JavaScript errors:-
+ <div id="error-js">JS Details</div>
+ <hr />
+ A 'default' text only, dumb handling of errors (not an MLJS widget):-
+ <div id="error">Old format Errors here:-<br/> 
  </div>
 </div>

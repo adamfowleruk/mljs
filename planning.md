@@ -22,26 +22,21 @@ Targets for 1.1 Interim release (Start Nov 2013)
   - DEFERRED Support loading of OWL / other ontologies to populate triple config object
   - DEFERRED Support prefix configuration in tripleconfig
   - DONE ontology builder object - use methods on tripleconfig
- - Core: Search Options builder
-  - hide sem:triple elements from snippet highlighting
-  - Don't return sem:triples documents at all by default
-  - DONE actually write the pathConstraint function!
-  - Investigate why REST insists upon some elements having indexes in the JSON namespace as well as the one required (E.g. xhtml and h1) - because using JSON mode???
- - NOT A BUG searchfacets or searchbar widgets using facet title, not constraint name, to indicate constraint added to searchbar (also for lookup/matching)
-  - NA Actually, there is no 'facet title' just that constraint name and field name are generally the same. Need to add Title support somehow
-  - Add annotation support in constraints and facets, and use these in the searchfacets widget
- - Widget: Error
-  - Ensure this is invoked correctly, and all contexts and test pages work with it
+ - TEST Widget: Error
+  - DONE Ensure it works with result objects (not result.error objects) and javascript errors
+  - TEST Ensure this is invoked correctly, and all contexts and test pages work with it
  - App Builder gap closing
   - Support for XSLT transformations on search results
   - Support for XSLT transformations on fetch documents in new window
+  - Support for XQuery transformations on search results
+  - Support for XQuery transformations on fetch documents in new window
   - Support for bucketing in facets (numeric)
   - Date time facets (and bucketing by day)
   - Facet ordering (other than frequency)
   - Simple/complex view of results
   - Embedding charts within search page widget like AppBuilder
   - Support for multiple layouts in search page
-  - Auto complete, including constraint name suggestions
+  - Auto complete (suggestions), including constraint name suggestions
   - Phrase searches
   - Shadow queries (MLJS' alternative mechanism)
   - Widgets: Navigable charts / co-occurence - clicking sets facet value
@@ -66,6 +61,14 @@ Targets for 1.1 Interim release (Start Nov 2013)
    - documentcontext.allowableProperty JSON
   - DONE Core API jsdoc
   - Widget API jsdoc
+ - NOT A BUG searchfacets or searchbar widgets using facet title, not constraint name, to indicate constraint added to searchbar (also for lookup/matching)
+  - NA Actually, there is no 'facet title' just that constraint name and field name are generally the same. Need to add Title support somehow
+  - Add annotation support in constraints and facets, and use these in the searchfacets widget
+ - IN PROGRESS Core: Search Options builder
+  - hide sem:triple elements from snippet highlighting
+  - Don't return sem:triples documents at all by default
+  - DONE actually write the pathConstraint function!
+  - Investigate why REST insists upon some elements having indexes in the JSON namespace as well as the one required (E.g. xhtml and h1) - because using JSON mode???
   
 Targets for 19 Nov 2013
  - Widgets: Google maps (via OpenLayers only)
