@@ -1155,7 +1155,7 @@ com.marklogic.widgets.searchresults.prototype._refresh = function() {
   }
 };
 
-com.marklogic.widgets.searchresults.prototype.generateLazyId = function() {
+com.marklogic.widgets.searchresults.prototype.generateLazyID = function() {
   return this.lazyId++;
 };
 

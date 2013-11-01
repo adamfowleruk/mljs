@@ -69,7 +69,7 @@ com.marklogic.widgets.workplace.prototype.loadPage = function(jsonOrString) {
   for (var w = 0, max = json.widgets.length,widget;w < max;w++) {
     widget = json.widgets[w];
     mljs.defaultconnection.logger.debug("Creating widget: " + w + " with: " + JSON.stringify(widget));
-    var wgt = this._createWidget(widget.type,layout.getElementId(widget.widget),widget.config);
+    var wgt = this._createWidget(widget.type,layout.getElementID(widget.widget),widget.config);
     mljs.defaultconnection.logger.debug("Create widget has returned");
     widgets[widget.widget] = wgt;
   }
@@ -199,10 +199,10 @@ com.marklogic.widgets.layouts.thinthick.prototype.createZones = function(assignm
   
 };
 
-com.marklogic.widgets.layouts.thinthick.prototype.getElementId = function(widgetid) {
-  mljs.defaultconnection.logger.debug("thinthick: getElementId: for widgetid: " + widgetid);
+com.marklogic.widgets.layouts.thinthick.prototype.getElementID = function(widgetid) {
+  mljs.defaultconnection.logger.debug("thinthick: getElementID: for widgetid: " + widgetid);
   var elid = this.assignments[widgetid].elementid;
-  mljs.defaultconnection.logger.debug("thinthick: getElementId: widgetid: " + widgetid + " => " + elid);
+  mljs.defaultconnection.logger.debug("thinthick: getElementID: widgetid: " + widgetid + " => " + elid);
   return elid;
 };
 

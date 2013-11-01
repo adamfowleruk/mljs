@@ -9,16 +9,41 @@ mkdir dist/mljs/browser-raw
 mkdir dist/mljs/browser-raw/js
 mkdir dist/mljs/browser-raw/css
 mkdir dist/mljs/browser-raw/images
-mkdir dist/mljs/browser-raw/test
+mkdir dist/mljs/browser-raw/mljstest
+mkdir dist/mljs/browser-raw/roxy
+mkdir dist/mljs/browser-raw/roxy/app
+mkdir dist/mljs/browser-raw/roxy/app/controllers
+mkdir dist/mljs/browser-raw/roxy/app/views
+mkdir dist/mljs/browser-raw/roxy/app/views/mljstest
+mkdir dist/mljs/browser-raw/roxy/app/views/layouts
+mkdir dist/mljs/browser-raw/roxy/public
+mkdir dist/mljs/browser-raw/roxy/public/css
+mkdir dist/mljs/browser-raw/roxy/public/css/mljs
+mkdir dist/mljs/browser-raw/roxy/public/js
+mkdir dist/mljs/browser-raw/roxy/public/js/mljs
+mkdir dist/mljs/browser-raw/roxy/public/js/mljstest
 mkdir dist/mljs/nodejs-minified
 mkdir dist/mljs/nodejs-minified/lib
 mkdir dist/mljs/browser-minified
 mkdir dist/mljs/browser-minified/js
 mkdir dist/mljs/browser-minified/css
 mkdir dist/mljs/browser-minified/images
-mkdir dist/mljs/browser-minified/test
+mkdir dist/mljs/browser-minified/mljstest
+mkdir dist/mljs/browser-minified/roxy
+mkdir dist/mljs/browser-minified/roxy/app
+mkdir dist/mljs/browser-minified/roxy/app/controllers
+mkdir dist/mljs/browser-minified/roxy/app/views
+mkdir dist/mljs/browser-minified/roxy/app/views/mljstest
+mkdir dist/mljs/browser-minified/roxy/app/views/layouts
+mkdir dist/mljs/browser-minified/roxy/public
+mkdir dist/mljs/browser-minified/roxy/public/css
+mkdir dist/mljs/browser-minified/roxy/public/css/mljs
+mkdir dist/mljs/browser-minified/roxy/public/js
+mkdir dist/mljs/browser-minified/roxy/public/js/mljs
+mkdir dist/mljs/browser-minified/roxy/public/js/mljstest
 
 P=../mljs-pages/apidocs
+SRC=./mldbwebtest/src
 CS=./mldbwebtest/src/public/css/mljs
 S=./mldbwebtest/src/public/js/mljs
 SJ=./mldbwebtest/src/public/js
@@ -74,8 +99,35 @@ cp $CS/widgets.css $D/css/widgets.css
 cp $CS/widgets.css $R/css/widgets.css
 
 # tests
-cp $ST/page*.js $R/test/
-cp $ST/page*.js $D/test/
+cp $ST/page*.js $R/mljstest/
+cp $ST/page*.js $D/mljstest/
+
+# Roxy controller, layout, etc.
+cp $SRC/app/controllers/mljstest.xqy $R/roxy/app/controllers/
+cp $SRC/app/views/mljstest/* $R/roxy/app/views/mljstest/
+cp $SRC/app/views/layouts/mljs-* $R/roxy/app/views/layouts/
+cp $SRC/public/css/one-column.less $R/roxy/public/css/
+cp $SRC/public/css/bootstrap-roxy.css $R/roxy/public/css/
+cp -R $SRC/public/css/960 $R/roxy/public/css/960
+cp $SRC/public/css/mljs/* $R/roxy/public/css/mljs/
+cp $SRC/public/js/mljs/* $R/roxy/public/js/mljs/
+cp $SRC/public/js/mljstest/* $R/roxy/public/js/mljstest/
+cp $SRC/public/js/highcharts.js $R/roxy/public/js/
+cp $SRC/public/js/kratu*.js $R/roxy/public/js/
+cp -R $SRC/public/js/dataproviders $R/roxy/public/js/
+
+cp $SRC/app/controllers/mljstest.xqy $D/roxy/app/controllers/
+cp $SRC/app/views/mljstest/* $D/roxy/app/views/mljstest/
+cp $SRC/app/views/layouts/mljs-* $D/roxy/app/views/layouts/
+cp $SRC/public/css/one-column.less $D/roxy/public/css/
+cp $SRC/public/css/bootstrap-roxy.css $D/roxy/public/css/
+cp -R $SRC/public/css/960 $D/roxy/public/css/960
+cp $SRC/public/css/mljs/* $D/roxy/public/css/mljs/
+cp $SRC/public/js/mljs/* $D/roxy/public/js/mljs/
+cp $SRC/public/js/mljstest/* $D/roxy/public/js/mljstest/
+cp $SRC/public/js/highcharts.js $D/roxy/public/js/
+cp $SRC/public/js/kratu*.js $D/roxy/public/js/
+cp -R $SRC/public/js/dataproviders $D/roxy/public/js/
 
 # docs
 cp browser.md $D/README.md

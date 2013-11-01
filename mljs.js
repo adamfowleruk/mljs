@@ -325,7 +325,7 @@ function xmlToJsonSearchResults(xml) {
 
 /**
  * Strictly converts the supplied XML document to a JSON representation
- * from http://stackoverflow.com/questions/7769829/tool-javascript-to-convert-a-xml-string-to-json
+ * from {@link http://stackoverflow.com/questions/7769829/tool-javascript-to-convert-a-xml-string-to-json}
  *
  * @param {string} xml - The XML Document to convert to JSON
  */
@@ -1138,7 +1138,7 @@ mljs.prototype.__merge = function(json1,json2) {
 /**
  * Uses MarkLogic V7's Patch support to replace or insert a property for the specified document.
  * 
- * https://docs.marklogic.com/REST/POST/v1/documents
+ * {@link https://docs.marklogic.com/REST/POST/v1/documents}
  * 
  * @param {string} docuri - The URI of the document to patch
  * @param {JSON} elementSelectJSON - JSON object containing a namespaces array with prefix and ns elements, an XPath 'context' (parent of the node to replace), and a 'select' XPath (remaining XPath to select child to replace) - {namespaces: [{prefix: "myns",ns: "http://myns.org/myns"}], context: "//myns:parent", select: "myns:child[1]"}
@@ -1195,10 +1195,10 @@ mljs.prototype.replaceProperty = function(docuri,elementSelectJSON,content,callb
 };
 
 /**
- * <p>Deletes the specified document
- * </p><p>
- * https://docs.marklogic.com/REST/DELETE/v1/documents
- *</p>
+ * Deletes the specified document
+ * 
+ * {@link https://docs.marklogic.com/REST/DELETE/v1/documents}
+ *
  * @param {string} docuri - URI of the document to delete
  * @param {function} callback_opt - The optional callback to invoke after the method completes
  */ 
@@ -1220,9 +1220,10 @@ mljs.prototype.delete = function(docuri,callback_opt) {
 mljs.prototype.remove = mljs.prototype.delete; // Convenience method for people with bad memories like me
 
 /**
- * <p>Returns all documents in a collection, optionally matching against the specified fields
- * </p><p>http://docs.marklogic.com/REST/GET/v1/search
- * </p>
+ * Returns all documents in a collection, optionally matching against the specified fields
+ * 
+ * {@link http://docs.marklogic.com/REST/GET/v1/search}
+ * 
  * @param {string} collection - The collection to list documents from
  * @param {string} fields_opt - Not used
  * @param {function} callback_opt - The optional callback to invoke after the method completes
@@ -1240,9 +1241,10 @@ mljs.prototype.collect = function(collection,fields_opt,callback_opt) {
 };
 
 /**
- * <p>Lists all documents in a directory, to the specified depth (default: 1), optionally matching the specified fields</p><p>
- * http://docs.marklogic.com/REST/GET/v1/search
- * </p>
+ * Lists all documents in a directory, to the specified depth (default: 1), optionally matching the specified fields
+ * 
+ * {@link http://docs.marklogic.com/REST/GET/v1/search}
+ * 
  * @param {string} directory - The directory URI to list documents within
  * @param {function} callback_opt - The optional callback to invoke after the method completes
  */
@@ -1255,10 +1257,10 @@ mljs.prototype.list = function(directory,callback_opt) {
 };
 
 /**
- * <p>Performs a simple key-value search. Of most use to JSON programmers.
- * </p><p>
- * https://docs.marklogic.com/REST/GET/v1/keyvalue
- *</p>
+ * Performs a simple key-value search. Of most use to JSON programmers.
+ * 
+ * {@link https://docs.marklogic.com/REST/GET/v1/keyvalue}
+ * 
  * @param {string} key - The JSON key to use for document retrieval
  * @param {string} value - The value of the JSON key to match against candidate documents
  * @param {string} keytype_opt - What type to use for the key type. Defaults to 'key'. (i.e. JSON key, not element)
@@ -1287,12 +1289,13 @@ mljs.prototype.keyvalue = function(key,value,keytype_opt,callback_opt) {
 };
 
 /**
- * <p>Performs a search:search via REST</p><p>
- * http://docs.marklogic.com/REST/GET/v1/search
- *</p><p>
+ * Performs a search:search via REST
+ * 
+ * {@link http://docs.marklogic.com/REST/GET/v1/search}
+ * 
  * See supported search grammar http://docs.marklogic.com/guide/search-dev/search-api#id_41745 
- * </p><p>
- * Supported values for sprops_opt:-</p>
+ * 
+ * Supported values for sprops_opt:-
  * <ul>
  *  <li>collection - The collection to restrict search results from</li>
  * <li>directory - The directory uri to restrict search results from</li>
@@ -1395,11 +1398,12 @@ mljs.prototype.search = function(query_opt,options_opt,start_opt,sprops_opt,call
 };
 
 /**
- * <p>Performs a search:search via REST. Helper method for SEARCH.</p><p>
- * http://docs.marklogic.com/REST/GET/v1/search
- *</p><p>
+ * Performs a search:search via REST. Helper method for SEARCH.
+ * 
+ * {@link http://docs.marklogic.com/REST/GET/v1/search}
+ * 
  * See supported search grammar http://docs.marklogic.com/guide/search-dev/search-api#id_41745 
- *</p>
+ * 
  * @param {string} collection_opt - The optional collection to restrict the results to
  * @param {string} query_opt - The optional query string
  * @param {string} options_opt - The optional name of the installed query options to use
@@ -1431,13 +1435,14 @@ mljs.prototype.searchCollection = function(collection_opt,query_opt,options_opt,
 };
 
 /**
- * <p>Performs a structured search.</p><p>
- * http://docs.marklogic.com/REST/GET/v1/search
- * </p><p>
- * Uses structured search instead of cts:query style searches. See http://docs.marklogic.com/guide/search-dev/search-api#id_53458
- * </p><p>
+ * Performs a structured search.
+ * 
+ * {@link http://docs.marklogic.com/REST/GET/v1/search}
+ * 
+ * Uses structured search instead of cts:query style searches. See {@link http://docs.marklogic.com/guide/search-dev/search-api#id_53458}
+ * 
  * Use this method in conjunction with the Query Builder {@see mljs.prototype.query}
- *</p>
+ * 
  * @param {JSON} query_opt - The optional structured query JSON to restrict the results by
  * @param {string} options_opt - The optional name of the installed query options to use
  * @param {function} callback - The callback to invoke after the method completes
@@ -1467,13 +1472,14 @@ mljs.prototype.structuredSearch = function(query_opt,options_opt,callback) {
 mljs.prototype.structuredQuery = mljs.prototype.structuredSearch;
 
 /**
- * <p>Saves search options with the given name. These are referred to by mljs.structuredSearch.</p><p>
- * http://docs.marklogic.com/REST/PUT/v1/config/query/*
- *</p><p>
- * For structured search options see http://docs.marklogic.com/guide/rest-dev/search#id_48838
- * </p><p>
+ * Saves search options with the given name. These are referred to by mljs.structuredSearch.
+ * 
+ * {@link http://docs.marklogic.com/REST/PUT/v1/config/query/*}
+ * 
+ * For structured search options see {@link http://docs.marklogic.com/guide/rest-dev/search#id_48838}
+ * 
  * Use this function in conjunction with the Search Options Builder. {@see mljs.prototype.options}
- *</p>
+ * 
  * @param {string} name - The name to install the search options under
  * @param {JSON} searchoptions - The search options JSON object. {@see mljs.prototype.options.prototype.toJson}
  * @param {function} callback_opt - The optional callback to invoke after the method completes
@@ -1487,11 +1493,12 @@ mljs.prototype.saveSearchOptions = function(name,searchoptions,callback_opt) {
 };
 
 /**
- * <p>Fetches search options, if they exist, for the given search options name
- * http://docs.marklogic.com/REST/PUT/v1/config/query/*
- * </p><p>
- * For structured serch options see http://docs.marklogic.com/guide/rest-dev/search#id_48838
- *</p>
+ * Fetches search options, if they exist, for the given search options name
+ * 
+ * {@link http://docs.marklogic.com/REST/PUT/v1/config/query/*}
+ * 
+ * For structured serch options see {@link http://docs.marklogic.com/guide/rest-dev/search#id_48838}
+ * 
  * @param {string} name - The name of the installed search options to retrieve as JSON
  * @param {function} callback - The callback to invoke after the method completes
  */
@@ -1505,9 +1512,10 @@ mljs.prototype.searchOptions = function(name,callback) {
 mljs.prototype.searchoptions = mljs.prototype.searchOptions; // typo workaround for backwards compatibility
 
 /**
- * <p>Fetches values from a lexicon or computes 2-way co-occurence.</p><p>
- * https://docs.marklogic.com/REST/GET/v1/values/*
- *</p>
+ * Fetches values from a lexicon or computes 2-way co-occurence.
+ * 
+ * {@link https://docs.marklogic.com/REST/GET/v1/values/*}
+ * 
  * @param {string|JSON} query - The query string (string) or structured query (object) to use to restrict the results
  * @param {string} tuplesname - The name of the tuples in the installed search options to return
  * @param {string} optionsname - The name of the installed search options to use
@@ -1530,14 +1538,15 @@ mljs.prototype.values = function(query,tuplesname,optionsname,callback_opt) {
 };
 
 /**
- * <p>Same functionality as values() but uses a combined search options and query mechanism.
- * This requires MarkLogic V7 EA 1 or above</p><p>
- * http://docs-ea.marklogic.com/REST/POST/v1/values/*
- * </p><p>
- * For structured serch options see http://docs.marklogic.com/guide/rest-dev/search#id_48838
- *</p><p>
+ * Same functionality as values() but uses a combined search options and query mechanism.
+ * This requires MarkLogic V7 EA 1 or above.
+ * 
+ * {@link http://docs-ea.marklogic.com/REST/POST/v1/values/*}
+ * 
+ * For structured serch options see {@link http://docs.marklogic.com/guide/rest-dev/search#id_48838}
+ * 
  * Executes the values configuration provided. The name 'shotgun' used below is not important. {@see mljs.prototype.subcollections} for an example usage.
- *</p>
+ * 
  * @param {JSON} search - The JSON structured search to use
  * @param {function} callback - The callback to invoke after the method completes
  */
@@ -1555,10 +1564,18 @@ mljs.prototype.valuesCombined = function(search,callback) {
  * <p>Lists the collection URIS underneath the parent uri.
  * Helper method to fetch collections from the collection lexicon using mljs.valuesCombined().
  *</p>
- * @param {string} parenturi - The collection URI under which to retrieve the list of subcollections
+ * @param {string} parenturi_opt - The collection URI under which to retrieve the list of subcollections. Defaults to "/"
  * @param {function} callback - The callback to invoke after the method completes
  */
-mljs.prototype.subcollections = function(parenturi,callback) {
+mljs.prototype.collections = function(parenturi_opt,callback) {
+  var parenturi = "/";
+  if (undefined == callback) {
+    callback = parenturi_opt;
+    parenturi_opt = undefined;
+  }
+  if (undefined != parenturi_opt) {
+    parenturi = parenturi_opt;
+  }
   var values = {
     search: {
       "query": {
@@ -1603,22 +1620,22 @@ mljs.prototype.subcollections = function(parenturi,callback) {
     }
   });
 };
-
+mljs.prototype.subcollections = mljs.prototype.collections;
 
 
 // VERSION 7 SEMANTIC CAPABILITIES
 /**
- * <p>Saves a set of triples as an n-triples graph. Allows you to specify a named graph (collection) or use the default graph.
- * </p><p>
+ * Saves a set of triples as an n-triples graph. Allows you to specify a named graph (collection) or use the default graph.
+ * 
  * No documentation URL - still in Early Access, docs only available on internal MarkLogic wiki
- *</p><p>
+ * 
  * I'm using an easy to interpret JSON triples format. This prevents the user of this function from having to know the
  * n-triples format. Here is an example:-
  * triples = [{subject: "http://someiri/#here", predicate: "http://someiri/#here", object: "http://someiri/#here"},... ]
- * </p><p>
+ * 
  * Note: We assume that the 'object' if provided as JSON triples is an IRI, not a string or other primitive value.
  * Construct your own N-triples if you need to provide raw primitive values.
- *</p>
+ * 
  * @param {string|JSON} triples - The raw N-triples (string) or JSON triples (object JSON array) to store
  * @param {string} uri_opt - The graph name to replace. If not provided, the default MarkLogic graph (all triples) will be replaced.
  * @param {function} callback_opt - The optional callback to invoke after the method completes
@@ -1806,12 +1823,13 @@ mljs.prototype.sparql = function(sparql,callback) {
 
 
 /**
- * <p>Opens a new transaction. Optionally, specify your own name.</p><p>
- * http://docs.marklogic.com/REST/POST/v1/transactions
- *</p><p>
+ * Opens a new transaction. Optionally, specify your own name.
+ * 
+ * {@link http://docs.marklogic.com/REST/POST/v1/transactions}
+ * 
  * Note: Each mljs instance can only have one live transaction at a time. This is a limit imposed by myself by design, not by the underlying REST API. 
  * Best to configure a connection per real user-application pair.
- *</p>
+ * 
  * @param {string} name_opt - The name of the transaction. If not provided, 'client-txn' will be used. Likely not safe on a multi user system.
  * @param {function} callback - The callback to invoke after the method completes
  */
@@ -1859,9 +1877,10 @@ mljs.prototype.beginTransaction = function(name_opt,callback) {
 mljs.prototype.begin = mljs.prototype.beginTransaction;
 
 /**
- * <p>Commits the open transaction</p><p>
- * http://docs.marklogic.com/REST/POST/v1/transactions/*
- *</p>
+ * Commits the open transaction</p><p>
+ * 
+ * {@link http://docs.marklogic.com/REST/POST/v1/transactions/*}
+ * 
  * @param {function} callback - The callback to invoke after the method completes
  */
 mljs.prototype.commitTransaction = function(callback) {
@@ -1875,9 +1894,10 @@ mljs.prototype.commitTransaction = function(callback) {
 mljs.prototype.commit = mljs.prototype.commitTransaction;
 
 /**
- * <p>Rolls back the open transaction.</p><p>
- * http://docs.marklogic.com/REST/POST/v1/transactions/*
- *</p>
+ * Rolls back the open transaction.</p><p>
+ * 
+ * {@link http://docs.marklogic.com/REST/POST/v1/transactions/*}
+ * 
  * @param {function} callback - The callback to invoke after the method completes
  */
 mljs.prototype.rollbackTransaction = function(callback) {
@@ -1899,9 +1919,10 @@ mljs.prototype.rollback = mljs.prototype.rollbackTransaction;
 // CLIENT CONFIGURATION
 
 /**
- * <p>Checks whether the database contains indexes for all installed search options. </p><p>
- * http://docs.marklogic.com/REST/GET/v1/config/indexes
- * </p>
+ * Checks whether the database contains indexes for all installed search options.
+ * 
+ * {@link http://docs.marklogic.com/REST/GET/v1/config/indexes}
+ * 
  * @param {function} callback - The callback to invoke after the method completes
  */
 mljs.prototype.indexes = function(callback) {
@@ -2919,7 +2940,15 @@ mljs.prototype.options.prototype.defaultNamespace = function(ns) {
 };
 
 /**
- * Generates a new Xpath constraint - TODO
+ * Generates a new Xpath constraint
+ * 
+ * @param {string} constraint_name - The name of the constraint
+ * @param {string} xpath - The XPath path
+ * @param {json} namespaces - The {prefix: "http://name/space/", ...} JSON listing namespaces to use
+ * @param {string} type_opt - The type of the XPath attribute/element pointed at. Defaults to xs:string. Must have xs: prefix.
+ * @param {string} collation_opt - The collation to use (if an xs:string), defaults to the value of defaultCollation in this options builder instance
+ * @param {boolean} facet_opt - Whether to use this in a facet. Defaults to true. NB CURRENTLY THE REST API DOES NOT SUPPORT XPATH FACETS
+ * @param {Array} facet_options_opt - Additional string array XPath options - See {@link http://docs.marklogic.com/guide/rest-dev/appendixa#id_64714}
  */
 mljs.prototype.options.prototype.pathConstraint = function(constraint_name,xpath,namespaces,type_opt,collation_opt,facet_opt,facet_options_opt) {
   var range = {name: constraint_name,
@@ -3100,9 +3129,9 @@ mljs.prototype.options.prototype.rangeConstraint = function(constraint_name_opt,
 mljs.prototype.options.prototype.range = mljs.prototype.options.prototype.rangeConstraint;
 
 /**
- * <p>Adds any new constraint JSON to the search options object. Always called by the *Constraint methods themselves anyway. </p><p>
+ * Adds any new constraint JSON to the search options object. Always called by the *Constraint methods themselves anyway. 
  * This is for any constraints you wish to add that don't have their own method here.
- * </p>
+ * 
  * @param {JSON} con - Constraint JSON to add to these options.
  */
 mljs.prototype.options.prototype.addConstraint = function(con) {
@@ -3241,7 +3270,7 @@ mljs.prototype.options.prototype.transformResults = function(apply,ns_opt,at_opt
 /**
  * Uses RAW document snippeting mode.
  *
- * http://docs.marklogic.com/guide/rest-dev/appendixa#id_48012
+ * {@link http://docs.marklogic.com/guide/rest-dev/appendixa#id_48012}
  */
 mljs.prototype.options.prototype.raw = function() {
   this._includeSearchDefaults();
@@ -3254,7 +3283,7 @@ mljs.prototype.options.prototype.raw = function() {
 /**
  * Uses default snippeting document snippeting mode.
  *
- * http://docs.marklogic.com/guide/rest-dev/appendixa#id_48012
+ * {@link http://docs.marklogic.com/guide/rest-dev/appendixa#id_48012}
  */
 mljs.prototype.options.prototype.snippet = function(preferredElements_opt,maxMatches_opt) {
   this._includeSearchDefaults();
@@ -3273,7 +3302,7 @@ mljs.prototype.options.prototype.snippet = function(preferredElements_opt,maxMat
 /**
  * Uses empty snippet document snippeting mode.
  *
- * http://docs.marklogic.com/guide/rest-dev/appendixa#id_48012
+ * {@link http://docs.marklogic.com/guide/rest-dev/appendixa#id_48012}
  */
 mljs.prototype.options.prototype.empty = function() {
   this._includeSearchDefaults();
@@ -3286,7 +3315,7 @@ mljs.prototype.options.prototype.empty = function() {
 /**
  * Uses metadata-snippet document snippeting mode.
  *
- * http://docs.marklogic.com/guide/rest-dev/appendixa#id_48012
+ * {@link http://docs.marklogic.com/guide/rest-dev/appendixa#id_48012}
  */
 mljs.prototype.options.prototype.metadata = function() {
   this._includeSearchDefaults();
@@ -3314,8 +3343,17 @@ mljs.prototype.options.prototype.sortOrderScore = function() {
   this.options["sort-order"].push({"direction": "descending","score": null, "annotation": ["Relevancy (Descending)"]});
   return this;
 };
+mljs.prototype.options.prototype.relevance = mljs.prototype.options.prototype.sortOrderScore; // common alias
 
-//http://docs-ea.marklogic.com/guide/rest-dev/appendixa#id_65046
+/**
+ * Restricts results (e.g. for snippeting) to those elements within the given XPath expression. 
+ * Facets still operate at the document level even if they are not within the searchable expression.
+ * 
+ * {@link http://docs-ea.marklogic.com/guide/rest-dev/appendixa#id_65046}
+ * 
+ * @param {string} expression - The XPath expression to return in the search results (E.g. for snippeting)
+ * @param {string} namespaces_opt - A JSON object of {prefix: "namespace/string", ...} specifying namespaces used within the XPath (if any)
+ */
 mljs.prototype.options.prototype.searchableExpression = function(expression, namespaces_opt) {
   this._includeSearchDefaults();
   this.options["searchable-expression"] = {
@@ -3775,10 +3813,18 @@ mljs.prototype.searchcontext = function() {
   
 };
 
+/**
+ * Returns the MLJS Workplace Context Configuration definition JSON object
+ */
 mljs.prototype.searchcontext.getConfigurationDefinition = function() {
   // TODO searchcontext config definition
 };
 
+/**
+ * Sets the configuration of this context using the MLJS Workplace JSON format.
+ *
+ * @param {JSON} config - The JSON configuration of this context.
+ */
 mljs.prototype.searchcontext.prototype.setConfiguration = function(config) {
   this._options = config.options;
   this.optionsName = config.optionsName;
@@ -3994,7 +4040,7 @@ mljs.prototype.searchcontext.prototype._queryToText = function(parsed) {
  * @param {json} q - The structured query JSON representation
  * @param {integer} start - The start index (result number), starting at 1
  */
-mljs.prototype.searchcontext.prototype.dostructuredquery = function(q,start) {
+mljs.prototype.searchcontext.prototype.doStructuredQuery = function(q,start) {
   var self = this;
   
   self.resultsPublisher.publish(true); // forces refresh glyph to show
@@ -4020,6 +4066,7 @@ mljs.prototype.searchcontext.prototype.dostructuredquery = function(q,start) {
   
   this._persistAndDo(dos);
 };
+mljs.prototype.searchcontext.prototype.dostructuredquery = mljs.prototype.searchcontext.prototype.doStructuredQuery; // backwards compatibility
 
 /**
  * For situations where many objects are contributing top level structured query terms that need AND-ing together.
@@ -4261,6 +4308,15 @@ mljs.prototype.searchcontext.prototype.updateFacets = function(facetSelection) {
   this.dosimplequery(q);
 };
 
+/**
+ * Select the document specified. Depending upon the selection mode (append or replace) this will either
+ * add the document to the selection, or replace the selection with this document. Useful for selecting
+ * multiple search results over time (e.g. between pages of results).
+ * 
+ * Fires an updateSelection event on selection listeners. (Only if the URI is not already selected)
+ * 
+ * @param {json} resultSelection - The JSON object {mode: "append|replace", uri: "/some/uri"} for the selected document. Specifying null in replace mode clears the selection
+ */
 mljs.prototype.searchcontext.prototype.updateSelection = function(resultSelection) {
   if ("append" == resultSelection.mode) {
     // check doc is not already selected
@@ -4345,7 +4401,7 @@ mljs.prototype.searchcontext.prototype.reset = function() {
 
 
 
-/**
+/*
  * Relationships for content:-
  *  - http://marklogic.com/semantic/ontology/derived_from (graph as subject)
  *  - http://marklogic.com/semantic/ontology/defined_by (any entity as subject where triples were extracted)
@@ -4358,7 +4414,8 @@ mljs.prototype.searchcontext.prototype.reset = function() {
 
 
 /**
- * Holds configuration for object to triple mappings
+ * Holds configuration for object to triple mappings, and ontology information. 
+ * Has methods for easily building an ontology for use with MLJS widgets and semantic contexts.
  * 
  * @constructor
  */
@@ -4520,7 +4577,7 @@ com.marklogic.semantic.tripleconfig.prototype.rdftype = function(rdfTypeIri,opt_
       name: rdfTypeIri, // TODO remove - just use IRI instead internally
       prefix: rdfTypeIri, // TODO remove - just use IRI
       iriPattern: rdfTypeIri + "/#VALUE#",
-      commonNamePredicate: opt_commonNamePredicate || "rdfs:label" // TODO replace this with full URL and check it works
+      commonNamePredicate: opt_commonNamePredicate || "http://www.w3.org/2000/01/rdf-schema#label" // TODO replace this with full URL and check it works
     },
     _predicates: [], // predicate JSON
     _to: [], // {type: "*" or string, predicates: [] or "" }
@@ -4594,6 +4651,9 @@ com.marklogic.semantic.tripleconfig.prototype.addValidTriples = function(validTr
   }
 };
 
+/**
+ * Adds Geonames Place subject type support. Includes some custom predicates to represent common relationships.
+ */
 com.marklogic.semantic.tripleconfig.prototype.addPlaces = function() {
   ////this.entities.push("placename");
   
@@ -4635,6 +4695,9 @@ com.marklogic.semantic.tripleconfig.prototype.addPlaces = function() {
   this.include(place);
 };
 
+/**
+ * Adds the MLJS sample Movies ontology support, and relationships to FOAF:Person subject (likes predicate)
+ */
 com.marklogic.semantic.tripleconfig.prototype.addMovies = function() {
   //this.validTriples.push({subjectType: "person", objectType: "movie", predicateArray: ["likesmovie"]});
   
@@ -4665,6 +4728,10 @@ com.marklogic.semantic.tripleconfig.prototype.addMovies = function() {
   this.include(movie);
 };
 
+/**
+ * Adds other ontologies used for testing E.g. in the mldbwebtest sample project.
+ * Defines a Foodstuff rdf type with foodname, linked to FOAF Person subjects (via likes predicate)
+ */
 com.marklogic.semantic.tripleconfig.prototype.addTest = function() {
   ////this.entities.push("foodstuff");
   
@@ -4693,11 +4760,18 @@ com.marklogic.semantic.tripleconfig.prototype.addTest = function() {
   this.include(foodstuff);
 };
 
+/**
+ * Adds links from FOAF:Person and Organisation objects to geonames Place objects.
+ * TODO update this for IRI types instead of common names
+ */
 com.marklogic.semantic.tripleconfig.prototype.addFoafPlaces = function() {
   this.validTriples.push({subjectType: "person", objectType: "placename", predicateArray: ["based_near"]}); //NB based_near may not be a valid relationship class - may be lon/lat instead
   this.validTriples.push({subjectType: "organisation", objectType: "placename", predicateArray: ["based_near","has_meetings_near"]}); 
 };
 
+/**
+ * Adds FOAF Person, Organisation, and common predicates support
+ */
 com.marklogic.semantic.tripleconfig.prototype.addFoaf = function() {
   //this.validTriples.push({subjectType: "person", objectType: "person", predicateArray: ["knows","friendOf","enemyOf","childOf","parentOf","fundedBy"]});
   //this.validTriples.push({subjectType: "person", objectType: "organisation", predicateArray: ["member","studies_at"]});
@@ -4752,6 +4826,10 @@ com.marklogic.semantic.tripleconfig.prototype.addFoaf = function() {
   this.include(org);
 };
 
+/**
+ * Adds MarkLogic document ontology support. This is an early formed idea, not a standard.
+ * {@link http://adamfowleruk.github.io/mljs/apidocs/core/tutorial-901-ontology.html}
+ */
 com.marklogic.semantic.tripleconfig.prototype.addMarkLogic = function() {
   //this.validTriples.push({subjectType: "*", objectType: "mldocument", predicateArray: ["uri"]});
   
@@ -4768,6 +4846,15 @@ com.marklogic.semantic.tripleconfig.prototype.addMarkLogic = function() {
   this.include(doc);
 };
 
+/**
+ * Returns the valid predicates in the configured ontologies between the two subject RDF types shown (they could be the same values).
+ * This function is useful when determining the possible object classes a Subject can be linked to. It does not list intrinsic valued
+ * predicates.
+ * 
+ * @param {string} from - IRI of the RDF type on which the predicate exists
+ * @param {string} to - IRI of the RDF type to which the predicate points (The RDF type of the Object)
+ * @return {Array} predicateArray - The full IRIs of the predicates that are valid between the two RDF types given
+ */
 com.marklogic.semantic.tripleconfig.prototype.getValidPredicates = function(from,to) {
   for (var i = 0;i < this.validTriples.length;i++) {
     this.__d("getValidPredicates: Checking validTriples: " + JSON.stringify(this.validTriples[i]));
@@ -4780,6 +4867,12 @@ com.marklogic.semantic.tripleconfig.prototype.getValidPredicates = function(from
   return new Array();
 };
 
+/**
+ * Returns the IRI of the predicate which represents the specified entity's commonNamePredicate
+ * 
+ * @param {string} entity - The IRI of the RDF type for the entity
+ * @return {JSON} property - The property JSON or null for the commonNamePredicate
+ */
 com.marklogic.semantic.tripleconfig.prototype.getNameProperty = function(entity) {
   this.__d("getNameProperty: entity=" + entity);
   var cnp = this._newentities[entity].commonNamePredicate;
@@ -4800,6 +4893,9 @@ com.marklogic.semantic.tripleconfig.prototype.getNameProperty = function(entity)
 
 /**
  * Fetch entity info for top level entities (not properties of entities)
+ * 
+ * @param {string} iri - The IRI of the rdf entity type to fetch
+ * @return {JSON} entityInfo - The Internal MLJS JSON configuration of the specified entity
  */
 com.marklogic.semantic.tripleconfig.prototype.getEntityFromIRI = function(iri) {
   return this._newentities[iri];
@@ -4812,6 +4908,14 @@ com.marklogic.semantic.tripleconfig.prototype.getEntityFromIRI = function(iri) {
   }*/
 };
 
+/**
+ * Fetches entity info based upon a shortened IRI.
+ * 
+ * @deprecated use full IRI instead @see getEntityFromIRI
+ * 
+ * @param {string} shortIri - The short IRI of the rdf entity type to fetch
+ * @return {JSON} entityInfo - The Internal MLJS JSON configuration of the specified entity
+ */
 com.marklogic.semantic.tripleconfig.prototype.getEntityFromShortIRI = function(iri) {
   for (var cn in this._newentities) {
     var p = this._newentities[cn];
@@ -4821,6 +4925,14 @@ com.marklogic.semantic.tripleconfig.prototype.getEntityFromShortIRI = function(i
   }
 };
 
+/**
+ * Fetches entity info based upon a short name, internal to MLJS triple config objects.
+ * 
+ * @deprecated use full IRI instead @see getEntityFromIRI
+ * 
+ * @param {string} name - The short internal name of the rdf entity type to fetch
+ * @return {JSON} entityInfo - The Internal MLJS JSON configuration of the specified entity
+ */
 com.marklogic.semantic.tripleconfig.prototype.getEntityFromName = function(name) {
   for (var cn in this._newentities) {
     var p = this._newentities[cn];
@@ -4830,6 +4942,12 @@ com.marklogic.semantic.tripleconfig.prototype.getEntityFromName = function(name)
   }
 };
 
+/**
+ * Returns a predicate info JSON object for the full rdf predicate IRI specified.
+ * 
+ * @param {string} iri - The IRI of the rdf predicate to fetch
+ * @return {JSON} predicateInfo - The Internal MLJS JSON configuration of the specified predicate
+ */
 com.marklogic.semantic.tripleconfig.prototype.getPredicateFromIRI = function(iri) {
   /*
   for (var cn in this._newPredicates) {
@@ -4842,6 +4960,14 @@ com.marklogic.semantic.tripleconfig.prototype.getPredicateFromIRI = function(iri
   return this._newPredicates[iri];
 };
 
+/**
+ * Returns a predicate info JSON object for the full rdf predicate IRI specified.
+ * 
+ * @deprecated use getPredicateFromIRI instead
+ * 
+ * @param {string} shortIri - The short IRI of the rdf predicate to fetch
+ * @return {JSON} predicateInfo - The Internal MLJS JSON configuration of the specified predicate
+ */
 com.marklogic.semantic.tripleconfig.prototype.getPredicateFromShortIRI = function(iri) {
   for (var cn in this._newPredicates) {
     var p = this._newPredicates[cn];
@@ -4851,6 +4977,14 @@ com.marklogic.semantic.tripleconfig.prototype.getPredicateFromShortIRI = functio
   }
 };
 
+/**
+ * Returns a predicate info JSON object for the full rdf predicate IRI specified.
+ * 
+ * @deprecated use getPredicateFromIRI instead
+ * 
+ * @param {string} name - The internal MLJS triple config name of the rdf predicate to fetch
+ * @return {JSON} predicateInfo - The Internal MLJS JSON configuration of the specified predicate
+ */
 com.marklogic.semantic.tripleconfig.prototype.getPredicateFromName = function(name) {
   for (var cn in this._newPredicates) {
     var p = this._newPredicates[cn];
@@ -4860,6 +4994,14 @@ com.marklogic.semantic.tripleconfig.prototype.getPredicateFromName = function(na
   }
 };
 
+/**
+ * Convenience method to loop through the JSON entityInfo object specified and rethrn the predicate information for the specified predicate IRI
+ * 
+ * TODO validate this works as expected since change to create a ontologyBuilder set of functions. NB Remove if not used by any other code.
+ * 
+ * @param {JSON} entity - The MLJS entityInfo object
+ * @param {string} iri - The full IRI of the predicate whose info should be returned
+ */
 com.marklogic.semantic.tripleconfig.prototype.getEntityProperty = function(entity, iri) {
   self.__d("getEntityProperty: " + iri + " from entity: " + entity);
   for (var i = 0;i < entity.properties.length;i++) {
@@ -4917,26 +5059,58 @@ mljs.prototype.semanticcontext = function() {
   this._errorPublisher = new com.marklogic.events.Publisher();
 };
 
+/**
+ * Sets the mode for this context. This affects how this context updates a searhcontext's content search when it finds Subjects related to a MarkLogicDocument.
+ * See details on the MarkLogic sample ontology for details. This context will take the #uri value of a subject(or subjects) and generate an or-query of 
+ * document-query(uri) within the target search context.
+ * 
+ * @param {string} mode - The structured query builder mode - full (default) or 'contribute'. Affects whether this context calls searchcontext's doStructuredQuery or contributeStructuredQuery instead
+ */
 mljs.prototype.semanticcontext.prototype.setContentMode = function(mode) {
   this._contentMode = mode;
 };
 
+/**
+ * Returns this context's content search contribution mode. Either 'full' (default) or 'contribute'.
+ * 
+ * @return {string} contentMode - The mode of this semantic context's contribution to a search context's structured query
+ */
 mljs.prototype.semanticcontext.prototype.getContentMode = function() {
   return this._contentMode;
 };
 
+/**
+ * Sets the content context to update (if any) with #uris via a document-query
+ * 
+ * @param {searchcontext} ctx - The (Content) Search Context to update
+ */
 mljs.prototype.semanticcontext.prototype.setContentContext = function(ctx) {
   this._contentSearchContext = ctx;
 };
 
+/**
+ * Returns the (content) search context instance (or null) that this semantic context is configured to update
+ * 
+ * @return {searchcontext} context - The searchcontext instance (or null) that this semantic context will update
+ */
 mljs.prototype.semanticcontext.prototype.getContentContext = function() {
   return this._contentSearchContext;
 };
 
+/**
+ * Determines whether this semantic context is set up to update a (content) search context.
+ * 
+ * @return {boolean} hasContentContext - true if this context is configured to update a (content) search context
+ */
 mljs.prototype.semanticcontext.prototype.hasContentContext = function() {
   return (null != this._contentSearchContext);
 };
 
+/**
+ * Returns the underlying triple config instance.
+ * 
+ * @return {tripleconfig} config - The tripleconfig being used to generate SPARQL by this semanticcontext
+ */
 mljs.prototype.semanticcontext.prototype.getConfiguration = function() {
   if (null == this._tripleconfig) {
     this._tripleconfig = this.db.createTripleConfig();
@@ -4944,10 +5118,25 @@ mljs.prototype.semanticcontext.prototype.getConfiguration = function() {
   return this._tripleconfig;
 };
 
+/**
+ * Sets the triple config instance to use for determining ontology information.
+ * 
+ * @return {tripleconfig} config - The triple config instance used
+ */
 mljs.prototype.semanticcontext.prototype.setConfiguration = function(conf) {
   this._tripleconfig = conf;
 };
 
+/**
+ * Registers an object with this semantic context. 
+ * This checks for the following general methods: setSemanticContext
+ * And event handlers: updateSubjectResults, updateSubjectFacts, updateFacts, updateSuggestions
+ * And event firers: addSubjectSelectionListener
+ * 
+ * Note that this context will automatically register the specified object with the dependant (content) search context, if one is configured.
+ * 
+ * @param {object} obj - The object to register with this context
+ */
 mljs.prototype.semanticcontext.prototype.register = function(obj) {
   var self = this;
   
@@ -4981,6 +5170,13 @@ mljs.prototype.semanticcontext.prototype.register = function(obj) {
   }
 };
 
+/**
+ * Queries for a subject using the specified SPARQL and paging information. Fires updateSubjectResults.
+ * 
+ * @param {string} sparql - the sparql string (not including OFFSET or LIMIT) to use for the search
+ * @param {integer} offset_opt - the offset to use (defaults to 1)
+ * @param {integer} limit_opt - the limit to use (defaults to 10)
+ */
 mljs.prototype.semanticcontext.prototype.subjectQuery = function(sparql,offset_opt,limit_opt) {
   this._subjectQuery = sparql;
   if (undefined != offset_opt) {
@@ -4993,8 +5189,14 @@ mljs.prototype.semanticcontext.prototype.subjectQuery = function(sparql,offset_o
   this._doSubjectQuery();
 };
 
+/**
+ * Changes the configured search offset. Useful for paging
+ * 
+ * @param {integer} offset - the search results paging offset
+ */
 mljs.prototype.semanticcontext.prototype.moveOffset = function(offset) {
   this._offset = offset;
+  // TODO determine if LIMIT needs updating (is it a count, or result index?)
   this._doSubjectQuery();
 };
 
@@ -5014,6 +5216,11 @@ mljs.prototype.semanticcontext.prototype._doSubjectQuery = function() {
   });
 };
 
+/**
+ * Fetches facts that have the subjectIri specified as the 'subject' (but NOT the 'object - thus different to GET /v1/graphs/things)
+ * 
+ * @param {string} subjectIri - The Subject iri to fetch facts for
+ */
 mljs.prototype.semanticcontext.prototype.subjectFacts = function(subjectIri) {
   this._selectedSubject = subjectIri;
   
@@ -5022,6 +5229,15 @@ mljs.prototype.semanticcontext.prototype.subjectFacts = function(subjectIri) {
 };
 
 // NB subjectIri can be null if sparql contains multiple subjectIris
+/**
+ * Looks up related content to the specified Subject.
+ * TODO update this to also check MarkLogicDocument #uri rather than just a docuri as an intrinsic string object value related to the graph.
+ * NB Currently supports a maximum list of 10 document URIs, and doesn't use DISTINCT
+ * NB only executes if a (content) search context has been configured on this semantic context instance
+ * 
+ * @param {string} subjectIri - The IRI of the subject to fetch related content for
+ * @param {string} docSparql_opt - The Sparql to use (should return a ?docuri binding) if not using the default sparql generation within this method
+ */
 mljs.prototype.semanticcontext.prototype.subjectContent = function(subjectIri,docSparql_opt) {
   // update the linked searchcontext with a query related to documents that the facts relating to this subjectIri were inferred from
   // TODO sparql query to fetch doc URIs (stored as derivedFrom IRIs)
@@ -5082,6 +5298,13 @@ mljs.prototype.semanticcontext.prototype.subjectContent = function(subjectIri,do
   }
 };
 
+/**
+ * Looks up a single fact. Checks the fact cache first. Fires an updateSubjectFacts event.
+ * 
+ * @param {string} subjectIri - The IRI of the subject whose fact we are looking for
+ * @param {string} predicate - The predicate IRI of the fact to locate
+ * @param {string} reload_opt - Whether to reload the fact, or use the cached value (if it exists) - defaults to false (use cache)
+ */
 mljs.prototype.semanticcontext.prototype.getFact = function(subjectIri,predicate,reload_opt) {
   var facts = this._subjectFacts[subjectIri];
   var bindings
@@ -5115,6 +5338,12 @@ mljs.prototype.semanticcontext.prototype.getFact = function(subjectIri,predicate
   }
 };
 
+/**
+ * Fetches all facts for a specified subject. Fires an updateSubjectFacts event.
+ * 
+ * @param {string} subjectIri - The IRI of the subject whose fact we are looking for
+ * @param {string} reload_opt - Whether to reload the fact, or use the cached value (if it exists) - defaults to false (use cache)
+ */
 mljs.prototype.semanticcontext.prototype.getFacts = function(subjectIri,reload_opt) {
   var self = this;
   var facts = this._subjectFacts[subjectIri];
@@ -5166,6 +5395,15 @@ mljs.prototype.semanticcontext.prototype.primeSimpleSuggest = function() {
   }); 
 };
 
+/**
+ * Performs a suggestion lookup for a fact value using SPARQL. NB limited to 10 distinct suggestions.
+ * NB only does a simple string match, so doesn't take in to account value type (E.g. Integer)
+ * TODO update to use tripleconfig to determine type, if information is available.
+ * 
+ * @param {string} subjectIri - The IRI of the subject whose fact we are looking for
+ * @param {string} predicate - The predicate IRI of the fact to locate
+ * @param {string} startString_opt - If specified, replaces the default FILTER part of the sparql generated
+ */
 mljs.prototype.semanticcontext.prototype.simpleSuggest = function(rdfTypeIri,predicateIri,startString_opt) {
   this.__d("simpleSuggest");
   var sparql = "SELECT DISTINCT ?suggestion WHERE {\n  ?s a <" + rdfTypeIri + "> . \n  ?s <" + predicateIri + "> ?suggestion . \n";
@@ -5189,6 +5427,12 @@ mljs.prototype.semanticcontext.prototype.simpleSuggest = function(rdfTypeIri,pre
 };
 
 // now for generic triple search results
+/**
+ * Fetches arbitrary facts as requested by the specified sparql. Could return any bindings. Fires an updateFacts event.
+ * NB this method does not specify its own OFFSET or LIMIT values.
+ * 
+ * @param {string} sparql - The sparql to use to locate facts
+ */
 mljs.prototype.semanticcontext.prototype.queryFacts = function(sparql) {
   var self = this;
   self.db.sparql(sparql,function(result) {
@@ -5214,6 +5458,14 @@ mljs.prototype.semanticcontext.prototype.queryFacts = function(sparql) {
 /*****
  * Document Context
  *****/
+/**
+ * A Document context can be used to fetch or update information on a single document in MarkLogic. E.g. fetching and updating properties.
+ * This is useful when many widgets on a page are providing different views on a document. E.g. its content, its properties or its permissions.
+ * 
+ * @deprecated use var db = new mljs(); var ctx = db.createDocumentContext(); instead of this constructor.
+ * 
+ * @constructor
+ */
 mljs.prototype.documentcontext = function() {
   this._highlighted = null; // docuri
   this._selected = null; // docuri
@@ -5229,10 +5481,21 @@ mljs.prototype.documentcontext = function() {
   this._facetsPublisher = new com.marklogic.events.Publisher();
 };
 
+/**
+ * Specifies the subject of properties to use when fetching properties.
+ * 
+ * @param {json} json - The properties JSON to use - [{name: "keyword",title: "Keyword", cardinality: 1 | "*"}, ... ]
+ */
 mljs.prototype.documentcontext.prototype.addAllowableProperty = function(json) {
   this._allowableProperties.push(json);
 };
 
+/**
+ * Fetches the property configuration for the specified allowed property name
+ * 
+ * @param {string} propname - The property name to lookup
+ * @return {json} propertyJson - The available property JSON configuration
+ */
 mljs.prototype.documentcontext.prototype.getAllowableProperty = function(propname) {
   for (var i = 0, max = this._allowableProperties.length,prop;i < max;i++) {
     prop = this._allowableProperties[i];
@@ -5243,11 +5506,24 @@ mljs.prototype.documentcontext.prototype.getAllowableProperty = function(propnam
   return null;
 };
 
+/**
+ * Returns an array of all allowable properties for this context.
+ * 
+ * @return {Array} properties - An Array of allowable properties JSON objects
+ */
 mljs.prototype.documentcontext.prototype.getAllowableProperties = function() {
   return this._allowableProperties;
 };
 
-mljs.prototype.documentcontext.prototype.register = function (obj) {
+/**
+ * Registers the specified object with this context. Introspects the object.
+ * General methods checked for: setDocumentContext
+ * Event handlers checked for: updateDocumentContent, updateDocumentProperties, updateOperation, updateDocumentFacets
+ * Events listener for: addDocumentSelectionListener, addDocumentHighlightListener
+ * 
+ * Note that updateOperation is a general catch all that is called whenever a document or its properties are updated (to allow page elements to refresh themselves independantly)
+ */
+mljs.prototype.documentcontext.prototype.register = function(obj) {
   var self = this;
   
   if (undefined != obj.setDocumentContext) {
@@ -5277,18 +5553,33 @@ mljs.prototype.documentcontext.prototype.register = function (obj) {
   }
 };
 
+/**
+ * Set the highlighted document to the one in the specified URI. Fires NOTHING AT THE MOMENT TODO SHOULD BE updateDocumentHighlighted
+ * 
+ * @param {string} docuri - The URI of the document highlighted (usually hovered over)
+ */
 mljs.prototype.documentcontext.prototype.highlight = function(docuri) {
   this._highlighted = docuri;
   
   this._highlightedPublisher.publish(docuri);
 };
 
+/**
+ * Set the document selected.
+ * 
+ * @param {string} docuri - The document to select
+ */
 mljs.prototype.documentcontext.prototype.select = function(docuri) {
   this._selected = docuri;
   
   this._selectedPublisher.publish(docuri);
 };
 
+/**
+ * Fetches the content of the specified document uri.
+ * 
+ * @param {string} docuri - The document
+ */
 mljs.prototype.documentcontext.prototype.getContent = function(docuri) {
   var self = this;
   
@@ -5301,6 +5592,11 @@ mljs.prototype.documentcontext.prototype.getContent = function(docuri) {
   });
 };
 
+/**
+ * Fetches all the properties for the specified docuri
+ * 
+ * 
+ */
 mljs.prototype.documentcontext.prototype.getProperties = function(docuri) {
   var self = this;
   
@@ -5313,6 +5609,11 @@ mljs.prototype.documentcontext.prototype.getProperties = function(docuri) {
   });
 };
 
+/**
+ * Sets the properties (merges using V7 functionality) of the specified document uri.
+ * 
+ * 
+ */
 mljs.prototype.documentcontext.prototype.setProperties = function(docuri,propertyJson) {
   // V6 PUT /v1/documents?mode=metadata
   var self = this;
@@ -5328,6 +5629,9 @@ mljs.prototype.documentcontext.prototype.setProperties = function(docuri,propert
   // fire operation success so user knows on the UI that patch operation was successful - confirmationPublisher? Via operationId generated in this function, unique to this context?
 };
 
+/**
+ * TODO does nothing at the moment. Should use V6's POST /v1/document?mode=metadata to patch the properties
+ */
 mljs.prototype.documentcontext.prototype.patchProperty = function(docuri,propertyXpath,propertXml) {
   // V7 POST /v1/documents?mode=metadata with HTTP PATCH EQUIV HEADER
   // perform patch
@@ -5337,6 +5641,11 @@ mljs.prototype.documentcontext.prototype.patchProperty = function(docuri,propert
   // fire operation success so user knows on the UI that patch operation was successful - confirmationPublisher? Via operationId generated in this function, unique to this context?
 };
 
+/**
+ * Loads the facets for the specified document and options. Affectively does a document-query. Requires that the options specified has a contraint named 'uriconstraint'.
+ * 
+ * 
+ */
 mljs.prototype.documentcontext.prototype.getFacets = function(docuri,optionsName) {
   // perform a search but just for a single document (uri constraint) in order to load all its facets that are relevant for the interested object/widget
   var b = this.db.createQuery();
@@ -5365,6 +5674,8 @@ mljs.prototype.documentcontext.prototype.getFacets = function(docuri,optionsName
 
 
 /**
+ * IN DEVELOPMENT - A SparqlBuilder object for easy (and performant) sparql creation.
+ * 
  * var b = db.createSparqlBuilder()
  * b.subject("JointCustomer").with(
  *   b.subject("NKBCustomer").with(
@@ -5375,9 +5686,26 @@ mljs.prototype.documentcontext.prototype.getFacets = function(docuri,optionsName
  *   ).has("nicclientid")
  * );
  * var sparql = b.toSparql();
+ *
+ * This would generate (using short form of IRIs for readability):-
+ * 
+ * SELECT DISTINCT ?subject WHERE {
+ *   ?subject rdf:type <JointCustomer> .
+ *   ?subject ?pred1 ?nkbcustomer1 .
+ *     ?nkbcustomer1 rdf:type <NKBCustomer> .
+ *     ?nkbcustomer1 ?pred2 ?nkbaccount2 .
+ *       ?nkbaccount2 rdf:type <NKBAccount> .
+ *       ?nkbaccount2 ?balance ?value3 .
+ *       FILTER (?balance < "100"^^<xs:integer>) .
+ *   ?subject ?pred4 ?nicclient4 .
+ *     ?nicclient4 rdf:type <NICClient> .
+ *     ?nicclient4 ?pred5 ?mldocument5 .
+ *       ?mldocument5 rdf:type <MLDocument> .
+ *       ?mldocument5 ?pred6 ?docuri .
+ *     ?nicclient4 ?pred7 ?nicclientid
+ * }
  * 
  */
-
 mljs.prototype.sparqlbuilder = function() {
   this._exposedVariables = new Array(); // string variable names
   this._topTerms = new Array(); // {subject:, predicate: , object: , type: "property|rdftype|docuri|relationship"}
@@ -5386,23 +5714,42 @@ mljs.prototype.sparqlbuilder = function() {
   this._nextTermID = 1;
 };
 
+/**
+ * Returns the sparql generated
+ * 
+ * TODO complete method
+ */
 mljs.prototype.sparqlbuilder.prototype.toSparql = function() {
   // TODO 
 };
 
 
 // TODO the following should be mixed in to new Term objects
-
+/**
+ * Generates a subject with the specified rdf type IRI
+ * 
+ * TODO complete this method
+ */
 mljs.prototype.sparqlbuilder.subject = function(rdftype) {
   var tid = this._nextTermID++;
   return {termID: tid, sparql: "  ?s" + tid + " a <" + rdftype + "> .\n"};
 };
 
+/**
+ * Includes the specified predicate IRI from the parent subject object
+ * 
+ * TODO complete method
+ */
 mljs.prototype.sparqlbuilder.prototype.has = function(predicateIri) {
   var tid = this._nextTermID++;
   return {termID: tid, sparql: "  ?s" + tid + " <" + predicateIri + "> ?o" + tid + " .\n"};
 };
 
+/**
+ * Includes the specified dependant (target of a relationship) Subject
+ * 
+ * TODO complete this method, and include predicate specification (optional)
+ */
 mljs.prototype.sparqlbuilder.prototype.with = function(childTerm) {
   
 };
@@ -5429,7 +5776,7 @@ mljs.prototype.sparqlbuilder.prototype.with = function(childTerm) {
 
 /****
  * Functional mixin pattern for easier logging. Could be used for other functions too.
- * See http://javascriptweblog.wordpress.com/2011/05/31/a-fresh-look-at-javascript-mixins/ for pattern details.
+ * See {@link http://javascriptweblog.wordpress.com/2011/05/31/a-fresh-look-at-javascript-mixins/} for pattern details.
  ****/
 (function () { // first IIFE definition ensures asLogSink does not end up as a global variable
   var asLogSink = (function() {

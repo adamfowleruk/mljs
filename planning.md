@@ -2,74 +2,34 @@
 
 ## Upcoming releases
 
-Targets for 15 Oct 2013
- - Widgets: Google maps (via OpenLayers only)
- - Widgets: Open Street Map (Use GB WMS Server, EPSG4326 or 27700 mode)
- - Widgets: Geospatial facets shown in maps, and not in facets widget
- - CSV Import improvements / testing
-  - Checkout XSLT upload and transform method
- - Nice to have: Widgets: Browse related Subjects in node diagram
-
-Targets for 1.0 (End of Oct 2013) (Published early due to serious changes to V7 affecting functionality)
- - DONE Rework MLDBWEBTEST sample app so Dave Cassel can easily grab example controller for Roxy auto deployment
-  - DONE rename page js files to be page-controller-action.js
-  - DONE Move JS, CSS files to correct positions
-  - DONE Update build scripts to take new locations in to account, including mljsme
-  - DONE Rework layout files for Roxy for MLJS core including all widgets
- - DONE JS Health Check
-  - DONE Perform Firebug comparison to check on speed of widgets
-   - searchpage (170ms, 14.5ms in widgets)
-   - searchpage+snippets (163ms, 10.7ms in widgets)
-   - charts (1273ms,<20ms in MLJS)
-   - charts+search (1003ms,<20ms in MLJS)
-   - cooccurence (173ms,0.873ms in widget)
-   - error (153ms, 0.597ms in widget)
-   - kratu (153ms, 0.237ms in widget)
-   - viewdoc (162ms, 1.2ms in widget)
-   - sparql - not tested - was on v6
-   - explorer - note tested - was on v6
-   - workplace (613ms, 12.2ms in widgets - 2 actions, load plus facet selection)
- - DONE V7 update fixes
-  - DONE BUG: search results JSON content being returned as String not object in recent V7 builds (workaround for both approaches)
- - DONE tripleconfig ontology builder
-  - DONE Added rdftype() function to better manage adding new Entity classes to an ontology (Works like the options builder object, with method chaining)
-  - DONEAdded include() function to take this JSON configuration and apply it to the tripleconfig object
-  
-Targets for 1.0 Interim release (Start Nov 2013)
- - IN PROGRESS JavaScript public API consistency changed
-  - UpperCamelCase for constructors/objects
-  - IN PROGRESS lowerCamelCase for functions (searchcontext and mljs have some alllowercase methods)
+Targets for 1.1 Interim release (Start Nov 2013)
+ - DONE JavaScript public API consistency changes
+  - DONE UpperCamelCase for constructors/objects - only when publicly visible
+   - DONE Core API
+   - DONE Widget API
+  - DONE lowerCamelCase for functions (searchcontext and mljs have some alllowercase methods)
   - Apply Configuration object pattern consistently with MLJS Core (E.g. search options), and add helper methods where this is complex for common use cases (location 1734)
-  - alias options.sortOrderScore() to options.relevance()
+  - DONE alias options.sortOrderScore() to options.relevance()
   - support snippet size too (extended snippets) in search options builder
- - mljsme.sh improvements
-  - Copy dependant files - 960 CSS folder, bootstrap-roxy.css, one-layout.less, mljs-one-layout.html.xqy, highcharts.js
- - Widgets: Search Speed - As a tutorial for those wishing to contribute to MLJS by creating new widgets of their own
- - Widgets: Sparql: Other sparql improvements
-  - Support OPTIONAL?
-  - Support UNION?
-  - Sparql query builder in mljs core?
-  - IN PROGRESS Support FILTER?
-   - DONE Used this for < > <= >= != for integer, double fields
-   - Regex? (used by suggestions only at the moment)
-   - TODO validate string comparison instead of numeric comparison as reported by Ken Tune in SYTYCD demo
-  - Support REDUCED? (Permits duplicates to be eliminated)
-  - Support FROM NAMED (limit results from set of named graphs) - http://www.w3.org/TR/2008/REC-rdf-sparql-query-20080115/#restrictByLabel
-  - NA multiple listeners for this in same context - Multiple modes, one to contribute sparql query to a searchcontext, another to perform sparql query itself (to list entities)
-  - NA Sparql 1.1 required - Allow less than / greater than rather than just equals, depending on property selected
-  - Aggregations of triples for Charts to work alongside facets of documents
- - IN PROGRESS Core: TripleConfig improvements
-  - TEST rewrite how ontology information is provided, configured, accessed and managed - far too complex and buggy for the average developer at the moment
-  - TripleConfig internal array and function rewrite to remove duplication of predicate information
-  - Support loading of OWL / other ontologies to populate triple config object
-  - TEST ontology builder object - use methods on tripleconfig
+ - DONE mljsme.sh improvements
+  - DONE Copy dependant files - 960 CSS folder, bootstrap-roxy.css, one-layout.less, mljs-one-layout.html.xqy, highcharts.js
+  - DONE Check for wget and/or curl presence, and include helpful doesn't exist message
+  - DEFERRED for Workplace in 1.2: add option to also deploy -workplace mljs/main (Workplace) and -test mldbtest/* for retrofitting Roxy apps
+  - DONE Alter build.sh to include roxy/ folder with controller, layout, css
+ - DONE Core: TripleConfig improvements
+  - DONE rewrite how ontology information is provided, configured, accessed and managed - far too complex and buggy for the average developer at the moment
+  - DEFERRED TripleConfig internal array and function rewrite to remove duplication of predicate information
+  - DEFERRED Support loading of OWL / other ontologies to populate triple config object
+  - DEFERRED Support prefix configuration in tripleconfig
+  - DONE ontology builder object - use methods on tripleconfig
  - Core: Search Options builder
   - hide sem:triple elements from snippet highlighting
   - Don't return sem:triples documents at all by default
-  - actually write the pathConstraint function!
+  - DONE actually write the pathConstraint function!
   - Investigate why REST insists upon some elements having indexes in the JSON namespace as well as the one required (E.g. xhtml and h1) - because using JSON mode???
  - NOT A BUG searchfacets or searchbar widgets using facet title, not constraint name, to indicate constraint added to searchbar (also for lookup/matching)
   - NA Actually, there is no 'facet title' just that constraint name and field name are generally the same. Need to add Title support somehow
+  - Add annotation support in constraints and facets, and use these in the searchfacets widget
  - Widget: Error
   - Ensure this is invoked correctly, and all contexts and test pages work with it
  - App Builder gap closing
@@ -85,17 +45,39 @@ Targets for 1.0 Interim release (Start Nov 2013)
   - Phrase searches
   - Shadow queries (MLJS' alternative mechanism)
   - Widgets: Navigable charts / co-occurence - clicking sets facet value
+  - BUG: Widgets: HighCharts - handle 'undefined' in label on pie charts
  - IN PROGRESS NodeJS: Node.js tests for all functionality now in core MLJS
  - IN PROGRESS Widget: RDB2RDF in test app
   - Remove jQuery specific code
   - IN PROGRESS Check Roxy installation of REST extension works automatically
   - IN PROGRESS validate CSS works correctly on all pages
- - mljsme
-  - add option to also deploy -workplace mljs/main (Workplace) and -test mldbtest/*
  - IN PROGRESS Docs: Document all core concepts currently part of MLJS
   - IN PROGRESS Docs: searchcontext object
+  - Widgets: Search Speed - As a tutorial for those wishing to contribute to MLJS by creating new widgets of their own
+  - Docs: documentcontext object
+  - Docs: tripleconfig
+  - Docs: semanticcontext
+  - Docs: Internal JSON formats used, and links to REST API ones exposed to end users (E.g. search results)
+   - search formats
+   - search options
+   - JSON internal predicate format
+   - JSON internal rdf type format
+   - JSON external rdf type format
+   - documentcontext.allowableProperty JSON
+  - DONE Core API jsdoc
+  - Widget API jsdoc
   
-Targets for 1.1 (Nov 2013)
+Targets for 19 Nov 2013
+ - Widgets: Google maps (via OpenLayers only)
+ - Widgets: Open Street Map (Use GB WMS Server, EPSG4326 or 27700 mode)
+ - Widgets: Geospatial facets shown in maps, and not in facets widget
+ - CSV Import improvements / testing
+  - Checkout XSLT upload and transform method
+ - Nice to have: Widgets: Browse related Subjects in node diagram
+
+Targets for 1.2 (Dec 2013)
+ - Widgets: HighCharts
+  - Support multiple series, axes and searchcontexts (how?)
  - App Builder to MLJS+Roxy automated conversion
   - Point at Roxy generated App Builder download / local file system copy of appbuilder folder
   - Copy over rest extensions as required
@@ -107,6 +89,19 @@ Targets for 1.1 (Nov 2013)
   - Facet display names from JSON config file
   - REST request re-writer to point to Workplace page (mljs-workplace.html.xqy), pass on other requests to REST API
   - Document preview page (may apply XSLT) on /view?uri= - check the appbuilder URL for this
+ - Widgets: Sparql: Other sparql improvements (via sparql builder)
+  - Support OPTIONAL?
+  - Support UNION?
+  - Sparql query builder in mljs core?
+  - IN PROGRESS Support FILTER?
+   - DONE Used this for < > <= >= != for integer, double fields
+   - Regex? (used by suggestions only at the moment)
+   - TODO validate string comparison instead of numeric comparison as reported by Ken Tune in SYTYCD demo
+  - Support REDUCED? (Permits duplicates to be eliminated)
+  - Support FROM NAMED (limit results from set of named graphs) - http://www.w3.org/TR/2008/REC-rdf-sparql-query-20080115/#restrictByLabel
+  - NA multiple listeners for this in same context - Multiple modes, one to contribute sparql query to a searchcontext, another to perform sparql query itself (to list entities)
+  - NA Sparql 1.1 required - Allow less than / greater than rather than just equals, depending on property selected
+  - Aggregations of triples for Charts to work alongside facets of documents
  - DONE Other cool things we could do with MarkLogic
   - DONE SYTYCD Combine triple search with content search - limit documents returned from triple store by term (word) query
   - Alerting with triples (+drawbacks - document level, not triple level)
@@ -202,7 +197,7 @@ Targets for 1.1 (Nov 2013)
    - Inferencing - we've shown, but should mention here
    - aggregates (count, sum, avg, etc.)
   
-Targets for 1.2 (Dec 2013)
+Targets for 1.4 (Feb 2014)
  - CSS best practice
   - Use variables where it makes sense (title height, padding, etc.)
   - minimise property name length and collisions with other css by using ``.mljswidget .docproperties {  .title {}  .name {} ... }`` style of CSS declarations
@@ -343,7 +338,7 @@ Floating as and when
   - Widgets: DLS add retention rule widget
   - DONE Widgets: DLS declare search results as record widget
  
-Targets for 1.4 (Feb 2013)
+Targets for 1.6 (Apr 2014)
  - Widgets: HTML content editing widget (new doc, and existing document with specified element (E.g. body, comments) and configuration for what is permissable as content)
  - Widgets: Situational awareness and search renderer app (from BF sim)
  - Widgets: Table - allow binding of JSON search results to jQuery table (for example)
@@ -355,7 +350,7 @@ Targets for 1.4 (Feb 2013)
  - Widgets: (multi) Upload progress bar
  - Test: prototype.js browser AJAX binding
  
-Targets for 1.6 (Apr 2014)
+Targets for 1.8 (Jun 2014)
  - Core: More support for server management (namespaces, indexes, service extensions, update REST instance configuration, XSLT transform management)
  - Widgets: Administration widgets (mainly aimed at pre-sales developers, not sysadmins)
  - Core: CSV and TSV utilities
@@ -552,3 +547,29 @@ Targets for 27 Sep
   - DONE facets view working
   - DONE Link to originating SPARQL query for subject list
   - DONE Lazy loading of facet values when added to output
+
+Targets for 1.0 (End of Oct 2013) (Published early due to serious changes to V7 affecting functionality)
+ - DONE Rework MLDBWEBTEST sample app so Dave Cassel can easily grab example controller for Roxy auto deployment
+  - DONE rename page js files to be page-controller-action.js
+  - DONE Move JS, CSS files to correct positions
+  - DONE Update build scripts to take new locations in to account, including mljsme
+  - DONE Rework layout files for Roxy for MLJS core including all widgets
+ - DONE JS Health Check
+  - DONE Perform Firebug comparison to check on speed of widgets
+   - searchpage (170ms, 14.5ms in widgets)
+   - searchpage+snippets (163ms, 10.7ms in widgets)
+   - charts (1273ms,<20ms in MLJS)
+   - charts+search (1003ms,<20ms in MLJS)
+   - cooccurence (173ms,0.873ms in widget)
+   - error (153ms, 0.597ms in widget)
+   - kratu (153ms, 0.237ms in widget)
+   - viewdoc (162ms, 1.2ms in widget)
+   - sparql - not tested - was on v6
+   - explorer - note tested - was on v6
+   - workplace (613ms, 12.2ms in widgets - 2 actions, load plus facet selection)
+ - DONE V7 update fixes
+  - DONE BUG: search results JSON content being returned as String not object in recent V7 builds (workaround for both approaches)
+ - DONE tripleconfig ontology builder
+  - DONE Added rdftype() function to better manage adding new Entity classes to an ontology (Works like the options builder object, with method chaining)
+  - DONEAdded include() function to take this JSON configuration and apply it to the tripleconfig object
+  

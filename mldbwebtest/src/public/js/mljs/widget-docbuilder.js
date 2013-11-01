@@ -154,11 +154,12 @@ com.marklogic.widgets.create.prototype.mode = function(newMode) {
  * 
  * @param {string} prefix - The document URI prefix to use.
  */
-com.marklogic.widgets.create.prototype.uriprefix = function(prefix) {
+com.marklogic.widgets.create.prototype.uriPrefix = function(prefix) {
   this._uriprefix = prefix;
   
   return this;
 };
+com.marklogic.widgets.create.prototype.uriprefix = com.marklogic.widgets.create.prototype.uriPrefix; // backwards compatibility
 
 /**
  * Specifies that the next created 'cell' should be to the right of the current one. Difference between a table layout and a vertical div layout.

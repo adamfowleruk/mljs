@@ -1,45 +1,72 @@
 #!/bin/bash
 
+usage(){
+	echo "Usage: CUSTOM APP: $0 -m custom [-d /your/app/main/dir] [-j /sub/js/dir] [-i /sub/images/dir] [-c /sub/css/dir]"
+	echo "Usage: ROXY: $0 -m roxy [-d /your/app/main/dir]"
+	echo "Usage: -d defaults to the current directory. For Roxy, this should be the parent of the src directory."
+	echo "Usage: Roxy mode creates the mljstest controller and test pages too."
+	exit 1
+}
+
 # Find latest temporary directory
 T=${TMPDIR}mljsme
 
 # Find application folder - -d option or PWD
 ORIG=$PWD
-getopts "d:" MINUSD
-echo "MINUSD: $MINUSD or $OPTARG"
-if [ -z "$OPTARG" ]
-then APP=$PWD
-else APP=$OPTARG
+
+APP=$ORIG
+
+# Roxy full copy commands
+while getopts ":c:j:i:m:d:" o; do
+  case "${o}" in
+    m)
+      case "$OPTARG" in
+        roxy)
+          ROXY=true
+          ;;
+        *)
+          CUSTOM=true
+          ;;
+      esac
+      ;;
+    j)
+      J=$APP/$OPTARG
+      ;;
+    i)
+      I=$APP/$OPTARG
+      ;;
+    c)
+      C=$APP/$OPTARG
+      ;;
+    d)
+      APP=$OPTARG
+      ;;
+    *)
+      echo "$0: Unknown option specified"
+      usage
+      ;;
+  esac
+done
+
+if [ $ROXY ]; then
+  echo "Roxy mode"
+  mkdir -p $APP/src
+else
+  echo "Custom mode"
+  J=$APP/src/public/js/mljs
+  C=$APP/src/public/css/mljs
+  I=$APP/src/public/images
+  
+  # Ensure destination folders exist
+  mkdir -p $C
+  mkdir -p $J
+  mkdir -p $I
 fi
 
-# TODO sanity check folder for Roxy common files - E.g. deploy and src folders in PWD
-
-# Check if -j or -i or -c specified for js, images and css files accordingly
-# If not, assume ./public/js, ./public/images, ./public/css
-getopts "j:" MINUSJ
-if [ -z "$OPTARG" ]
-then J=$APP/src/public/js/mljs
-else J=$APP/$OPTARG
-fi
-getopts "c:" MINUSC
-if [ -z "$OPTARG" ]
-then C=$APP/src/public/css/mljs
-else C=$APP/$OPTARG
-fi
-getopts "i:" MINUSI
-if [ -z "$OPTARG" ]
-then I=$APP/src/public/images
-else I=$APP/$OPTARG
-fi
-echo "-d=$APP -j=$J -i=$I -c=$C"
+echo "-d=$APP -j=$J -i=$I -c=$C -roxy=$ROXY"
 
 # make new temp folder
 mkdir $T
-
-# Ensure destination folders exist
-mkdir -p $C
-mkdir -p $J
-mkdir -p $I
 
 # TODO check for existence of wget or curl and use the most appropriate, or print a helpful error message about installation each
 # -bash: wget: command not found
@@ -48,18 +75,62 @@ mkdir -p $I
 #adam-mac:~ adamfowler$ flibble
 #-bash: flibble: command not found
 
+RETVAL=`wget --version`
+if [[ "$RETVAL" =~ ".*command not found.*" ]]; then
+  WGET=false
+else
+  WGET=true
+fi
+
+RETVAL=`curl --version`
+if [[ "$RETVAL" =~ ".*command not found.*" ]]; then
+  CURL=false
+else
+  CURL=true
+fi
+
+if [ $CURL ]; then
+  echo "Got CURL"
+else
+  echo "No CURL"
+fi
+
+if [ $WGET ]; then
+  echo "Got WGET"
+else
+  echo "No WGET"
+fi
+
+$WGET=false
+
 # Fetch latest MLJS download tar.gz file
 cd $T
-wget -nd --no-check-certificate https://raw.github.com/adamfowleruk/mljs/master/dist/mljs-browser.tar.gz
+if [ $WGET ]; then
+  wget -nd --no-check-certificate https://raw.github.com/adamfowleruk/mljs/master/dist/mljs-browser.tar.gz
+else
+  if [ $CURL]; then
+    curl -o mljs-browser.tar.gz https://raw.github.com/adamfowleruk/mljs/master/dist/mljs-browser.tar.gz
+  else
+    echo "$0: Neither CURL nor WGET are installed. One must be installed to use mljsme.sh"
+    usage
+  fi
+fi
 
 # Unpack in to new temp folder
 tar xzf mljs-browser.tar.gz
 cd dist/mljs/browser-raw
 
-# Copy relevant files
-cp -f js/* $J/
-cp -f images/* $I/
-cp -f css/* $C/
+if [ $ROXY ]; then
+  echo "Roxy mode copies"
+  # copy required and test files
+  cp -R roxy/* $APP/
+else
+  echo "Custom mode copies"
+  # Copy relevant files only
+  cp -f js/* $J/
+  cp -f images/* $I/
+  cp -f css/* $C/
+fi
 
 # delete temp folder
 cd $ORIG
