@@ -3,35 +3,7 @@
 ## Upcoming releases
 
 Targets for 1.1 Interim release (Start Nov 2013)
- - DONE JavaScript public API consistency changes
-  - DONE UpperCamelCase for constructors/objects - only when publicly visible
-   - DONE Core API
-   - DONE Widget API
-  - DONE lowerCamelCase for functions (searchcontext and mljs have some alllowercase methods)
-  - Apply Configuration object pattern consistently with MLJS Core (E.g. search options), and add helper methods where this is complex for common use cases (location 1734)
-  - DONE alias options.sortOrderScore() to options.relevance()
-  - support snippet size too (extended snippets) in search options builder
- - DONE mljsme.sh improvements
-  - DONE Copy dependant files - 960 CSS folder, bootstrap-roxy.css, one-layout.less, mljs-one-layout.html.xqy, highcharts.js
-  - DONE Check for wget and/or curl presence, and include helpful doesn't exist message
-  - DEFERRED for Workplace in 1.2: add option to also deploy -workplace mljs/main (Workplace) and -test mldbtest/* for retrofitting Roxy apps
-  - DONE Alter build.sh to include roxy/ folder with controller, layout, css
- - DONE Core: TripleConfig improvements
-  - DONE rewrite how ontology information is provided, configured, accessed and managed - far too complex and buggy for the average developer at the moment
-  - DEFERRED TripleConfig internal array and function rewrite to remove duplication of predicate information
-  - DEFERRED Support loading of OWL / other ontologies to populate triple config object
-  - DEFERRED Support prefix configuration in tripleconfig
-  - DONE ontology builder object - use methods on tripleconfig
- - TEST Widget: Error
-  - DONE Ensure it works with result objects (not result.error objects) and javascript errors
-  - TEST Ensure this is invoked correctly, and all contexts and test pages work with it
- - App Builder gap closing
-  - DONE via sprops_opt.transform and .transformParameters - Support for XSLT transformations on search results
-  - DONE via options_opt.transform and .transformParameters - Support for XSLT transformations on fetch documents in new window
-  - DONE via sprops_opt.transform and .transformParameters - Support for XQuery transformations on search results
-  - DONE via options_opt.transform and .transformParameters - Support for XQuery transformations on fetch documents in new window
-  - TEST Support for bucketing in facets (all types, including dynamic)
-  - DONE Just pass in as raw facet_options_opt string array: Facet ordering (other than frequency)
+ - App builder gap closing
   - Ensure 'Sort by relevancy' shows in sort drop down, when configured in the search
   - NA Achieved via Workplace not alterations to searchpage - Embedding charts within search page widget like AppBuilder
   - NA Achieved via Workplace not alterations to searchpage - Support for multiple layouts in search page
@@ -47,8 +19,8 @@ Targets for 1.1 Interim release (Start Nov 2013)
  - IN PROGRESS NodeJS: Node.js tests for all functionality now in core MLJS
  - IN PROGRESS Widget: RDB2RDF in test app
   - Remove jQuery specific code
-  - IN PROGRESS Check Roxy installation of REST extension works automatically
-  - IN PROGRESS validate CSS works correctly on all pages
+  - DONE Check Roxy installation of REST extension works automatically
+  - DONE validate CSS works correctly on all pages
  - IN PROGRESS Docs: Document all core concepts currently part of MLJS
   - IN PROGRESS Docs: searchcontext object
   - Widgets: Search Speed - As a tutorial for those wishing to contribute to MLJS by creating new widgets of their own
@@ -556,7 +528,7 @@ Targets for 27 Sep
   - DONE Link to originating SPARQL query for subject list
   - DONE Lazy loading of facet values when added to output
 
-Targets for 1.0 (End of Oct 2013) (Published early due to serious changes to V7 affecting functionality)
+Targets for 1.0 (1 Nov 2013) (Published early due to serious changes to V7 affecting functionality)
  - DONE Rework MLDBWEBTEST sample app so Dave Cassel can easily grab example controller for Roxy auto deployment
   - DONE rename page js files to be page-controller-action.js
   - DONE Move JS, CSS files to correct positions
@@ -580,4 +552,32 @@ Targets for 1.0 (End of Oct 2013) (Published early due to serious changes to V7 
  - DONE tripleconfig ontology builder
   - DONE Added rdftype() function to better manage adding new Entity classes to an ontology (Works like the options builder object, with method chaining)
   - DONEAdded include() function to take this JSON configuration and apply it to the tripleconfig object
-  
+ - DONE JavaScript public API consistency changes
+  - DONE UpperCamelCase for constructors/objects - only when publicly visible
+   - DONE Core API
+   - DONE Widget API
+  - DONE lowerCamelCase for functions (searchcontext and mljs have some alllowercase methods)
+  - Apply Configuration object pattern consistently with MLJS Core (E.g. search options), and add helper methods where this is complex for common use cases (location 1734)
+  - DONE alias options.sortOrderScore() to options.relevance()
+  - support snippet size too (extended snippets) in search options builder
+ - DONE mljsme.sh improvements
+  - DONE Copy dependant files - 960 CSS folder, bootstrap-roxy.css, one-layout.less, mljs-one-layout.html.xqy, highcharts.js
+  - DONE Check for wget and/or curl presence, and include helpful doesn't exist message
+  - DEFERRED for Workplace in 1.2: add option to also deploy -workplace mljs/main (Workplace) and -test mldbtest/* for retrofitting Roxy apps
+  - DONE Alter build.sh to include roxy/ folder with controller, layout, css
+ - DONE Core: TripleConfig improvements
+  - DONE rewrite how ontology information is provided, configured, accessed and managed - far too complex and buggy for the average developer at the moment
+  - DEFERRED TripleConfig internal array and function rewrite to remove duplication of predicate information
+  - DEFERRED Support loading of OWL / other ontologies to populate triple config object
+  - DEFERRED Support prefix configuration in tripleconfig
+  - DONE ontology builder object - use methods on tripleconfig
+ - TEST Widget: Error
+  - DONE Ensure it works with result objects (not result.error objects) and javascript errors
+  - TEST Ensure this is invoked correctly, and all contexts and test pages work with it
+ - App Builder gap closing
+  - DONE via sprops_opt.transform and .transformParameters - Support for XSLT transformations on search results
+  - DONE via options_opt.transform and .transformParameters - Support for XSLT transformations on fetch documents in new window
+  - DONE via sprops_opt.transform and .transformParameters - Support for XQuery transformations on search results
+  - DONE via options_opt.transform and .transformParameters - Support for XQuery transformations on fetch documents in new window
+  - TEST Support for bucketing in facets (all types, including dynamic)
+  - DONE Just pass in as raw facet_options_opt string array: Facet ordering (other than frequency)
