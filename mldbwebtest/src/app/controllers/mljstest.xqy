@@ -168,3 +168,12 @@ declare function c:rdb2rdf() as item()*
   ch:use-view((), "xml"),
   ch:use-layout("mljs-one-column-test","html"))
 };
+
+declare function c:openlayers() as item()*
+{
+  (
+  ch:add-value("message", "This is a test message."),
+  ch:add-value("title", "OpenLayers mapping widget"),
+  ch:use-view((), "xml"),
+  ch:use-layout("mljs-one-column-test","html"))
+};
