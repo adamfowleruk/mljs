@@ -48,7 +48,7 @@ Targets for 1.1 Interim release (Start Nov 2013)
   - Investigate why REST insists upon some elements having indexes in the JSON namespace as well as the one required (E.g. xhtml and h1) - because using JSON mode???
   
 Targets for 19 Nov 2013
- - DONE Widgets: OpenLayers
+ - DONE Widgets: OpenLayers phase 1
   - DONE Basic map display
   - DONE Google Street maps
   - DONE OSM
@@ -71,7 +71,7 @@ Targets for 19 Nov 2013
   - DONE Requires providing a function to determine values for query at query time, rather than hard coded (E.g. point for 'distance from point') (called query.dynamic())
  - DONE Core: Structured Query geo alterations
   - DONE geo-elem-pair-query (fully dynamic, no constraint options required) + dynamic query support, for points and circles (radius)
- - Widgets: OpenLayers
+ - IN PROGRESS Widgets: OpenLayers phase 2
   - Show number with pin
   - Details popup for pins
   - 'highlight' support for search result aka click on pin (not mouse over)
@@ -90,7 +90,7 @@ Targets for 19 Nov 2013
 
 Targets for 1.2 (Dec 2013)
  - Widgets: HighCharts
-  - Support multiple series, axes and searchcontexts (how?)
+  - Support multiple series, axes and searchcontexts (how?) -> Use work in OpenLayers as a base
  - App Builder to MLJS+Roxy automated conversion
   - Point at Roxy generated App Builder download / local file system copy of appbuilder folder
   - Copy over rest extensions as required
