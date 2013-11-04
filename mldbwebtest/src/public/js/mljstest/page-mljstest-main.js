@@ -138,7 +138,10 @@ $(document).ready(function() {
       .rangeConstraint("city",["item-order"],"http://marklogic.com/collation/")
       .rangeConstraint("month",["item-order"],"http://marklogic.com/collation/")
       .rangeConstraint("Title","title","http://www.w3.org/1999/xhtml","xs:string","http://marklogic.com/collation/",true)
-      .rangeConstraint("Heading","h1","http://www.w3.org/1999/xhtml","xs:string","http://marklogic.com/collation/",true);
+      .rangeConstraint("Heading","h1","http://www.w3.org/1999/xhtml","xs:string","http://marklogic.com/collation/",true)
+      .rangeConstraint("stars","stars",null,"xs:int",null)
+      .geoElementPairConstraint("location","location","http://marklogic.com/xdmp/json/basic",
+        "lat","http://marklogic.com/xdmp/json/basic","lon","http://marklogic.com/xdmp/json/basic");
     
     var alloptions = [
       "page-charts-search",ob1.toJson(),
@@ -204,7 +207,7 @@ $(document).ready(function() {
         // if indexes here, continue with checking content
     
           log("Adding test content to database...");
-          log("[1 of 6] Adding temperature test data...");
+          log("[1 of 7] Adding temperature test data...");
           
           
           // save then get doc
@@ -258,7 +261,7 @@ $(document).ready(function() {
   
           var complete1 = function() {
             log("- Done.");
-            log("[2 of 6] Adding movie test data...");
+            log("[2 of 7] Adding movie test data...");
             
             docs = [
               {title: "The Goonies",actor: "Sean Astin", genre: "Comedy", year: "1985"},
@@ -293,7 +296,7 @@ $(document).ready(function() {
   
             var complete2 = function() {
               log("- Done.");
-              log("[3 of 6] Adding animals test data...");
+              log("[3 of 7] Adding animals test data...");
               
               docs = [
                 {title: "Polly the Penguin", summary: "Penguins are awesome", animal: "penguin", family: "bird", age: 15},
@@ -328,10 +331,10 @@ $(document).ready(function() {
               var complete3 = function() {
                 log("- Done.");
               
-                log("[4 of 6] Adding semantic test data...");
+                log("[4 of 7] Adding semantic test data...");
                 log("- N/A - no semantic data adding script written yet.");
                 
-                log("[5 of 6] Adding plain text test data...");
+                log("[5 of 7] Adding plain text test data...");
               
                 docs = [
                   "There once was a poet named Fred.",
@@ -355,7 +358,7 @@ $(document).ready(function() {
   
                 var complete5 = function() {
                   log("- Done.");
-                  log("[6 of 6] Adding mixed test data...");
+                  log("[6 of 7] Adding mixed test data...");
               
                   docs = [
                     /*"I am a plain text file",*/
@@ -381,8 +384,39 @@ $(document).ready(function() {
   
                   var complete6 = function() {
                     log("- Done.");
-                
-                    tripcheck();
+                    
+                    log("[7 of 7] Adding tourist attractions test data...");
+                    // get points using address search at http://itouchmap.com/latlong.html - NB uses EPSG:900913 NOT WGS84(EPSG:4326)???
+                    docs = [
+                      {title: "Tower of London", location:{ lat: 51.508112,lon: -0.075949},stars: 4, description: "Home of the Crown Jewels"},
+                      {title: "Houses of Parliament", location:{ lat:51.499503 ,lon: -0.124357},stars: 3, description: "Seat of power"},
+                      {title: "Buckingham Palace", location:{ lat: 51.501364,lon: -0.141890},stars: 3, description: "Tours available"},
+                      {title: "London Zoo", location:{ lat: 51.535736,lon: -0.155679},stars: 2, description: "Off the map, far from center."},
+                      {title: "St Paul's Cathedral", location:{ lat: 51.513679,lon: -0.099560},stars: 2, description: "Big Cathedral"},
+                      {title: "The London Eye", location:{ lat: 51.503400,lon: -0.119519},stars: 5, description: "Great views"},
+                      {title: "Oxford Street", location:{ lat: 51.515220,lon: -0.141880},stars: 3, description: "Lots of Shops"}
+                    ];
+                    
+                    saveCount = 0;
+                    var nextSave7 = function() {
+                      if (0 == docs.length || saveCount == docs.length) {
+                        complete7();
+                      } else {
+                        db.save(docs[saveCount],"/attractions/" + (saveCount+1),{collection: "attractions,testdata"}, function(result) {
+                          saveCount++;
+                          nextSave7();
+                        });
+                      }
+                    };
+    
+                    var complete7 = function() {
+                      log("- Done.");
+                  
+                      tripcheck();
+                    };
+                    
+                    log("- Saving " + docs.length + " documents...");
+                    nextSave7();
                   };
                 
                   log("- Saving " + docs.length + " documents...");

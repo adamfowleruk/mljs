@@ -29,7 +29,9 @@ declare variable $q as xs:string? := vh:get("q");
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>{$title}</title>
+    <!--
     <link href="/css/themes/ui-lightness/jquery-ui.css" type="text/css" rel="stylesheet"/>
+    -->
     <link href="/css/bootstrap-roxy.css" rel="stylesheet"/>
     <link href="/css/one-column.less" type="text/css" rel="stylesheet/less"/>
     <link href="/css/app.less" type="text/css" rel="stylesheet/less"/>
@@ -38,10 +40,12 @@ declare variable $q as xs:string? := vh:get("q");
     <link href="/css/960/960.css" type="text/css" rel="stylesheet"/>
     
     <script src="/js/lib/less-1.3.0.min.js" type='text/javascript'></script>
+    <!--
     <script src="/js/lib/jquery-1.7.1.min.js" type='text/javascript'></script>
     <script src="/js/lib/jquery-ui-1.8.18.min.js" type='text/javascript'></script>
     <script src="/js/two-column.js" type='text/javascript'></script>
     <script src="/js/app.js" type='text/javascript'></script>
+    -->
     
     
     <!-- START MLJS INCLUDES. NNB THESE ARE PER PAGE ON THE MLJSTEST CONTROLLER, AS THEY SHOULD BE IN A PRODUCTION APP -->

@@ -3145,7 +3145,7 @@ mljs.prototype.options.prototype.elemattrRangeConstraint = function(constraint_n
  * @param {string} ns_opt - Namespace to use. Optional. If not specified, default namespace is used. (If type is XML element)
  * @param {string} type_opt - Whether to use 'json' (default) or 'xml' element matching
  * @param {string} collation_opt - The optional string collation to used. If not specified, default collation is used
- * @param {JSON} facet_opt - The optional facet JSON to use.
+ * @param {boolean} facet_opt - Include this constraint as a facet?
  * @param {JSON} facet_options_opt - The optional facet configuration JSON to use.
  * @param {string} fragmentScope_opt - The fragment to use (defaults to document)
  */
@@ -3218,10 +3218,12 @@ mljs.prototype.options.prototype.rangeConstraint = function(constraint_name_opt,
       type: type_opt || this.defaults.type, 
       element: {
         name: name_or_key, ns : ns_opt || this.defaults.namespace // NB this means if default namespace is not json, you must specify NS for ALL json rangeConstraints to be marklogic/basic full URL spec
-      },
-      collation: collation_opt || this.defaults.collation
+      }
     }
   };
+  if (range.range.type == "xs:string") {
+    range.range.collation = collation_opt || this.defaults.collation;
+  }
   if ((undefined != facet_opt && true===facet_opt) || undefined != facet_options_opt) {
     range.range.facet = true;
   }
@@ -3357,6 +3359,10 @@ mljs.prototype.options.prototype.computedBuckets = function(constraint_name) {
  * @param {JSON} con - Constraint JSON to add to these options.
  */
 mljs.prototype.options.prototype.addConstraint = function(con) {
+  if (undefined == this.options.constraint) {
+    this.options.constraint = new Array(); // chicken and egg if just calling includeSearchDefaults first
+    this._includeSearchDefaults();
+  }
   this.options.constraint.push(con);
 };
 
@@ -3422,6 +3428,35 @@ mljs.prototype.options.prototype.geoelemConstraint = function(constraint_name_op
   return this;
 };
 mljs.prototype.options.prototype.geoelem = mljs.prototype.options.prototype.geoelemConstraint;
+
+/**
+ * 
+ * http://docs.marklogic.com/guide/rest-dev/appendixa#id_33146
+ * NB Requires WGS84 or RAW co-ordinates (depending on how you are storing your data) - See the proj4js project for conversions
+ * 
+ */
+mljs.prototype.options.prototype.geoElementPairConstraint = function(constraint_name,parentelement,parentns,latelement,latns,lonelement,lonns,heatmap_opt,geo_options_opt, facet_opt,facet_options_opt) {
+  var con = {name: constraint_name, 
+    "geo-elem-pair": {
+      parent: {name: parentelement,ns: parentns},
+      lat: {name: latelement,ns: latns},
+      lon: {name: lonelement,ns: lonns}
+    }
+  };
+  if (undefined != heatmap_opt && null != heatmap_opt) {
+    con["geo-elem-pair"].heatmap = heatmap_opt;
+  }
+  if (undefined != geo_options_opt) {
+    con["geo-elem-pair"]["geo-option"] = geo_options_opt;
+  }
+  if (undefined != facet_opt && true === facet_opt) {
+    // NB why does a geo-elem-pair-constraint not have a facet_opt property like other range constraints???
+  }
+  this.addConstraint(con);
+  return this;
+};
+mljs.prototype.options.prototype.geoelempair = mljs.prototype.options.prototype.geoElementPairConstraint;
+mljs.prototype.options.prototype.geoElemPair = mljs.prototype.options.prototype.geoElementPairConstraint;
 
 /**
  * TODO Specifies a geospatial element attribute pair constraint, and adds it to the search options object
@@ -3752,7 +3787,10 @@ mljs.prototype.query.prototype.toJson = function() {
 // TOP LEVEL QUERY CONFIGURATION (returning this)
 
 /**
- * Copies an existing query options object in to this object (pass a JSON structure query, not an mljs.query object)
+ * Copies an existing query options object in to this object (pass a JSON structure query, not an mljs.query object).
+ * Also used to set the top level query object (E.g. pass this function the result of query.and()).
+ * MUST be called at least once in order for the query to be set, prior to calling toJson(). Otherwise you'll always
+ * have a BLANK query!!!
  * 
  * @param {JSON} query_opt - The query to copy child values of to this query
  */
@@ -3872,19 +3910,177 @@ mljs.prototype.query.prototype.georadius = function(constraint_name,lat,lon,radi
 };
 
 /**
+ * Creates a geo element pair query. Useful for dynamically calculating relevance using distance from a known point.
+ * 
+ * @param {string} parentelement - parent element name. E.g. <location> or location: {lat:...,lon:...}
+ * @param {string} parentns - parent namespace (provide null if none, or "http://marklogic.com/xdmp/json/basic" if JSON)
+ * @param {string} latelement - latitude element. E.g. <lat> or lat: 51.1234
+ * @param {string} latns - latitude namespace (provide null if none, or "http://marklogic.com/xdmp/json/basic" if JSON)
+ * @param {string} lonelement - longitude element. E.g. <lon> or lat: 0.1234
+ * @param {string} lonns - longitude namespace (provide null if none, or "http://marklogic.com/xdmp/json/basic" if JSON)
+ * @param {float} pointlat - longitude in WGS84 or RAW
+ * @param {float} pointlon - longitude in WGS84 or RAW
+ * @param {string} scoring_method_opt - Optional scoring method. Defaults zero (others in V7: "reciprocal" (nearest first) or "linear" (furthest first)). NB Just ignored on V6.
+ */
+mljs.prototype.query.prototype.geoElementPairPoint = function(parentelement,parentns,latelement,latns,lonelement,lonns,pointlat,pointlon,scoring_method_opt) {
+  if (undefined == scoring_method_opt) {
+    scoring_method_opt = "zero";
+  }
+  return {
+    "geo-elem-pair-query": {
+      "parent": {
+        "name": parentelement,
+        "ns": parentns
+      },
+      "lat": {
+        "name": latelement,
+        "ns": latns
+      },
+      "lon": {
+        "name": lonelement,
+        "ns": lonns
+      },
+      "geo-option": [ "score-function=" + scoring_method_opt ],
+      "point": [
+        {
+          "latitude": pointlat,
+          "longitude": pointlon
+        }
+      ]
+    }
+  };
+};
+
+/**
+ * Creates a geo element pair query. Useful for dynamically calculating relevance using distance from a known point.
+ * 
+ * @param {string} parentelement - parent element name. E.g. <location> or location: {lat:...,lon:...}
+ * @param {string} parentns - parent namespace (provide null if none, or "http://marklogic.com/xdmp/json/basic" if JSON)
+ * @param {string} latelement - latitude element. E.g. <lat> or lat: 51.1234
+ * @param {string} latns - latitude namespace (provide null if none, or "http://marklogic.com/xdmp/json/basic" if JSON)
+ * @param {string} lonelement - longitude element. E.g. <lon> or lat: 0.1234
+ * @param {string} lonns - longitude namespace (provide null if none, or "http://marklogic.com/xdmp/json/basic" if JSON)
+ * @param {float} pointlat - longitude in WGS84 or RAW
+ * @param {float} pointlon - longitude in WGS84 or RAW
+ * @param {string} scoring_method_opt - Optional scoring method. Defaults zero (others in V7: "reciprocal" (nearest first) or "linear" (furthest first)). NB Just ignored on V6.
+ */
+mljs.prototype.query.prototype.geoElementPairRadius = function(parentelement,parentns,latelement,latns,lonelement,lonns,pointlat,pointlon,radius,radius_unit_opt,scoring_method_opt) {
+  if (undefined == scoring_method_opt) {
+    scoring_method_opt = "zero";
+  }
+  if (undefined == radius_unit_opt) {
+    radius_unit_opt = "miles";
+  }
+  return {
+    "geo-elem-pair-query": {
+      "parent": {
+        "name": parentelement,
+        "ns": parentns
+      },
+      "lat": {
+        "name": latelement,
+        "ns": latns
+      },
+      "lon": {
+        "name": lonelement,
+        "ns": lonns
+      },
+      "geo-option": [ "score-function=" + scoring_method_opt, "units=" + radius_unit_opt ],
+      "circle": {
+        radius: radius,
+        "point": [
+          {
+            "latitude": pointlat,
+            "longitude": pointlon
+          }
+        ]
+      }
+    }
+  };
+};
+
+/**
+ * Allows a query term to be changed on the fly, by returning a wrapper function that can be called with a JSON vars object.
+ * See mldbwebtest's page-mljs-openlayers.js sample file.
+ * 
+ * @param {JSON} query - The query JSON object. E.g. returned by geoElementPair(...)
+ * @return {function} func - the dynamic function to call with a JSON vars object: E.g. for a geoElementPair wrapper: {latitude: -51.2334, longitude: 0.345454}
+ */
+mljs.prototype.query.prototype.dynamic = function(query) {
+  var func = null;
+  
+  if (undefined != query["geo-elem-pair-query"] && undefined != query["geo-elem-pair-query"]["point"]) {
+    func = function(vars) {
+      // alter point lon, lat
+      query["geo-elem-pair-query"].point.latitude = vars.latitude;
+      query["geo-elem-pair-query"].point.longitude = vars.longitude;
+      var opts = query["geo-elem-pair-query"]["geo-option"]; 
+      for (var i = 0, max = opts.length,opt;i < max;i++) {
+        opt = opts[i];
+        if (undefined != vars["score-function"] && opt.indexOf("score-function=") == 0) {
+          opt = "score-function=" + vars["score-function"];
+        }
+        opts[i] = opt;
+      }
+      query["geo-elem-pair-query"]["geo-option"] = opts;
+      
+      return query;
+    };
+  }
+  
+  if (undefined != query["geo-elem-pair-query"] && undefined != query["geo-elem-pair-query"]["circle"]) {
+    func = function(vars) {
+      // alter point lon, lat, radius, radius units
+      query["geo-elem-pair-query"].circle.point.latitude = vars.latitude;
+      query["geo-elem-pair-query"].circle.point.longitude = vars.longitude;
+      query["geo-elem-pair-query"].circle.radius = vars.radius;
+      var opts = query["geo-elem-pair-query"]["geo-option"]; 
+      for (var i = 0, max = opts.length,opt;i < max;i++) {
+        opt = opts[i];
+        if (undefined != vars["units"] && opt.indexOf("units=") == 0) {
+          opt = "units=" + vars.units;
+        }
+        if (undefined != vars["score-function"] && opt.indexOf("score-function=") == 0) {
+          opt = "score-function=" + vars["score-function"];
+        }
+        opts[i] = opt;
+      }
+      query["geo-elem-pair-query"]["geo-option"] = opts;
+      
+      return query;
+    };
+  }
+  
+  // TODO other dynamic query types
+  
+  return func;
+};
+
+/**
  * Creates a range constraint query and returns it
  * 
  * @param {string} constraint_name - The constraint name from the search options for this constraint
  * @param {string} val - The value that matching documents must match
+ * @param {string} range_operator_opt - The Optional operator to use. Default to EQ (=) if not provided. Valid values: LT, LE, GT, GE, EQ, NE
+ * @param {Array} options_opt - The Optional String array options for the range index. E.g. ["score-function=linear","slope-factor=10"]
  */
-mljs.prototype.query.prototype.range = function(constraint_name,val) {
-  return {
-    
-            "range-constraint-query": {
-              "value": val,
-              "constraint-name": constraint_name
-            }
+mljs.prototype.query.prototype.range = function(constraint_name,val,range_operator_opt,options_opt) {
+  var query = {
+    "range-constraint-query": {
+      "value": val,
+      "constraint-name": constraint_name
+    }
+  };
+  if (undefined != range_operator_opt) {
+    // TODO sanity check value
+    query["range-constraint-query"]["range-operator"] = range_operator_opt;
   }
+  if (undefined != options_opt) {
+    // TODO sanity check value
+    query["range-constraint-query"]["range-option"] = options_opt;
+  }
+  
+  return query;
 };
 
 /**
@@ -4050,7 +4246,7 @@ mljs.prototype.searchcontext = function() {
   
   this.defaultSort = [];
   
-  this.optionsExists = false;
+  this.optionsExist = false;
   this.optionssavemode = "persist"; // persist or dynamic (v7 only)
   
   this.structuredContrib = new Array();
@@ -4150,7 +4346,7 @@ mljs.prototype.searchcontext.prototype.setOptions = function(name,options) {
   if (undefined != options.options) {
     this._options = options; // no object wrapper
   }
-  this.optionsExists = false;
+  this.optionsExist = false;
   
   this.defaultSort = this._options.options["sort-order"];
   
@@ -4425,13 +4621,13 @@ mljs.prototype.searchcontext.prototype.doSimpleQuery = function(q,start) {
   
   // check for options existance
   /*
-  if (!this.optionsExists && "persist" == this.optionssavemode) {
+  if (!this.optionsExist && "persist" == this.optionssavemode) {
     this.__d("searchbar: Saving search options prior to query");
     this.db.saveSearchOptions(this.optionsName,this._options,function(result) {
       if (result.inError) {
         self.__d("Exception saving results: " + result.details);
       } else {
-        self.optionsExists = true; // to stop overwriting on subsequent requests
+        self.optionsExist = true; // to stop overwriting on subsequent requests
         dos();
       }
     });
@@ -4467,7 +4663,7 @@ mljs.prototype.searchcontext.prototype._persistAndDo = function(callback) {
           if (result.inError) {
             self.__d("Error saving Search options " + self.optionsName); 
           } else {
-            self.optionsExists = true;
+            self.optionsExist = true;
             self.__d("Saved Search options " + self.optionsName); 
             
             callback();
@@ -4613,7 +4809,7 @@ mljs.prototype.searchcontext.prototype.updateSelection = function(resultSelectio
 mljs.prototype.searchcontext.prototype.updatePage = function(json) {
   // example: {start: this.start, show: this.perPage}
   if (this._options.options["page-length"] != json.show) {
-    this.optionsExists = false; // force re save of options
+    this.optionsExist = false; // force re save of options
     this._options.options["page-length"] = json.show;
   }
   this.dosimplequery(this.simplequery,json.start);
@@ -4635,7 +4831,7 @@ mljs.prototype.searchcontext.prototype.updateSort = function(sortSelection) {
   } else {
     this._options.options["sort-order"] = [sortSelection];
   }
-  this.optionsExists = false; // force re save of options
+  this.optionsExist = false; // force re save of options
   
   // now perform same query again
   this.dosimplequery(this.simplequery);

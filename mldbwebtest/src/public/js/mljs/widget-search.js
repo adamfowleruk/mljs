@@ -269,10 +269,21 @@ com.marklogic.widgets.searchbar.prototype.updateResults = function(results) {
   }
 };
 
+/**
+ * Set the search context object to use for operations
+ * 
+ * @param {mljs.searchcontext} ctx - The search context instance to invoke
+ */
 com.marklogic.widgets.searchbar.prototype.setContext = function(context) {
   this.ctx = context;
 };
 
+/**
+ * Get the search context object this widget will use for operations
+ */
+com.marklogic.widgets.searchselection.prototype.getContext = function() {
+  return this.ctx;
+};
 
 
 
@@ -337,8 +348,20 @@ com.marklogic.widgets.searchfacets.prototype.setConfiguration = function(config)
   this._refresh();
 };
 
+/**
+ * Set the search context object to use for operations
+ * 
+ * @param {mljs.searchcontext} ctx - The search context instance to invoke
+ */
 com.marklogic.widgets.searchfacets.prototype.setContext = function(context) {
   this.ctx = context;
+};
+
+/**
+ * Get the search context object this widget will use for operations
+ */
+com.marklogic.widgets.searchfacets.prototype.getContext = function() {
+  return this.ctx;
 };
 
 
@@ -995,8 +1018,20 @@ com.marklogic.widgets.searchresults.prototype.setConfiguration = function(config
   }
 };
 
+/**
+ * Set the search context object to use for operations
+ * 
+ * @param {mljs.searchcontext} ctx - The search context instance to invoke
+ */
 com.marklogic.widgets.searchresults.prototype.setContext = function(context) {
   this.ctx = context;
+};
+
+/**
+ * Get the search context object this widget will use for operations
+ */
+com.marklogic.widgets.searchresults.prototype.getContext = function() {
+  return this.ctx;
 };
 
 
@@ -1266,9 +1301,20 @@ com.marklogic.widgets.searchpager = function(container) {
   this._refresh();
 };
 
-
+/**
+ * Set the search context object to use for operations
+ * 
+ * @param {mljs.searchcontext} ctx - The search context instance to invoke
+ */
 com.marklogic.widgets.searchpager.prototype.setContext = function(context) {
   this.ctx = context;
+};
+
+/**
+ * Get the search context object this widget will use for operations
+ */
+com.marklogic.widgets.searchselection.prototype.getContext = function() {
+  return this.ctx;
 };
 
 /**
@@ -1436,8 +1482,20 @@ com.marklogic.widgets.searchsort = function(container) {
   this._refresh();
 };
 
+/**
+ * Set the search context object to use for operations
+ * 
+ * @param {mljs.searchcontext} ctx - The search context instance to invoke
+ */
 com.marklogic.widgets.searchsort.prototype.setContext = function(context) {
   this.ctx = context;
+};
+
+/**
+ * Get the search context object this widget will use for operations
+ */
+com.marklogic.widgets.searchselection.prototype.getContext = function() {
+  return this.ctx;
 };
 
 
@@ -1764,3 +1822,149 @@ com.marklogic.widgets.searchpage.prototype.setConnection = function(connection) 
 com.marklogic.widgets.searchpage.reset = function() {
   this.context.reset(); // updates other widgets through event handlers
 };
+
+
+
+
+
+
+
+
+
+
+
+/**
+ * Structured query selection widget. Can be used akin to a sort selection widget for structured queries that use
+ * MarkLogic V7's range index relevancy scoring methods.
+ * 
+ * @constructor
+ * @param {string} container - The HTML ID of the container to render this widget within
+ */
+com.marklogic.widgets.searchselection = function(container) {
+  this.container = container;
+  
+  this._config = {
+    title: "Relevancy Method: "
+  };
+  
+  // TODO support both query mode and contribution mode
+  // TODO support JSON (fixed query) and function(dynamic query) methods
+  
+  this._queries = {}; // { queryname: jsonOrFunction, ...}
+  this._selectedQuery = null; // queryname value from above array
+  
+  this._refresh();
+  
+  this.searchContext = mljs.defaultconnection.createSearchContext();
+};
+
+/**
+ * Set the search context object to use for operations
+ * 
+ * @param {mljs.searchcontext} ctx - The search context instance to invoke
+ */
+com.marklogic.widgets.searchselection.prototype.setContext = function(ctx) {
+  this.ctx = ctx;
+};
+
+/**
+ * Get the search context object this widget will use for operations
+ */
+com.marklogic.widgets.searchselection.prototype.getContext = function() {
+  return this.ctx;
+};
+
+com.marklogic.widgets.searchselection.prototype._config = function() {
+  // TODO
+};
+
+com.marklogic.widgets.searchselection.prototype._refresh = function() {
+  var selid = this.container + "-searchselection-select";
+  var str = "<div id='" + this.container + "-searchselection' class='mljswidget searchselection'>";
+  
+  str += "<span class='searchselection-text'>" + this._config.title + "</span>" +
+    "<select class='searchselection-select' id='" + selid + "'>";
+  for (var name in this._queries) {
+    str += "<option value='" + name + "'";
+    if (name == this._selectedQuery) {
+      str += " selected='selected'";
+    }
+    str += ">" + name + "</option>";
+  }
+  str += "</select>";
+  
+  str += "</div>";
+  document.getElementById(this.container).innerHTML = str;
+  
+  // add event handlers
+  var self = this;
+  var sel = document.getElementById(selid);
+  sel.onchange = function(evt) {
+    self.__selection(sel.value);
+  };
+};
+
+/**
+ * Adds the specified query as one which can be selected within this widget.
+ * 
+ * @param {string} name - The visible name (title) to use for this search configuration
+ * @param {JSON|string} jsonOrFunction - The JSON structured query (from qb.toJson()) or a function that when invoked returns this JSON.
+ */
+com.marklogic.widgets.searchselection.prototype.addQuery = function(name,jsonOrFunction) {
+  this._queries[name] = jsonOrFunction;
+  
+  this._refresh();
+};
+
+/**
+ * Removes the specified query from this widget
+ * 
+ * @param {string} name - The visible name (title) of this search configuration to remove
+ */
+com.marklogic.widgets.searchselection.prototype.removeQuery = function(name) {
+  this._queries[name] = undefined;
+  
+  this._refresh();
+};
+
+com.marklogic.widgets.searchselection.prototype.__selection = function(selvalue) {
+  // set this._selectedQuery
+  this._selectedQuery = selvalue;
+  // perform query
+  this.__doquery();
+};
+
+com.marklogic.widgets.searchselection.prototype.__doquery = function() {
+  // ensure a query is selected
+  if (null == this._selectedQuery) {
+    var first = null;
+    for (var name in this._queries) {
+      if (null == first) {
+        first = name;
+      }
+    }
+    if (null == first) {
+      // no queries configured
+      return;
+    } else {
+      this._selectedQuery = first;
+      this._refresh(); // ensure query selected in UI too
+    }
+  }
+  
+  // generate query
+  var q = this._queries[this._selectedQuery];
+  var query = null;
+  if ("function"===typeof(q)) {
+    query = q();
+  } else if ("object"===typeof(q)) {
+    query = q;
+  }
+  
+  // perform query
+  this.searchContext.doStructuredQuery(query);
+};
+
+
+
+

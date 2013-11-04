@@ -48,11 +48,44 @@ Targets for 1.1 Interim release (Start Nov 2013)
   - Investigate why REST insists upon some elements having indexes in the JSON namespace as well as the one required (E.g. xhtml and h1) - because using JSON mode???
   
 Targets for 19 Nov 2013
- - Widgets: Google maps (via OpenLayers only)
- - Widgets: Open Street Map (Use GB WMS Server, EPSG4326 or 27700 mode)
- - Widgets: Geospatial facets shown in maps, and not in facets widget
+ - DONE Widgets: OpenLayers
+  - DONE Basic map display
+  - DONE Google Street maps
+  - DONE OSM
+  - DONE offline caching (load cached tiles by default) - load tiles, keep browser open, then go and demo on customer site using same zoom level!
+  - DONE updateResults support (show pins for locations)
+ - DONE Core: Geospatial search options (via constraints)
+  - TEST geo-element-pair-constraint
+  - TEST geo-element-attr-constraint
+  - DEFERRED geo-element-constraint For location: "lat,lon" type elements
+  - DEFERRED geo-path-constraint (V7)
+ - DONE Test: Geospatial search options in mljstest/main data loading page
+ - DONE Test: Add data for tourist attractions in london
+ - DONE Test: Alter roxy config to include index for lon, lat
+ - DONE Test: EPSG900913 to/from WGS84(EPSG:4326) automatically - see http://en.wikipedia.org/wiki/World_Geodetic_System
+ - NA Simply don't facet the constraint: Widgets: Geospatial facets shown in maps, and not in facets widget
+ - DONE Core: V7 range relevance by distance from location in structured search
+  - DONE For distance of tourist attraction in sorting
+ - DONE Widgets: Structured query selection widget
+  - DONE Select Relevancy method. E.g. 'Distance from point' or 'Star rating'
+  - DONE Requires providing a function to determine values for query at query time, rather than hard coded (E.g. point for 'distance from point') (called query.dynamic())
+ - DONE Core: Structured Query geo alterations
+  - DONE geo-elem-pair-query (fully dynamic, no constraint options required) + dynamic query support, for points and circles (radius)
+ - Widgets: OpenLayers
+  - Show number with pin
+  - Details popup for pins
+  - 'highlight' support for search result aka click on pin (not mouse over)
+  - 'select' support for search result aka 'details' link in description popup
+  - IN PROGRESS Polygon, Circle, Rectangle drawing and generation of query contribution
+  - Heatmap support (tourist attractions per km type result)
+  - Locate me button support - http://openlayers.org/dev/examples/geolocation.html
+  - Locate me automatic (browser) with no button
+  - Workplace configuration support
+  - DONE Fix dynamic width/height detection (el.offsetHeight)
+  - DEFERRED Listen for structured query parameter and draw search radius (E.g. 20 miles)
  - CSV Import improvements / testing
   - Checkout XSLT upload and transform method
+  - Test PAF file format
  - Nice to have: Widgets: Browse related Subjects in node diagram
 
 Targets for 1.2 (Dec 2013)

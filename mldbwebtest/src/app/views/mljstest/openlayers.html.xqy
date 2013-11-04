@@ -38,7 +38,10 @@ declare option xdmp:mapping "false";
    <div id="errors" class="grid_12"></div>
  </div>
  <div class="container_12"> 
-   <div id="map" class="grid_12">Map</div>
+   <div id="map" class="grid_12" style="height: 300px;">Map</div>
+ </div>
+ <div class="container_12"> 
+   <div id="selection" class="grid_12">Selection</div>
  </div>
  <div class="container_12"> 
    <div id="results" class="grid_12">Results</div>

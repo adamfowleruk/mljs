@@ -88,6 +88,7 @@ $J < $S/widget-explore.js > $DJ/widget-explore.js
 $J < $S/widget-highcharts.js > $DJ/widget-highcharts.js 
 $J < $S/widget-kratu.js > $DJ/widget-kratu.js 
 $J < $S/widget-markings.js > $DJ/widget-markings.js 
+$J < $S/widget-openlayers.js > $DJ/widget-openlayers.js 
 $J < $S/widget-profile.js > $DJ/widget-profile.js 
 $J < $S/widget-rdb2rdf.js > $DJ/widget-rdb2rdf.js 
 $J < $S/widget-search.js > $DJ/widget-search.js 
@@ -103,6 +104,7 @@ cp $ST/page*.js $R/mljstest/
 cp $ST/page*.js $D/mljstest/
 
 # Roxy controller, layout, etc.
+# NB non minified versions are copied for Roxy code - for ease of debugging on reported issues.
 cp $SRC/app/controllers/mljstest.xqy $R/roxy/app/controllers/
 cp $SRC/app/views/mljstest/* $R/roxy/app/views/mljstest/
 cp $SRC/app/views/layouts/mljs-* $R/roxy/app/views/layouts/
@@ -115,6 +117,7 @@ cp $SRC/public/js/mljstest/* $R/roxy/public/js/mljstest/
 cp $SRC/public/js/highcharts.js $R/roxy/public/js/
 cp $SRC/public/js/kratu*.js $R/roxy/public/js/
 cp -R $SRC/public/js/dataproviders $R/roxy/public/js/
+cp -R $SRC/public/js/OpenLayers-2.13.1 $R/roxy/public/js/
 
 cp $SRC/app/controllers/mljstest.xqy $D/roxy/app/controllers/
 cp $SRC/app/views/mljstest/* $D/roxy/app/views/mljstest/
@@ -128,6 +131,7 @@ cp $SRC/public/js/mljstest/* $D/roxy/public/js/mljstest/
 cp $SRC/public/js/highcharts.js $D/roxy/public/js/
 cp $SRC/public/js/kratu*.js $D/roxy/public/js/
 cp -R $SRC/public/js/dataproviders $D/roxy/public/js/
+cp -R $SRC/public/js/OpenLayers-2.13.1 $D/roxy/public/js/
 
 # docs
 cp browser.md $D/README.md
