@@ -281,7 +281,7 @@ com.marklogic.widgets.searchbar.prototype.setContext = function(context) {
 /**
  * Get the search context object this widget will use for operations
  */
-com.marklogic.widgets.searchselection.prototype.getContext = function() {
+com.marklogic.widgets.searchbar.prototype.getContext = function() {
   return this.ctx;
 };
 
@@ -1313,7 +1313,7 @@ com.marklogic.widgets.searchpager.prototype.setContext = function(context) {
 /**
  * Get the search context object this widget will use for operations
  */
-com.marklogic.widgets.searchselection.prototype.getContext = function() {
+com.marklogic.widgets.searchpager.prototype.getContext = function() {
   return this.ctx;
 };
 
@@ -1494,7 +1494,7 @@ com.marklogic.widgets.searchsort.prototype.setContext = function(context) {
 /**
  * Get the search context object this widget will use for operations
  */
-com.marklogic.widgets.searchselection.prototype.getContext = function() {
+com.marklogic.widgets.searchsort.prototype.getContext = function() {
   return this.ctx;
 };
 

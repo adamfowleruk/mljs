@@ -763,3 +763,14 @@ div.log {
   border: 1px dashed black;
   padding: 10px;
 }
+
+
+
+
+
+
+
+/** OpenLayers modifications **/
+.olControlAttribution {
+  bottom: 0px;
+}

@@ -19,6 +19,8 @@ window.onload = function() {
     var ol = new com.marklogic.widgets.openlayers("map");
     sc.register(ol);
     ol.addGoogleStreet(); // add google street maps to the default Open Street Maps (OSM) base layer
+    ol.addArcGISOnline();
+    ol.addAllBing();
     ol.go(51.5112139, -0.1198244, 13); // lat, lon, zoom level (openlayers level)
     ol.addSeries("Attractions",sc,"location.lat","location.lon"); // draw features for search results on configured search context
     

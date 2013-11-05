@@ -72,6 +72,8 @@ Targets for 19 Nov 2013
  - DONE Core: Structured Query geo alterations
   - DONE geo-elem-pair-query (fully dynamic, no constraint options required) + dynamic query support, for points and circles (radius)
  - IN PROGRESS Widgets: OpenLayers phase 2
+  - DONE BUG: attribution appears 1/4 way up the map (CSS issue)
+  - DONE Added ArcGIS Online and Bing (road, hybrid, aerial) map layer convenience functions
   - Show number with pin
   - Details popup for pins
   - 'highlight' support for search result aka click on pin (not mouse over)
