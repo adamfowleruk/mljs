@@ -74,6 +74,16 @@ Targets for 19 Nov 2013
  - IN PROGRESS Widgets: OpenLayers phase 2
   - DONE BUG: attribution appears 1/4 way up the map (CSS issue)
   - DONE Added ArcGIS Online and Bing (road, hybrid, aerial) map layer convenience functions
+  - DONE Area selection and query
+   - DONE Core: Add updateGeoSelection detection to searchcontext
+   - DONE Widgets: OpenLayers - Configure openlayers widget with name of constraint to provide query for on selection
+   - DONE Core: Add polygon, bounding box geo queries to query builder
+   - DONE Widgets: OpenLayers - support bounding box
+   - DONE Widgets: OpenLayers - support polygon
+   - DONE Widgets: OpenLayers - clear selection button
+   - DONE BUG: Contribute query does not include one selected from drop down
+   - DONE BUG: When clearing query, not contributed query is used at all (just two nulls)
+   - DONE Widgets: OpenLayers - Configure OpenLayers/test page to use structured Contrib mode for queries
   - Show number with pin
   - Details popup for pins
   - 'highlight' support for search result aka click on pin (not mouse over)

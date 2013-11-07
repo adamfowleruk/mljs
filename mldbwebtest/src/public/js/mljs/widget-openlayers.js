@@ -30,9 +30,33 @@ com.marklogic.widgets.openlayers = function(container) {
   
   this.map = null; // openlayers map control
   
+  this._config = {
+    "constraint-name": null
+  };
+  
   this.series = {}; // {title: "", context: searchcontext,latsource:"location.lat",lonsource:"location.lon",titlesource:"",summarysource:""};
   
+  this._selectionLayer = null;
+  //this._drawControls = {};
+  this._polyControl = null; // regular polygon (circle and bounding box)
+  this._polygonControl = null; // irregular polygon (free hand polygon)
+  this._dragControl = null; // NOT USED
+  
+  this._geoSelectionPublisher = new com.marklogic.events.Publisher();
+  
   this._refresh();
+};
+
+com.marklogic.widgets.openlayers.prototype.addGeoSelectionListener = function(lis) {
+  this._geoSelectionPublisher.subscribe(lis);
+};
+
+com.marklogic.widgets.openlayers.prototype.removeGeoSelectionListener = function(lis) {
+  this._geoSelectionPublisher.unsubscribe(lis);
+};
+
+com.marklogic.widgets.openlayers.prototype.setGeoSelectionConstraint = function(name) {
+  this._config["constraint-name"] = name;
 };
 
 /**
@@ -261,6 +285,66 @@ com.marklogic.widgets.openlayers.prototype.addLayers = function(layers) {
   // TODO add caching support to any new layers too
 };
 
+com.marklogic.widgets.openlayers.prototype.__mode = function(newmode) {
+  mljs.defaultconnection.logger.debug("openlayers.__mode: Mode selected: " + newmode);
+  
+  // TODO destroy any existing polygons
+  // find matching layer and activate
+  /*
+  for (var name in this._drawControls) {
+    var control = this._drawControls[name];
+    if (newmode == name) {
+      mljs.defaultconnection.logger.debug("openlayers.__mode: Activating: " + name);
+      control.activate();
+    } else {
+      mljs.defaultconnection.logger.debug("openlayers.__mode: De-activating: " + name);
+      control.deactivate();
+    }
+  }*/
+  if ("drag" == newmode) { // WONT HAPPEN NOW
+    this._dragControl.activate();
+    this._polyControl.deactivate();
+    this._polygonControl.deactivate();
+  } else if ("none" == newmode) {
+    this._dragControl.deactivate();
+    this._polyControl.deactivate();
+    this._polygonControl.deactivate();
+  } else if ("polygon" == newmode) {
+    this._dragControl.deactivate();
+    this._polyControl.deactivate();
+    this._polygonControl.activate();
+  } else {
+    var options = {sides: 4};
+    if ("circle" == newmode) {
+      options.sides = 40;
+      options.irregular = false;
+    } else if ("box" == newmode) {
+      options.sides = 4;
+      options.irregular = true;
+    }
+    this._polyControl.handler.setOptions(options);
+    this._dragControl.deactivate();
+    this._polyControl.activate();
+    this._polygonControl.deactivate();
+  }
+  // TODO add completion handler and fetch polygon defined
+  // TODO convert in to ML type (circle, bounding box, polygon)
+  // TODO fire updateGeoBounds event (effectively modifies any listening searches)
+};
+
+com.marklogic.widgets.openlayers.prototype._removeAllFeaturesBut = function(feature) {
+  
+      var nonMeFeatures = new Array();
+      for (var f = 0;f < this._selectionLayer.features.length;f++) {
+        if (feature === this._selectionLayer.features[f]) {
+          // do nothing
+        } else {
+          nonMeFeatures.push(this._selectionLayer.features[f]);
+        }
+      }
+      this._selectionLayer.removeFeatures(nonMeFeatures);
+};
+
 /**
  * Redraws the entire map display
  * @private
@@ -279,9 +363,31 @@ com.marklogic.widgets.openlayers.prototype._refresh = function() {
     height = 500;
   }
   
-  var str = "<div id='" + this.container + "-map' style='height:" + height + "px;width:" + width + "px;'></div>"; // may want other HTML elements later
+  var str = "<div class='openlayers-content'><div id='" + this.container + "-map' class='openlayers-map' style='height:" + (height - 26) + "px;width:" + (width - 2) + "px;'></div>";
+  
+  // mode selection
+  str += "<div class='openlayers-mode'>Mode: <select id='" + this.container + "-mode'><option value='none'>Move</option><option value='circle'>Circle Radius Select</option>";
+  str += "<option value='box'>Bounding Box Select</option><option value='polygon'>Polygon Select</option></select>";
+  str += " <a href='#' id='" + this.container + "-clear' class='openalyers-clear'>Clear Selection</a>  ";
+  str += " <i>Hint: Hold down shift and drag the mouse to draw a freehand polygon. Double click to complete. </i></div></div>";
   
   p.innerHTML = str;
+  
+  // mode selection handler
+  var sel = document.getElementById(this.container + "-mode");
+  sel.onchange = function(evt) {
+    self.__mode(sel.value);
+  };
+  
+  var clear = document.getElementById(this.container + "-clear");
+  clear.onclick = function(evt) {
+    self._removeAllFeaturesBut(); // removes all
+    
+    self._geoSelectionPublisher.publish({type: null,contributor: self.container});
+        
+    evt.preventDefault();
+    return false;
+  };
   
   // Use proxy to get same origin URLs for tiles that don't support CORS.
   //OpenLayers.ProxyHost = "proxy.cgi?url=";
@@ -311,30 +417,125 @@ com.marklogic.widgets.openlayers.prototype._refresh = function() {
     //map.addLayers([gmap]);
     
     
-    var selectionLayer = new OpenLayers.Layer.Vector("Selection Layer");
+    self._selectionLayer = new OpenLayers.Layer.Vector("Selection Layer");
     
-    map.addLayers([selectionLayer]);
+    map.addLayers([self._selectionLayer]);
     //map.addControl(new OpenLayers.Control.MousePosition());
-    
-    drawControls = {
-      point: new OpenLayers.Control.DrawFeature(selectionLayer,
-        OpenLayers.Handler.Point),
-      line: new OpenLayers.Control.DrawFeature(selectionLayer,
-        OpenLayers.Handler.Path),
-      polygon: new OpenLayers.Control.DrawFeature(selectionLayer,
+    /*
+    self._drawControls = {
+      polygon: new OpenLayers.Control.DrawFeature(self._selectionLayer,
         OpenLayers.Handler.Polygon),
-      box: new OpenLayers.Control.DrawFeature(selectionLayer,
+      box: new OpenLayers.Control.DrawFeature(self._selectionLayer,
         OpenLayers.Handler.RegularPolygon, {
           handlerOptions: {
             sides: 4,
             irregular: true
           }
         }
-      )
+      ),
+      circle: new OpenLayers.Control.DrawFeature(self._selectionLayer,
+        OpenLayers.Handler.RegularPolygon, {
+          handlerOptions: {
+            side: 40,
+            irregular: false
+          }
+        }),
+      drag: new OpenLayers.Control.DragFeature(self._selectionLayer) 
     };
-    for(var key in drawControls) {
-      map.addControl(drawControls[key]);
+    for(var key in self._drawControls) {
+      map.addControl(self._drawControls[key]);
     } 
+    self._drawControls.drag.activate();*/
+    
+    var polyOptions = {sides:4};
+    self._polyControl = new OpenLayers.Control.DrawFeature(self._selectionLayer,
+      OpenLayers.Handler.RegularPolygon,
+      {handlerOptions: polyOptions}); 
+    self._polygonControl = new OpenLayers.Control.DrawFeature(self._selectionLayer,
+        OpenLayers.Handler.Polygon);
+    map.addControl(self._polyControl);
+    map.addControl(self._polygonControl);
+    var drag = new OpenLayers.Control.DragFeature(self._selectionLayer);
+    map.addControl(drag);
+    //drag.activate();
+    self._dragControl = drag;
+    
+    var featureFunc = function(feature) {
+      mljs.defaultconnection.logger.debug("FEATURE ADDED: " + feature);
+      
+      // TODO destroy previous features
+      self._removeAllFeaturesBut(feature);
+      
+      // check for type of polygon that has been created - box, poly, circle
+      var selmode = document.getElementById(self.container + "-mode").value;
+      
+      if ("polygon" == selmode) {
+        var points = [];
+        var ps = feature.geometry.components[0].components;
+        for (var p = 0;p < ps.length;p++) {
+          var olps = ps[p];
+          var mlps = new OpenLayers.LonLat(olps.x,olps.y).transform(this.map.displayProjection,new OpenLayers.Projection("EPSG:4326"));
+          points[p] = {latitude: mlps.lat, longitude: mlps.lon};
+        }
+        self._geoSelectionPublisher.publish({
+          type: "polygon",contributor: self.container,
+          "constraint-name": self._config["constraint-name"],
+          polygon: points
+        });
+      } else if ("circle" == selmode) {
+        // Find centre location and radius on map (and convert to miles for ML)
+        var center = feature.geometry.getCentroid();
+        
+        mljs.defaultconnection.logger.debug("x,y=" + center.x + "," + center.y);
+        
+        // get first (any) point on circle and determine radius
+        var point = feature.geometry.components[0].components[0]; // assume Point member of LinearRing
+        
+        var line = new OpenLayers.Geometry.LineString([center, point]);
+        var dist = line.getGeodesicLength(new OpenLayers.Projection("EPSG:900913"));
+        
+        var radiusMiles = dist * 0.000621371192; // conversion to statute (British) Miles as used by MarkLogic
+        
+        // Convert EPSG:900913 point to EPSG:4326 (WGS84)
+        var wgsPoint = new OpenLayers.LonLat(center.x,center.y).transform(self.map.displayProjection,new OpenLayers.Projection("EPSG:4326"));
+        
+        self._geoSelectionPublisher.publish({
+          type: "circle",contributor: self.container,
+          "constraint-name": self._config["constraint-name"],
+          latitude: wgsPoint.lat, longitude: wgsPoint.lon, radiusmiles: radiusMiles
+        });
+      } else if ("box" == selmode) {
+        var p1 = feature.geometry.components[0].components[0];
+        var p2 = feature.geometry.components[0].components[2];
+        var north = p1.y;
+        var south = p2.y;
+        if (south > north) {
+          north = p2.y;
+          south = p1.y;
+        }
+        var west = p1.x;
+        var east = p2.x;
+        if (west > east) {
+          west = p2.x;
+          east = p1.x
+        }
+        mljs.defaultconnection.logger.debug("GEOBOX: north: " + north + ", south: " + south + ", west: " + west + ", east: " + east);
+        // do the above incase of rotated rectangles
+        var nw = new OpenLayers.LonLat(west,north).transform(self.map.displayProjection,new OpenLayers.Projection("EPSG:4326"));
+        var se = new OpenLayers.LonLat(east,south).transform(self.map.displayProjection,new OpenLayers.Projection("EPSG:4326"));
+        mljs.defaultconnection.logger.debug("GEOBOX: EPSG4326: north: " + nw.lat + ", south: " + se.lat + ", west: " + nw.lon + ", east: " + se.lon);
+        
+        self._geoSelectionPublisher.publish({
+          type: "box", contributor: self.container,
+          "constraint-name": self._config["constraint-name"],
+          box: {north: nw.lat, south: se.lat, east: se.lon, west: nw.lon}
+          //box: {north: self.eightDecPlaces(nw.lat), south: self.eightDecPlaces(se.lat), east: self.eightDecPlaces(se.lon), west: self.eightDecPlaces(nw.lon)}
+        });
+      }
+    };
+    self._polyControl.featureAdded = featureFunc;
+    self._polygonControl.featureAdded = featureFunc;
+    
     
     // try cache before loading from remote resource
     cacheRead1 = new OpenLayers.Control.CacheRead({ // auto activated (this default) - cache local first, then online
@@ -498,6 +699,12 @@ com.marklogic.widgets.openlayers.prototype._refresh = function() {
   init();
 };
 
+com.marklogic.widgets.openlayers.prototype.eightDecPlaces = function(val) {
+  var str = "" + val;
+  var pos = str.indexOf(".");
+  return 1.0 * (str.substring(0,pos + 1) + str.substring(pos + 1,pos + 9));
+};
+
 /**
  * Helper function to center and zoom the map. Note that zoom levels are OpenLayers zoom levels, not necessarily the zoom level of the layer you are using.
  * 
@@ -552,8 +759,12 @@ com.marklogic.widgets.openlayers.prototype.addSeries = function(title,searchcont
         // remove all markers
         var oldm = layer.markers;
         for (var i = 0;i < oldm.length;i++) {
-          layer.removeMarker(oldm[i]); 
+          var mark = oldm[i];
+          mark.erase();
+          layer.removeMarker(mark); 
+          mark.destroy();
         }
+        layer.clearMarkers();
     
     mljs.defaultconnection.logger.debug("openlayers.addSeries.listfunc: Processing results");
     // add each marker in new result set
@@ -565,7 +776,7 @@ com.marklogic.widgets.openlayers.prototype.addSeries = function(title,searchcont
       var lat = extractValue(thedoc,latsrc);
       var lon = extractValue(thedoc,lonsrc);
       mljs.defaultconnection.logger.debug("openlayers.addSeries.listfunc: lat: " + lat + ", lon: " + lon);
-      var m = new OpenLayers.Marker(new OpenLayers.LonLat(lon,lat).transform(new OpenLayers.Projection("EPSG:4326"),self.map.projection),icon.clone());
+      var m = new OpenLayers.Marker(new OpenLayers.LonLat(lon,lat).transform(new OpenLayers.Projection("EPSG:4326"),self.map.displayProjection),icon.clone());
       // TODO popup/infobox based on search result, extract title and summary
       layer.addMarker(m);
     }

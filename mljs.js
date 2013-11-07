@@ -3908,6 +3908,40 @@ mljs.prototype.query.prototype.georadius = function(constraint_name,lat,lon,radi
     }
   }
 };
+/**
+ * Creates a geospatial bounding box query and returns it
+ * 
+ * @param {string} constraint_name - Name of the matching constraint to restrict by these values
+ * @param {integer} north - WGS84 north latitude
+ * @param {integer} east - WGS84 east longitude
+ * @param {integer} wouth - WGS84 wouth latitude
+ * @param {integer} west - WGS84 west longitude
+ */
+mljs.prototype.query.prototype.geoBox = function(constraint_name,north,east,south,west) {
+  return {
+    "geospatial-constraint-query" : {
+      "constraint-name": constraint_name,
+      "box": {
+        north: north,east: east,south: south,west:west
+      }
+    }
+  }
+};
+
+/**
+ * Creates a geospatial polygon query and returns it
+ * 
+ * @param {string} constraint_name - Name of the matching constraint to restrict by these values
+ * @param {Array} points - Array of WGS 84 Points {latitude: , longitude: } JSON objects
+ */
+mljs.prototype.query.prototype.geoPolygon = function(constraint_name,points) {
+  return {
+    "geospatial-constraint-query" : {
+      "constraint-name": constraint_name,
+      "polygon": {point: points}
+    }
+  }
+};
 
 /**
  * Creates a geo element pair query. Useful for dynamically calculating relevance using distance from a known point.
@@ -4352,7 +4386,7 @@ mljs.prototype.searchcontext.prototype.setOptions = function(name,options) {
   
   this.optionsPublisher.publish(this._options.options);
   
-  this.structuredContrib = new Array();
+  this.structuredContrib = {}; // setting named children so using JSON
   
   // TODO support V7 dynamic query options capability rather than always saving
   
@@ -4424,6 +4458,10 @@ mljs.prototype.searchcontext.prototype.register = function(searchWidget) {
   }
   if ('function' === typeof(searchWidget.addResultSelectionListener)) {
     searchWidget.addResultSelectionListener(function (selection) {self.updateSelection(selection);});
+  }
+  if ('function' === typeof(searchWidget.addGeoSelectionListener)) {
+    // contribute term to query
+    searchWidget.addGeoSelectionListener(function(selection){self.updateGeoSelection(selection);});
   }
 };
 
@@ -4536,20 +4574,48 @@ mljs.prototype.searchcontext.prototype.dostructuredquery = mljs.prototype.search
  * NOTE: queryTerm needs to be the result of queryBuilder.toJson().query[0] and not the top level query JSON itself - i.e. we need a term, not a full query object.
  */
 mljs.prototype.searchcontext.prototype.contributeStructuredQuery = function(contributor,queryTerm,start_opt) {
-  this.structuredContrib[contributor] = queryTerm;
+  if (null == queryTerm || undefined == queryTerm) {
+    this.structuredContrib[contributor] = undefined; // removes contribution to the query
+  } else {
+    this.structuredContrib[contributor] = queryTerm;
+  }
   
   // build structure query from all terms
   var terms = new Array();
   for (var cont in this.structuredContrib) {
-    if ("object" == typeof this.structuredContrib[cont]) {
+    this.__d("searchcontext.contributeStructuredQuery: Adding contribution from: " + cont);
+    //if ("object" == typeof this.structuredContrib[cont]) {
+    if (null != this.structuredContrib[cont]) {
       terms.push(this.structuredContrib[cont]);
     }
+    //}
   }
   // execute structured query
-  var qb = new this.db.query();
+  var qb = this.db.createQuery();
   qb.query(qb.and(terms));
   //var allqueries = { query: {"and-query": terms}}; // TODO replace with query builder
   this.dostructuredquery(qb.toJson());
+};
+
+mljs.prototype.searchcontext.prototype.updateGeoSelection = function(selection) {
+  // create term and contribute to query
+  var cont = selection.contributor;
+  var qb = this.db.createQuery();
+  
+  var term = null;
+  if ("circle" == selection.type) {
+    term = qb.georadius(selection["constraint-name"],selection.latitude,selection.longitude,selection.radiusmiles);
+  } else {
+    // TODO other types - bounding box and polygon
+    if ("polygon" == selection.type) {
+      term = qb.geoPolygon(selection["constraint-name"],selection.polygon);
+    } else if ("box" == selection.type) {
+      term = qb.geoBox(selection["constraint-name"],selection.box.north,selection.box.east,selection.box.south,selection.box.west);
+    } else if (null == selection.type) {
+      term = null;
+    }
+  }
+  this.contributeStructuredQuery(cont,term);
 };
 
 /**

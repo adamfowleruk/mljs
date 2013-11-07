@@ -1847,6 +1847,8 @@ com.marklogic.widgets.searchselection = function(container) {
     title: "Relevancy Method: "
   };
   
+  this._mode = "replace";
+  
   // TODO support both query mode and contribution mode
   // TODO support JSON (fixed query) and function(dynamic query) methods
   
@@ -1855,7 +1857,7 @@ com.marklogic.widgets.searchselection = function(container) {
   
   this._refresh();
   
-  this.searchContext = mljs.defaultconnection.createSearchContext();
+  this.ctx = mljs.defaultconnection.createSearchContext();
 };
 
 /**
@@ -1956,15 +1958,27 @@ com.marklogic.widgets.searchselection.prototype.__doquery = function() {
   var q = this._queries[this._selectedQuery];
   var query = null;
   if ("function"===typeof(q)) {
+    mljs.defaultconnection.logger.debug("searchselection.__doquery: Calling query function");
     query = q();
   } else if ("object"===typeof(q)) {
+    mljs.defaultconnection.logger.debug("searchselection.__doquery: Setting query value");
     query = q;
   }
+  mljs.defaultconnection.logger.debug("searchselection.__doquery: Query now: " + JSON.stringify(query));
   
   // perform query
-  this.searchContext.doStructuredQuery(query);
+  if ("contribute" == this._mode) {
+    mljs.defaultconnection.logger.debug("searchselection.__doquery: Contributing Query");
+    this.ctx.contributeStructuredQuery(this.container,query,1); // start at first result as we're switching queries
+  } else {
+    mljs.defaultconnection.logger.debug("searchselection.__doquery: Overwriting Query");
+    this.ctx.doStructuredQuery(query);
+  }
 };
 
+com.marklogic.widgets.searchselection.prototype.setModeContributeStructured = function() {
+  this._mode = "contribute";
+};
 
 
 

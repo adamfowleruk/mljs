@@ -10,7 +10,9 @@ window.onload = function() {
     var sc = db.createSearchContext();
     var ob = db.createOptions();
     ob.defaultCollation("http://marklogic.com/collation")
-      .rangeConstraint("stars","stars",null,"xs:int",null);
+      .rangeConstraint("stars","stars",null,"xs:int",null)
+      .geoElementPairConstraint("location","location","http://marklogic.com/xdmp/json/basic",
+        "lat","http://marklogic.com/xdmp/json/basic","lon","http://marklogic.com/xdmp/json/basic",null,["units=miles","coordinate-system=wgs84"]);
     sc.setOptions("attractions",ob.toJson());
     
     var results = new com.marklogic.widgets.searchresults("results");
@@ -21,6 +23,7 @@ window.onload = function() {
     ol.addGoogleStreet(); // add google street maps to the default Open Street Maps (OSM) base layer
     ol.addArcGISOnline();
     ol.addAllBing();
+    ol.setGeoSelectionConstraint("location");
     ol.go(51.5112139, -0.1198244, 13); // lat, lon, zoom level (openlayers level)
     ol.addSeries("Attractions",sc,"location.lat","location.lon"); // draw features for search results on configured search context
     
@@ -53,10 +56,11 @@ window.onload = function() {
     }
     
     // initialise display with default query - NB in reality this would occur from detecting user's browser's location or a manual address search
-    sc.doStructuredQuery(byDistance()); // This would normally be called elsewhere. E.g. when the map changes centered position, or a different 'address' is entered
+    sc.contributeStructuredQuery("selection",byDistance()); // This would normally be called elsewhere. E.g. when the map changes centered position, or a different 'address' is entered
     
     // create a structured query selection widget with title "Calculate relevancy by:" and values "Nearest First" and "Best Rating First"
     var selection = new com.marklogic.widgets.searchselection("selection");
+    selection.setModeContributeStructured();
     sc.register(selection);
     
     selection.addQuery("Nearest First",byDistance);

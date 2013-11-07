@@ -771,6 +771,18 @@ div.log {
 
 
 /** OpenLayers modifications **/
+.openlayers {
+}
+
+.openlayers-content {
+  border: 1px solid gray;
+}
+
+.openlayers-map {
+  border: none;
+}
+
 .olControlAttribution {
   bottom: 0px;
+  text-align: right;
 }
