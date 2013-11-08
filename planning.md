@@ -84,12 +84,12 @@ Targets for 19 Nov 2013
    - DONE BUG: Contribute query does not include one selected from drop down
    - DONE BUG: When clearing query, not contributed query is used at all (just two nulls)
    - DONE Widgets: OpenLayers - Configure OpenLayers/test page to use structured Contrib mode for queries
-  - Show number with pin
-  - Details popup for pins
-  - 'highlight' support for search result aka click on pin (not mouse over)
-  - 'select' support for search result aka 'details' link in description popup
-  - IN PROGRESS Polygon, Circle, Rectangle drawing and generation of query contribution
-  - Heatmap support (tourist attractions per km type result)
+  - NA using Highlight instead due to popups being poor in OpenLayers: Show number with pin
+  - NA using Highlight instead due to popups being poor in OpenLayers: Details popup for pins
+  - DONE 'highlight' support for search result aka click on pin (not mouse over)
+  - DONE 'select' support for search result aka 'details' link in description popup
+  - DONE Polygon, Circle, Rectangle drawing and generation of query contribution
+  - IN PROGRESS Heatmap support (tourist attractions per km type result)
   - Locate me button support - http://openlayers.org/dev/examples/geolocation.html
   - Locate me automatic (browser) with no button
   - Workplace configuration support
