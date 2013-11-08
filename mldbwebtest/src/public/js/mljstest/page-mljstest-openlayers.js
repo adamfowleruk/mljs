@@ -20,7 +20,10 @@ window.onload = function() {
     
     var ol = new com.marklogic.widgets.openlayers("map");
     sc.register(ol);
+    /*
     ol.addGoogleStreet(); // add google street maps to the default Open Street Maps (OSM) base layer
+    // removed because google's CDN is soooooo slowwwwww
+    */
     ol.addArcGISOnline();
     ol.addAllBing();
     ol.setGeoSelectionConstraint("location");

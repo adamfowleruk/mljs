@@ -139,7 +139,7 @@ function xmlToJson(xml) {
     var justText = true;
     for (var i = 0; i < xml.childNodes.length; i++) {
       var item = xml.childNodes.item(i);
-      var nodeName = item.nodeName;
+      var nodeName = item.nodeName.toLowerCase(); // lowercase due to Node.js XML library always assuming uppercase for element names
       var pos = nodeName.indexOf(":");
       if (-1 != pos) {
         nodeName = nodeName.substring(pos + 1);
@@ -602,7 +602,14 @@ mljs.prototype.__doreq_node = function(reqname,options,content,callback_opt) {
           var jsonResult = {body: body, statusCode: res.statusCode,inError: false};
           if (options.method == "GET" && undefined != body && ""!=body) {
             //self.logger.debug("Response (Should be JSON): '" + body + "'");
-            jsonResult.doc = JSON.parse(body);
+            try {
+              jsonResult.doc = JSON.parse(body);
+              jsonResult.format = "json";
+            } catch (err) {
+              // try XML
+              jsonResult.doc = textToXML(body);
+              jsonResult.format = "xml";
+            }
           }
           if (res.statusCode == 303) {
             self.logger.debug("303 result headers: " + JSON.stringify(res.headers));
@@ -4286,6 +4293,7 @@ mljs.prototype.searchcontext = function() {
   this.structuredContrib = new Array();
   
   this._selectedResults = new Array(); // Array of document URIs
+  this._highlightedResults = new Array(); // Array of document URIs
   
   
   
@@ -4297,6 +4305,7 @@ mljs.prototype.searchcontext = function() {
   this.errorPublisher = new com.marklogic.events.Publisher(); // errors occuring at search time
   this.simpleQueryPublisher = new com.marklogic.events.Publisher(); // simple query text
   this.selectionPublisher = new com.marklogic.events.Publisher(); // result selection uri array publisher
+  this.highlightPublisher = new com.marklogic.events.Publisher(); // mouse over/highlight results
   
 };
 
@@ -4443,8 +4452,14 @@ mljs.prototype.searchcontext.prototype.register = function(searchWidget) {
   if ('function' === typeof(searchWidget.updateOptions)) {
     this.optionsPublisher.subscribe(function (options) {searchWidget.updateOptions(options);});
   }
-  if ('function' === typeof(searchWidget.updateDocumentSelection)) {
+  if ('function' === typeof(searchWidget.updateDocumentSelection)) { // from document context
     this.selectionPublisher.subscribe(function (selectionArray) {searchWidget.updateDocumentSelection(selectionArray);});
+  }
+  if ('function' === typeof(searchWidget.updateResultHighlight)) {
+    this.highlightPublisher.subscribe(function (selectionArray) {searchWidget.updateResultHighlight(selectionArray);});
+  }
+  if ('function' === typeof(searchWidget.updateResultSelection)) {
+    this.selectionPublisher.subscribe(function (selectionArray) {searchWidget.updateResultSelection(selectionArray);});
   }
   var self = this;
   if ('function' === typeof(searchWidget.addSortListener)) {
@@ -4458,6 +4473,9 @@ mljs.prototype.searchcontext.prototype.register = function(searchWidget) {
   }
   if ('function' === typeof(searchWidget.addResultSelectionListener)) {
     searchWidget.addResultSelectionListener(function (selection) {self.updateSelection(selection);});
+  }
+  if ('function' === typeof(searchWidget.addResultHighlightListener)) {
+    searchWidget.addResultHighlightListener(function (highlight) {self.updateHighlight(highlight);});
   }
   if ('function' === typeof(searchWidget.addGeoSelectionListener)) {
     // contribute term to query
@@ -4865,6 +4883,36 @@ mljs.prototype.searchcontext.prototype.updateSelection = function(resultSelectio
     // should never happen
   }
   this.selectionPublisher.publish(this._selectedResults);
+};
+
+/**
+ * Highlight the document specified. Depending upon the highlight mode (append or replace) this will either
+ * add the document to the selection, or replace the selection with this document. Useful for selecting
+ * multiple search results over time (e.g. between pages of results).
+ * 
+ * Fires an updateSelection event on selection listeners. (Only if the URI is not already selected)
+ * 
+ * @param {json} resultSelection - The JSON object {mode: "append|replace", uri: "/some/uri"} for the selected document. Specifying null in replace mode clears the selection
+ */
+mljs.prototype.searchcontext.prototype.updateHighlight = function(resultHighlight) {
+  if ("append" == resultHighlight.mode) {
+    // check doc is not already selected
+    var found = false;
+    for (var i = 0;i < this._highlightedResults.length && !found;i++) {
+      found = (this._highlightedResults[i] == resultHighlight.uri);
+    }
+    if (!found) {
+      this._highlightedResults.push(resultHighlight.uri);
+    }
+  } else if ("replace" == resultHighlight.mode) {
+    this._highlightedResults = new Array();
+    if (null != resultHighlight.uri) {
+      this._highlightedResults.push(resultHighlight.uri);
+    }
+  } else {
+    // should never happen
+  }
+  this.highlightPublisher.publish(this._highlightedResults);
 };
 
 /**

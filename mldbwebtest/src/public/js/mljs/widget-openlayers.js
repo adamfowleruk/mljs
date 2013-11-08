@@ -43,6 +43,11 @@ com.marklogic.widgets.openlayers = function(container) {
   this._dragControl = null; // NOT USED
   
   this._geoSelectionPublisher = new com.marklogic.events.Publisher();
+  this._resultSelectionPublisher = new com.marklogic.events.Publisher();
+  this._resultHighlightPublisher = new com.marklogic.events.Publisher();
+  
+  this._selectedUri = null;
+  this._highlightedUri = null;
   
   this._refresh();
 };
@@ -53,6 +58,30 @@ com.marklogic.widgets.openlayers.prototype.addGeoSelectionListener = function(li
 
 com.marklogic.widgets.openlayers.prototype.removeGeoSelectionListener = function(lis) {
   this._geoSelectionPublisher.unsubscribe(lis);
+};
+
+com.marklogic.widgets.openlayers.prototype.addResultSelectionListener = function(lis) {
+  this._resultSelectionPublisher.subscribe(lis);
+};
+
+com.marklogic.widgets.openlayers.prototype.removeResultSelectionListener = function(lis) {
+  this._resultSelectionPublisher.unsubscribe(lis);
+};
+
+com.marklogic.widgets.openlayers.prototype.addResultHighlightListener = function(lis) {
+  this._resultHighlightPublisher.subscribe(lis);
+};
+
+com.marklogic.widgets.openlayers.prototype.removeResultHighlightListener = function(lis) {
+  this._resultHighlightPublisher.unsubscribe(lis);
+};
+
+com.marklogic.widgets.openlayers.prototype.updateResultSelection = function(newsel) {
+  // TODO respond to other widgets' selection events too
+};
+
+com.marklogic.widgets.openlayers.prototype.updateResultHighlight = function(newsel) {
+  // TODO respond to other widgets' highlight events too
 };
 
 com.marklogic.widgets.openlayers.prototype.setGeoSelectionConstraint = function(name) {
@@ -743,18 +772,54 @@ com.marklogic.widgets.openlayers.prototype.addSeries = function(title,searchcont
   
   this.series[name].layer = layer;
   this.map.addLayer(layer); 
+  /*
+  // selection/hover support for this layer
+  var selectControl = new OpenLayers.Control.SelectFeature(layer, {
+    hover: true
+  });
+  selectControl.events.register('featurehighlighted', null, featureHighlighted);
+  this.map.addControl(selectControl);
+  
+  var featureHighlighted = function(evt) {
+    // Needed only for interaction, not for the display.
+    var onPopupClose = function (evt) {
+        // 'this' is the popup.
+        var feature = this.feature;
+        if (feature.layer) {
+            selectControl.unselect(feature);
+        }  
+        this.destroy();
+    };
+
+    var feature = evt.feature;
+    var popup = new OpenLayers.Popup.FramedCloud("featurePopup",
+            feature.geometry.getBounds().getCenterLonLat(),
+            new OpenLayers.Size(100,100),
+            "<h2>"+feature.attributes.station_na + "</h2>" +
+            "Location: " + feature.attributes.location + '<br/>' +
+            "Elevation: " + feature.attributes.elev_,
+            null, true, onPopupClose);
+    feature.popup = popup;
+    popup.feature = feature;
+    this.map.addPopup(popup, true);
+  };*/
+  
+        
+  var popup; // global reference
   
   // add updateResults wrapper function
   var self = this;
   var lisfunc = function(results) {
     mljs.defaultconnection.logger.debug("openlayers.addSeries.listfunc: In dynamic results listener...");
     // check for reset call
+  self._selectedUri = null;
+  self._highlightedUri = null;
     if (null == results || "boolean"==typeof(results)) {
       if (false === results) {
       }
       return;
     }
-    
+    /*
         mljs.defaultconnection.logger.debug("openlayers.addSeries.listfunc: Deleting results markers in layer: " + title);
         // remove all markers
         var oldm = layer.markers;
@@ -764,7 +829,7 @@ com.marklogic.widgets.openlayers.prototype.addSeries = function(title,searchcont
           layer.removeMarker(mark); 
           mark.destroy();
         }
-        layer.clearMarkers();
+        layer.clearMarkers();*/
     
     mljs.defaultconnection.logger.debug("openlayers.addSeries.listfunc: Processing results");
     // add each marker in new result set
@@ -777,8 +842,36 @@ com.marklogic.widgets.openlayers.prototype.addSeries = function(title,searchcont
       var lon = extractValue(thedoc,lonsrc);
       mljs.defaultconnection.logger.debug("openlayers.addSeries.listfunc: lat: " + lat + ", lon: " + lon);
       var m = new OpenLayers.Marker(new OpenLayers.LonLat(lon,lat).transform(new OpenLayers.Projection("EPSG:4326"),self.map.displayProjection),icon.clone());
+      
       // TODO popup/infobox based on search result, extract title and summary
       layer.addMarker(m);
+      
+      
+      var addEvents = function(m,uri) {
+        // add hover handlers
+        m.events.register('mouseover', m, function(evt) {
+          self._highlightedUri = uri;
+          self._resultHighlightPublisher.publish({mode: "replace", uri: uri});
+        });
+        //here add mouseout event
+        m.events.register('mouseout', m, function(evt) {
+          self._highlightedUri = null;
+          self._resultHighlightPublisher.publish({mode: "replace", uri: null});
+        });
+        m.events.register('click', m, function(evt) {
+          // TODO change marker icon when selected/unselected (Red?)
+          if (uri == self._selectedUri) {
+            // deselect
+            self._selectedUri = null;
+            self._resultSelectionPublisher.publish({mode: "replace", uri: null});
+          } else {
+            self._selectedUri = uri;
+            self._resultSelectionPublisher.publish({mode: "replace", uri: uri});
+          }
+        });
+      };
+      
+      addEvents(m,r.uri);
     }
     mljs.defaultconnection.logger.debug("openlayers.addSeries.listfunc: Finished adding all results");
   };

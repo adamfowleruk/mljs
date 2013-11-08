@@ -263,33 +263,39 @@ if (undefined == String.prototype.startsWith) {
 
 com.marklogic.widgets.hide = function(el,isHidden) {
   if (isHidden) {
+    com.marklogic.widgets.addClass(el,"hidden");
+  } else {
+    com.marklogic.widgets.removeClass(el,"hidden");
+  }
+};
+
+com.marklogic.widgets.addClass = function(el,classname) {
     var found = false;
     var attr = el.getAttribute("class");
     if (undefined != attr) {
       var attrs = attr.split(" ");
       for (var i = 0;!found && i < attrs.length;i++) {
-        found = ("hidden" == attrs[i]);
+        found = (classname == attrs[i]);
       }
     }
     if (!found) {
-      el.setAttribute("class",attr + " hidden");
+      el.setAttribute("class",attr + " " + classname);
     }
-  } else {
+};
+
+com.marklogic.widgets.removeClass = function(el,classname) {
     var attr = el.getAttribute("class");
     var newClass = "";
     if (undefined != attr) {
       var attrs = attr.split(" ");
-      for (var i = 0;!found && i < attrs.length;i++) {
-        if ("hidden" != attrs[i]) {
+      for (var i = 0;i < attrs.length;i++) {
+        if (classname != attrs[i]) {
           newClass += attrs[i] + " ";
         }
       }
     }
     el.setAttribute("class",newClass);
-  }
 };
-
-
 
 // our own global widgets here
 /**

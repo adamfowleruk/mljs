@@ -1000,6 +1000,7 @@ com.marklogic.widgets.searchresults = function(container) {
   
   // event handlers
   this.selectionPublisher = new com.marklogic.events.Publisher();
+  this.highlightPublisher = new com.marklogic.events.Publisher();
 };
 
 com.marklogic.widgets.searchresults.getConfigurationDefinition = function() {
@@ -1204,9 +1205,27 @@ com.marklogic.widgets.searchresults.prototype._navigateTo = function(uri) {
 };
 
 /**
+ * Adds a result highlight listener to this widget.
+ * 
+ * @param {function(uri array)} sl - Search listener function
+ */
+com.marklogic.widgets.searchresults.prototype.addResultHighlightListener = function(sl) {
+  this.highlightPublisher.subscribe(sl);
+};
+
+/**
+ * Removes a result higlight listener.
+ * 
+ * @param {function(uri array)} sl - Search listener function
+ */
+com.marklogic.widgets.searchresults.prototype.removeResultHighlightListener = function(sl) {
+  this.highlightPublisher.unsubscribe(sl);
+};
+
+/**
  * Adds a result selection listener to this widget.
  * 
- * @param {function(uri)} sl - Search listener function
+ * @param {function(uri array)} sl - Search listener function
  */
 com.marklogic.widgets.searchresults.prototype.addResultSelectionListener = function(sl) {
   this.selectionPublisher.subscribe(sl);
@@ -1215,7 +1234,7 @@ com.marklogic.widgets.searchresults.prototype.addResultSelectionListener = funct
 /**
  * Removes a result selection listener.
  * 
- * @param {function(uri)} sl - Search listener function
+ * @param {function(uri array)} sl - Search listener function
  */
 com.marklogic.widgets.searchresults.prototype.removeResultSelectionListener = function(sl) {
   this.selectionPublisher.unsubscribe(sl);
@@ -1256,7 +1275,43 @@ com.marklogic.widgets.searchresults.prototype.setProcessorPriority = function(pr
   this.processorPriority = procNameArray;
 };
 
+com.marklogic.widgets.searchresults.prototype.updateResultSelection = function(newsel) {
+  // loop through our results (NOT the selection list)
+  // if newsel list contains result, then select it (CSS class)
+  // else, remove selection class
+  for (var i = 0;i < this.results.results.length;i++) {
+    var wrapperId = this.container + "-searchresults-wrapper-" + i;
+    // run processors in order
+    var result = this.results.results[i];
+    
+    if (newsel.contains(result.uri)) {
+      // add selection class
+      com.marklogic.widgets.addClass(document.getElementById(wrapperId),"selected");
+    } else {
+      // remove selection class
+      com.marklogic.widgets.removeClass(document.getElementById(wrapperId),"selected");
+    }
+  }
+};
 
+com.marklogic.widgets.searchresults.prototype.updateResultHighlight = function(newhigh) {
+  // loop through our results (NOT the selection list)
+  // if newsel list contains result, then select it (CSS class)
+  // else, remove selection class
+  for (var i = 0;i < this.results.results.length;i++) {
+    var wrapperId = this.container + "-searchresults-wrapper-" + i;
+    // run processors in order
+    var result = this.results.results[i];
+    
+    if (newhigh.contains(result.uri)) {
+      // add selection class
+      com.marklogic.widgets.addClass(document.getElementById(wrapperId),"highlighted");
+    } else {
+      // remove selection class
+      com.marklogic.widgets.removeClass(document.getElementById(wrapperId),"highlighted");
+    }
+  }
+};
 
 
 

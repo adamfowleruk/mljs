@@ -72,6 +72,14 @@
   line-height: 31px;
 }
 
+.mljswidget .selected {
+  background-color: #FFBB7D;
+}
+
+.mljswidget .highlighted {
+  background-color: #EEEEA2;
+}
+
 /****
  * ALL SEARCH WIDGETS DEFAULT CSS BELOW HERE
  ****/

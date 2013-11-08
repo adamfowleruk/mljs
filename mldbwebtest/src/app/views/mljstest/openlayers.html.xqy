@@ -24,8 +24,10 @@ declare option xdmp:mapping "false";
 <script type="text/javascript" src="/js/mljs/mljs.js"></script>
 <script type="text/javascript" src="/js/mljs/mljs-xhr2.js"></script>
 <script type="text/javascript" src="/js/OpenLayers-2.13.1/OpenLayers.debug.js"></script> <!-- debug deployment only - remove '.debug' for production use -->
-<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?sensor=false"></script> <!-- need to be online for this -->
-
+<!--
+<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?sensor=false"></script> 
+-->
+<!-- need to be online for this -->
 
 <script type="text/javascript" src="/js/mljs/widgets.js"></script>
 <script type="text/javascript" src="/js/mljs/widget-search.js"></script>
