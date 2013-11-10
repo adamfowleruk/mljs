@@ -4615,6 +4615,35 @@ mljs.prototype.searchcontext.prototype.contributeStructuredQuery = function(cont
   this.dostructuredquery(qb.toJson());
 };
 
+mljs.prototype.searchcontext.prototype.updateGeoHeatmap = function(constraint_name,heatmap) {
+  
+    // copy heatmap information in to search options
+    var con = null;
+    for (var i = 0, max = this._options.options.constraint.length;i < max && null == con;i++) {
+      con = this._options.options.constraint[i];
+      if (con.name == constraint_name) {
+        // do nothing
+      } else {
+        con = null;
+      }
+    }
+    if (null != con) {
+      // found named constraint - now alter heatmap description
+      if (undefined != con["geo-elem"]) {
+        con["geo-elem"].heatmap = heatmap;
+      } else if (undefined != con["geo-elem-pair"]) {
+        con["geo-elem-pair"].heatmap = heatmap;
+      } else if (undefined != con["geo-attr-pair"]) {
+        con["geo-attr-pair"].heatmap = heatmap;
+      } else if (undefined != con["geo-path"]) {
+        con["geo-path"].heatmap = heatmap;
+      }
+    }
+    
+    // force save of options
+    this.optionsExist = false;
+};
+
 mljs.prototype.searchcontext.prototype.updateGeoSelection = function(selection) {
   // create term and contribute to query
   var cont = selection.contributor;
@@ -4633,7 +4662,14 @@ mljs.prototype.searchcontext.prototype.updateGeoSelection = function(selection) 
       term = null;
     }
   }
-  this.contributeStructuredQuery(cont,term);
+  
+  // alter search options first, as required
+  if (undefined != selection.heatmap) { // n,s,e,w,latdivs,londivs
+    this.updateGeoHeatmap(selection["constraint-name"],selection.heatmap);
+  }
+  
+  var self = this;
+  this._persistAndDo(function() {self.contributeStructuredQuery(cont,term)});
 };
 
 /**

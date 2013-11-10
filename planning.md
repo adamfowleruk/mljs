@@ -90,6 +90,15 @@ Targets for 19 Nov 2013
   - DONE 'select' support for search result aka 'details' link in description popup
   - DONE Polygon, Circle, Rectangle drawing and generation of query contribution
   - IN PROGRESS Heatmap support (tourist attractions per km type result)
+   - DONE update heatmap constraint in options document
+   - DONE return heatmap info in facets
+   - Include heatmap.js and heatmap-openlayers.js files, including updating build scripts
+   - Process heatmap result: in facet location.boxes (location was the constraint name). Each box has count, n, s, e, w. zero count boxes not returned
+   - Allow hiding of heatmap layer
+   - Allow configuring of heatmaps
+   - Update heatmap options and perform search again on map zoom
+   - Change to using shadow query just for heatmap?
+   - Change to use geoConstraintName(cn) as the heatmap constraint name (not just constraint for additional openlayers positional query)
   - Locate me button support - http://openlayers.org/dev/examples/geolocation.html
   - Locate me automatic (browser) with no button
   - Workplace configuration support

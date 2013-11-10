@@ -28,7 +28,7 @@ window.onload = function() {
     ol.addAllBing();
     ol.setGeoSelectionConstraint("location");
     ol.go(51.5112139, -0.1198244, 13); // lat, lon, zoom level (openlayers level)
-    ol.addSeries("Attractions",sc,"location.lat","location.lon"); // draw features for search results on configured search context
+    ol.addSeries("Attractions",sc,"location.lat","location.lon",undefined,undefined,undefined,10,20,"location"); // draw features for search results on configured search context
     
     // allow the query to be changed dynamically
     var qb = db.createQuery();

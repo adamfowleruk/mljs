@@ -34,6 +34,8 @@ com.marklogic.widgets.openlayers = function(container) {
     "constraint-name": null
   };
   
+  this.transformWgs84 = new OpenLayers.Projection("EPSG:4326");
+  
   this.series = {}; // {title: "", context: searchcontext,latsource:"location.lat",lonsource:"location.lon",titlesource:"",summarysource:""};
   
   this._selectionLayer = null;
@@ -503,7 +505,7 @@ com.marklogic.widgets.openlayers.prototype._refresh = function() {
         var ps = feature.geometry.components[0].components;
         for (var p = 0;p < ps.length;p++) {
           var olps = ps[p];
-          var mlps = new OpenLayers.LonLat(olps.x,olps.y).transform(this.map.displayProjection,new OpenLayers.Projection("EPSG:4326"));
+          var mlps = new OpenLayers.LonLat(olps.x,olps.y).transform(this.map.displayProjection,self.transformWgs84);
           points[p] = {latitude: mlps.lat, longitude: mlps.lon};
         }
         self._geoSelectionPublisher.publish({
@@ -526,7 +528,7 @@ com.marklogic.widgets.openlayers.prototype._refresh = function() {
         var radiusMiles = dist * 0.000621371192; // conversion to statute (British) Miles as used by MarkLogic
         
         // Convert EPSG:900913 point to EPSG:4326 (WGS84)
-        var wgsPoint = new OpenLayers.LonLat(center.x,center.y).transform(self.map.displayProjection,new OpenLayers.Projection("EPSG:4326"));
+        var wgsPoint = new OpenLayers.LonLat(center.x,center.y).transform(self.map.displayProjection,self.transformWgs84);
         
         self._geoSelectionPublisher.publish({
           type: "circle",contributor: self.container,
@@ -550,8 +552,8 @@ com.marklogic.widgets.openlayers.prototype._refresh = function() {
         }
         mljs.defaultconnection.logger.debug("GEOBOX: north: " + north + ", south: " + south + ", west: " + west + ", east: " + east);
         // do the above incase of rotated rectangles
-        var nw = new OpenLayers.LonLat(west,north).transform(self.map.displayProjection,new OpenLayers.Projection("EPSG:4326"));
-        var se = new OpenLayers.LonLat(east,south).transform(self.map.displayProjection,new OpenLayers.Projection("EPSG:4326"));
+        var nw = new OpenLayers.LonLat(west,north).transform(self.map.displayProjection,self.transformWgs84);
+        var se = new OpenLayers.LonLat(east,south).transform(self.map.displayProjection,self.transformWgs84);
         mljs.defaultconnection.logger.debug("GEOBOX: EPSG4326: north: " + nw.lat + ", south: " + se.lat + ", west: " + nw.lon + ", east: " + se.lon);
         
         self._geoSelectionPublisher.publish({
@@ -742,7 +744,7 @@ com.marklogic.widgets.openlayers.prototype.eightDecPlaces = function(val) {
  * @param {integer} zoom - Zoom level (OpenLayers zoom level, not necessarily the mapping layer's own internal level)
  */
 com.marklogic.widgets.openlayers.prototype.go = function(lat,lon,zoom) {
-  this.map.setCenter( new OpenLayers.LonLat(lon,lat).transform(new OpenLayers.Projection("EPSG:4326"), this.map.projection), zoom);
+  this.map.setCenter( new OpenLayers.LonLat(lon,lat).transform(this.transformWgs84, this.map.projection), zoom);
 };
 
 /**
@@ -759,8 +761,9 @@ com.marklogic.widgets.openlayers.prototype.go = function(lat,lon,zoom) {
  * @param {string} summarysrc - The JSON path (E.g. "summary") of the property to extract from the JSON or XML document to use as the summary
  * @param {string} iconsrc - The Optional JSON path (E.g. "icon") of the property to extract from the JSON or XML document to use as the icon absolute URL (E.g. /images/myicon.png)
  */
-com.marklogic.widgets.openlayers.prototype.addSeries = function(title,searchcontext,latsrc,lonsrc,titlesrc,summarysrc,icon_source_opt) {
-  this.series[name] = {title: title, context: searchcontext,latsource:latsrc,lonsource:lonsrc,titlesource:titlesrc,summarysource:summarysrc};
+com.marklogic.widgets.openlayers.prototype.addSeries = function(title,searchcontext,latsrc,lonsrc,titlesrc,summarysrc,icon_source_opt,latdivs,londivs,heatmap_constraint) {
+  this.series[name] = {title: title, context: searchcontext,latsource:latsrc,lonsource:lonsrc,titlesource:titlesrc,summarysource:summarysrc,
+    latdivs:latdivs,londivs:londivs,constraint: heatmap_constraint};
   
   // add new layer
   var layer = new OpenLayers.Layer.Markers(title); // TODO other layer configuration - e.g. icon, selectable handler, etc.
@@ -841,7 +844,7 @@ com.marklogic.widgets.openlayers.prototype.addSeries = function(title,searchcont
       var lat = extractValue(thedoc,latsrc);
       var lon = extractValue(thedoc,lonsrc);
       mljs.defaultconnection.logger.debug("openlayers.addSeries.listfunc: lat: " + lat + ", lon: " + lon);
-      var m = new OpenLayers.Marker(new OpenLayers.LonLat(lon,lat).transform(new OpenLayers.Projection("EPSG:4326"),self.map.displayProjection),icon.clone());
+      var m = new OpenLayers.Marker(new OpenLayers.LonLat(lon,lat).transform(self.transformWgs84,self.map.displayProjection),icon.clone());
       
       // TODO popup/infobox based on search result, extract title and summary
       layer.addMarker(m);
@@ -877,6 +880,16 @@ com.marklogic.widgets.openlayers.prototype.addSeries = function(title,searchcont
   };
   searchcontext.addResultsListener(lisfunc);
   this.series[name].listener = lisfunc;
+  
+  // contribute our heatmap query if required
+  if (undefined != this.series[name].latdivs) {
+    var ex = this.map.getExtent().transform(this.map.displayProjection,this.transformWgs84); // Bounds object
+    var heatmap = {n: ex.top,s: ex.bottom,w: ex.left,e: ex.right,latdivs:latdivs,londivs:londivs};
+    searchcontext.updateGeoHeatmap(heatmap_constraint,heatmap);
+    
+    // TODO also add map zoom event handler to update this on the fly too
+  }
+  
 };
 
 
