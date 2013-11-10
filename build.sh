@@ -118,6 +118,7 @@ cp $SRC/public/js/highcharts.js $R/roxy/public/js/
 cp $SRC/public/js/kratu*.js $R/roxy/public/js/
 cp -R $SRC/public/js/dataproviders $R/roxy/public/js/
 cp -R $SRC/public/js/OpenLayers-2.13.1 $R/roxy/public/js/
+cp -R $SRC/public/js/heatmap $R/roxy/public/js/
 
 cp $SRC/app/controllers/mljstest.xqy $D/roxy/app/controllers/
 cp $SRC/app/views/mljstest/* $D/roxy/app/views/mljstest/
@@ -132,6 +133,7 @@ cp $SRC/public/js/highcharts.js $D/roxy/public/js/
 cp $SRC/public/js/kratu*.js $D/roxy/public/js/
 cp -R $SRC/public/js/dataproviders $D/roxy/public/js/
 cp -R $SRC/public/js/OpenLayers-2.13.1 $D/roxy/public/js/
+cp -R $SRC/public/js/heatmap $D/roxy/public/js/
 
 # docs
 cp browser.md $D/README.md

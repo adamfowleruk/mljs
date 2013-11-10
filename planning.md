@@ -92,7 +92,7 @@ Targets for 19 Nov 2013
   - IN PROGRESS Heatmap support (tourist attractions per km type result)
    - DONE update heatmap constraint in options document
    - DONE return heatmap info in facets
-   - Include heatmap.js and heatmap-openlayers.js files, including updating build scripts
+   - TEST Include heatmap.js and heatmap-openlayers.js files, including updating build scripts
    - Process heatmap result: in facet location.boxes (location was the constraint name). Each box has count, n, s, e, w. zero count boxes not returned
    - Allow hiding of heatmap layer
    - Allow configuring of heatmaps

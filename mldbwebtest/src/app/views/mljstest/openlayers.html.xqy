@@ -32,6 +32,8 @@ declare option xdmp:mapping "false";
 <script type="text/javascript" src="/js/mljs/widgets.js"></script>
 <script type="text/javascript" src="/js/mljs/widget-search.js"></script>
 <script type="text/javascript" src="/js/mljs/widget-openlayers.js"></script>
+<script type="text/javascript" src="/js/heatmap/heatmap.js"></script>
+<script type="text/javascript" src="/js/heatmap/heatmap-openlayers.js"></script>
     <script>OpenLayers.Console = window.console || OpenLayers.Console;</script> <!-- debug deployment only -->
 
 <script type="text/javascript" src="/js/mljstest/page-mljstest-openlayers.js"></script>
