@@ -38,12 +38,12 @@ $(document).ready(function() {
     
   var familypie = new com.marklogic.widgets.highcharts("pie");
   familypie.addErrorListener(error.updateError);
-  familypie.setSeriesSources("#Family","!family");
+  familypie.setSeriesSources("#Family","!family",null);
   familypie.setAggregateFunction("none");
   familypie.setAutoCategories(true);
   familypie.options.title.text = "Animal Family";
   familypie.options.subtitle.text = "";
-  familypie.options.yAxis.title.text = "Count";
+  //familypie.options.yAxis.title.text = "Count";
   familypie.options.chart.type = "pie";
   //familypie.options.plotOptions = {pie: {pointPadding: 0.2,borderWidth: 0,
   //  dataLabels: { enabled: true, style: { fontWeight: 'bold' } } } };

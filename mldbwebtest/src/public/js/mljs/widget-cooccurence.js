@@ -26,10 +26,13 @@ com.marklogic.widgets = window.com.marklogic.widgets || {};
 com.marklogic.widgets.cooccurence = function(container) {
   this.container = container;
   this.errorPublisher = new com.marklogic.events.Publisher(); 
+  this.selectionPublisher = new com.marklogic.events.Publisher();
   
   this.title = "Co-occurence";
   
   this.values = null;
+  
+  this.constraintArray = null;
   
   this._refresh();
 };
@@ -53,6 +56,24 @@ com.marklogic.widgets.cooccurence.prototype.removeErrorListener = function(fl) {
 };
 
 /**
+ * Adds a facet selection listener to this widget
+ * 
+ * @param {function(error)} fl - The facet selection listener to add
+ */
+com.marklogic.widgets.cooccurence.prototype.addFacetSelectionListener = function(fl) {
+  this.selectionPublisher.subscribe(fl);
+};
+
+/**
+ * Removes a facet selection listener
+ * 
+ * @param {function(error)} fl - The facet selection listener to remove
+ */
+com.marklogic.widgets.cooccurence.prototype.removeFacetSelectionListener = function(fl) {
+  this.selectionPublisher.unsubscribe(fl);
+};
+
+/**
  * Updates the widget with the specified values JSON object. (top level element is "values-response"). 
  * See GET /v1/values
  * 
@@ -65,6 +86,7 @@ com.marklogic.widgets.cooccurence.prototype.updateValues = function(values) {
 };
 
 com.marklogic.widgets.cooccurence.prototype._refresh = function() {
+  mljs.defaultconnection.logger.debug("cooccurence.refresh");
   // Sample: {"values-response":{"name":"actor-genre", "tuple":[
   // {"frequency":8, "distinct-value":[{"type":"xs:string", "_value":"Jim Carrey"},{"type":"xs:string", "_value":"Comedy"}]},
   // {"frequency":1, "distinct-value":[{"type":"xs:string", "_value":"Sean Astin"},{"type":"xs:string", "_value":"Adventure"}]},
@@ -74,18 +96,20 @@ com.marklogic.widgets.cooccurence.prototype._refresh = function() {
   if (null == this.values || undefined == typeof this.values) {
     return; // draw nothing
   }
+  mljs.defaultconnection.logger.debug("cooccurence.refresh: got results");
   var str = "<div class='cooccurence-title'>" + this.title + "</div>";
+  var tuples = null;
   if (undefined != this.values["values-response"] && undefined != this.values["values-response"].tuple) {
     var tuplesOriginal = this.values["values-response"].tuple;
     //msort(tuplesOriginal,0,tuplesOriginal.length,"frequency"); // REQUIRES widgets.js. Sorts in place (doesn't return a new array)
     bubbleSort(tuplesOriginal,"frequency");
-    var tuples = tuplesOriginal;
+    tuples = tuplesOriginal;
     for (var i = 0;i < tuples.length;i++) {
       str += "<div class='cooccurence-values'>";
       var t = tuples[i];
       for (var v = 0;v < t["distinct-value"].length;v++) {
         var val = t["distinct-value"][v];
-        str += "<span class='cooccurence-value'>" + val["_value"] + "</span>";
+        str += "<span class='cooccurence-value' id='" + this.container + "-tuple-" + i + "-value-" + v + "'>" + val["_value"] + "</span>";
         if (v != t["distinct-value"].length - 1) {
           str += ", ";
         }
@@ -95,4 +119,45 @@ com.marklogic.widgets.cooccurence.prototype._refresh = function() {
     }
   }
   document.getElementById(this.container).innerHTML = str;
+  
+  // add click handlers
+  var addHandler = function(el,val,i,v) {
+    
+        el.onclick = function (e) {
+          mljs.defaultconnection.logger.debug("cooccurence.refresh: facet selected: " + self.constraintArray[v] + "=" + val["_value"]);
+          self._select(self.constraintArray[v],val["_value"]);
+          e.stopPropagation();
+          return false;
+        };
+  };
+  mljs.defaultconnection.logger.debug("cooccurence.refresh: checking for click handler support");
+  var self = this;
+  if (null != this.constraintArray) {
+  if (undefined != this.values["values-response"] && undefined != this.values["values-response"].tuple) {
+    mljs.defaultconnection.logger.debug("cooccurence.refresh: Got constraint array. Adding click handlers");
+    for (var i = 0;i < tuples.length;i++) {
+      mljs.defaultconnection.logger.debug("cooccurence.refresh: tuple: " + i);
+      var t = tuples[i];
+      for (var v = 0;v < t["distinct-value"].length;v++) {
+        mljs.defaultconnection.logger.debug("cooccurence.refresh: value: " + v);
+        var val = t["distinct-value"][v];
+        var el = document.getElementById(this.container + "-tuple-" + i + "-value-" + v);
+        mljs.defaultconnection.logger.debug("cooccurence.refresh: Adding click handler");
+        addHandler(el,val,i,v);
+      }
+    }
+  }
+  }
+};
+
+com.marklogic.widgets.cooccurence.prototype.setTupleConstraints = function(constraintArray) {
+  this.constraintArray = constraintArray;
+};
+
+com.marklogic.widgets.cooccurence.prototype._select = function(facet,value) {
+  // fire selection event
+  var sel = {name: facet,value: value};
+  
+  // fire event to handlers
+  this.selectionPublisher.publish([sel]);
 };

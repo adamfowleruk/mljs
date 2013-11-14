@@ -400,7 +400,7 @@ com.marklogic.widgets.openlayers.prototype._refresh = function() {
   str += "<div class='openlayers-mode'>Mode: <select id='" + this.container + "-mode'><option value='none'>Move</option><option value='circle'>Circle Radius Select</option>";
   str += "<option value='box'>Bounding Box Select</option><option value='polygon'>Polygon Select</option></select>";
   str += " <a href='#' id='" + this.container + "-clear' class='openalyers-clear'>Clear Selection</a>  ";
-  str += " <i>Hint: Hold down shift and drag the mouse to draw a freehand polygon. Double click to complete. </i></div></div>";
+  str += " | <i>Hint: Hold down shift and drag the mouse to draw a freehand polygon. Double click to complete. </i></div></div>";
   
   p.innerHTML = str;
   
@@ -877,6 +877,15 @@ com.marklogic.widgets.openlayers.prototype.addSeries = function(title,searchcont
       addEvents(m,r.uri);
     }
     mljs.defaultconnection.logger.debug("openlayers.addSeries.listfunc: Finished adding all results");
+    
+    // Now add heatmap information, if it exists
+    if (undefined != results.facets[heatmap_constraint].boxes) {
+      // create heatmap box overlays - but they're based on points, not boxes, so how is this done in AppBuilder?
+      //  - Is this the old method used in some older demos, prior to AppBuilder 5?
+      //  - How does AppBuilder 5's heatmaps work? Do they use *all* results? If so, how is this accomplished? (normally there's a limit)
+    }
+    
+    
   };
   searchcontext.addResultsListener(lisfunc);
   this.series[name].listener = lisfunc;

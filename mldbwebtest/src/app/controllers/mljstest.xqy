@@ -177,3 +177,12 @@ declare function c:openlayers() as item()*
   ch:use-view((), "xml"),
   ch:use-layout("mljs-one-column-test","html"))
 };
+
+declare function c:workplaceadmin() as item()*
+{
+  (
+  ch:add-value("message", "This is a test message."),
+  ch:add-value("title", "Workplace Admin"),
+  ch:use-view((), "xml"),
+  ch:use-layout("mljs-one-column-test","html"))
+};

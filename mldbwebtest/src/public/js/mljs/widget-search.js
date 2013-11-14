@@ -1564,7 +1564,7 @@ com.marklogic.widgets.searchsort.prototype._refresh = function() {
     var selected = false;
     if (this.selectedValue == null) {
       selected = true;
-      this.selectedValue = this.sortOptions[i];
+      this.selectedValue = this.sortOptions[i]; // TODO do this outside of the loop, set to FIRST sort option
     } else {
       selected = ((this.selectedValue["json-key"]==this.sortOptions[i]["json-key"]) &&
                   (this.selectedValue["element"]==this.sortOptions[i]["element"]) &&
@@ -1598,14 +1598,22 @@ com.marklogic.widgets.searchsort.prototype._refresh = function() {
         val = o["field"];
       }
       
+      // check for annotation to override title
+      // check for first annotation
+    if (undefined != o.annotation && undefined != o.annotation[0]) {
+      title = o.annotation[0];
+    }
+    if ("" == title) {
       title = com.marklogic.widgets.searchhelper.processValueAll(val);
+      
+      if ("" != title && undefined != o.direction) {
+        title += " (" + com.marklogic.widgets.searchhelper.camelcase(o.direction,"all") + ")";
+      } else {
+        // TODO not specified - default to ascending? - no, leave this to the first, untitled sort option given by MarkLogic server
+      }
+    }
     //}
     //str += " (";
-    if ("" != title && undefined != o.direction) {
-      title += " (" + com.marklogic.widgets.searchhelper.camelcase(o.direction,"all") + ")";
-    } else {
-      // TODO not specified - default to ascending? - no, leave this to the first, untitled sort option given by MarkLogic server
-    }
     if ("" == title) {
       title = "None";
     }

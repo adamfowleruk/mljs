@@ -246,10 +246,14 @@ com.marklogic.widgets.highcharts.prototype._updateOptions = function() {
   if ("pie" == hc.options.chart.type) {
     this.options.tooltip.pointFormat = '<b>{point.y}</b>';
   } else {
+    mljs.defaultconnection.logger.debug("Chart using custom tooltip formatter");
     this.options.tooltip.formatter = function() {
       var str = '<b>'+ this.series.name +'</b><br/>';
-      str += this.x;
-      str += ': '+ this.y; 
+      if (undefined != this.x) {
+        str += this.x;
+        str += ': ';
+      }
+      str += this.y; 
       return str;
     };
   }

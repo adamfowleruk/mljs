@@ -264,3 +264,97 @@ com.marklogic.widgets.actions.javascript.prototype.execute = function(executionC
   return {executed:true, result: result, details: "Method executed successfully"};
 };
 
+
+
+
+
+
+
+
+
+
+
+
+com.marklogic.widgets.workplaceadmin = function(container) {
+  this.container = container;
+
+  this._config = {
+    widgetList: [
+      {title: "Co-occurence", classname: "com.marklogic.widgets.cooccurence", description: "Shows two way co-occurence between elements in a document."},
+      {title: "Create Document", classname: "com.marklogic.widgets.create", description: "Form builder used to generate a new document on submission."},
+      {title: "Document Properties", classname: "com.marklogic.widgets.docproperties", description: "Shows the MarkLogic Properties of a Document."},
+      {title: "XHTML Head Viewer", classname: "com.marklogic.widgets.docheadviewer", description: "Shows the Meta data elements within an XHTML document."},
+      {title: "XHTML Content Viewer", classname: "com.marklogic.widgets.docviewer", description: "Displays XHTML content inline within a page."},
+      {title: "Data Explorer", classname: "com.marklogic.widgets.explorer", description: "HighCharts powered node diagram to explore semantic subjects and related document facets."},
+      {title: "HighCharts", classname: "com.marklogic.widgets.highcharts", description: "HighCharts powered charting."},
+      {title: "Google Kratu", classname: "com.marklogic.widgets.kratu", description: "Google Kratu tabular display of content and semantic search results."},
+      {title: "Document Markings", classname: "com.marklogic.widgets.markings", description: "Allows an XHTML document to have in-document security set to paragraphs, and supports suggesting semantic triples too."},
+      {title: "OpenLayers Map", classname: "com.marklogic.widgets.openlayers", description: "OpenLayers powered map supporting multiple layer types and geospatial search"},
+      {title: "RDB2RDF", classname: "com.marklogic.widgets.rdb2rdf", description: "Convert and RDBMS database to a set of triples in MarkLogic."},
+      {title: "Search Bar", classname: "com.marklogic.widgets.searchbar", description: "Content search query box supporting the default grammar."},
+      {title: "Search Sorter", classname: "com.marklogic.widgets.searchsort", description: "Sort search results based on existing sorting options."},
+      {title: "Search Pager", classname: "com.marklogic.widgets.searchpager", description: "Page through search results."},
+      {title: "Search Facets", classname: "com.marklogic.widgets.searchfacets", description: "Show facets returned from a search, and allow their selection."},
+      {title: "Search Results", classname: "com.marklogic.widgets.searchresults", description: "Show search results. Supports built in and custom rendering."},
+      {title: "Structured Search Selection", classname: "com.marklogic.widgets.searchselection", description: "Select a structured search to execute."},
+      {title: "Semantic Search Bar", classname: "com.marklogic.widgets.sparqlbar", description: "Visually create a sophisticated SPARQL query."},
+      {title: "Semantic Search Results", classname: "com.marklogic.widgets.sparqlresults", description: "Show a summary of Subjects returned from a SPARQL query."},
+      {title: "Semantic Subject Facts", classname: "com.marklogic.widgets.entityfacts", description: "Show the list of facts about a specific subject."}
+    ]
+  }
+};
+
+com.marklogic.widgets.workplaceadmin.prototype._refresh = function() {
+  var str = "<div id='" + this.container + "-workplaceadmin' class='mljswidget workplaceadmin'>";
+  str += "<div id='" + this.container + "-panels' class='workplaceadmin-panels'>";
+  
+  str += "<div id='" + this.container + "-page-heading' class='workplaceadmin-page-heading'>Page Settings</div>";
+  str += "<div id='" + this.container + "-page-content' class='workplaceadmin-page-content'>";
+  str += "<table class='mljstable'>";
+  str += "<tr><td>Page Name:</td><td><input type='text' size='25' id='" + this.container + "-page-name' /></td></tr>";
+  str += "<tr><td>URL(s):</td><td><textarea cols='25' rows='4' id='" + this.container + "-page-urls'></textarea></td></tr>";
+  str += "<tr><td>Main Layout:</td><td><input type='text' size='25' id='" + this.container + "-page-layout' /></td></tr>"; // TODO replace with drop down
+  str += "</table>";
+  str += "</div>";
+  
+  str += "<div id='" + this.container + "-widgets-heading' class='workplaceadmin-widgets-heading'>Widgets</div>";
+  str += "<div id='" + this.container + "-widgets-content' class='workplaceadmin-widgets-content hidden'>";
+  str += "<table class-'mljstable workplaceadmin-widgets-list'>"
+  for (var i = 0, col = 0, max = this._config.widgetList.length,w;i < max;i++) {
+    w = this._config.widgetList[i];
+    
+    col = i % 3;
+    if (0 == col) {
+      str += "<tr>";
+    }
+    
+    str += "<td id='" + this.container + "-widgets-" + i + "'>";
+    // TODO replace text with image of widget
+    str += "<img src='' alt='" + w.title + "' />";
+    str += "</td>";
+    
+    if (2 == col) {
+      str += "</tr>";
+    }
+  }
+  if (col < 2 && i > 0) {
+    str += "</tr>";
+  }
+  str += "</table>";
+  str += "</div>";
+  
+  str += "<div id='" + this.container + "-contexts-heading' class='workplaceadmin-contexts-heading'>Contexts</div>";
+  str += "<div id='" + this.container + "-contexts-content' class='workplaceadmin-contexts-content hidden'>TODO</div>";
+  str += "<div id='" + this.container + "-actions-heading' class='workplaceadmin-actions-heading'>Actions</div>";
+  str += "<div id='" + this.container + "-actions-content' class='workplaceadmin-actions-content hidden'>TODO</div>";
+  str += "</div><div id='" + this.container + "-config' class='workplaceadmin-config'>";
+  
+  str += "</div>";
+  str += "</div>";
+  
+  document.getElementById(this.container).innerHTML = str;
+  
+  // TODO event handlers etc.
+  // widget drag/drop/click
+};
+

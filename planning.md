@@ -2,20 +2,33 @@
 
 ## Upcoming releases
 
-Targets for 1.1 Interim release (Start Nov 2013)
+Targets for 1.1 Interim release (Nov 2013)
  - App builder gap closing
-  - Ensure 'Sort by relevancy' shows in sort drop down, when configured in the search
+  - DONE Ensure 'Sort by relevancy' shows in sort drop down, when configured in the search (achieved via 'states' in AppBuilder)
+  - DONE Check for sort order annotation[0] to use as title rather than automatically determining it from element name/order
   - NA Achieved via Workplace not alterations to searchpage - Embedding charts within search page widget like AppBuilder
   - NA Achieved via Workplace not alterations to searchpage - Support for multiple layouts in search page
-  - Phrase searches
+  - DONE Phrase searches - surround with "some quotes"
   - TEST Support Fields for range constraints
-  - BUG: Widgets: HighCharts - handle 'undefined' in label on pie charts (only happens on chartsearch page, not on workplace page)
+  - DONE BUG: Widgets: HighCharts - handle 'undefined' in label on pie charts (only happens on chartsearch page, not on workplace page)
+  - Core: Rework searchcontext
+   - Allow contribution of facets/sort etc to alter both text (grammar) queries and structured query (independantly, via searchcontext)
+   - Support compound search mode in V7 (options + search)
+   - (Doubtful) Check if structured query supports dynamic text query constraints with grammar (i.e. one term with grammar parsing)
+   - Do shadow query automatically in searchcontext rather than per-widget?
+   - Come up with a strategy for parent-child relationships in search widgets (one way facet selection - E.g. genre THEN album)
   - Widgets: Navigable charts / co-occurence - clicking sets facet value
-  - Auto complete (suggestions), including constraint name suggestions
+   - High charts column
+   - High charts line
+   - Pie segment
+   - DONE Co-occurence (Structured query mode only, not via searchcontext)
+    - DONE BUG: Default constraint options handling (set up search options method?) is causing tuples to return nothing every time
+  - Widgets: searchbar - Auto complete (suggestions), including constraint name suggestions
+  - Widgets: searchfacets - Split out listing/altering selected facets (as opposed to facet value list) in to own widget. E.g. to be used with chart/co-occurence pages with a facet list widget
   - Date time facet selection (column charts like markmail - allow vertical support (bar chart) too for better granularity)
   - DONE dynamic and static: Date time bucketing
   - Shadow queries (MLJS' alternative mechanism)
-  - Simple/complex view of results
+  - Simple/complex view of results (AppBuilder achieves this via state configuration in search options)
  - IN PROGRESS NodeJS: Node.js tests for all functionality now in core MLJS
  - IN PROGRESS Widget: RDB2RDF in test app
   - Remove jQuery specific code
@@ -84,6 +97,7 @@ Targets for 19 Nov 2013
    - DONE BUG: Contribute query does not include one selected from drop down
    - DONE BUG: When clearing query, not contributed query is used at all (just two nulls)
    - DONE Widgets: OpenLayers - Configure OpenLayers/test page to use structured Contrib mode for queries
+   - BUG: OpenLayers polygon/circle selection no longer removing markers when executing more restrictive search
   - NA using Highlight instead due to popups being poor in OpenLayers: Show number with pin
   - NA using Highlight instead due to popups being poor in OpenLayers: Details popup for pins
   - DONE 'highlight' support for search result aka click on pin (not mouse over)
@@ -104,6 +118,7 @@ Targets for 19 Nov 2013
   - Workplace configuration support
   - DONE Fix dynamic width/height detection (el.offsetHeight)
   - DEFERRED Listen for structured query parameter and draw search radius (E.g. 20 miles)
+  - Widgets: OpenLayers - Use MarkLogic as a tile cache rather than the browser (and do "cache first")
  - CSV Import improvements / testing
   - Checkout XSLT upload and transform method
   - Test PAF file format
@@ -296,6 +311,7 @@ Targets for 1.4 (Feb 2014)
  - Core: Complete support for /v1/values REST function (suggestions aka auto complete etc)
  - Test: Support current functionality against MarkLogic V7
  - Core: New V7 functionality
+  - Core: Multipart/mime support - required for POST search, but also useful generically. May require some additional core work
   - Core: POST /v1/search - Dynamic search options (Try this in search context, catch error if on V6 and fall back to original mode)
   - Core: Alerting
   - Core: Score-function=linear|reciprocal, scale-factor=0|inputFloat

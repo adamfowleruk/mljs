@@ -80,6 +80,11 @@
   background-color: #EEEEA2;
 }
 
+.mljswidget .mljstable {
+  border: none;
+  width: 100%;
+}
+
 /****
  * ALL SEARCH WIDGETS DEFAULT CSS BELOW HERE
  ****/
@@ -771,6 +776,71 @@ div.log {
   border: 1px dashed black;
   padding: 10px;
 }
+
+
+
+
+
+
+
+
+/** Workplace admin **/
+.workplaceadmin {
+  width: 100%;
+}
+
+.workplaceadmin-panels {
+  top: 0px;
+  left: 0px;
+  width: 250px;
+  background-color: #C2DDFF;
+}
+
+.workplaceadmin-config {
+  top: 0px;
+  left: 251px;
+  width: 750px;
+  background-color: #D6E8E4;
+}
+
+/** Page settings in panels container **/
+.workplaceadmin-page-heading {
+  background-color: #D6E8E4;
+}
+
+.workplaceadmin-page-content {
+  
+}
+
+.workplaceadmin-widgets-heading {
+  
+}
+
+.workplaceadmin-widgets-content {
+  
+}
+
+.workplaceadmin-widgets-list {
+  font-size: 8px;
+}
+
+.workplaceadmin-contexts-heading {
+  
+}
+
+.workplaceadmin-contexts-content {
+  
+}
+
+.workplaceadmin-actions-heading {
+  
+}
+
+.workplaceadmin-actions-content {
+  
+}
+
+
 
 
 

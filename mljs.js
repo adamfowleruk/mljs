@@ -2720,17 +2720,17 @@ mljs.prototype.options.prototype._includeSearchDefaults = function() {
     this.options.operator = new Array(); // [ operator ],
     this.options["page-length"] = 10; //unsigned long,
     this.options["quality-weight"] = undefined;// double,
-    this.options["return-aggregates"] = false; // boolean,
-    this.options["return-constraints"] = false;// boolean,
-    this.options["return-facets"] = true; // boolean,
-    this.options["return-frequencies"] = false; // boolean,
+    //this.options["return-aggregates"] = false; // boolean,
+    //this.options["return-constraints"] = false;// boolean,
+    //this.options["return-facets"] = true; // boolean,
+    //this.options["return-frequencies"] = false; // boolean,
     this.options["return-metrics"] = true; // boolean,
-    this.options["return-plan"] = false; // boolean,
+    //this.options["return-plan"] = false; // boolean,
     this.options["return-qtext"] = true; // boolean
     this.options["return-query"] = false; // boolean,
     this.options["return-results"] = true; // boolean,
     this.options["return-similar"] = false; // boolean,
-    this.options["return-values"] = false; // boolean,
+    //this.options["return-values"] = false; // boolean,
     this.options["search-option"] = new Array(); // [ string ],
     this.options["sort-order"] = new Array(); // [ sort-order ],
     this.options["suggestion-source"] = new Array(); //[ suggestion-source ],
@@ -3743,6 +3743,7 @@ mljs.prototype.options.prototype.tuples = function(name,el,el2) { // TODO handle
  */
 mljs.prototype.options.prototype.values = function(name,el,el2) {
   var values = {name: name,range: new Array()};
+  this.options["return-values"] = true;
   if (undefined == this.options.values) {
     this.options.values = new Array();
   }
