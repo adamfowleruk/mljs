@@ -1,5 +1,5 @@
 
-$(document).ready(function() {
+window.onload = function() {
   var db = new mljs(); 
   
   var wgt = new com.marklogic.widgets.searchpage("search-page");
@@ -19,4 +19,4 @@ $(document).ready(function() {
   wgt.setOptions("mljstest-page-search-options",options);
   wgt.execute();
   
-});
+};

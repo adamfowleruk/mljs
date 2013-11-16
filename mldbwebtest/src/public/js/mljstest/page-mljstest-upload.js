@@ -1,6 +1,6 @@
 
 
-$(document).ready(function() {
+window.onload = function() {
   // initialise mljs
   var db = new mljs(); 
   /*
@@ -30,4 +30,4 @@ $(document).ready(function() {
   });
   
   mljs.defaultconnection.logger.debug("Done widget initialisation");
-});
+};

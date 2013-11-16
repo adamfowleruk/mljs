@@ -19,26 +19,25 @@ declare option xdmp:mapping "false";
   let $stuff := vh:get("stuff")
 :)
 
-<div xmlns="http://www.w3.org/1999/xhtml" class="mldbtest">
+<div xmlns="http://www.w3.org/1999/xhtml" class="mljstest tagcloud">
+
 <link rel="stylesheet" type="text/css" href="/css/mljs/widgets.css" />
 <script type="text/javascript" src="/js/mljs/mljs.js"></script>
 <script type="text/javascript" src="/js/mljs/mljs-xhr2.js"></script>
 
 <script type="text/javascript" src="/js/mljs/widgets.js"></script>
-<script type="text/javascript" src="/js/mljs/widget-search.js"></script>
-<script type="text/javascript" src="/js/mljs/widget-triples.js"></script>
+<script type="text/javascript" src="/js/mljs/widget-tagcloud.js"></script>
 
-<script type="text/javascript" src="/js/mljstest/page-mljstest-sparqlbar.js"></script>
+<script type="text/javascript" src="/js/mljstest/page-mljstest-tagcloud.js"></script>
   
  <div class="container_12">  
   <div id="errors" class="grid_12"></div>
  </div>
- <div class="container_12">  
-  <div id="query" class="grid_12 sparqlpage-bar">query</div>
+ <div class="container_12"> 
+  <div id="genre" class="grid_6">genre</div>
+  <div id="actor" class="grid_6">actor</div>
  </div>
- <div class="container_12">  
-  <div id="triple-content" class="triple-page grid_4">Triple results goes here</div>
-  <div id="facts" class="triple-page grid_4">Facts go here</div>
-  <div id="search-content" class="search-page grid_4">Search content goes here</div>
+ <div class="container_12"> 
+  <div id="year" class="grid_6">year</div>
  </div>
 </div>

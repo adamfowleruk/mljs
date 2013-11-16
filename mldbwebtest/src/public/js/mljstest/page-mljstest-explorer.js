@@ -1,6 +1,6 @@
 
 
-$(document).ready(function() {
+window.onload = function() {
   // initialise mljs
   var db = new mljs(); // calls default configure
   db.logger.setLogLevel("debug");
@@ -24,4 +24,4 @@ $(document).ready(function() {
     console.log(err);
     error.show(err.message);
   }
-});
+};

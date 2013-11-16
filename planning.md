@@ -12,11 +12,11 @@ Targets for 1.1 Interim release (Nov 2013)
   - TEST Support Fields for range constraints
   - DONE BUG: Widgets: HighCharts - handle 'undefined' in label on pie charts (only happens on chartsearch page, not on workplace page)
   - Core: Rework searchcontext
-   - Allow contribution of facets/sort etc to alter both text (grammar) queries and structured query (independantly, via searchcontext)
+   - Allow contribution of facets/sort etc to alter both text (grammar) queries and structured query (independently, via searchcontext)
    - Support compound search mode in V7 (options + search)
    - (Doubtful) Check if structured query supports dynamic text query constraints with grammar (i.e. one term with grammar parsing)
-   - Do shadow query automatically in searchcontext rather than per-widget?
-   - Come up with a strategy for parent-child relationships in search widgets (one way facet selection - E.g. genre THEN album)
+   - DEFERRED Do shadow query automatically in searchcontext rather than per-widget?
+   - DEFERRED Come up with a strategy for parent-child relationships in search widgets (one way facet selection - E.g. genre THEN album)
   - Widgets: Navigable charts / co-occurence - clicking sets facet value
    - High charts column
    - High charts line
@@ -27,8 +27,8 @@ Targets for 1.1 Interim release (Nov 2013)
   - Widgets: searchfacets - Split out listing/altering selected facets (as opposed to facet value list) in to own widget. E.g. to be used with chart/co-occurence pages with a facet list widget
   - Date time facet selection (column charts like markmail - allow vertical support (bar chart) too for better granularity)
   - DONE dynamic and static: Date time bucketing
-  - Shadow queries (MLJS' alternative mechanism)
-  - Simple/complex view of results (AppBuilder achieves this via state configuration in search options)
+  - DEFERRED Shadow queries (MLJS' alternative mechanism)
+  - DEFERRED Simple/complex view of results (AppBuilder achieves this via state configuration in search options)
  - IN PROGRESS NodeJS: Node.js tests for all functionality now in core MLJS
  - IN PROGRESS Widget: RDB2RDF in test app
   - Remove jQuery specific code
@@ -138,6 +138,7 @@ Targets for 1.2 (Dec 2013)
   - Facet display names from JSON config file
   - REST request re-writer to point to Workplace page (mljs-workplace.html.xqy), pass on other requests to REST API
   - Document preview page (may apply XSLT) on /view?uri= - check the appbuilder URL for this
+ - Roxy commands for creating entire MLJS powered pages, controllers, and template JavaScript (E.g. ./ml mljs mycontroller/search searchpage leftchart=pie rightchart=map options=mysearchoptions )
  - Widgets: Sparql: Other sparql improvements (via sparql builder)
   - Support OPTIONAL?
   - Support UNION?

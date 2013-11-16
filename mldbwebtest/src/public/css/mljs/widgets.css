@@ -781,6 +781,16 @@ div.log {
 
 
 
+/** Tag Clout **/
+.tagcloud-value {
+  margin: 3px;
+}
+
+.tagcloud-value #hover {
+  background-color: #D2D2D2;
+  cursor: pointer;
+}
+
 
 
 

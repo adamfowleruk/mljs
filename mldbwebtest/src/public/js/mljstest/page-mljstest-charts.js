@@ -1,5 +1,5 @@
 
-$(document).ready(function() {
+window.onload = function() {
   var db = new mljs();
   db.logger.setLogLevel("debug");
   
@@ -105,4 +105,4 @@ $(document).ready(function() {
     error.show(err.message);
   }
   
-});
+};

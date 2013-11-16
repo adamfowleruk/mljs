@@ -23,7 +23,6 @@ declare option xdmp:mapping "false";
 
 
 <link rel="stylesheet" type="text/css" href="/css/mljs/widgets.css" />
-<script type="text/javascript" src="/js/lib/jquery-1.7.1.min.js"></script>
 <script type="text/javascript" src="/js/mljs/mljs.js"></script>
 <script type="text/javascript" src="/js/mljs/mljs-xhr2.js"></script>
 
