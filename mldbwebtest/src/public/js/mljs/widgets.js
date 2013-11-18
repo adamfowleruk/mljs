@@ -25,7 +25,7 @@ com.marklogic.widgets = window.com.marklogic.widgets || {};
 
 // generic useful functions (not namespaced)
 
-function bubbleSort(a,jsonPath)
+function bubbleSort(a,jsonPath,reversed)
 {
     var swapped;
     do {
@@ -42,6 +42,13 @@ function bubbleSort(a,jsonPath)
 	    rightValue = jsonExtractValue(a[i+1],jsonPath);
 	  } else {
 	    rightValue = a[i+1];
+	  }
+	  if (undefined != reversed && reversed == true) {
+	    // reverse the order of sort
+	    var t = leftValue;
+	    leftValue = rightValue;
+	    rightValue = t;
+	    t = undefined;
 	  }
             if (leftValue < rightValue) {
                 var temp = a[i];
@@ -667,3 +674,113 @@ com.marklogic.widgets.appendHTML = function(el,s) {
     el.appendChild(newcontent.firstChild);
   }
 };
+
+
+
+
+
+
+
+/**
+ * DRAG AND DROP GENERIC SUPPORT HELPER FUNCTIONS
+ * See http://stackoverflow.com/questions/15775440/javascript-drag-drop-a-div-on-a-web-page?lq=1
+ * and http://www.w3schools.com/html/html5_draganddrop.asp#gsc.tab=0
+ */
+com.marklogic.widgets.dnd = {
+  droppables: {}, // droppables["elid"] = {classname: "myclass", accept: [class1,class2,...] }
+  draggables: {} // draggables["elid"] = {classname: "myclass", onto: [class1,...] }
+};
+
+com.marklogic.widgets.dnd.accept = function(elid,droppableClass,draggableTypeArrayToAccept,actionCallback) {
+  // assume caller does html generation (for speed)
+  // add droppable configuration
+  var droppable = {classname: droppableClass,accept: draggableTypeArrayToAccept, action: actionCallback};
+  com.marklogic.widgets.dnd.droppables[elid] = droppable;
+  // add event handlers
+  var el = document.getElementById(elid);
+  mljs.defaultconnection.logger.debug("dnd.onto: adding event handlers to: " + elid);
+  el.addEventListener("dragover",function(ev) {
+    mljs.defaultconnection.logger.debug("dnd.onto: ondragover: " + elid);
+    //var match = com.marklogic.widgets.dnd._compatible(el,elid,droppable); // TODO find and pass draggable elid
+    //if (match) {
+      // TODO add dnd hover class to element
+    //}
+    ev.preventDefault();
+    mljs.defaultconnection.logger.debug("dnd.accept: ondragover: returning false");
+    return false;
+  });
+  // TODO on drag out?
+  el.addEventListener("drop",function(ev) {
+    mljs.defaultconnection.logger.debug("dnd.onto: ondrop: " + elid);
+    //var match = com.marklogic.widgets.dnd._compatible(el,elid,droppable); // TODO find and pass draggable elid
+    //if (match) {
+      var data = JDON.parse(ev.dataTransfer.getData("application/javascript"));
+    mljs.defaultconnection.logger.debug("dnd.accept: ondrop: calling action callback");
+      droppable.action(data);
+    //}
+    ev.preventDefault();
+    mljs.defaultconnection.logger.debug("dnd.accept: ondrop: returning false");
+    return false;
+  });
+  mljs.defaultconnection.logger.debug("dnd.onto: completed adding event handlers to: " + elid);
+};
+
+com.marklogic.widgets.dnd.onto = function(elid,draggableClass,droppableTypeArrayToMap,dataOrCallback) {
+  // assume caller does html generation (for speed) (For HTML5 this element MUST have attribute draggable="true")
+  // add draggable configuration
+  var draggable = {classname: draggableClass, onto: droppableTypeArrayToMap, dataOrCallback: dataOrCallback};
+  com.marklogic.widgets.dnd.draggables[elid] = draggable;
+  // add event handlers
+  var el = document.getElementById(elid);
+  el.ondragstart = function(ev) {
+    mljs.defaultconnection.logger.debug("dnd.onto: ondragstart: " + elid);
+    //var match = com.marklogic.widgets.dnd._draggableCompatible(el,elid,draggable); // TODO get elid of droppable and pass that too
+    //if (match) {
+      // send data
+      var data = {};
+      if ("function" === typeof(dataOrCallback)) {
+        data = dataOrCallback();
+      } else {
+        data = dataOrCallback;
+      }
+      mljs.defaultconnection.logger.debug("dnd.onto: ondragstart: sending data");
+      var sd = JSON.stringify(data);
+      ev.dataTransfer.setData("application/javascript",sd);
+      mljs.defaultconnection.logger.debug("dnd.onto: ondragstart: sent data: " + sd);
+    //}
+    ev.preventDefault();
+    mljs.defaultconnection.logger.debug("dnd.onto: ondragstart: returning false");
+    return false;
+  };
+};
+
+com.marklogic.widgets.dnd._compatible = function(el,elid,droppable,draggableElid) {
+  // check if the droppable matches the draggable being hovered over the top
+  var dragClass = com.marklogic.widgets.dnd.draggables[draggableElid];
+  if (null == dragClass || undefined == dragClass) {
+    return false; // can't match if not in one of our lists
+  }
+  for (var i = 0, max = droppable.accept.length,dropClass;i < max;i++) {
+    dropClass = droppable.accept[i];
+    if (dragClass == dropClass || "*" == dropClass) {
+      return true;
+    }
+  }
+  return false;
+};
+
+com.marklogic.widgets.dnd._draggableCompatible = function(el,elid,draggable,droppableElid) {
+  // check that this
+  var dropClass = com.marklogic.widgets.dnd.droppables[droppableElid];
+  if (null == dropClass || undefined == dropClass) {
+    return false; // can't match if not in one of our lists
+  }
+  for (var i = 0, max = draggable.onto.length,dragClass;i < max;i++) {
+    dragClass = draggable.onto[i];
+    if (dragClass == dropClass || "*" == dragClass) {
+      return true;
+    }
+  }
+  return false;
+};
+

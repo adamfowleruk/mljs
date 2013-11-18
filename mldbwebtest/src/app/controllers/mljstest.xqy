@@ -195,3 +195,12 @@ declare function c:tagcloud() as item()*
   ch:use-view((), "xml"),
   ch:use-layout("mljs-one-column-test","html"))
 };
+
+declare function c:dnd() as item()*
+{
+  (
+  ch:add-value("message", "This is a test message."),
+  ch:add-value("title", "Drag and Drop"),
+  ch:use-view((), "xml"),
+  ch:use-layout("mljs-one-column-test","html"))
+};

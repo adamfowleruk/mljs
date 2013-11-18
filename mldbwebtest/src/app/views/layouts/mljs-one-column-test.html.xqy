@@ -86,7 +86,8 @@ declare variable $q as xs:string? := vh:get("q");
         <br/>
       In Development:  
         <a href="/mljstest/workplace">Workplace</a> | 
-        <a href="/mljstest/collectionuris">Collection URIs</a>
+        <a href="/mljstest/collectionuris">Collection URIs</a> | 
+        <a href="/mljstest/dnd">Drag &amp; Drop</a>
       </div>
       
       <div class="content">

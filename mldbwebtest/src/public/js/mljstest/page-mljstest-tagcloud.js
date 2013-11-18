@@ -37,6 +37,6 @@ window.onload = function() {
     ctx.doStructuredQuery(query);
   
   } catch (err) {
-    error.show(err.message);
+    error.show(err);
   }
 };

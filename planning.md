@@ -3,6 +3,8 @@
 ## Upcoming releases
 
 Targets for 1.1 Interim release (Nov 2013)
+ - DONE Widgets: Tag Cloud for a facet
+  - DONE Allow sorting by name ascending (currently bubblesort only works descending)
  - App builder gap closing
   - DONE Ensure 'Sort by relevancy' shows in sort drop down, when configured in the search (achieved via 'states' in AppBuilder)
   - DONE Check for sort order annotation[0] to use as title rather than automatically determining it from element name/order
@@ -181,6 +183,7 @@ Targets for 1.2 (Dec 2013)
   - Document context highlighting configurable to fire get semantic info on MarkLogic document
   - MarkLogic document ontology
  - IN PROGRESS Widgets: Workplace - Removes any code anyone needs to write to use MLJS widgets
+  - IN PROGRESS Widgets: Add Drag and Drop support to widgets.js
   - Each username has a workplace in the content store saved as a JSON config file
   - IN PROGRESS Defines what pages are available, the layout of those pages, and what is shown on each
   - Alter mljsme.sh to copy in a Roxy controller and view using default configured layout - equiv of ml create mljs/main html followed by copying scripts over

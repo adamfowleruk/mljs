@@ -784,6 +784,7 @@ div.log {
 /** Tag Clout **/
 .tagcloud-value {
   margin: 3px;
+  display: inline-block;
 }
 
 .tagcloud-value #hover {

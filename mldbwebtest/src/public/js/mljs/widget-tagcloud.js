@@ -73,7 +73,7 @@ com.marklogic.widgets.tagcloud.prototype._refresh = function() {
               factor = (maxSize - startSize);
             }
             mljs.defaultconnection.logger.debug("factor: " + factor);
-            bubbleSort(values, "value");
+            bubbleSort(values, "value",true);
             
             var valuesCount = values.length;
             for (var v = 0;v < valuesCount;v++) {
