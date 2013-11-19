@@ -2,66 +2,6 @@
 
 ## Upcoming releases
 
-Targets for 1.1 Interim release (Nov 2013)
- - DONE Widgets: Tag Cloud for a facet
-  - DONE Allow sorting by name ascending (currently bubblesort only works descending)
- - App builder gap closing
-  - DONE Ensure 'Sort by relevancy' shows in sort drop down, when configured in the search (achieved via 'states' in AppBuilder)
-  - DONE Check for sort order annotation[0] to use as title rather than automatically determining it from element name/order
-  - NA Achieved via Workplace not alterations to searchpage - Embedding charts within search page widget like AppBuilder
-  - NA Achieved via Workplace not alterations to searchpage - Support for multiple layouts in search page
-  - DONE Phrase searches - surround with "some quotes"
-  - TEST Support Fields for range constraints
-  - DONE BUG: Widgets: HighCharts - handle 'undefined' in label on pie charts (only happens on chartsearch page, not on workplace page)
-  - Core: Rework searchcontext
-   - Allow contribution of facets/sort etc to alter both text (grammar) queries and structured query (independently, via searchcontext)
-   - Support compound search mode in V7 (options + search)
-   - (Doubtful) Check if structured query supports dynamic text query constraints with grammar (i.e. one term with grammar parsing)
-   - DEFERRED Do shadow query automatically in searchcontext rather than per-widget?
-   - DEFERRED Come up with a strategy for parent-child relationships in search widgets (one way facet selection - E.g. genre THEN album)
-  - Widgets: Navigable charts / co-occurence - clicking sets facet value
-   - High charts column
-   - High charts line
-   - Pie segment
-   - DONE Co-occurence (Structured query mode only, not via searchcontext)
-    - DONE BUG: Default constraint options handling (set up search options method?) is causing tuples to return nothing every time
-  - Widgets: searchbar - Auto complete (suggestions), including constraint name suggestions
-  - Widgets: searchfacets - Split out listing/altering selected facets (as opposed to facet value list) in to own widget. E.g. to be used with chart/co-occurence pages with a facet list widget
-  - Date time facet selection (column charts like markmail - allow vertical support (bar chart) too for better granularity)
-  - DONE dynamic and static: Date time bucketing
-  - DEFERRED Shadow queries (MLJS' alternative mechanism)
-  - DEFERRED Simple/complex view of results (AppBuilder achieves this via state configuration in search options)
- - IN PROGRESS NodeJS: Node.js tests for all functionality now in core MLJS
- - IN PROGRESS Widget: RDB2RDF in test app
-  - Remove jQuery specific code
-  - DONE Check Roxy installation of REST extension works automatically
-  - DONE validate CSS works correctly on all pages
- - IN PROGRESS Docs: Document all core concepts currently part of MLJS
-  - IN PROGRESS Docs: searchcontext object
-  - Widgets: Search Speed - As a tutorial for those wishing to contribute to MLJS by creating new widgets of their own
-  - Docs: documentcontext object
-  - Docs: tripleconfig
-  - Docs: semanticcontext
-  - Docs: Internal JSON formats used, and links to REST API ones exposed to end users (E.g. search results)
-   - search formats
-   - search options
-   - JSON internal predicate format
-   - JSON internal rdf type format
-   - JSON external rdf type format
-   - documentcontext.allowableProperty JSON
-   - search properties transform parameters sprops_opt.transformParameters
-   - sortOrder element/field/attribute spec
-  - DONE Core API jsdoc
-  - Widget API jsdoc
- - NOT A BUG searchfacets or searchbar widgets using facet title, not constraint name, to indicate constraint added to searchbar (also for lookup/matching)
-  - NA Actually, there is no 'facet title' just that constraint name and field name are generally the same. Need to add Title support somehow
-  - Add annotation support in constraints and facets, and use these in the searchfacets widget
- - IN PROGRESS Core: Search Options builder
-  - hide sem:triple elements from snippet highlighting
-  - Don't return sem:triples documents at all by default
-  - DONE actually write the pathConstraint function!
-  - Investigate why REST insists upon some elements having indexes in the JSON namespace as well as the one required (E.g. xhtml and h1) - because using JSON mode???
-  
 Targets for 19 Nov 2013
  - DONE Widgets: OpenLayers phase 1
   - DONE Basic map display
@@ -115,6 +55,8 @@ Targets for 19 Nov 2013
    - Update heatmap options and perform search again on map zoom
    - Change to using shadow query just for heatmap?
    - Change to use geoConstraintName(cn) as the heatmap constraint name (not just constraint for additional openlayers positional query)
+   - Change to automatically calculate boxes in lon/lat planes. E.g. LOW=16 boxes, if 800x800 map, this would be 4 wide and 4 tall, MED=64, HIGH=256
+   - DEFERRED Support RAW mode - extract lon/lat metadata ONLY, and pass all results directly to heatmap.js code (rather than calculate within MarkLogic)
   - Locate me button support - http://openlayers.org/dev/examples/geolocation.html
   - Locate me automatic (browser) with no button
   - Workplace configuration support
@@ -126,6 +68,72 @@ Targets for 19 Nov 2013
   - Test PAF file format
  - Nice to have: Widgets: Browse related Subjects in node diagram
 
+Targets for 1.1 Interim release (Nov 2013)
+ - DONE Widgets: Tag Cloud for a facet
+  - DONE Allow sorting by name ascending (currently bubblesort only works descending)
+ - Widgets: Address to Lon Lat - Perform address lookup for top matching point, feed as constraint in to structured query
+  - MS VirtualEarth address lookup?
+  - Accept radius as a property
+ - App builder gap closing
+  - DONE Ensure 'Sort by relevancy' shows in sort drop down, when configured in the search (achieved via 'states' in AppBuilder)
+  - DONE Check for sort order annotation[0] to use as title rather than automatically determining it from element name/order
+  - NA Achieved via Workplace not alterations to searchpage - Embedding charts within search page widget like AppBuilder
+  - NA Achieved via Workplace not alterations to searchpage - Support for multiple layouts in search page
+  - DONE Phrase searches - surround with "some quotes"
+  - TEST Support Fields for range constraints
+  - DONE BUG: Widgets: HighCharts - handle 'undefined' in label on pie charts (only happens on chartsearch page, not on workplace page)
+  - Core: Rework searchcontext
+   - Allow contribution of facets/sort etc to alter both text (grammar) queries and structured query (independently, via searchcontext)
+   - Support compound search mode in V7 (options + search)
+   - (Doubtful) Check if structured query supports dynamic text query constraints with grammar (i.e. one term with grammar parsing)
+   - DEFERRED Do shadow query automatically in searchcontext rather than per-widget?
+   - DEFERRED Come up with a strategy for parent-child relationships in search widgets (one way facet selection - E.g. genre THEN album)
+  - Widgets: Navigable charts / co-occurence - clicking sets facet value
+   - High charts column
+   - High charts line
+   - Pie segment
+   - DONE Co-occurence (Structured query mode only, not via searchcontext)
+    - DONE BUG: Default constraint options handling (set up search options method?) is causing tuples to return nothing every time
+  - Widgets: searchbar - Auto complete (suggestions), including constraint name suggestions
+  - Widgets: searchfacets - Split out listing/altering selected facets (as opposed to facet value list) in to own widget. E.g. to be used with chart/co-occurence pages with a facet list widget
+  - Widgets: HighCharts - Date time facet selection (column charts like markmail - allow vertical support (bar chart) too for better granularity)
+  - DONE dynamic and static: Date time bucketing
+  - DEFERRED Shadow queries (MLJS' alternative mechanism)
+  - DEFERRED Simple/complex view of results (AppBuilder achieves this via state configuration in search options)
+ - IN PROGRESS NodeJS: Node.js tests for all functionality now in core MLJS
+ - IN PROGRESS Widget: RDB2RDF in test app
+  - Remove jQuery specific code
+  - DONE Check Roxy installation of REST extension works automatically
+  - DONE validate CSS works correctly on all pages
+ - IN PROGRESS Docs: Document all core concepts currently part of MLJS
+  - IN PROGRESS Docs: searchcontext object
+  - Widgets: Search Speed - As a tutorial for those wishing to contribute to MLJS by creating new widgets of their own
+  - Docs: documentcontext object
+  - Docs: tripleconfig
+  - Docs: semanticcontext
+  - Docs: Internal JSON formats used, and links to REST API ones exposed to end users (E.g. search results)
+   - search formats
+   - search options
+   - JSON internal predicate format
+   - JSON internal rdf type format
+   - JSON external rdf type format
+   - documentcontext.allowableProperty JSON
+   - search properties transform parameters sprops_opt.transformParameters
+   - sortOrder element/field/attribute spec
+  - DONE Core API jsdoc
+  - Widget API jsdoc
+ - Docs: Tutorials
+  - (Emil Zegers) RDB2RDF quick start tutorial
+  - (Emil Zegers) OpenLayers quick start tutorial
+ - NOT A BUG searchfacets or searchbar widgets using facet title, not constraint name, to indicate constraint added to searchbar (also for lookup/matching)
+  - NA Actually, there is no 'facet title' just that constraint name and field name are generally the same. Need to add Title support somehow
+  - Add annotation support in constraints and facets, and use these in the searchfacets widget
+ - IN PROGRESS Core: Search Options builder
+  - hide sem:triple elements from snippet highlighting
+  - Don't return sem:triples documents at all by default
+  - DONE actually write the pathConstraint function!
+  - Investigate why REST insists upon some elements having indexes in the JSON namespace as well as the one required (E.g. xhtml and h1) - because using JSON mode???
+  
 Targets for 1.2 (Dec 2013)
  - Widgets: HighCharts
   - Support multiple series, axes and searchcontexts (how?) -> Use work in OpenLayers as a base
@@ -163,7 +171,7 @@ Targets for 1.2 (Dec 2013)
   - hide by default, show provenance button to view provenance and interrelationship of entities
   - requires node diagram for viewing effectively (use PROV-O diagram shapes/colours? Over-Time view?)
   - may be easiest to import OWL2 ontology in to triple config
- - Tools: Windows batch file versions of developer required (non build related) bash scripts, including mljsme
+ - (Emil Zegers) Tools: Windows batch file versions of developer required (non build related) bash scripts, including mljsme
   - mljsme
   - TEST ml.bat roxy deploy
   - create-mldbtest
@@ -184,11 +192,28 @@ Targets for 1.2 (Dec 2013)
   - MarkLogic document ontology
  - IN PROGRESS Widgets: Workplace - Removes any code anyone needs to write to use MLJS widgets
   - IN PROGRESS Widgets: Add Drag and Drop support to widgets.js
-  - Each username has a workplace in the content store saved as a JSON config file
+   - DONE DND pure Test page in mldbwebtest roxy project
+   - IN PROGRESS ensure basic drag and drop works
+   - IN PROGRESS Add rules around which draggables can be dropped on which droppables (dropzones)
+  - Support multiple modes
+   - (default) Detect URL of page. Search in ML for workplace json page that matches this URL (not including query strings)
+   - User default workplace. Find user's own 'personal-workplace' for currently logged in user (akin to a single page mode app)
+   - DEFERRED Embeddable. Assume embedded in external app. Use workplace-share-id as key to find, on remote server via W3C CORS, the 'page' (embed) to draw
+   - Fallback. If no Workplace detected, create a generic search page with a Workplace edit button (depending on app wide settings - 'save/edit allowed')
+    - Allow fallback to be set programmatically or via app wide settings
+  - Create WorkplaceContext object in workplace js file
+   - updatePage event - occurs when a page is loaded. E.g. from current page URL or for current logged in user or as fallback
+   - updateApp event
+   - loadApp
+   - loadPage
+   - updatePreferences - used by widgets to globally (or in just this workplace page/sub layout) save and load preferences about this widget. E.g. last displayed place
+   - loadPreferences
+   - DEFERRED updateShareable - when executed as embedded shareable page, load all workplace page settings, and widget 'preferences' to use (as wont be 'current' user) - handle widget preferences transparently in this case - no special widget settings
+  - DEFERRED Widgets: Share Workplace widget - button, and configuration to share (assume security is default app security for now)
   - IN PROGRESS Defines what pages are available, the layout of those pages, and what is shown on each
   - Alter mljsme.sh to copy in a Roxy controller and view using default configured layout - equiv of ml create mljs/main html followed by copying scripts over
+   - Alternatively, build Roxy command extension to do this. Use mljsme.sh to integrate these in to a Roxy app
   - Load application wide Workplace configuration settings (Not just content DB wide - use domain name somehow)
-  - If no Workplace detected, create a generic search page with a Workplace edit button (depending on app wide settings)
   - IN PROGRESS Widget initialisation for each page done dynamically
    - NA (For first version require all to be on import path) Requires dynamic loading of scripts, or importing of all scripts (do latter for now)
   - Ability to link widgets together. E.g. dropping a searchbar creates a searchcontext - list which have endpoints to link to which contexts' functions - like Yahoo Pipes
@@ -197,7 +222,7 @@ Targets for 1.2 (Dec 2013)
    - DONE List contexts and map them to widgets
   - IN PROGRESS Handle widget configuration, and actions
    - DONE On page load actions (execute search - context methods)
-   - IN PROGRESS Instance widget configuration settings (Easier than using 'call javascript' action)
+   - IN PROGRESS Instance widget configuration settings (Easier than using 'call javascript' action) (hard coded in config as opposed to personalisations)
     - DONE search widgets
     - DONE high charts widgets
     - DONE searchcontext
@@ -224,6 +249,12 @@ Targets for 1.2 (Dec 2013)
    - DONE MLDBWebTest Animal Watch Workplace
    - Semantic Workplace
    - Editable blank workplace sandbox page
+  - Support pre-made templates
+   - Some built in (Search page aka AppBuilder, semantic search page, data exploration page, document details page)
+   - Custom made templates
+    - Page 'save as template' mode in edit screen
+    - allow users to 'save' their own templates against their account only
+    - allow sharing of templates to specified roles in ML (just read permission setting)
  - Docs: Video tutorials for all new functionality - Create a Semantic Application Series
   - Intro to semantics in MarkLogic
    - Manually load in some triple in N-triples format, and query this in QConsole and rest to show the ideas behind what we're doing
@@ -249,6 +280,7 @@ Targets for 1.2 (Dec 2013)
    - Show what parts of the spec are there, and which ones we're missing, but which ones *can* be provided with a little work
    - Inferencing - we've shown, but should mention here
    - aggregates (count, sum, avg, etc.)
+   - Sparql update
   
 Targets for 1.4 (Feb 2014)
  - CSS best practice
@@ -375,7 +407,7 @@ Targets for Dec 2013 (LOW PRIORITY)
  - Widgets: Moveable column layout handler
  - Widgets: Mini map to show activity just out of view
  
-Floating as and when
+LOW priority
  - MarkLogic reported bugs retesting
   - BUG (Product 6.0-2): plain text documents - text content not escaped properly
  - Own demo apps
