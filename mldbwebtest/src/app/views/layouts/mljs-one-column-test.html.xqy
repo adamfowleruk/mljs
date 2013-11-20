@@ -77,7 +77,6 @@ declare variable $q as xs:string? := vh:get("q");
         <a href="/mljstest/tagcloud">Tag Cloud</a>
         <br/>
       V7+:
-        <a href="/mljstest/docbuilder">Document Builder</a> | 
         <a href="/mljstest/sparqlbar">Semantic (SPARQL) Search</a> | 
         <a href="/mljstest/explorer">Explorer</a> 
         <br/>
@@ -85,6 +84,7 @@ declare variable $q as xs:string? := vh:get("q");
         <a href="/mljstest/rdb2rdf">RDB2RDF</a> 
         <br/>
       In Development:  
+        <a href="/mljstest/docbuilder">Document Builder</a> | 
         <a href="/mljstest/workplace">Workplace</a> | 
         <a href="/mljstest/collectionuris">Collection URIs</a> | 
         <a href="/mljstest/dnd">Drag &amp; Drop</a>

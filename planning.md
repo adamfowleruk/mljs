@@ -125,6 +125,22 @@ Targets for 1.1 Interim release (Nov 2013)
  - Docs: Tutorials
   - (Emil Zegers) RDB2RDF quick start tutorial
   - (Emil Zegers) OpenLayers quick start tutorial
+ - Docs: MLJS Webinar series of Video Tutorials
+  1. Introduction to MLJS (text done. 3min 15) - Why should I care? (Akin to the first 5 minutes of my company wide webinar)
+  2. Introduction to the MLJS Core API (text done. 4min21). Core communication with MarkLogic server. Introduction to Search Context and other Context objects
+  3. Introduction to the MLJS Widget API. Briefly show the mldbwebtest app, deploying it, and a brief description of the widget test pages (and each widget).
+  4. Creating a new Hyrbid app with MLJS. (Already exists, on blog site). Creating a search page and configuring options and facets. A search page with two charts (akin to an AppBuilder demo)
+  5. Loading documents with MLJS. Add test XML, JSON and text documents using MLJS and a test loading web page.
+  6. Customising how search results are displayed - The Renderer architecture. Detect and display data in a search results page in new and interesting ways
+  7. Using MLJS to explore data - Integrated charts, co-occurence, map, query bar
+  8. Loading triples with MLJS. How to use a simple JSON structure to load standalone facts.
+  9. Configuring an ontology to power Semantic Queries with Sparql. How to customise a sparql query bar widget, and create a subject browsing page
+  10. Combining Document and Semantic search. Extend the semantic page to show 'related documents'. Create a data explorer page to show subject and embedded document information.
+  11. Creating an application. Linking existing pages together with actions. Search for content, view document metadata, download the related PDF version.
+  12. Customising the Chrome of your application. How to customise an entire MLJS based Roxy hybrid app for a particular client's web theme.
+  13. Using MLJS with your favourite widget library. Using an AngularJS page controller and widgets integrated with MLJS powered widgets
+  14. Writing your own widget I. Create a search metrics widget with a refresh button to re-execute the search.
+  15. Writing your own widget II. Create a multiple document upload widget, with progress bar, named collection, and link to a search page to show those just uploaded. 
  - NOT A BUG searchfacets or searchbar widgets using facet title, not constraint name, to indicate constraint added to searchbar (also for lookup/matching)
   - NA Actually, there is no 'facet title' just that constraint name and field name are generally the same. Need to add Title support somehow
   - Add annotation support in constraints and facets, and use these in the searchfacets widget

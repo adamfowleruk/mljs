@@ -32,6 +32,12 @@ declare option xdmp:mapping "false";
 <script type="text/javascript" src="/js/mljstest/page-mljstest-movies.js"></script>
   
  <div class="container_12">  
+  <div id="cs-hint" class="grid_12">Hint: Click on one of the widget's values to contribute this term to the underlying structured query. 
+    Note: Each widget can only contribute 1 value - thus clicking a second value in the same widget changes it's query term, rather than
+    adding an additional query term. (Click 'Comedy' then 'Sean Astin' in the actor vs genre widget for an example.)
+  </div>
+ </div>
+ <div class="container_12">  
   <div id="errors" class="grid_12"></div>
  </div>
  <div class="container_12"> 
