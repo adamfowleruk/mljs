@@ -28,7 +28,13 @@ com.marklogic.widgets = window.com.marklogic.widgets || {};
 com.marklogic.widgets.openlayers = function(container) {
   this.container = container;
   
+  // granularity constants
+  this.HIGH = 256;
+  this.MEDIUM = 128;
+  this.LOW = 64;
+  
   this.map = null; // openlayers map control
+  this.baseLayer = null;
   
   this._config = {
     "constraint-name": null
@@ -51,7 +57,14 @@ com.marklogic.widgets.openlayers = function(container) {
   this._selectedUri = null;
   this._highlightedUri = null;
   
+  this.heatmap = null; // open layers heatmap
+  this.heatmapGranularity = this.HIGH;
+  
   this._refresh();
+};
+
+com.marklogic.widgets.openlayers.prototype.setHeatmapGranularity = function(val) {
+  this.heatmapGranularity = val;
 };
 
 com.marklogic.widgets.openlayers.prototype.addGeoSelectionListener = function(lis) {
@@ -296,6 +309,14 @@ com.marklogic.widgets.openlayers.prototype.addAllBing = function() {
   return layers;
 };
 
+
+com.marklogic.widgets.openlayers.prototype.ensureHeatmap = function() {
+  if (null == this.heatmap) {
+    this.heatmap = new OpenLayers.Layer.Heatmap("Heatmap", this.map, this.baseLayer, {visible: true, radius:40}, {isBaseLayer: false, opacity: 0.3, projection: new OpenLayers.Projection("EPSG:4326")});
+    this.addLayer(this.heatmap);
+  }
+};
+
 /**
  * Adds a custom instance of OpenLayers.Layer - E.g. your own WMS based layer, or ArcGIS layer
  * 
@@ -393,8 +414,12 @@ com.marklogic.widgets.openlayers.prototype._refresh = function() {
   if (undefined == height || height == 0 || height < 100) {
     height = 500;
   }
+  var actualHeight = height - 26;
+  var actualWidth = width - 2;
+  this.width = actualWidth;
+  this.height = actualHeight;
   
-  var str = "<div class='openlayers-content'><div id='" + this.container + "-map' class='openlayers-map' style='height:" + (height - 26) + "px;width:" + (width - 2) + "px;'></div>";
+  var str = "<div class='openlayers-content'><div id='" + this.container + "-map' class='openlayers-map' style='height:" + actualHeight + "px;width:" + actualWidth + "px;'></div>";
   
   // mode selection
   str += "<div class='openlayers-mode'>Mode: <select id='" + this.container + "-mode'><option value='none'>Move</option><option value='circle'>Circle Radius Select</option>";
@@ -426,18 +451,18 @@ com.marklogic.widgets.openlayers.prototype._refresh = function() {
   var map, cacheWrite, cacheRead1, cacheRead2;
 
   function init() {
+    self.baseLayer = new OpenLayers.Layer.OSM("OpenStreetMap (CORS)", null, {
+          eventListeners: {
+            tileloaded: this._updateStatus,
+            loadend: this._detect
+          }
+        });
     map = new OpenLayers.Map({
       div: self.container + "-map",
       projection: "EPSG:900913",
       displayProjection: new OpenLayers.Projection("EPSG:900913"),
       layers: [
-        new OpenLayers.Layer.OSM("OpenStreetMap (CORS)", null, {
-          eventListeners: {
-            tileloaded: this._updateStatus,
-            loadend: this._detect
-          }
-        }
-        )
+        self.baseLayer
       ],
       center: [0,0], // [0,0]
       zoom: 1
@@ -447,6 +472,7 @@ com.marklogic.widgets.openlayers.prototype._refresh = function() {
     //var gmap = new OpenLayers.Layer.Google("Google Streets");
     //map.addLayers([gmap]);
     
+    self.ensureHeatmap(); // add this underneath selection layer and markers layer
     
     self._selectionLayer = new OpenLayers.Layer.Vector("Selection Layer");
     
@@ -759,11 +785,11 @@ com.marklogic.widgets.openlayers.prototype.go = function(lat,lon,zoom) {
  * @param {string} lonsrc - The JSON path (E.g. "location.lon") of the property to extract from the JSON or XML document to use as the longitude
  * @param {string} titlesrc - The JSON path (E.g. "title") of the property to extract from the JSON or XML document to use as the title
  * @param {string} summarysrc - The JSON path (E.g. "summary") of the property to extract from the JSON or XML document to use as the summary
- * @param {string} iconsrc - The Optional JSON path (E.g. "icon") of the property to extract from the JSON or XML document to use as the icon absolute URL (E.g. /images/myicon.png)
+ * @param {string} icon_source - The Optional JSON path (E.g. "icon") of the property to extract from the JSON or XML document to use as the icon absolute URL (E.g. /images/myicon.png)
+ * @param {string} heatmap_constraint - The constraint name to use for the heatmap on this series. Note: Heatmap based only upon the last series executed and configured
  */
-com.marklogic.widgets.openlayers.prototype.addSeries = function(title,searchcontext,latsrc,lonsrc,titlesrc,summarysrc,icon_source_opt,latdivs,londivs,heatmap_constraint) {
-  this.series[name] = {title: title, context: searchcontext,latsource:latsrc,lonsource:lonsrc,titlesource:titlesrc,summarysource:summarysrc,
-    latdivs:latdivs,londivs:londivs,constraint: heatmap_constraint};
+com.marklogic.widgets.openlayers.prototype.addSeries = function(title,searchcontext,latsrc,lonsrc,titlesrc,summarysrc,icon_source_opt,heatmap_constraint) {
+  this.series[name] = {title: title, context: searchcontext,latsource:latsrc,lonsource:lonsrc,titlesource:titlesrc,summarysource:summarysrc,constraint: heatmap_constraint};
   
   // add new layer
   var layer = new OpenLayers.Layer.Markers(title); // TODO other layer configuration - e.g. icon, selectable handler, etc.
@@ -883,6 +909,27 @@ com.marklogic.widgets.openlayers.prototype.addSeries = function(title,searchcont
       // create heatmap box overlays - but they're based on points, not boxes, so how is this done in AppBuilder?
       //  - Is this the old method used in some older demos, prior to AppBuilder 5?
       //  - How does AppBuilder 5's heatmaps work? Do they use *all* results? If so, how is this accomplished? (normally there's a limit)
+      // AppBuilder uses the center points of the boxes for points with scores
+      // Convert to heatmap points
+      // in order to use the OpenLayers Heatmap Layer we have to transform our data into 
+      // { max: , data: [{lonlat: , count: },...]}
+      var boxes = results.facets[heatmap_constraint].boxes;
+      var data = []; // not an array object
+      var max = 0;
+      for (var i = 0, max = boxes.length,box,lat,lng,dp;i < max;i++) {
+        box = boxes[i];
+        lat = 0.5*(box.s+box.n);
+        lng = 0.5*(box.w+box.e);
+        dp = {lonlat: new OpenLayers.LonLat(lng,lat),count:box.count*10};
+        if (box.count > max) {
+          max = box.count;
+        }
+        data[i] = dp;
+      }
+      // Do we need to create blank boxes too?
+      mljs.defaultconnection.logger.debug("HEATMAP DATA: " + JSON.stringify(data));
+      
+      self.heatmap.setDataSet({data: data, max: max});
     }
     
     
@@ -891,14 +938,19 @@ com.marklogic.widgets.openlayers.prototype.addSeries = function(title,searchcont
   this.series[name].listener = lisfunc;
   
   // contribute our heatmap query if required
-  if (undefined != this.series[name].latdivs) {
+  if (undefined != this.series[name].constraint) {
     var ex = this.map.getExtent().transform(this.map.displayProjection,this.transformWgs84); // Bounds object
-    var heatmap = {n: ex.top,s: ex.bottom,w: ex.left,e: ex.right,latdivs:latdivs,londivs:londivs};
+    var amount = this.heatmapGranularity;
+    var ratio = Math.sqrt(amount / (this.height*this.width));
+    var up = Math.ceil(ratio*this.height);
+    var across = Math.ceil(ratio*this.width);
+    mljs.defaultconnection.logger.debug("Amount: " + amount + ", ratio: " + ratio + ", up: " + up + ", across: " + across);
+    var heatmap = {n: ex.top,s: ex.bottom,w: ex.left,e: ex.right,latdivs:up,londivs:across};
+    this.ensureHeatmap();
     searchcontext.updateGeoHeatmap(heatmap_constraint,heatmap);
     
     // TODO also add map zoom event handler to update this on the fly too
   }
   
 };
-
 

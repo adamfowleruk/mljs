@@ -1,7 +1,7 @@
 
 Aim: To provide a whistle stop intro to get people hooked on what MLJS is for, and what can be achieved with it.
 
-This video aims to show within the core concepts and benefits of the MLJS API. This is part of the mastering MLJS series of bite sized, sub 5 minute webinars.
+This video aims to show the core concepts and benefits of the MLJS API. This is part of the mastering MLJS series of bite sized, sub 5 minute webinars.
 
 MLJS is designed to provide two things - A Core API that provides easy to use MarkLogic Server functionality, and a Browser Widget API that uses the Core API to render user interface widgets.
 
@@ -11,7 +11,7 @@ You can build a variety of applications with MLJS, using combinations of the fun
 
 In this example you see six widgets on a page interacting within a single Search Context. The widgets affect various aspects of the query, with each widgets' input being reflected by the query changing, being executed against MarkLogic, and in turn updating the UI.
 
-MLJS aims to expose a large amount of MarkLogic functionality to the application developer, and ultimately the end user. Searching, sorting, faceted navigation, visualisations as charts, geospatial queries, co-occurence of elements within results, and semantic queries and navigation can all be accomplished within an MLJS application.
+MLJS aims to expose a large amount of MarkLogic functionality to the application developer, and ultimately the end user. Searching, sorting, faceted navigation, visualisations as charts, geospatial queries, co-occurence of elements within results, and semantic queries and exploration can all be accomplished within an MLJS application.
 
 MLJS aims to provide a level of functionality beyond that of application builder, providing a mid-level API that is pluggable and extensible by javascript developers for emerging application scenarios.
 

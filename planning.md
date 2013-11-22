@@ -45,17 +45,17 @@ Targets for 19 Nov 2013
   - DONE 'highlight' support for search result aka click on pin (not mouse over)
   - DONE 'select' support for search result aka 'details' link in description popup
   - DONE Polygon, Circle, Rectangle drawing and generation of query contribution
-  - IN PROGRESS Heatmap support (tourist attractions per km type result)
+  - DONE Heatmap support (tourist attractions per km type result)
    - DONE update heatmap constraint in options document
    - DONE return heatmap info in facets
-   - TEST Include heatmap.js and heatmap-openlayers.js files, including updating build scripts
-   - Process heatmap result: in facet location.boxes (location was the constraint name). Each box has count, n, s, e, w. zero count boxes not returned
-   - Allow hiding of heatmap layer
-   - Allow configuring of heatmaps
-   - Update heatmap options and perform search again on map zoom
-   - Change to using shadow query just for heatmap?
-   - Change to use geoConstraintName(cn) as the heatmap constraint name (not just constraint for additional openlayers positional query)
-   - Change to automatically calculate boxes in lon/lat planes. E.g. LOW=16 boxes, if 800x800 map, this would be 4 wide and 4 tall, MED=64, HIGH=256
+   - DONE Include heatmap.js and heatmap-openlayers.js files, including updating build scripts
+   - DONE Process heatmap result: in facet location.boxes (location was the constraint name). Each box has count, n, s, e, w. zero count boxes not returned
+   - NA Dependant upon base layer, cannot remove if present: Allow hiding of heatmap layer
+   - DEFERRED Allow configuring of heatmaps
+   - DONE Update heatmap options and perform search again on map zoom (zoom NA - calculated by heatmaps js on the fly)
+   - NA No need - Change to using shadow query just for heatmap?
+   - NA Why? Works fine - Change to use geoConstraintName(cn) as the heatmap constraint name (not just constraint for additional openlayers positional query)
+   - DONE Change to automatically calculate boxes in lon/lat planes. E.g. LOW=64 boxes, if 800x800 map, this would be 4 wide and 4 tall, MED=128, HIGH=256
    - DEFERRED Support RAW mode - extract lon/lat metadata ONLY, and pass all results directly to heatmap.js code (rather than calculate within MarkLogic)
   - Locate me button support - http://openlayers.org/dev/examples/geolocation.html
   - Locate me automatic (browser) with no button
@@ -126,7 +126,7 @@ Targets for 1.1 Interim release (Nov 2013)
   - (Emil Zegers) RDB2RDF quick start tutorial
   - (Emil Zegers) OpenLayers quick start tutorial
  - Docs: MLJS Webinar series of Video Tutorials
-  1. Introduction to MLJS (text done. 3min 15) - Why should I care? (Akin to the first 5 minutes of my company wide webinar)
+  1. DONE Introduction to MLJS (text done. 3min 15) - Why should I care? (Akin to the first 5 minutes of my company wide webinar)
   2. Introduction to the MLJS Core API (text done. 4min21). Core communication with MarkLogic server. Introduction to Search Context and other Context objects
   3. Introduction to the MLJS Widget API. Briefly show the mldbwebtest app, deploying it, and a brief description of the widget test pages (and each widget).
   4. Creating a new Hyrbid app with MLJS. (Already exists, on blog site). Creating a search page and configuring options and facets. A search page with two charts (akin to an AppBuilder demo)
