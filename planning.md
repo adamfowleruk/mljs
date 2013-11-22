@@ -2,6 +2,15 @@
 
 ## Upcoming releases
 
+High priority field requests (Nov 2013)
+ - DONE Core: Add annotation support in constraints and facets functions
+  - DONE Use annotations in widgets for facet name
+   - DONE Sort widget
+   - DONE searchfacets widget
+ - Widgets: searchfacets - allow developer to specify facet value to human name. E.g. VALUE/hello -> Hello (still using "FACET/hello" as the actual value)
+ - Docs: XML example for custom renderer support, with namespaces in XPath, date conversion to string
+ - DONE Docs: date time dynamic bucketing example in search page sample
+
 Targets for 1.1 Interim release (Nov 2013)
  - Widgets: OpenLayers - Use MarkLogic as a tile cache rather than the browser (and do "cache first")
  - DONE Widgets: Tag Cloud for a facet
@@ -73,10 +82,6 @@ Targets for 1.1 Interim release (Nov 2013)
   9. Configuring an ontology to power Semantic Queries with Sparql. How to customise a sparql query bar widget, and create a subject browsing page
  - NOT A BUG searchfacets or searchbar widgets using facet title, not constraint name, to indicate constraint added to searchbar (also for lookup/matching)
   - NA Actually, there is no 'facet title' just that constraint name and field name are generally the same. Need to add Title support somehow
-  - Add annotation support in constraints and facets functions
-  - IN PROGRESS Use annotations in widgets
-   - DONE Sort widget
-   - searchfacets widget
  - IN PROGRESS Core: Search Options builder
   - hide sem:triple elements from snippet highlighting
   - Don't return sem:triples documents at all by default

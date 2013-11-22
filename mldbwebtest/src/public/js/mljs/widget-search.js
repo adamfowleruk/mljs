@@ -402,6 +402,17 @@ com.marklogic.widgets.searchfacets.prototype._refresh = function() {
   
   var str = "<div class='mljswidget searchfacets'><div class='title searchfacets-title'>Browse</div> <div id='" + this.container + "-facetinfo' class='search-facets'> ";
   
+  var self = this;
+  var fname = function(name) {
+    var opts = self.ctx.getOptions();
+    var annotation = opts._findConstraint(name).annotation;
+    if (undefined == annotation) {
+      return self._transformFacetName(name);
+    } else {
+      return annotation[0];
+    }
+  };
+  
   // draw selected facets and deselectors
   var deselectionTodo = new Array();
   if (0 != this.selected.length) {
@@ -412,7 +423,7 @@ com.marklogic.widgets.searchfacets.prototype._refresh = function() {
       var s = this.selected[i];
       str += "<div class='searchfacets-selection'>" + 
         "<a href='#" + this.container + "-desel-" + s.name + "-" + s.value + "' class='searchfacets-deselect' id='" + this.container + "-desel-" + s.name + "-" + s.value + "'>X</a> " +
-        this._transformFacetName(s.name) + ": " + this._transformFacetValue(s.value) + "</div>";
+        fname(s.name) + ": " + this._transformFacetValue(s.value) + "</div>";
       // add deselection X link
       deselectionTodo.push(s);
     }
@@ -425,11 +436,12 @@ com.marklogic.widgets.searchfacets.prototype._refresh = function() {
     if (undefined != this.results.facets) {
       
       for (var name in this.results.facets) { // TODO replace with introspection of objects within search facets (objects, not array)
-        var facetStr = "<div class='searchfacets-facet' id='" + this.container + "-facetinfo-" + name + "'><div class='searchfacets-facet-title'>" + this._transformFacetName(name) + "</div>" +
+        var facet = this.results.facets[name];
+        var facetStr = "<div class='searchfacets-facet' id='" + this.container + "-facetinfo-" + name + "'><div class='searchfacets-facet-title'>" + fname(name) + "</div>" +
           "<div class='searchfacets-facet-values'>";
         var settings = this._getFacetSettings(name);
         var max = this.listSize;
-        var values = this.results.facets[name].facetValues;
+        var values = facet.facetValues;
         // sort facets first by count
         bubbleSort(values, "count");
         var valuesCount = values.length;

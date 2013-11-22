@@ -140,6 +140,8 @@ window.onload = function() {
       .rangeConstraint("Title","title","http://www.w3.org/1999/xhtml","xs:string","http://marklogic.com/collation/",true)
       .rangeConstraint("Heading","h1","http://www.w3.org/1999/xhtml","xs:string","http://marklogic.com/collation/",true)
       .rangeConstraint("stars","stars",null,"xs:int",null)
+      .rangeConstraint("DateReceived","datereceived","http://marklogic.com/ns/dt","xs:date",null,true)
+      .annotate("DateReceived","Received On")
       .geoElementPairConstraint("location","location","http://marklogic.com/xdmp/json/basic",
         "lat","http://marklogic.com/xdmp/json/basic","lon","http://marklogic.com/xdmp/json/basic");
     
@@ -362,9 +364,9 @@ window.onload = function() {
               
                   docs = [
                     /*"I am a plain text file",*/
-                    textToXML("<documentelement><title>I am an XML file</title><summary>Some XML summary</summary></documentelement>"),
-                    textToXML("<documentelement2><name>I am a generic XML file</name><desc>Generic XML description</desc></documentelement2>"),
-                    textToXML("<documentelement3><wibble>Generic XML wibble file</wibble><flibble>Generic XML flibble element</flibble></documentelement3>"),
+                    textToXML("<documentelement><title>I am an XML file</title><summary>Some XML summary</summary><dt:datereceived xmlns:dt='http://marklogic.com/ns/dt'>2013-01-25</dt:datereceived></documentelement>"),
+                    textToXML("<documentelement2><name>I am a generic XML file</name><desc>Generic XML description</desc><dt:datereceived xmlns:dt='http://marklogic.com/ns/dt'>2013-01-18</dt:datereceived></documentelement2>"),
+                    textToXML("<documentelement3><wibble>Generic XML wibble file</wibble><flibble>Generic XML flibble element</flibble><dt:datereceived xmlns:dt='http://marklogic.com/ns/dt'>2013-02-14</dt:datereceived></documentelement3>"),
                     textToXML("<html xmlns='http://www.w3.org/1999/xhtml'><head><title>XHTML test doc</title><meta name='Author' content='Adam Fowler'/></head><body><h1>XHTML doc h1</h1><p>Lorem ipsum dolar sit amet</p><h2>Consecutor</h2><p>Wibble de flibble</p></body></html>"),
                     {title: "Some JSON title", summary: "Some JSON summary"},
                     {name: "Generic JSON name", desc: "Generic JSON description"}

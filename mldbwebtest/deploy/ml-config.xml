@@ -244,6 +244,13 @@
           <localname>stars</localname>
           <range-value-positions>false</range-value-positions>
         </range-element-index>
+
+        <range-element-index>
+          <scalar-type>date</scalar-type>
+          <namespace-uri>http://marklogic.com/ns/dt</namespace-uri>
+          <localname>datereceived</localname>
+          <range-value-positions>false</range-value-positions>
+        </range-element-index>
         
       </range-element-indexes>
       <range-element-attribute-indexes>

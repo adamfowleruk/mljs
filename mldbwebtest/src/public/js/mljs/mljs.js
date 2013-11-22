@@ -2698,6 +2698,8 @@ mljs.prototype.options = function() {
   this.options.tuples = undefined; // values-or-tuples,
   this.options.values = undefined; // values-or-tuples 
   
+  this.JSON = "http://marklogic.com/xdmp/json/basic";
+  
   // general defaults
   this.defaults = {};
   this.defaults.type = "xs:string";
@@ -2749,16 +2751,18 @@ mljs.prototype.options.prototype._includeSearchDefaults = function() {
  */
 mljs.prototype.options.prototype._findConstraint = function(cname) {
   var con = null;
-  
-  for (var i = 0, max = this.options.constraint.length, c;null == c && i < max;i++) {
+  this.__d("checking " + this.options.constraint.length + " constraints");
+  for (var i = 0, max = this.options.constraint.length, c;i < max;i++) {
     c = this.options.constraint[i];
+    this.__d("Checking constraint with name: " + c.name);
     
     if (c.name == cname) {
-      con = c;
+      this.__d("Name matches: " + cname + "!!!");
+      return c;
     }
   }
   
-  return con;
+  return null;
 };
 
 /**
@@ -2770,13 +2774,13 @@ mljs.prototype.options.prototype.toJson = function() {
   
   for (var cname in this._buckets) {
     var buckets = this._buckets[cname]; // returns JSON object with _list and bucket: function() members
-    var constraint = this._findConstraint[cname]; 
+    var constraint = this._findConstraint(cname); 
     var nb = [];
     for (var i = 0,max = buckets._list.length,bucket;i < max;i++) {
       bucket = buckets._list[i];
       nb[i] = bucket;
     }
-    constraint.bucket = nb;
+    constraint.range.bucket = nb; // TODO verify this cannot happen for other types of constraint
   }
   
   // TODO throw an error if computed bucket is not over a xs:dateTime constraint
@@ -2789,7 +2793,7 @@ mljs.prototype.options.prototype.toJson = function() {
       bucket = buckets._list[i];
       nb[i] = bucket;
     }
-    constraint["computed-bucket"] = nb;
+    constraint.range["computed-bucket"] = nb; // TODO verify this cannot happen for other types of constraint
   }
   
   // return options object
@@ -3066,8 +3070,9 @@ mljs.prototype.options.prototype.defaultNamespace = function(ns) {
  * @param {string} collation_opt - The collation to use (if an xs:string), defaults to the value of defaultCollation in this options builder instance
  * @param {boolean} facet_opt - Whether to use this in a facet. Defaults to true. NB CURRENTLY THE REST API DOES NOT SUPPORT XPATH FACETS
  * @param {Array} facet_options_opt - Additional string array XPath options - See {@link http://docs.marklogic.com/guide/rest-dev/appendixa#id_64714}
+ * @param {string|Array} annotation_opt - The annotation to add to the constraint. MLJS uses annotation[0] as the display title, falling back to camel case constraint name if not specified
  */
-mljs.prototype.options.prototype.pathConstraint = function(constraint_name,xpath,namespaces,type_opt,collation_opt,facet_opt,facet_options_opt) {
+mljs.prototype.options.prototype.pathConstraint = function(constraint_name,xpath,namespaces,type_opt,collation_opt,facet_opt,facet_options_opt,annotation_opt) {
   var range = {name: constraint_name,
     range: {
       type: type_opt || this.defaults.type, 
@@ -3083,7 +3088,13 @@ mljs.prototype.options.prototype.pathConstraint = function(constraint_name,xpath
     range.range.facet = facet_opt || true;
   }
   if (undefined != facet_options_opt) {
-    range.range["facet-options"] = facet_options_opt;
+    range.range["facet-option"] = facet_options_opt;
+  }
+  if (undefined != annotation_opt) {
+    if ("string" == typeof(annotation_opt)) {
+      annotation_opt = [annotation_opt];
+    }
+    range.annotation = annotation_opt;
   }
   
   // Create sort orders automatically
@@ -3109,8 +3120,9 @@ mljs.prototype.options.prototype.path = mljs.prototype.options.prototype.pathCon
  * @param {string} collation_opt - The optional string collation to used. If not specified, default collation is used (if of xs:string type)
  * @param {JSON} facet_opt - The optional facet JSON to use.
  * @param {JSON} facet_options_opt - The optional facet configuration JSON to use.
+ * @param {string|Array} annotation_opt - The annotation to add to the constraint. MLJS uses annotation[0] as the display title, falling back to camel case constraint name if not specified
  */
-mljs.prototype.options.prototype.elemattrRangeConstraint = function(constraint_name,element,namespace,attr,type_opt,collation_opt,facet_opt,facet_options_opt) {
+mljs.prototype.options.prototype.elemattrRangeConstraint = function(constraint_name,element,namespace,attr,type_opt,collation_opt,facet_opt,facet_options_opt,annotation_opt) {
   var range = {name: constraint_name,
     range: {
       type: type_opt || this.defaults.type, 
@@ -3130,7 +3142,13 @@ mljs.prototype.options.prototype.elemattrRangeConstraint = function(constraint_n
     range.range.facet = true;
   }
   if (undefined != facet_options_opt) {
-    range.range["facet-options"] = facet_options_opt;
+    range.range["facet-option"] = facet_options_opt;
+  }
+  if (undefined != annotation_opt) {
+    if ("string" == typeof(annotation_opt)) {
+      annotation_opt = [annotation_opt];
+    }
+    range.annotation = annotation_opt;
   }
   
   // Create sort orders automatically
@@ -3155,9 +3173,12 @@ mljs.prototype.options.prototype.elemattrRangeConstraint = function(constraint_n
  * @param {boolean} facet_opt - Include this constraint as a facet?
  * @param {JSON} facet_options_opt - The optional facet configuration JSON to use.
  * @param {string} fragmentScope_opt - The fragment to use (defaults to document)
+ * @param {string|Array} annotation_opt - The annotation to add to the constraint. MLJS uses annotation[0] as the display title, falling back to camel case constraint name if not specified
  */
-mljs.prototype.options.prototype.rangeConstraint = function(constraint_name_opt,name_or_key,ns_opt,type_opt,collation_opt,facet_opt,facet_options_opt,fragmentScope_opt) {
+mljs.prototype.options.prototype.rangeConstraint = function(constraint_name_opt,name_or_key,ns_opt,type_opt,collation_opt,facet_opt,facet_options_opt,fragmentScope_opt,annotation_opt) {
   this._includeSearchDefaults();
+  
+  /*
   if (undefined == facet_options_opt) {
     if (undefined != facet_opt && Array.isArray(facet_opt)) {
       facet_options_opt = facet_opt;
@@ -3189,16 +3210,16 @@ mljs.prototype.options.prototype.rangeConstraint = function(constraint_name_opt,
     }
   }
   if (undefined ==  collation_opt) {
-    if (undefined !=  type_opt && "string" === typeof type_opt && (type_opt.length < 4 || "xs:" != type_opt.substring(0,3))) {
+    if (undefined !=  type_opt && "string" === typeof type_opt && (type_opt.length < 4 || "xs:" == type_opt.substring(0,3))) { // DANGEROUS?
       collation_opt = type_opt;
       type_opt = undefined;
-    } else if (undefined !=  ns_opt && "string" === typeof ns_opt && (ns_opt.length < 4 || "xs:" != ns_opt.substring(0,3))) {
+    } else if (undefined !=  ns_opt && "string" === typeof ns_opt && (ns_opt.length < 4 || "xs:" == ns_opt.substring(0,3))) { // DANGEROUS?
       collation_opt = ns_opt;
       ns_opt = undefined;
     } 
   }
   if (undefined ==  type_opt) {
-    if (undefined !=  ns_opt && "string" === typeof ns_opt && (ns_opt.length > 4 && "xs:" == ns_opt.substring(0,3))) {
+    if (undefined !=  ns_opt && "string" === typeof ns_opt && (ns_opt.length > 4 && "xs:" == ns_opt.substring(0,3))) { // DANGEROUS?
       type_opt = ns_opt;
       ns_opt = undefined;
     }
@@ -3206,7 +3227,7 @@ mljs.prototype.options.prototype.rangeConstraint = function(constraint_name_opt,
   if ("string" == typeof constraint_name_opt && Array.isArray(name_or_key)) {
     facet_opt = name_or_key;
     name_or_key = constraint_name_opt;
-  }
+  }*/
   if (undefined == name_or_key) {
     if (undefined !=  constraint_name_opt) {
       name_or_key = constraint_name_opt; // keep contraint name same as name or key (dont set to undefined)
@@ -3228,6 +3249,12 @@ mljs.prototype.options.prototype.rangeConstraint = function(constraint_name_opt,
       }
     }
   };
+  if (undefined != annotation_opt) {
+    if ("string" == typeof(annotation_opt)) {
+      annotation_opt = [annotation_opt];
+    }
+    range.annotation = annotation_opt;
+  }
   if (range.range.type == "xs:string") {
     range.range.collation = collation_opt || this.defaults.collation;
   }
@@ -3235,7 +3262,7 @@ mljs.prototype.options.prototype.rangeConstraint = function(constraint_name_opt,
     range.range.facet = true;
   }
   if (undefined != facet_options_opt) {
-    range.range["facet-options"] = facet_options_opt;
+    range.range["facet-option"] = facet_options_opt;
   }
   if (undefined != fragmentScope_opt) {
     range.range["fragment-scope"] = fragmentScope_opt;
@@ -3267,8 +3294,9 @@ mljs.prototype.options.prototype.range = mljs.prototype.options.prototype.rangeC
  * @param {JSON} facet_opt - The optional facet JSON to use.
  * @param {JSON} facet_options_opt - The optional facet configuration JSON to use.
  * @param {string} fragmentScope_opt - The fragment to use (defaults to document)
+ * @param {string|Array} annotation_opt - The annotation to add to the constraint. MLJS uses annotation[0] as the display title, falling back to camel case constraint name if not specified
  */
-mljs.prototype.options.prototype.fieldRangeConstraint = function(name,type_opt,collation_opt,facet_opt,facet_options_opt,fragmentScope_opt) {
+mljs.prototype.options.prototype.fieldRangeConstraint = function(name,type_opt,collation_opt,facet_opt,facet_options_opt,fragmentScope_opt,annotation_opt) {
   var range = {name: constraint_name_opt,
     range: {
       type: type_opt || this.defaults.type, 
@@ -3278,11 +3306,17 @@ mljs.prototype.options.prototype.fieldRangeConstraint = function(name,type_opt,c
       collation: collation_opt || this.defaults.collation
     }
   };
+  if (undefined != annotation_opt) {
+    if ("string" == typeof(annotation_opt)) {
+      annotation_opt = [annotation_opt];
+    }
+    range.annotation = annotation_opt;
+  }
   if ((undefined != facet_opt && true===facet_opt) || undefined != facet_options_opt) {
     range.range.facet = true;
   }
   if (undefined != facet_options_opt) {
-    range.range["facet-options"] = facet_options_opt;
+    range.range["facet-option"] = facet_options_opt;
   }
   if (undefined != fragmentScope_opt) {
     range.range["fragment-scope"] = fragmentScope_opt;
@@ -3320,9 +3354,9 @@ mljs.prototype.options.prototype.buckets = function(constraint_name) {
       var b = {
         lt: lt, ge: ge
       };
-      b.name_opt = name_opt || (ge + "-" + lt);
-      b.label_opt = label_opt || b.name_opt;
-      _list.push(b);
+      b.name = name_opt || (ge + "-" + lt);
+      b.label = label_opt || b.name_opt;
+      bs._list.push(b);
       return bs;
     }
   };
@@ -3331,10 +3365,23 @@ mljs.prototype.options.prototype.buckets = function(constraint_name) {
 };
 
 /**
+ * Add an annotation to a constraint after the constraint has been configured. Useful for lazy loading localised strings.
+ * @param {string} constraint_name - the name of the constraint in these options
+ * @param {string|Array} annotation - the annotation string, or array of strings
+ */
+mljs.prototype.options.prototype.annotate = function(constraint_name,annotation) {
+  if ("string" == typeof(annotation)) {
+    annotation = [annotation];
+  }
+  this._findConstraint(constraint_name).annotation = annotation;
+  return this;
+};
+
+/**
  * Adds Computed buckets for the specified constraint. Returns a JSON object that has a bucket(lt,ge,name_opt,label_opt) method.
  * Used like this:-
  * ```javascript
- * var timeBuckets = ob.buckets(updated);
+ * var timeBuckets = ob.buckets("updated");
  * timeBuckets.bucket("P0D","P1D","now","today","Today").bucket(...).bucket(...);
  * ```
  * Note: If you don't specify name, MLJS will create a string based on "<ge-value>-<lt-value>". 
@@ -3349,9 +3396,9 @@ mljs.prototype.options.prototype.computedBuckets = function(constraint_name) {
       var b = {
         lt: lt, ge: ge, anchor: anchor
       };
-      b.name_opt = name_opt || (ge + "-" + lt);
-      b.label_opt = label_opt || b.name_opt;
-      _list.push(b);
+      b.name = name_opt || (ge + "-" + lt);
+      b.label = label_opt || b.name_opt;
+      bs._list.push(b);
       return bs;
     }
   };
@@ -3379,8 +3426,9 @@ mljs.prototype.options.prototype.addConstraint = function(con) {
  * @param {string} constraint_name_opt - Optional constraint name to use. Defaults to 'collection'
  * @param {string} prefix - Optional prefix (base collection) to use. Defaults to blank ''. I.e. all collections
  * @param {JSON} facet_option_opt - Optional JSON facet configureation. If not configured, will use the default facet configuration
+ * @param {string|Array} annotation_opt - The annotation to add to the constraint. MLJS uses annotation[0] as the display title, falling back to camel case constraint name if not specified
  */
-mljs.prototype.options.prototype.collectionConstraint = function(constraint_name_opt,prefix_opt,facet_option_opt) {
+mljs.prototype.options.prototype.collectionConstraint = function(constraint_name_opt,prefix_opt,facet_option_opt,annotation_opt) {
   this._includeSearchDefaults();
   var con = { name: constraint_name_opt || "collection", collection: {}};
   if (undefined != prefix_opt && null != prefix_opt) {
@@ -3392,6 +3440,12 @@ mljs.prototype.options.prototype.collectionConstraint = function(constraint_name
     con.collection["facet-option"] = facet_option_opt;
   } else if (undefined != this.defaults.facetOption) {
     con.collection["facet-option"] = this.defaults.facetOption;
+  }
+  if (undefined != annotation_opt) {
+    if ("string" == typeof(annotation_opt)) {
+      annotation_opt = [annotation_opt];
+    }
+    con.annotation = annotation_opt;
   }
   this.addConstraint(con);
   return this;
@@ -3406,8 +3460,9 @@ mljs.prototype.options.prototype.collection = mljs.prototype.options.prototype.c
  * @param {string} ns_opt - Optional namespace of the parent element. If not provided, uses the default namespace
  * @param {string} element - Element name of the geospatial pair element
  * @param {string} ns_el_opt - Optional namespace of the child geospatial element. If not configured will use the default namespace
+ * @param {string|Array} annotation_opt - The annotation to add to the constraint. MLJS uses annotation[0] as the display title, falling back to camel case constraint name if not specified
  */
-mljs.prototype.options.prototype.geoelemConstraint = function(constraint_name_opt,parent,ns_opt,element,ns_el_opt) {
+mljs.prototype.options.prototype.geoelemConstraint = function(constraint_name_opt,parent,ns_opt,element,ns_el_opt,annotation_opt) {
   if (undefined == element) {
     if (undefined == ns_opt) {
       element = parent;
@@ -3431,6 +3486,12 @@ mljs.prototype.options.prototype.geoelemConstraint = function(constraint_name_op
   var con = { name: constraint_name_opt, "geo-elem": {
     parent: {ns: ns_opt || this.defaults.namespace, name: parent, element: {ns: ns_el_opt || this.defaults.namespace, name: element}}
   }};
+  if (undefined != annotation_opt) {
+    if ("string" == typeof(annotation_opt)) {
+      annotation_opt = [annotation_opt];
+    }
+    con.annotation = annotation_opt;
+  }
   this.addConstraint(con);
   return this;
 };
@@ -3441,8 +3502,9 @@ mljs.prototype.options.prototype.geoelem = mljs.prototype.options.prototype.geoe
  * http://docs.marklogic.com/guide/rest-dev/appendixa#id_33146
  * NB Requires WGS84 or RAW co-ordinates (depending on how you are storing your data) - See the proj4js project for conversions
  * 
+ * @param {string|Array} annotation_opt - The annotation to add to the constraint. MLJS uses annotation[0] as the display title, falling back to camel case constraint name if not specified
  */
-mljs.prototype.options.prototype.geoElementPairConstraint = function(constraint_name,parentelement,parentns,latelement,latns,lonelement,lonns,heatmap_opt,geo_options_opt, facet_opt,facet_options_opt) {
+mljs.prototype.options.prototype.geoElementPairConstraint = function(constraint_name,parentelement,parentns,latelement,latns,lonelement,lonns,heatmap_opt,geo_options_opt, facet_opt,facet_options_opt,annotation_opt) {
   var con = {name: constraint_name, 
     "geo-elem-pair": {
       parent: {name: parentelement,ns: parentns},
@@ -3458,6 +3520,12 @@ mljs.prototype.options.prototype.geoElementPairConstraint = function(constraint_
   }
   if (undefined != facet_opt && true === facet_opt) {
     // NB why does a geo-elem-pair-constraint not have a facet_opt property like other range constraints???
+  }
+  if (undefined != annotation_opt) {
+    if ("string" == typeof(annotation_opt)) {
+      annotation_opt = [annotation_opt];
+    }
+    con.annotation = annotation_opt;
   }
   this.addConstraint(con);
   return this;
@@ -4402,6 +4470,26 @@ mljs.prototype.searchcontext.prototype.setOptions = function(name,options) {
   
   // check if options exist
   var self = this;
+};
+
+mljs.prototype.searchcontext.prototype.getOptions = function() {
+  // bit of clever mixin work as we no longer have an options builder reference here
+  var opts = this._options;
+  opts._findConstraint = function(cname) {
+    
+  var con = null;
+  
+  for (var i = 0, max = opts.options.constraint.length, c;i < max;i++) {
+    c = opts.options.constraint[i];
+    
+    if (c.name == cname) {
+      return c;
+    }
+  }
+  
+  return null;
+  };
+  return opts;
 };
 
 /**
