@@ -104,6 +104,21 @@ com.marklogic.widgets.openlayers.prototype.setGeoSelectionConstraint = function(
 };
 
 /**
+ * Configures the OpenLayers map to detect the browser's location
+ */
+com.marklogic.widgets.openlayers.prototype.addGeolocate = function() {
+  var geolocate = new OpenLayers.Control.Geolocate({
+    bind: false,
+    geolocationOptions: {
+        enableHighAccuracy: false,
+        maximumAge: 0,
+        timeout: 7000
+    }
+  });
+  this.map.addControl(geolocate);
+};
+
+/**
  * Adds a google street layer to the map, and returns the layer (so you can remove it later)
  */
 com.marklogic.widgets.openlayers.prototype.addGoogleStreet = function() {

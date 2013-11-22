@@ -2,73 +2,8 @@
 
 ## Upcoming releases
 
-Targets for 19 Nov 2013
- - DONE Widgets: OpenLayers phase 1
-  - DONE Basic map display
-  - DONE Google Street maps
-  - DONE OSM
-  - DONE offline caching (load cached tiles by default) - load tiles, keep browser open, then go and demo on customer site using same zoom level!
-  - DONE updateResults support (show pins for locations)
- - DONE Core: Geospatial search options (via constraints)
-  - TEST geo-element-pair-constraint
-  - TEST geo-element-attr-constraint
-  - DEFERRED geo-element-constraint For location: "lat,lon" type elements
-  - DEFERRED geo-path-constraint (V7)
- - DONE Test: Geospatial search options in mljstest/main data loading page
- - DONE Test: Add data for tourist attractions in london
- - DONE Test: Alter roxy config to include index for lon, lat
- - DONE Test: EPSG900913 to/from WGS84(EPSG:4326) automatically - see http://en.wikipedia.org/wiki/World_Geodetic_System
- - NA Simply don't facet the constraint: Widgets: Geospatial facets shown in maps, and not in facets widget
- - DONE Core: V7 range relevance by distance from location in structured search
-  - DONE For distance of tourist attraction in sorting
- - DONE Widgets: Structured query selection widget
-  - DONE Select Relevancy method. E.g. 'Distance from point' or 'Star rating'
-  - DONE Requires providing a function to determine values for query at query time, rather than hard coded (E.g. point for 'distance from point') (called query.dynamic())
- - DONE Core: Structured Query geo alterations
-  - DONE geo-elem-pair-query (fully dynamic, no constraint options required) + dynamic query support, for points and circles (radius)
- - IN PROGRESS Widgets: OpenLayers phase 2
-  - DONE BUG: attribution appears 1/4 way up the map (CSS issue)
-  - DONE Added ArcGIS Online and Bing (road, hybrid, aerial) map layer convenience functions
-  - DONE Area selection and query
-   - DONE Core: Add updateGeoSelection detection to searchcontext
-   - DONE Widgets: OpenLayers - Configure openlayers widget with name of constraint to provide query for on selection
-   - DONE Core: Add polygon, bounding box geo queries to query builder
-   - DONE Widgets: OpenLayers - support bounding box
-   - DONE Widgets: OpenLayers - support polygon
-   - DONE Widgets: OpenLayers - clear selection button
-   - DONE BUG: Contribute query does not include one selected from drop down
-   - DONE BUG: When clearing query, not contributed query is used at all (just two nulls)
-   - DONE Widgets: OpenLayers - Configure OpenLayers/test page to use structured Contrib mode for queries
-   - BUG: OpenLayers polygon/circle selection no longer removing markers when executing more restrictive search
-  - NA using Highlight instead due to popups being poor in OpenLayers: Show number with pin
-  - NA using Highlight instead due to popups being poor in OpenLayers: Details popup for pins
-  - DONE 'highlight' support for search result aka click on pin (not mouse over)
-  - DONE 'select' support for search result aka 'details' link in description popup
-  - DONE Polygon, Circle, Rectangle drawing and generation of query contribution
-  - DONE Heatmap support (tourist attractions per km type result)
-   - DONE update heatmap constraint in options document
-   - DONE return heatmap info in facets
-   - DONE Include heatmap.js and heatmap-openlayers.js files, including updating build scripts
-   - DONE Process heatmap result: in facet location.boxes (location was the constraint name). Each box has count, n, s, e, w. zero count boxes not returned
-   - NA Dependant upon base layer, cannot remove if present: Allow hiding of heatmap layer
-   - DEFERRED Allow configuring of heatmaps
-   - DONE Update heatmap options and perform search again on map zoom (zoom NA - calculated by heatmaps js on the fly)
-   - NA No need - Change to using shadow query just for heatmap?
-   - NA Why? Works fine - Change to use geoConstraintName(cn) as the heatmap constraint name (not just constraint for additional openlayers positional query)
-   - DONE Change to automatically calculate boxes in lon/lat planes. E.g. LOW=64 boxes, if 800x800 map, this would be 4 wide and 4 tall, MED=128, HIGH=256
-   - DEFERRED Support RAW mode - extract lon/lat metadata ONLY, and pass all results directly to heatmap.js code (rather than calculate within MarkLogic)
-  - Locate me button support - http://openlayers.org/dev/examples/geolocation.html
-  - Locate me automatic (browser) with no button
-  - Workplace configuration support
-  - DONE Fix dynamic width/height detection (el.offsetHeight)
-  - DEFERRED Listen for structured query parameter and draw search radius (E.g. 20 miles)
-  - Widgets: OpenLayers - Use MarkLogic as a tile cache rather than the browser (and do "cache first")
- - CSV Import improvements / testing
-  - Checkout XSLT upload and transform method
-  - Test PAF file format
- - Nice to have: Widgets: Browse related Subjects in node diagram
-
 Targets for 1.1 Interim release (Nov 2013)
+ - Widgets: OpenLayers - Use MarkLogic as a tile cache rather than the browser (and do "cache first")
  - DONE Widgets: Tag Cloud for a facet
   - DONE Allow sorting by name ascending (currently bubblesort only works descending)
  - Widgets: Address to Lon Lat - Perform address lookup for top matching point, feed as constraint in to structured query
@@ -88,6 +23,7 @@ Targets for 1.1 Interim release (Nov 2013)
    - (Doubtful) Check if structured query supports dynamic text query constraints with grammar (i.e. one term with grammar parsing)
    - DEFERRED Do shadow query automatically in searchcontext rather than per-widget?
    - DEFERRED Come up with a strategy for parent-child relationships in search widgets (one way facet selection - E.g. genre THEN album)
+   - Allow widgets to request information in results, rather than alter search options (E.g. request a heatmap, or particular metadata properties) - context updates options on the fly
   - Widgets: Navigable charts / co-occurence - clicking sets facet value
    - High charts column
    - High charts line
@@ -127,7 +63,7 @@ Targets for 1.1 Interim release (Nov 2013)
   - (Emil Zegers) OpenLayers quick start tutorial
  - Docs: MLJS Webinar series of Video Tutorials
   1. DONE Introduction to MLJS (text done. 3min 15) - Why should I care? (Akin to the first 5 minutes of my company wide webinar)
-  2. Introduction to the MLJS Core API (text done. 4min21). Core communication with MarkLogic server. Introduction to Search Context and other Context objects
+  2. IN PROGRESS Introduction to the MLJS Core API (text done. 4min21). Core communication with MarkLogic server. Introduction to Search Context and other Context objects
   3. Introduction to the MLJS Widget API. Briefly show the mldbwebtest app, deploying it, and a brief description of the widget test pages (and each widget).
   4. Creating a new Hyrbid app with MLJS. (Already exists, on blog site). Creating a search page and configuring options and facets. A search page with two charts (akin to an AppBuilder demo)
   5. Loading documents with MLJS. Add test XML, JSON and text documents using MLJS and a test loading web page.
@@ -135,24 +71,34 @@ Targets for 1.1 Interim release (Nov 2013)
   7. Using MLJS to explore data - Integrated charts, co-occurence, map, query bar
   8. Loading triples with MLJS. How to use a simple JSON structure to load standalone facts.
   9. Configuring an ontology to power Semantic Queries with Sparql. How to customise a sparql query bar widget, and create a subject browsing page
+ - NOT A BUG searchfacets or searchbar widgets using facet title, not constraint name, to indicate constraint added to searchbar (also for lookup/matching)
+  - NA Actually, there is no 'facet title' just that constraint name and field name are generally the same. Need to add Title support somehow
+  - Add annotation support in constraints and facets functions
+  - IN PROGRESS Use annotations in widgets
+   - DONE Sort widget
+   - searchfacets widget
+ - IN PROGRESS Core: Search Options builder
+  - hide sem:triple elements from snippet highlighting
+  - Don't return sem:triples documents at all by default
+  - DONE actually write the pathConstraint function!
+  - Investigate why REST insists upon some elements having indexes in the JSON namespace as well as the one required (E.g. xhtml and h1) - because using JSON mode???
+    
+Floating PoC Targets
+ - CSV Import improvements / testing
+  - Checkout XSLT upload and transform method
+  - Test PAF file format
+ - Nice to have: Widgets: Browse related Subjects in node diagram
+
+Targets for 1.2 (Dec 2013)
+ - Widgets: HighCharts
+  - Support multiple series, axes and searchcontexts (how?) -> Use work in OpenLayers as a base
+ - Docs: Further video tutorials
   10. Combining Document and Semantic search. Extend the semantic page to show 'related documents'. Create a data explorer page to show subject and embedded document information.
   11. Creating an application. Linking existing pages together with actions. Search for content, view document metadata, download the related PDF version.
   12. Customising the Chrome of your application. How to customise an entire MLJS based Roxy hybrid app for a particular client's web theme.
   13. Using MLJS with your favourite widget library. Using an AngularJS page controller and widgets integrated with MLJS powered widgets
   14. Writing your own widget I. Create a search metrics widget with a refresh button to re-execute the search.
   15. Writing your own widget II. Create a multiple document upload widget, with progress bar, named collection, and link to a search page to show those just uploaded. 
- - NOT A BUG searchfacets or searchbar widgets using facet title, not constraint name, to indicate constraint added to searchbar (also for lookup/matching)
-  - NA Actually, there is no 'facet title' just that constraint name and field name are generally the same. Need to add Title support somehow
-  - Add annotation support in constraints and facets, and use these in the searchfacets widget
- - IN PROGRESS Core: Search Options builder
-  - hide sem:triple elements from snippet highlighting
-  - Don't return sem:triples documents at all by default
-  - DONE actually write the pathConstraint function!
-  - Investigate why REST insists upon some elements having indexes in the JSON namespace as well as the one required (E.g. xhtml and h1) - because using JSON mode???
-  
-Targets for 1.2 (Dec 2013)
- - Widgets: HighCharts
-  - Support multiple series, axes and searchcontexts (how?) -> Use work in OpenLayers as a base
  - App Builder to MLJS+Roxy automated conversion
   - Point at Roxy generated App Builder download / local file system copy of appbuilder folder
   - Copy over rest extensions as required
@@ -703,3 +649,63 @@ Targets for 1.0 (1 Nov 2013) (Published early due to serious changes to V7 affec
   - DONE via options_opt.transform and .transformParameters - Support for XQuery transformations on fetch documents in new window
   - TEST Support for bucketing in facets (all types, including dynamic)
   - DONE Just pass in as raw facet_options_opt string array: Facet ordering (other than frequency)
+
+Targets for 19 Nov 2013
+ - DONE Widgets: OpenLayers phase 1
+  - DONE Basic map display
+  - DONE Google Street maps
+  - DONE OSM
+  - DONE offline caching (load cached tiles by default) - load tiles, keep browser open, then go and demo on customer site using same zoom level!
+  - DONE updateResults support (show pins for locations)
+ - DONE Core: Geospatial search options (via constraints)
+  - TEST geo-element-pair-constraint
+  - TEST geo-element-attr-constraint
+  - DEFERRED geo-element-constraint For location: "lat,lon" type elements
+  - DEFERRED geo-path-constraint (V7)
+ - DONE Test: Geospatial search options in mljstest/main data loading page
+ - DONE Test: Add data for tourist attractions in london
+ - DONE Test: Alter roxy config to include index for lon, lat
+ - DONE Test: EPSG900913 to/from WGS84(EPSG:4326) automatically - see http://en.wikipedia.org/wiki/World_Geodetic_System
+ - NA Simply don't facet the constraint: Widgets: Geospatial facets shown in maps, and not in facets widget
+ - DONE Core: V7 range relevance by distance from location in structured search
+  - DONE For distance of tourist attraction in sorting
+ - DONE Widgets: Structured query selection widget
+  - DONE Select Relevancy method. E.g. 'Distance from point' or 'Star rating'
+  - DONE Requires providing a function to determine values for query at query time, rather than hard coded (E.g. point for 'distance from point') (called query.dynamic())
+ - DONE Core: Structured Query geo alterations
+  - DONE geo-elem-pair-query (fully dynamic, no constraint options required) + dynamic query support, for points and circles (radius)
+ - DONE Widgets: OpenLayers phase 2
+  - DONE BUG: attribution appears 1/4 way up the map (CSS issue)
+  - DONE Added ArcGIS Online and Bing (road, hybrid, aerial) map layer convenience functions
+  - DONE Area selection and query
+   - DONE Core: Add updateGeoSelection detection to searchcontext
+   - DONE Widgets: OpenLayers - Configure openlayers widget with name of constraint to provide query for on selection
+   - DONE Core: Add polygon, bounding box geo queries to query builder
+   - DONE Widgets: OpenLayers - support bounding box
+   - DONE Widgets: OpenLayers - support polygon
+   - DONE Widgets: OpenLayers - clear selection button
+   - DONE BUG: Contribute query does not include one selected from drop down
+   - DONE BUG: When clearing query, not contributed query is used at all (just two nulls)
+   - DONE Widgets: OpenLayers - Configure OpenLayers/test page to use structured Contrib mode for queries
+   - BUG: OpenLayers polygon/circle selection no longer removing markers when executing more restrictive search
+  - NA using Highlight instead due to popups being poor in OpenLayers: Show number with pin
+  - NA using Highlight instead due to popups being poor in OpenLayers: Details popup for pins
+  - DONE 'highlight' support for search result aka click on pin (not mouse over)
+  - DONE 'select' support for search result aka 'details' link in description popup
+  - DONE Polygon, Circle, Rectangle drawing and generation of query contribution
+  - DONE Heatmap support (tourist attractions per km type result)
+   - DONE update heatmap constraint in options document
+   - DONE return heatmap info in facets
+   - DONE Include heatmap.js and heatmap-openlayers.js files, including updating build scripts
+   - DONE Process heatmap result: in facet location.boxes (location was the constraint name). Each box has count, n, s, e, w. zero count boxes not returned
+   - NA Dependant upon base layer, cannot remove if present: Allow hiding of heatmap layer
+   - DONE Allow configuring of heatmaps - use setHeatmapGranularity()
+   - DONE Update heatmap options and perform search again on map zoom (zoom NA - calculated by heatmaps js on the fly)
+   - NA No need - Change to using shadow query just for heatmap?
+   - NA Why? Works fine - Change to use geoConstraintName(cn) as the heatmap constraint name (not just constraint for additional openlayers positional query)
+   - DONE Change to automatically calculate boxes in lon/lat planes. E.g. LOW=64 boxes, if 800x800 map, this would be 4 wide and 4 tall, MED=128, HIGH=256
+   - DEFERRED Support RAW mode - extract lon/lat metadata ONLY, and pass all results directly to heatmap.js code (rather than calculate within MarkLogic)
+  - NA can add this external to map if needed (using addGeolocate function) - Locate me button support - http://openlayers.org/dev/examples/geolocation.html
+  - TEST Locate me automatic (browser) with no button
+  - DONE Fix dynamic width/height detection (el.offsetHeight)
+  - DEFERRED Listen for structured query parameter and draw search radius (E.g. 20 miles)
