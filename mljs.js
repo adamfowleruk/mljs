@@ -2787,7 +2787,7 @@ mljs.prototype.options.prototype.toJson = function() {
   
   for (var cname in this._computedBuckets) {
     var buckets = this._computedBuckets[cname]; // returns JSON object with _list and bucket: function() members
-    var constraint = this._findConstraint[cname]; 
+    var constraint = this._findConstraint(cname); 
     var nb = [];
     for (var i = 0,max = buckets._list.length,bucket;i < max;i++) {
       bucket = buckets._list[i];
@@ -3355,7 +3355,7 @@ mljs.prototype.options.prototype.buckets = function(constraint_name) {
         lt: lt, ge: ge
       };
       b.name = name_opt || (ge + "-" + lt);
-      b.label = label_opt || b.name_opt;
+      b.label = label_opt || b.name;
       bs._list.push(b);
       return bs;
     }
@@ -3397,7 +3397,7 @@ mljs.prototype.options.prototype.computedBuckets = function(constraint_name) {
         lt: lt, ge: ge, anchor: anchor
       };
       b.name = name_opt || (ge + "-" + lt);
-      b.label = label_opt || b.name_opt;
+      b.label = label_opt || b.name;
       bs._list.push(b);
       return bs;
     }
