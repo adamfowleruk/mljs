@@ -20,9 +20,9 @@ declare option xdmp:mapping "false";
 :)
 
 <div xmlns="http://www.w3.org/1999/xhtml" class="mljstest upload">
-<script type="text/javascript" src="/js/lib/jquery-1.7.1.min.js"></script>
 <script type="text/javascript" src="/js/mljs/mljs.js"></script>
 <script type="text/javascript" src="/js/mljs/mljs-xhr2.js"></script>
+<script type="text/javascript" src="/js/lib/jquery-1.7.1.min.js"></script>
 <script type="text/javascript" src="/js/mljs/widgets.js"></script>
 <script type="text/javascript" src="/js/mljs/widget-search.js"></script>
 <script type="text/javascript" src="/js/filedrop.js"></script>

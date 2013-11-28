@@ -168,3 +168,39 @@ declare function c:rdb2rdf() as item()*
   ch:use-view((), "xml"),
   ch:use-layout("mljs-one-column-test","html"))
 };
+
+declare function c:openlayers() as item()*
+{
+  (
+  ch:add-value("message", "This is a test message."),
+  ch:add-value("title", "OpenLayers mapping widget"),
+  ch:use-view((), "xml"),
+  ch:use-layout("mljs-one-column-test","html"))
+};
+
+declare function c:workplaceadmin() as item()*
+{
+  (
+  ch:add-value("message", "This is a test message."),
+  ch:add-value("title", "Workplace Admin"),
+  ch:use-view((), "xml"),
+  ch:use-layout("mljs-one-column-test","html"))
+};
+
+declare function c:tagcloud() as item()*
+{
+  (
+  ch:add-value("message", "This is a test message."),
+  ch:add-value("title", "TagCloud"),
+  ch:use-view((), "xml"),
+  ch:use-layout("mljs-one-column-test","html"))
+};
+
+declare function c:dnd() as item()*
+{
+  (
+  ch:add-value("message", "This is a test message."),
+  ch:add-value("title", "Drag and Drop"),
+  ch:use-view((), "xml"),
+  ch:use-layout("mljs-one-column-test","html"))
+};

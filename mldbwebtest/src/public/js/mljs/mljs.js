@@ -139,7 +139,7 @@ function xmlToJson(xml) {
     var justText = true;
     for (var i = 0; i < xml.childNodes.length; i++) {
       var item = xml.childNodes.item(i);
-      var nodeName = item.nodeName;
+      var nodeName = item.nodeName.toLowerCase(); // lowercase due to Node.js XML library always assuming uppercase for element names
       var pos = nodeName.indexOf(":");
       if (-1 != pos) {
         nodeName = nodeName.substring(pos + 1);
@@ -602,7 +602,14 @@ mljs.prototype.__doreq_node = function(reqname,options,content,callback_opt) {
           var jsonResult = {body: body, statusCode: res.statusCode,inError: false};
           if (options.method == "GET" && undefined != body && ""!=body) {
             //self.logger.debug("Response (Should be JSON): '" + body + "'");
-            jsonResult.doc = JSON.parse(body);
+            try {
+              jsonResult.doc = JSON.parse(body);
+              jsonResult.format = "json";
+            } catch (err) {
+              // try XML
+              jsonResult.doc = textToXML(body);
+              jsonResult.format = "xml";
+            }
           }
           if (res.statusCode == 303) {
             self.logger.debug("303 result headers: " + JSON.stringify(res.headers));
@@ -2691,6 +2698,8 @@ mljs.prototype.options = function() {
   this.options.tuples = undefined; // values-or-tuples,
   this.options.values = undefined; // values-or-tuples 
   
+  this.JSON = "http://marklogic.com/xdmp/json/basic";
+  
   // general defaults
   this.defaults = {};
   this.defaults.type = "xs:string";
@@ -2713,17 +2722,17 @@ mljs.prototype.options.prototype._includeSearchDefaults = function() {
     this.options.operator = new Array(); // [ operator ],
     this.options["page-length"] = 10; //unsigned long,
     this.options["quality-weight"] = undefined;// double,
-    this.options["return-aggregates"] = false; // boolean,
-    this.options["return-constraints"] = false;// boolean,
-    this.options["return-facets"] = true; // boolean,
-    this.options["return-frequencies"] = false; // boolean,
+    //this.options["return-aggregates"] = false; // boolean,
+    //this.options["return-constraints"] = false;// boolean,
+    //this.options["return-facets"] = true; // boolean,
+    //this.options["return-frequencies"] = false; // boolean,
     this.options["return-metrics"] = true; // boolean,
-    this.options["return-plan"] = false; // boolean,
+    //this.options["return-plan"] = false; // boolean,
     this.options["return-qtext"] = true; // boolean
     this.options["return-query"] = false; // boolean,
     this.options["return-results"] = true; // boolean,
     this.options["return-similar"] = false; // boolean,
-    this.options["return-values"] = false; // boolean,
+    //this.options["return-values"] = false; // boolean,
     this.options["search-option"] = new Array(); // [ string ],
     this.options["sort-order"] = new Array(); // [ sort-order ],
     this.options["suggestion-source"] = new Array(); //[ suggestion-source ],
@@ -2742,16 +2751,18 @@ mljs.prototype.options.prototype._includeSearchDefaults = function() {
  */
 mljs.prototype.options.prototype._findConstraint = function(cname) {
   var con = null;
-  
-  for (var i = 0, max = this.options.constraint.length, c;null == c && i < max;i++) {
+  this.__d("checking " + this.options.constraint.length + " constraints");
+  for (var i = 0, max = this.options.constraint.length, c;i < max;i++) {
     c = this.options.constraint[i];
+    this.__d("Checking constraint with name: " + c.name);
     
     if (c.name == cname) {
-      con = c;
+      this.__d("Name matches: " + cname + "!!!");
+      return c;
     }
   }
   
-  return con;
+  return null;
 };
 
 /**
@@ -2763,26 +2774,26 @@ mljs.prototype.options.prototype.toJson = function() {
   
   for (var cname in this._buckets) {
     var buckets = this._buckets[cname]; // returns JSON object with _list and bucket: function() members
-    var constraint = this._findConstraint[cname]; 
+    var constraint = this._findConstraint(cname); 
     var nb = [];
     for (var i = 0,max = buckets._list.length,bucket;i < max;i++) {
       bucket = buckets._list[i];
       nb[i] = bucket;
     }
-    constraint.bucket = nb;
+    constraint.range.bucket = nb; // TODO verify this cannot happen for other types of constraint
   }
   
   // TODO throw an error if computed bucket is not over a xs:dateTime constraint
   
   for (var cname in this._computedBuckets) {
     var buckets = this._computedBuckets[cname]; // returns JSON object with _list and bucket: function() members
-    var constraint = this._findConstraint[cname]; 
+    var constraint = this._findConstraint(cname); 
     var nb = [];
     for (var i = 0,max = buckets._list.length,bucket;i < max;i++) {
       bucket = buckets._list[i];
       nb[i] = bucket;
     }
-    constraint["computed-bucket"] = nb;
+    constraint.range["computed-bucket"] = nb; // TODO verify this cannot happen for other types of constraint
   }
   
   // return options object
@@ -3059,8 +3070,9 @@ mljs.prototype.options.prototype.defaultNamespace = function(ns) {
  * @param {string} collation_opt - The collation to use (if an xs:string), defaults to the value of defaultCollation in this options builder instance
  * @param {boolean} facet_opt - Whether to use this in a facet. Defaults to true. NB CURRENTLY THE REST API DOES NOT SUPPORT XPATH FACETS
  * @param {Array} facet_options_opt - Additional string array XPath options - See {@link http://docs.marklogic.com/guide/rest-dev/appendixa#id_64714}
+ * @param {string|Array} annotation_opt - The annotation to add to the constraint. MLJS uses annotation[0] as the display title, falling back to camel case constraint name if not specified
  */
-mljs.prototype.options.prototype.pathConstraint = function(constraint_name,xpath,namespaces,type_opt,collation_opt,facet_opt,facet_options_opt) {
+mljs.prototype.options.prototype.pathConstraint = function(constraint_name,xpath,namespaces,type_opt,collation_opt,facet_opt,facet_options_opt,annotation_opt) {
   var range = {name: constraint_name,
     range: {
       type: type_opt || this.defaults.type, 
@@ -3076,7 +3088,13 @@ mljs.prototype.options.prototype.pathConstraint = function(constraint_name,xpath
     range.range.facet = facet_opt || true;
   }
   if (undefined != facet_options_opt) {
-    range.range["facet-options"] = facet_options_opt;
+    range.range["facet-option"] = facet_options_opt;
+  }
+  if (undefined != annotation_opt) {
+    if ("string" == typeof(annotation_opt)) {
+      annotation_opt = [annotation_opt];
+    }
+    range.annotation = annotation_opt;
   }
   
   // Create sort orders automatically
@@ -3102,8 +3120,9 @@ mljs.prototype.options.prototype.path = mljs.prototype.options.prototype.pathCon
  * @param {string} collation_opt - The optional string collation to used. If not specified, default collation is used (if of xs:string type)
  * @param {JSON} facet_opt - The optional facet JSON to use.
  * @param {JSON} facet_options_opt - The optional facet configuration JSON to use.
+ * @param {string|Array} annotation_opt - The annotation to add to the constraint. MLJS uses annotation[0] as the display title, falling back to camel case constraint name if not specified
  */
-mljs.prototype.options.prototype.elemattrRangeConstraint = function(constraint_name,element,namespace,attr,type_opt,collation_opt,facet_opt,facet_options_opt) {
+mljs.prototype.options.prototype.elemattrRangeConstraint = function(constraint_name,element,namespace,attr,type_opt,collation_opt,facet_opt,facet_options_opt,annotation_opt) {
   var range = {name: constraint_name,
     range: {
       type: type_opt || this.defaults.type, 
@@ -3123,7 +3142,13 @@ mljs.prototype.options.prototype.elemattrRangeConstraint = function(constraint_n
     range.range.facet = true;
   }
   if (undefined != facet_options_opt) {
-    range.range["facet-options"] = facet_options_opt;
+    range.range["facet-option"] = facet_options_opt;
+  }
+  if (undefined != annotation_opt) {
+    if ("string" == typeof(annotation_opt)) {
+      annotation_opt = [annotation_opt];
+    }
+    range.annotation = annotation_opt;
   }
   
   // Create sort orders automatically
@@ -3145,12 +3170,15 @@ mljs.prototype.options.prototype.elemattrRangeConstraint = function(constraint_n
  * @param {string} ns_opt - Namespace to use. Optional. If not specified, default namespace is used. (If type is XML element)
  * @param {string} type_opt - Whether to use 'json' (default) or 'xml' element matching
  * @param {string} collation_opt - The optional string collation to used. If not specified, default collation is used
- * @param {JSON} facet_opt - The optional facet JSON to use.
+ * @param {boolean} facet_opt - Include this constraint as a facet?
  * @param {JSON} facet_options_opt - The optional facet configuration JSON to use.
  * @param {string} fragmentScope_opt - The fragment to use (defaults to document)
+ * @param {string|Array} annotation_opt - The annotation to add to the constraint. MLJS uses annotation[0] as the display title, falling back to camel case constraint name if not specified
  */
-mljs.prototype.options.prototype.rangeConstraint = function(constraint_name_opt,name_or_key,ns_opt,type_opt,collation_opt,facet_opt,facet_options_opt,fragmentScope_opt) {
+mljs.prototype.options.prototype.rangeConstraint = function(constraint_name_opt,name_or_key,ns_opt,type_opt,collation_opt,facet_opt,facet_options_opt,fragmentScope_opt,annotation_opt) {
   this._includeSearchDefaults();
+  
+  /*
   if (undefined == facet_options_opt) {
     if (undefined != facet_opt && Array.isArray(facet_opt)) {
       facet_options_opt = facet_opt;
@@ -3182,16 +3210,16 @@ mljs.prototype.options.prototype.rangeConstraint = function(constraint_name_opt,
     }
   }
   if (undefined ==  collation_opt) {
-    if (undefined !=  type_opt && "string" === typeof type_opt && (type_opt.length < 4 || "xs:" != type_opt.substring(0,3))) {
+    if (undefined !=  type_opt && "string" === typeof type_opt && (type_opt.length < 4 || "xs:" == type_opt.substring(0,3))) { // DANGEROUS?
       collation_opt = type_opt;
       type_opt = undefined;
-    } else if (undefined !=  ns_opt && "string" === typeof ns_opt && (ns_opt.length < 4 || "xs:" != ns_opt.substring(0,3))) {
+    } else if (undefined !=  ns_opt && "string" === typeof ns_opt && (ns_opt.length < 4 || "xs:" == ns_opt.substring(0,3))) { // DANGEROUS?
       collation_opt = ns_opt;
       ns_opt = undefined;
     } 
   }
   if (undefined ==  type_opt) {
-    if (undefined !=  ns_opt && "string" === typeof ns_opt && (ns_opt.length > 4 && "xs:" == ns_opt.substring(0,3))) {
+    if (undefined !=  ns_opt && "string" === typeof ns_opt && (ns_opt.length > 4 && "xs:" == ns_opt.substring(0,3))) { // DANGEROUS?
       type_opt = ns_opt;
       ns_opt = undefined;
     }
@@ -3199,7 +3227,7 @@ mljs.prototype.options.prototype.rangeConstraint = function(constraint_name_opt,
   if ("string" == typeof constraint_name_opt && Array.isArray(name_or_key)) {
     facet_opt = name_or_key;
     name_or_key = constraint_name_opt;
-  }
+  }*/
   if (undefined == name_or_key) {
     if (undefined !=  constraint_name_opt) {
       name_or_key = constraint_name_opt; // keep contraint name same as name or key (dont set to undefined)
@@ -3218,15 +3246,23 @@ mljs.prototype.options.prototype.rangeConstraint = function(constraint_name_opt,
       type: type_opt || this.defaults.type, 
       element: {
         name: name_or_key, ns : ns_opt || this.defaults.namespace // NB this means if default namespace is not json, you must specify NS for ALL json rangeConstraints to be marklogic/basic full URL spec
-      },
-      collation: collation_opt || this.defaults.collation
+      }
     }
   };
+  if (undefined != annotation_opt) {
+    if ("string" == typeof(annotation_opt)) {
+      annotation_opt = [annotation_opt];
+    }
+    range.annotation = annotation_opt;
+  }
+  if (range.range.type == "xs:string") {
+    range.range.collation = collation_opt || this.defaults.collation;
+  }
   if ((undefined != facet_opt && true===facet_opt) || undefined != facet_options_opt) {
     range.range.facet = true;
   }
   if (undefined != facet_options_opt) {
-    range.range["facet-options"] = facet_options_opt;
+    range.range["facet-option"] = facet_options_opt;
   }
   if (undefined != fragmentScope_opt) {
     range.range["fragment-scope"] = fragmentScope_opt;
@@ -3258,8 +3294,9 @@ mljs.prototype.options.prototype.range = mljs.prototype.options.prototype.rangeC
  * @param {JSON} facet_opt - The optional facet JSON to use.
  * @param {JSON} facet_options_opt - The optional facet configuration JSON to use.
  * @param {string} fragmentScope_opt - The fragment to use (defaults to document)
+ * @param {string|Array} annotation_opt - The annotation to add to the constraint. MLJS uses annotation[0] as the display title, falling back to camel case constraint name if not specified
  */
-mljs.prototype.options.prototype.fieldRangeConstraint = function(name,type_opt,collation_opt,facet_opt,facet_options_opt,fragmentScope_opt) {
+mljs.prototype.options.prototype.fieldRangeConstraint = function(name,type_opt,collation_opt,facet_opt,facet_options_opt,fragmentScope_opt,annotation_opt) {
   var range = {name: constraint_name_opt,
     range: {
       type: type_opt || this.defaults.type, 
@@ -3269,11 +3306,17 @@ mljs.prototype.options.prototype.fieldRangeConstraint = function(name,type_opt,c
       collation: collation_opt || this.defaults.collation
     }
   };
+  if (undefined != annotation_opt) {
+    if ("string" == typeof(annotation_opt)) {
+      annotation_opt = [annotation_opt];
+    }
+    range.annotation = annotation_opt;
+  }
   if ((undefined != facet_opt && true===facet_opt) || undefined != facet_options_opt) {
     range.range.facet = true;
   }
   if (undefined != facet_options_opt) {
-    range.range["facet-options"] = facet_options_opt;
+    range.range["facet-option"] = facet_options_opt;
   }
   if (undefined != fragmentScope_opt) {
     range.range["fragment-scope"] = fragmentScope_opt;
@@ -3311,9 +3354,9 @@ mljs.prototype.options.prototype.buckets = function(constraint_name) {
       var b = {
         lt: lt, ge: ge
       };
-      b.name_opt = name_opt || (ge + "-" + lt);
-      b.label_opt = label_opt || b.name_opt;
-      _list.push(b);
+      b.name = name_opt || (ge + "-" + lt);
+      b.label = label_opt || b.name;
+      bs._list.push(b);
       return bs;
     }
   };
@@ -3322,10 +3365,23 @@ mljs.prototype.options.prototype.buckets = function(constraint_name) {
 };
 
 /**
+ * Add an annotation to a constraint after the constraint has been configured. Useful for lazy loading localised strings.
+ * @param {string} constraint_name - the name of the constraint in these options
+ * @param {string|Array} annotation - the annotation string, or array of strings
+ */
+mljs.prototype.options.prototype.annotate = function(constraint_name,annotation) {
+  if ("string" == typeof(annotation)) {
+    annotation = [annotation];
+  }
+  this._findConstraint(constraint_name).annotation = annotation;
+  return this;
+};
+
+/**
  * Adds Computed buckets for the specified constraint. Returns a JSON object that has a bucket(lt,ge,name_opt,label_opt) method.
  * Used like this:-
  * ```javascript
- * var timeBuckets = ob.buckets(updated);
+ * var timeBuckets = ob.buckets("updated");
  * timeBuckets.bucket("P0D","P1D","now","today","Today").bucket(...).bucket(...);
  * ```
  * Note: If you don't specify name, MLJS will create a string based on "<ge-value>-<lt-value>". 
@@ -3340,9 +3396,9 @@ mljs.prototype.options.prototype.computedBuckets = function(constraint_name) {
       var b = {
         lt: lt, ge: ge, anchor: anchor
       };
-      b.name_opt = name_opt || (ge + "-" + lt);
-      b.label_opt = label_opt || b.name_opt;
-      _list.push(b);
+      b.name = name_opt || (ge + "-" + lt);
+      b.label = label_opt || b.name;
+      bs._list.push(b);
       return bs;
     }
   };
@@ -3357,6 +3413,10 @@ mljs.prototype.options.prototype.computedBuckets = function(constraint_name) {
  * @param {JSON} con - Constraint JSON to add to these options.
  */
 mljs.prototype.options.prototype.addConstraint = function(con) {
+  if (undefined == this.options.constraint) {
+    this.options.constraint = new Array(); // chicken and egg if just calling includeSearchDefaults first
+    this._includeSearchDefaults();
+  }
   this.options.constraint.push(con);
 };
 
@@ -3366,8 +3426,9 @@ mljs.prototype.options.prototype.addConstraint = function(con) {
  * @param {string} constraint_name_opt - Optional constraint name to use. Defaults to 'collection'
  * @param {string} prefix - Optional prefix (base collection) to use. Defaults to blank ''. I.e. all collections
  * @param {JSON} facet_option_opt - Optional JSON facet configureation. If not configured, will use the default facet configuration
+ * @param {string|Array} annotation_opt - The annotation to add to the constraint. MLJS uses annotation[0] as the display title, falling back to camel case constraint name if not specified
  */
-mljs.prototype.options.prototype.collectionConstraint = function(constraint_name_opt,prefix_opt,facet_option_opt) {
+mljs.prototype.options.prototype.collectionConstraint = function(constraint_name_opt,prefix_opt,facet_option_opt,annotation_opt) {
   this._includeSearchDefaults();
   var con = { name: constraint_name_opt || "collection", collection: {}};
   if (undefined != prefix_opt && null != prefix_opt) {
@@ -3379,6 +3440,12 @@ mljs.prototype.options.prototype.collectionConstraint = function(constraint_name
     con.collection["facet-option"] = facet_option_opt;
   } else if (undefined != this.defaults.facetOption) {
     con.collection["facet-option"] = this.defaults.facetOption;
+  }
+  if (undefined != annotation_opt) {
+    if ("string" == typeof(annotation_opt)) {
+      annotation_opt = [annotation_opt];
+    }
+    con.annotation = annotation_opt;
   }
   this.addConstraint(con);
   return this;
@@ -3393,8 +3460,9 @@ mljs.prototype.options.prototype.collection = mljs.prototype.options.prototype.c
  * @param {string} ns_opt - Optional namespace of the parent element. If not provided, uses the default namespace
  * @param {string} element - Element name of the geospatial pair element
  * @param {string} ns_el_opt - Optional namespace of the child geospatial element. If not configured will use the default namespace
+ * @param {string|Array} annotation_opt - The annotation to add to the constraint. MLJS uses annotation[0] as the display title, falling back to camel case constraint name if not specified
  */
-mljs.prototype.options.prototype.geoelemConstraint = function(constraint_name_opt,parent,ns_opt,element,ns_el_opt) {
+mljs.prototype.options.prototype.geoelemConstraint = function(constraint_name_opt,parent,ns_opt,element,ns_el_opt,annotation_opt) {
   if (undefined == element) {
     if (undefined == ns_opt) {
       element = parent;
@@ -3418,10 +3486,52 @@ mljs.prototype.options.prototype.geoelemConstraint = function(constraint_name_op
   var con = { name: constraint_name_opt, "geo-elem": {
     parent: {ns: ns_opt || this.defaults.namespace, name: parent, element: {ns: ns_el_opt || this.defaults.namespace, name: element}}
   }};
+  if (undefined != annotation_opt) {
+    if ("string" == typeof(annotation_opt)) {
+      annotation_opt = [annotation_opt];
+    }
+    con.annotation = annotation_opt;
+  }
   this.addConstraint(con);
   return this;
 };
 mljs.prototype.options.prototype.geoelem = mljs.prototype.options.prototype.geoelemConstraint;
+
+/**
+ * 
+ * http://docs.marklogic.com/guide/rest-dev/appendixa#id_33146
+ * NB Requires WGS84 or RAW co-ordinates (depending on how you are storing your data) - See the proj4js project for conversions
+ * 
+ * @param {string|Array} annotation_opt - The annotation to add to the constraint. MLJS uses annotation[0] as the display title, falling back to camel case constraint name if not specified
+ */
+mljs.prototype.options.prototype.geoElementPairConstraint = function(constraint_name,parentelement,parentns,latelement,latns,lonelement,lonns,heatmap_opt,geo_options_opt, facet_opt,facet_options_opt,annotation_opt) {
+  var con = {name: constraint_name, 
+    "geo-elem-pair": {
+      parent: {name: parentelement,ns: parentns},
+      lat: {name: latelement,ns: latns},
+      lon: {name: lonelement,ns: lonns}
+    }
+  };
+  if (undefined != heatmap_opt && null != heatmap_opt) {
+    con["geo-elem-pair"].heatmap = heatmap_opt;
+  }
+  if (undefined != geo_options_opt) {
+    con["geo-elem-pair"]["geo-option"] = geo_options_opt;
+  }
+  if (undefined != facet_opt && true === facet_opt) {
+    // NB why does a geo-elem-pair-constraint not have a facet_opt property like other range constraints???
+  }
+  if (undefined != annotation_opt) {
+    if ("string" == typeof(annotation_opt)) {
+      annotation_opt = [annotation_opt];
+    }
+    con.annotation = annotation_opt;
+  }
+  this.addConstraint(con);
+  return this;
+};
+mljs.prototype.options.prototype.geoelempair = mljs.prototype.options.prototype.geoElementPairConstraint;
+mljs.prototype.options.prototype.geoElemPair = mljs.prototype.options.prototype.geoElementPairConstraint;
 
 /**
  * TODO Specifies a geospatial element attribute pair constraint, and adds it to the search options object
@@ -3701,6 +3811,7 @@ mljs.prototype.options.prototype.tuples = function(name,el,el2) { // TODO handle
  */
 mljs.prototype.options.prototype.values = function(name,el,el2) {
   var values = {name: name,range: new Array()};
+  this.options["return-values"] = true;
   if (undefined == this.options.values) {
     this.options.values = new Array();
   }
@@ -3752,7 +3863,10 @@ mljs.prototype.query.prototype.toJson = function() {
 // TOP LEVEL QUERY CONFIGURATION (returning this)
 
 /**
- * Copies an existing query options object in to this object (pass a JSON structure query, not an mljs.query object)
+ * Copies an existing query options object in to this object (pass a JSON structure query, not an mljs.query object).
+ * Also used to set the top level query object (E.g. pass this function the result of query.and()).
+ * MUST be called at least once in order for the query to be set, prior to calling toJson(). Otherwise you'll always
+ * have a BLANK query!!!
  * 
  * @param {JSON} query_opt - The query to copy child values of to this query
  */
@@ -3870,21 +3984,213 @@ mljs.prototype.query.prototype.georadius = function(constraint_name,lat,lon,radi
     }
   }
 };
+/**
+ * Creates a geospatial bounding box query and returns it
+ * 
+ * @param {string} constraint_name - Name of the matching constraint to restrict by these values
+ * @param {integer} north - WGS84 north latitude
+ * @param {integer} east - WGS84 east longitude
+ * @param {integer} wouth - WGS84 wouth latitude
+ * @param {integer} west - WGS84 west longitude
+ */
+mljs.prototype.query.prototype.geoBox = function(constraint_name,north,east,south,west) {
+  return {
+    "geospatial-constraint-query" : {
+      "constraint-name": constraint_name,
+      "box": {
+        north: north,east: east,south: south,west:west
+      }
+    }
+  }
+};
+
+/**
+ * Creates a geospatial polygon query and returns it
+ * 
+ * @param {string} constraint_name - Name of the matching constraint to restrict by these values
+ * @param {Array} points - Array of WGS 84 Points {latitude: , longitude: } JSON objects
+ */
+mljs.prototype.query.prototype.geoPolygon = function(constraint_name,points) {
+  return {
+    "geospatial-constraint-query" : {
+      "constraint-name": constraint_name,
+      "polygon": {point: points}
+    }
+  }
+};
+
+/**
+ * Creates a geo element pair query. Useful for dynamically calculating relevance using distance from a known point.
+ * 
+ * @param {string} parentelement - parent element name. E.g. <location> or location: {lat:...,lon:...}
+ * @param {string} parentns - parent namespace (provide null if none, or "http://marklogic.com/xdmp/json/basic" if JSON)
+ * @param {string} latelement - latitude element. E.g. <lat> or lat: 51.1234
+ * @param {string} latns - latitude namespace (provide null if none, or "http://marklogic.com/xdmp/json/basic" if JSON)
+ * @param {string} lonelement - longitude element. E.g. <lon> or lat: 0.1234
+ * @param {string} lonns - longitude namespace (provide null if none, or "http://marklogic.com/xdmp/json/basic" if JSON)
+ * @param {float} pointlat - longitude in WGS84 or RAW
+ * @param {float} pointlon - longitude in WGS84 or RAW
+ * @param {string} scoring_method_opt - Optional scoring method. Defaults zero (others in V7: "reciprocal" (nearest first) or "linear" (furthest first)). NB Just ignored on V6.
+ */
+mljs.prototype.query.prototype.geoElementPairPoint = function(parentelement,parentns,latelement,latns,lonelement,lonns,pointlat,pointlon,scoring_method_opt) {
+  if (undefined == scoring_method_opt) {
+    scoring_method_opt = "zero";
+  }
+  return {
+    "geo-elem-pair-query": {
+      "parent": {
+        "name": parentelement,
+        "ns": parentns
+      },
+      "lat": {
+        "name": latelement,
+        "ns": latns
+      },
+      "lon": {
+        "name": lonelement,
+        "ns": lonns
+      },
+      "geo-option": [ "score-function=" + scoring_method_opt ],
+      "point": [
+        {
+          "latitude": pointlat,
+          "longitude": pointlon
+        }
+      ]
+    }
+  };
+};
+
+/**
+ * Creates a geo element pair query. Useful for dynamically calculating relevance using distance from a known point.
+ * 
+ * @param {string} parentelement - parent element name. E.g. <location> or location: {lat:...,lon:...}
+ * @param {string} parentns - parent namespace (provide null if none, or "http://marklogic.com/xdmp/json/basic" if JSON)
+ * @param {string} latelement - latitude element. E.g. <lat> or lat: 51.1234
+ * @param {string} latns - latitude namespace (provide null if none, or "http://marklogic.com/xdmp/json/basic" if JSON)
+ * @param {string} lonelement - longitude element. E.g. <lon> or lat: 0.1234
+ * @param {string} lonns - longitude namespace (provide null if none, or "http://marklogic.com/xdmp/json/basic" if JSON)
+ * @param {float} pointlat - longitude in WGS84 or RAW
+ * @param {float} pointlon - longitude in WGS84 or RAW
+ * @param {string} scoring_method_opt - Optional scoring method. Defaults zero (others in V7: "reciprocal" (nearest first) or "linear" (furthest first)). NB Just ignored on V6.
+ */
+mljs.prototype.query.prototype.geoElementPairRadius = function(parentelement,parentns,latelement,latns,lonelement,lonns,pointlat,pointlon,radius,radius_unit_opt,scoring_method_opt) {
+  if (undefined == scoring_method_opt) {
+    scoring_method_opt = "zero";
+  }
+  if (undefined == radius_unit_opt) {
+    radius_unit_opt = "miles";
+  }
+  return {
+    "geo-elem-pair-query": {
+      "parent": {
+        "name": parentelement,
+        "ns": parentns
+      },
+      "lat": {
+        "name": latelement,
+        "ns": latns
+      },
+      "lon": {
+        "name": lonelement,
+        "ns": lonns
+      },
+      "geo-option": [ "score-function=" + scoring_method_opt, "units=" + radius_unit_opt ],
+      "circle": {
+        radius: radius,
+        "point": [
+          {
+            "latitude": pointlat,
+            "longitude": pointlon
+          }
+        ]
+      }
+    }
+  };
+};
+
+/**
+ * Allows a query term to be changed on the fly, by returning a wrapper function that can be called with a JSON vars object.
+ * See mldbwebtest's page-mljs-openlayers.js sample file.
+ * 
+ * @param {JSON} query - The query JSON object. E.g. returned by geoElementPair(...)
+ * @return {function} func - the dynamic function to call with a JSON vars object: E.g. for a geoElementPair wrapper: {latitude: -51.2334, longitude: 0.345454}
+ */
+mljs.prototype.query.prototype.dynamic = function(query) {
+  var func = null;
+  
+  if (undefined != query["geo-elem-pair-query"] && undefined != query["geo-elem-pair-query"]["point"]) {
+    func = function(vars) {
+      // alter point lon, lat
+      query["geo-elem-pair-query"].point.latitude = vars.latitude;
+      query["geo-elem-pair-query"].point.longitude = vars.longitude;
+      var opts = query["geo-elem-pair-query"]["geo-option"]; 
+      for (var i = 0, max = opts.length,opt;i < max;i++) {
+        opt = opts[i];
+        if (undefined != vars["score-function"] && opt.indexOf("score-function=") == 0) {
+          opt = "score-function=" + vars["score-function"];
+        }
+        opts[i] = opt;
+      }
+      query["geo-elem-pair-query"]["geo-option"] = opts;
+      
+      return query;
+    };
+  }
+  
+  if (undefined != query["geo-elem-pair-query"] && undefined != query["geo-elem-pair-query"]["circle"]) {
+    func = function(vars) {
+      // alter point lon, lat, radius, radius units
+      query["geo-elem-pair-query"].circle.point.latitude = vars.latitude;
+      query["geo-elem-pair-query"].circle.point.longitude = vars.longitude;
+      query["geo-elem-pair-query"].circle.radius = vars.radius;
+      var opts = query["geo-elem-pair-query"]["geo-option"]; 
+      for (var i = 0, max = opts.length,opt;i < max;i++) {
+        opt = opts[i];
+        if (undefined != vars["units"] && opt.indexOf("units=") == 0) {
+          opt = "units=" + vars.units;
+        }
+        if (undefined != vars["score-function"] && opt.indexOf("score-function=") == 0) {
+          opt = "score-function=" + vars["score-function"];
+        }
+        opts[i] = opt;
+      }
+      query["geo-elem-pair-query"]["geo-option"] = opts;
+      
+      return query;
+    };
+  }
+  
+  // TODO other dynamic query types
+  
+  return func;
+};
 
 /**
  * Creates a range constraint query and returns it
  * 
  * @param {string} constraint_name - The constraint name from the search options for this constraint
  * @param {string} val - The value that matching documents must match
+ * @param {string} range_operator_opt - The Optional operator to use. Default to EQ (=) if not provided. Valid values: LT, LE, GT, GE, EQ, NE
+ * @param {Array} options_opt - The Optional String array options for the range index. E.g. ["score-function=linear","slope-factor=10"]
  */
-mljs.prototype.query.prototype.range = function(constraint_name,val) {
-  return {
-    
-            "range-constraint-query": {
-              "value": val,
-              "constraint-name": constraint_name
-            }
+mljs.prototype.query.prototype.range = function(constraint_name,val,range_operator_opt,options_opt) {
+  var query = {
+    "range-constraint-query": {
+      "value": val,
+      "constraint-name": constraint_name
+    }
+  };
+  if (undefined != range_operator_opt) {
+    // TODO sanity check value
+    query["range-constraint-query"]["range-operator"] = range_operator_opt;
   }
+  if (undefined != options_opt) {
+    // TODO sanity check value
+    query["range-constraint-query"]["range-option"] = options_opt;
+  }
+  
+  return query;
 };
 
 /**
@@ -4050,12 +4356,13 @@ mljs.prototype.searchcontext = function() {
   
   this.defaultSort = [];
   
-  this.optionsExists = false;
+  this.optionsExist = false;
   this.optionssavemode = "persist"; // persist or dynamic (v7 only)
   
   this.structuredContrib = new Array();
   
   this._selectedResults = new Array(); // Array of document URIs
+  this._highlightedResults = new Array(); // Array of document URIs
   
   
   
@@ -4067,6 +4374,7 @@ mljs.prototype.searchcontext = function() {
   this.errorPublisher = new com.marklogic.events.Publisher(); // errors occuring at search time
   this.simpleQueryPublisher = new com.marklogic.events.Publisher(); // simple query text
   this.selectionPublisher = new com.marklogic.events.Publisher(); // result selection uri array publisher
+  this.highlightPublisher = new com.marklogic.events.Publisher(); // mouse over/highlight results
   
 };
 
@@ -4150,18 +4458,38 @@ mljs.prototype.searchcontext.prototype.setOptions = function(name,options) {
   if (undefined != options.options) {
     this._options = options; // no object wrapper
   }
-  this.optionsExists = false;
+  this.optionsExist = false;
   
   this.defaultSort = this._options.options["sort-order"];
   
   this.optionsPublisher.publish(this._options.options);
   
-  this.structuredContrib = new Array();
+  this.structuredContrib = {}; // setting named children so using JSON
   
   // TODO support V7 dynamic query options capability rather than always saving
   
   // check if options exist
   var self = this;
+};
+
+mljs.prototype.searchcontext.prototype.getOptions = function() {
+  // bit of clever mixin work as we no longer have an options builder reference here
+  var opts = this._options;
+  opts._findConstraint = function(cname) {
+    
+  var con = null;
+  
+  for (var i = 0, max = opts.options.constraint.length, c;i < max;i++) {
+    c = opts.options.constraint[i];
+    
+    if (c.name == cname) {
+      return c;
+    }
+  }
+  
+  return null;
+  };
+  return opts;
 };
 
 /**
@@ -4213,8 +4541,14 @@ mljs.prototype.searchcontext.prototype.register = function(searchWidget) {
   if ('function' === typeof(searchWidget.updateOptions)) {
     this.optionsPublisher.subscribe(function (options) {searchWidget.updateOptions(options);});
   }
-  if ('function' === typeof(searchWidget.updateDocumentSelection)) {
+  if ('function' === typeof(searchWidget.updateDocumentSelection)) { // from document context
     this.selectionPublisher.subscribe(function (selectionArray) {searchWidget.updateDocumentSelection(selectionArray);});
+  }
+  if ('function' === typeof(searchWidget.updateResultHighlight)) {
+    this.highlightPublisher.subscribe(function (selectionArray) {searchWidget.updateResultHighlight(selectionArray);});
+  }
+  if ('function' === typeof(searchWidget.updateResultSelection)) {
+    this.selectionPublisher.subscribe(function (selectionArray) {searchWidget.updateResultSelection(selectionArray);});
   }
   var self = this;
   if ('function' === typeof(searchWidget.addSortListener)) {
@@ -4228,6 +4562,13 @@ mljs.prototype.searchcontext.prototype.register = function(searchWidget) {
   }
   if ('function' === typeof(searchWidget.addResultSelectionListener)) {
     searchWidget.addResultSelectionListener(function (selection) {self.updateSelection(selection);});
+  }
+  if ('function' === typeof(searchWidget.addResultHighlightListener)) {
+    searchWidget.addResultHighlightListener(function (highlight) {self.updateHighlight(highlight);});
+  }
+  if ('function' === typeof(searchWidget.addGeoSelectionListener)) {
+    // contribute term to query
+    searchWidget.addGeoSelectionListener(function(selection){self.updateGeoSelection(selection);});
   }
 };
 
@@ -4340,20 +4681,84 @@ mljs.prototype.searchcontext.prototype.dostructuredquery = mljs.prototype.search
  * NOTE: queryTerm needs to be the result of queryBuilder.toJson().query[0] and not the top level query JSON itself - i.e. we need a term, not a full query object.
  */
 mljs.prototype.searchcontext.prototype.contributeStructuredQuery = function(contributor,queryTerm,start_opt) {
-  this.structuredContrib[contributor] = queryTerm;
+  if (null == queryTerm || undefined == queryTerm) {
+    this.structuredContrib[contributor] = undefined; // removes contribution to the query
+  } else {
+    this.structuredContrib[contributor] = queryTerm;
+  }
   
   // build structure query from all terms
   var terms = new Array();
   for (var cont in this.structuredContrib) {
-    if ("object" == typeof this.structuredContrib[cont]) {
+    this.__d("searchcontext.contributeStructuredQuery: Adding contribution from: " + cont);
+    //if ("object" == typeof this.structuredContrib[cont]) {
+    if (null != this.structuredContrib[cont]) {
       terms.push(this.structuredContrib[cont]);
     }
+    //}
   }
   // execute structured query
-  var qb = new this.db.query();
+  var qb = this.db.createQuery();
   qb.query(qb.and(terms));
   //var allqueries = { query: {"and-query": terms}}; // TODO replace with query builder
   this.dostructuredquery(qb.toJson());
+};
+
+mljs.prototype.searchcontext.prototype.updateGeoHeatmap = function(constraint_name,heatmap) {
+  
+    // copy heatmap information in to search options
+    var con = null;
+    for (var i = 0, max = this._options.options.constraint.length;i < max && null == con;i++) {
+      con = this._options.options.constraint[i];
+      if (con.name == constraint_name) {
+        // do nothing
+      } else {
+        con = null;
+      }
+    }
+    if (null != con) {
+      // found named constraint - now alter heatmap description
+      if (undefined != con["geo-elem"]) {
+        con["geo-elem"].heatmap = heatmap;
+      } else if (undefined != con["geo-elem-pair"]) {
+        con["geo-elem-pair"].heatmap = heatmap;
+      } else if (undefined != con["geo-attr-pair"]) {
+        con["geo-attr-pair"].heatmap = heatmap;
+      } else if (undefined != con["geo-path"]) {
+        con["geo-path"].heatmap = heatmap;
+      }
+    }
+    
+    // force save of options
+    this.optionsExist = false;
+};
+
+mljs.prototype.searchcontext.prototype.updateGeoSelection = function(selection) {
+  // create term and contribute to query
+  var cont = selection.contributor;
+  var qb = this.db.createQuery();
+  
+  var term = null;
+  if ("circle" == selection.type) {
+    term = qb.georadius(selection["constraint-name"],selection.latitude,selection.longitude,selection.radiusmiles);
+  } else {
+    // TODO other types - bounding box and polygon
+    if ("polygon" == selection.type) {
+      term = qb.geoPolygon(selection["constraint-name"],selection.polygon);
+    } else if ("box" == selection.type) {
+      term = qb.geoBox(selection["constraint-name"],selection.box.north,selection.box.east,selection.box.south,selection.box.west);
+    } else if (null == selection.type) {
+      term = null;
+    }
+  }
+  
+  // alter search options first, as required
+  if (undefined != selection.heatmap) { // n,s,e,w,latdivs,londivs
+    this.updateGeoHeatmap(selection["constraint-name"],selection.heatmap);
+  }
+  
+  var self = this;
+  this._persistAndDo(function() {self.contributeStructuredQuery(cont,term)});
 };
 
 /**
@@ -4425,13 +4830,13 @@ mljs.prototype.searchcontext.prototype.doSimpleQuery = function(q,start) {
   
   // check for options existance
   /*
-  if (!this.optionsExists && "persist" == this.optionssavemode) {
+  if (!this.optionsExist && "persist" == this.optionssavemode) {
     this.__d("searchbar: Saving search options prior to query");
     this.db.saveSearchOptions(this.optionsName,this._options,function(result) {
       if (result.inError) {
         self.__d("Exception saving results: " + result.details);
       } else {
-        self.optionsExists = true; // to stop overwriting on subsequent requests
+        self.optionsExist = true; // to stop overwriting on subsequent requests
         dos();
       }
     });
@@ -4467,7 +4872,7 @@ mljs.prototype.searchcontext.prototype._persistAndDo = function(callback) {
           if (result.inError) {
             self.__d("Error saving Search options " + self.optionsName); 
           } else {
-            self.optionsExists = true;
+            self.optionsExist = true;
             self.__d("Saved Search options " + self.optionsName); 
             
             callback();
@@ -4606,6 +5011,36 @@ mljs.prototype.searchcontext.prototype.updateSelection = function(resultSelectio
 };
 
 /**
+ * Highlight the document specified. Depending upon the highlight mode (append or replace) this will either
+ * add the document to the selection, or replace the selection with this document. Useful for selecting
+ * multiple search results over time (e.g. between pages of results).
+ * 
+ * Fires an updateSelection event on selection listeners. (Only if the URI is not already selected)
+ * 
+ * @param {json} resultSelection - The JSON object {mode: "append|replace", uri: "/some/uri"} for the selected document. Specifying null in replace mode clears the selection
+ */
+mljs.prototype.searchcontext.prototype.updateHighlight = function(resultHighlight) {
+  if ("append" == resultHighlight.mode) {
+    // check doc is not already selected
+    var found = false;
+    for (var i = 0;i < this._highlightedResults.length && !found;i++) {
+      found = (this._highlightedResults[i] == resultHighlight.uri);
+    }
+    if (!found) {
+      this._highlightedResults.push(resultHighlight.uri);
+    }
+  } else if ("replace" == resultHighlight.mode) {
+    this._highlightedResults = new Array();
+    if (null != resultHighlight.uri) {
+      this._highlightedResults.push(resultHighlight.uri);
+    }
+  } else {
+    // should never happen
+  }
+  this.highlightPublisher.publish(this._highlightedResults);
+};
+
+/**
  * Event target. Useful to call directly from a search pager widget. Executes a new search
  * json = {show: number, start: number}
  * @param {JSON} json - JSON representing the start result and the number of results to return per page.
@@ -4613,7 +5048,7 @@ mljs.prototype.searchcontext.prototype.updateSelection = function(resultSelectio
 mljs.prototype.searchcontext.prototype.updatePage = function(json) {
   // example: {start: this.start, show: this.perPage}
   if (this._options.options["page-length"] != json.show) {
-    this.optionsExists = false; // force re save of options
+    this.optionsExist = false; // force re save of options
     this._options.options["page-length"] = json.show;
   }
   this.dosimplequery(this.simplequery,json.start);
@@ -4635,7 +5070,7 @@ mljs.prototype.searchcontext.prototype.updateSort = function(sortSelection) {
   } else {
     this._options.options["sort-order"] = [sortSelection];
   }
-  this.optionsExists = false; // force re save of options
+  this.optionsExist = false; // force re save of options
   
   // now perform same query again
   this.dosimplequery(this.simplequery);
