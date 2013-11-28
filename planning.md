@@ -13,6 +13,8 @@ Floating PoC Targets
  - Nice to have: Widgets: Browse related Subjects in node diagram
 
 Targets for 1.2 (Dec 2013)
+ - IN PROGRESS Test: Create MLJS Rest only (not Roxy hybrid) deployment project
+ - Docs: Publish mljsrest to internal demo server
  - Widgets: OpenLayers - Use MarkLogic as a tile cache rather than the browser (and do "cache first")
  - Widgets: Address to Lon Lat - Perform address lookup for top matching point, feed as constraint in to structured query
   - MS VirtualEarth address lookup?
