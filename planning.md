@@ -16,8 +16,8 @@ Targets for 1.2 (Dec 2013) - High priority
  - App builder gap closing
   - Core: Rework searchcontext
    - Allow contribution of facets/sort etc to alter both text (grammar) queries and structured query (independently, via searchcontext)
-   - Support compound search mode in V7 (options + search)
-    - version rest extension
+   - TEST Support compound search mode in V7 (options + search) (search, searchCollection, structuredSearch, saveSearchOptionsCheck, searchcontext alterations)
+    - TEST version rest extension
    - (Doubtful) Check if structured query supports dynamic text query constraints with grammar (i.e. one term with grammar parsing)
    - DEFERRED Do shadow query automatically in searchcontext rather than per-widget?
    - DEFERRED Come up with a strategy for parent-child relationships in search widgets (one way facet selection - E.g. genre THEN album)
