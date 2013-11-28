@@ -254,13 +254,13 @@ function xmlToJsonSearchResults(xml) {
       
     if (isResultContent) {
         //console.log("GOT RESULT");
-        /*
-        var s = "";
-        for (var i = 0; i < xml.childNodes.length; i++) {
-          s += (new XMLSerializer()).serializeToString(xml.childNodes.item(i));
-        }
-        obj.content = s;
-        */
+        
+        //var s = "";
+        //for (var i = 0; i < xml.childNodes.length; i++) {
+        //  s += (new XMLSerializer()).serializeToString(xml.childNodes.item(i));
+        //}
+        //obj.content = s;
+        
         obj.content = (new XMLSerializer()).serializeToString(xml);
     } else {
   
@@ -332,7 +332,7 @@ function xmlToJsonSearchResults(xml) {
 
 /**
  * Strictly converts the supplied XML document to a JSON representation
- * from {@link http://stackoverflow.com/questions/7769829/tool-javascript-to-convert-a-xml-string-to-json}
+ * from http://stackoverflow.com/questions/7769829/tool-javascript-to-convert-a-xml-string-to-json
  *
  * @param {string} xml - The XML Document to convert to JSON
  */
@@ -1150,7 +1150,7 @@ mljs.prototype.__merge = function(json1,json2) {
 /**
  * Uses MarkLogic V7's Patch support to replace or insert a property for the specified document.
  * 
- * {@link https://docs.marklogic.com/REST/POST/v1/documents}
+ * https://docs.marklogic.com/REST/POST/v1/documents
  * 
  * @param {string} docuri - The URI of the document to patch
  * @param {JSON} elementSelectJSON - JSON object containing a namespaces array with prefix and ns elements, an XPath 'context' (parent of the node to replace), and a 'select' XPath (remaining XPath to select child to replace) - {namespaces: [{prefix: "myns",ns: "http://myns.org/myns"}], context: "//myns:parent", select: "myns:child[1]"}
@@ -1209,7 +1209,7 @@ mljs.prototype.replaceProperty = function(docuri,elementSelectJSON,content,callb
 /**
  * Deletes the specified document
  * 
- * {@link https://docs.marklogic.com/REST/DELETE/v1/documents}
+ *  https://docs.marklogic.com/REST/DELETE/v1/documents
  *
  * @param {string} docuri - URI of the document to delete
  * @param {function} callback_opt - The optional callback to invoke after the method completes
@@ -1759,7 +1759,7 @@ mljs.prototype.saveGraph = function(triples,uri_opt,callback_opt) {
  * <p>Merges a set of triples in to an n-triples graph. Allows you to specify a named graph (collection) or use the default graph.
  * </p><p>
  * No documentation URL - still in Early Access
- *</p>
+ * </p>
  * @param {string|JSON} triples - The raw N-triples (string) or JSON triples (object JSON array) to store
  * @param {string} uri_opt - The graph name to replace. If not provided, the default MarkLogic graph (all triples) will be merged.
  * @param {function} callback_opt - The optional callback to invoke after the method completes
@@ -1795,9 +1795,9 @@ mljs.prototype.mergeGraph = function(triples,uri_opt,callback_opt) {
 /**
  * <p>Returns the specified graph from MarkLogic Server, or the full default graph. USE CAREFULLY!</p><p>
  * Returns the triples as a JSON {subject: "...", predicate: "...", object: "..."} array in result.triples, or the raw in result.doc
- *</p><p>
+ * </p><p>
  * No documentation URL - still in Early Access
- *</p>
+ * </p>
  * @param {string} uri_opt - The name of the grah to return. If not provided, the default MarkLogic graph (all triples, not just triples not in a named graph) will be returned.
  * @param {function} callback_opt - The optional callback to invoke after the method completes.
  */
@@ -1843,9 +1843,9 @@ mljs.prototype.graph = function(uri_opt,callback_opt) {
 
 /**
  * <p>Deletes the specified graph from MarkLogic Server
- *</p><p>
+ * </p><p>
  * No documentation URL - still in Early Access
- *</p>
+ * </p>
  * @param {string} uri - The name of the graph to delete. Required. (Cannot be 'default')
  * @param {function} callback_opt - The optional callback to invoke after the method completes
  */
@@ -1860,9 +1860,9 @@ mljs.prototype.deleteGraph = function(uri,callback_opt) {
 
 /**
  * <p>Executes the specified sparql query.
- *</p><p>
+ * </p><p>
  * No documentation URL - still in Early Access
- *</p>
+ * </p>
  *
  * @param {string} sparql - The sparql query text
  * @param {function} callback - The callback to invoke after the method completes.
@@ -2058,7 +2058,7 @@ mljs.prototype.fast = function(callback_opt) {
 /**
  * <p>Takes a csv file and adds to the database.
  * fast aware method
- *</p><p>
+ * </p><p>
  * NOT YET IMPLEMENTED - Shell function only that will never call the callback
  * </p>
  * @param {string} csvdata - The CSV text to ingest
@@ -2071,7 +2071,7 @@ mljs.prototype.ingestcsv = function(csvdata,docid_opt,callback_opt) {
 
 /**
  * <p>Inserts many JSON documents. FAST aware, TRANSACTION aware.
- *</p>
+ * </p>
  * @param {Array} doc_array - The array of document data to store. {@see mljs.prototype.save} for valid values
  * @param {Array} uri_array_opt - The optional array of URIs to store the documents as. Will generate if not provided
  * @param {function} callback_opt - The optional callback to invoke after the method completes
@@ -2148,9 +2148,9 @@ rv.prototype.callback = function(mc,result,that) {
 
 /**
  * <p>Alternative saveAll function that throttles invoking MarkLogic to a maximum number of simultaneous 'parallel' requests. (JavaScript is never truly parallel)
- *</p><p>
+ * </p><p>
  * NB Uses an internal rv class defined in the mljs.js file.
- *</p>
+ * </p>
  * @param {Array} doc_array - The array of document data to store. {@see mljs.prototype.save} for valid values
  * @param {Array} uri_array_opt - The optional array of URIs to store the documents as. Will generate if not provided
  * @param {function} callback_opt - The optional callback to invoke after the method completes
@@ -2573,9 +2573,7 @@ mljs.prototype.samRdb2Rdf = function(config,callback) {
 
 
 
-/****
- * Object creation and linking helpers (akin to Factory pattern)
- ****/
+// Object creation and linking helpers (akin to Factory pattern)
 
 /**
  * Factory pattern. Creates an options object referring back to the current database connection. Useful to link to the correct logger, and db settings.
@@ -2643,9 +2641,8 @@ mljs.prototype.createSemanticContext = function() {
 
 
 
-/****
- * Search Options management
- ****/
+
+// Search Options management
  
 /**
  * <p>Creates a new search options builder connected to this client database connection mljs instance. Each function returns a reference to the option builder object to support chaining.
@@ -3342,7 +3339,7 @@ mljs.prototype.options.prototype.field = mljs.prototype.options.prototype.fieldR
  * var yearBuckets = ob.buckets(year);
  * yearBuckets.bucket(1920,1929,"1920s","The 1920s").bucket(...).bucket(...);
  * ```
- * Note: If you don't specify name, MLJS will create a string based on "<ge-value>-<lt-value>". 
+ * Note: If you don't specify name, MLJS will create a string based on "gevalue-ltvalue". 
  * If you don't specify label, it will default to the name specified or calculated by MLJS
  * 
  * @param {string} constraint_name - The name of the constraint to define buckets for.
@@ -3384,7 +3381,7 @@ mljs.prototype.options.prototype.annotate = function(constraint_name,annotation)
  * var timeBuckets = ob.buckets("updated");
  * timeBuckets.bucket("P0D","P1D","now","today","Today").bucket(...).bucket(...);
  * ```
- * Note: If you don't specify name, MLJS will create a string based on "<ge-value>-<lt-value>". 
+ * Note: If you don't specify name, MLJS will create a string based on "gevalue-ltvalue". 
  * If you don't specify label, it will default to the name specified or calculated by MLJS
  * 
  * @param {string} constraint_name - The name of the constraint to define buckets for.
@@ -4024,9 +4021,9 @@ mljs.prototype.query.prototype.geoPolygon = function(constraint_name,points) {
  * 
  * @param {string} parentelement - parent element name. E.g. <location> or location: {lat:...,lon:...}
  * @param {string} parentns - parent namespace (provide null if none, or "http://marklogic.com/xdmp/json/basic" if JSON)
- * @param {string} latelement - latitude element. E.g. <lat> or lat: 51.1234
+ * @param {string} latelement - latitude element. E.g. &lt;lat&gt; or lat: 51.1234
  * @param {string} latns - latitude namespace (provide null if none, or "http://marklogic.com/xdmp/json/basic" if JSON)
- * @param {string} lonelement - longitude element. E.g. <lon> or lat: 0.1234
+ * @param {string} lonelement - longitude element. E.g. &lt;lon&gt; or lat: 0.1234
  * @param {string} lonns - longitude namespace (provide null if none, or "http://marklogic.com/xdmp/json/basic" if JSON)
  * @param {float} pointlat - longitude in WGS84 or RAW
  * @param {float} pointlon - longitude in WGS84 or RAW
@@ -4066,9 +4063,9 @@ mljs.prototype.query.prototype.geoElementPairPoint = function(parentelement,pare
  * 
  * @param {string} parentelement - parent element name. E.g. <location> or location: {lat:...,lon:...}
  * @param {string} parentns - parent namespace (provide null if none, or "http://marklogic.com/xdmp/json/basic" if JSON)
- * @param {string} latelement - latitude element. E.g. <lat> or lat: 51.1234
+ * @param {string} latelement - latitude element. E.g. &gt;lat&lt; or lat: 51.1234
  * @param {string} latns - latitude namespace (provide null if none, or "http://marklogic.com/xdmp/json/basic" if JSON)
- * @param {string} lonelement - longitude element. E.g. <lon> or lat: 0.1234
+ * @param {string} lonelement - longitude element. E.g. &gt;lon&lt; or lat: 0.1234
  * @param {string} lonns - longitude namespace (provide null if none, or "http://marklogic.com/xdmp/json/basic" if JSON)
  * @param {float} pointlat - longitude in WGS84 or RAW
  * @param {float} pointlon - longitude in WGS84 or RAW
@@ -4897,7 +4894,7 @@ mljs.prototype.searchcontext.prototype.setSortWord = function(word) {
 /**
  * Add a results listener.
  * 
- * @param {function(results)} rl - Results listener to add
+ * @param {function} rl - Results listener to add
  */
 mljs.prototype.searchcontext.prototype.addResultsListener = function(rl) {
   this.resultsPublisher.subscribe(rl);
@@ -4906,7 +4903,7 @@ mljs.prototype.searchcontext.prototype.addResultsListener = function(rl) {
 /**
  * Remove a results listener
  * 
- * @param {function(results)} rl - The result listener function to remove.
+ * @param {function} rl - The result listener function to remove.
  */
 mljs.prototype.searchcontext.prototype.removeResultsListener = function(rl) {
   this.resultsPublisher.unsubscribe(rl);
@@ -4915,7 +4912,7 @@ mljs.prototype.searchcontext.prototype.removeResultsListener = function(rl) {
 /**
  * Adds a sort listener to this widget.
  * 
- * @param {function(string)} sl - The sort listener to add
+ * @param {function} sl - The sort listener to add
  */
 mljs.prototype.searchcontext.prototype.addSortListener = function(sl) {
   this.sortPublisher.subscribe(sl);
@@ -4924,7 +4921,7 @@ mljs.prototype.searchcontext.prototype.addSortListener = function(sl) {
 /**
  * Removes a sort listener
  * 
- * @param {function(string)} sl - The sort listener to remove
+ * @param {function} sl - The sort listener to remove
  */
 mljs.prototype.searchcontext.prototype.removeSortListener = function(sl) {
   this.sortPublisher.unsubscribe(sl);
@@ -4933,7 +4930,7 @@ mljs.prototype.searchcontext.prototype.removeSortListener = function(sl) {
 /**
  * Adds a facet listener to this widget. Normally you'd use a results listener instead in order to get more context.
  * 
- * @param {function(facetValues)} fl - The Facet Listener to add
+ * @param {function} fl - The Facet Listener to add
  */
 mljs.prototype.searchcontext.prototype.addFacetsListener = function(fl) {
   this.facetsPublisher.subscribe(fl);
@@ -4942,7 +4939,7 @@ mljs.prototype.searchcontext.prototype.addFacetsListener = function(fl) {
 /**
  * Removes a facet listener
  * 
- * @param {function(facetValues)} fl - The Facet Listener to remove
+ * @param {function} fl - The Facet Listener to remove
  */
 mljs.prototype.searchcontext.prototype.removeFacetsListener = function(fl) {
   this.facetsPublisher.unsubscribe(fl);
@@ -4951,7 +4948,7 @@ mljs.prototype.searchcontext.prototype.removeFacetsListener = function(fl) {
 /**
  * Adds an error listener to this widget
  * 
- * @param {function(error)} fl - The error listener to add
+ * @param {function} fl - The error listener to add
  */
 mljs.prototype.searchcontext.prototype.addErrorListener = function(fl) {
   this.errorPublisher.subscribe(fl);
@@ -4960,7 +4957,7 @@ mljs.prototype.searchcontext.prototype.addErrorListener = function(fl) {
 /**
  * Removes an error listener
  * 
- * @param {function(error)} fl - The error listener to remove
+ * @param {function} fl - The error listener to remove
  */
 mljs.prototype.searchcontext.prototype.removeErrorListener = function(fl) {
   this.errorPublisher.unsubscribe(fl);
@@ -5167,7 +5164,7 @@ com.marklogic.semantic.tripleconfig = function() {
 /**
  * Adds an error listener to this widget
  * 
- * @param {function(error)} fl - The error listener to add
+ * @param {function} fl - The error listener to add
  */
 com.marklogic.semantic.tripleconfig.prototype.addErrorListener = function(fl) {
   this.errorPublisher.subscribe(fl);
@@ -5176,7 +5173,7 @@ com.marklogic.semantic.tripleconfig.prototype.addErrorListener = function(fl) {
 /**
  * Removes an error listener
  * 
- * @param {function(error)} fl - The error listener to remove
+ * @param {function} fl - The error listener to remove
  */
 com.marklogic.semantic.tripleconfig.prototype.removeErrorListener = function(fl) {
   this.errorPublisher.unsubscribe(fl);
@@ -6157,9 +6154,11 @@ mljs.prototype.semanticcontext.prototype.queryFacts = function(sparql) {
 
 
 
-/*****
- * Document Context
- *****/
+// Document Context
+
+
+
+
 /**
  * A Document context can be used to fetch or update information on a single document in MarkLogic. E.g. fetching and updating properties.
  * This is useful when many widgets on a page are providing different views on a document. E.g. its content, its properties or its permissions.
@@ -6381,7 +6380,7 @@ mljs.prototype.documentcontext.prototype.getFacets = function(docuri,optionsName
  * var b = db.createSparqlBuilder()
  * b.subject("JointCustomer").with(
  *   b.subject("NKBCustomer").with(
- *     b.subject("NKBAccount").has("balance", "<", 100).has("nkbaccountid")
+ *     b.subject("NKBAccount").has("balance", "&lt;", 100).has("nkbaccountid")
  *   ),
  *   b.subject("NICClient").with(
  *     b.subject("MLDocument").has("docuri")
@@ -6392,17 +6391,17 @@ mljs.prototype.documentcontext.prototype.getFacets = function(docuri,optionsName
  * This would generate (using short form of IRIs for readability):-
  * 
  * SELECT DISTINCT ?subject WHERE {
- *   ?subject rdf:type <JointCustomer> .
+ *   ?subject rdf:type &lt;JointCustomer&gt; .
  *   ?subject ?pred1 ?nkbcustomer1 .
- *     ?nkbcustomer1 rdf:type <NKBCustomer> .
+ *     ?nkbcustomer1 rdf:type &lt;NKBCustomer&gt; .
  *     ?nkbcustomer1 ?pred2 ?nkbaccount2 .
- *       ?nkbaccount2 rdf:type <NKBAccount> .
+ *       ?nkbaccount2 rdf:type &lt;NKBAccount&gt; .
  *       ?nkbaccount2 ?balance ?value3 .
- *       FILTER (?balance < "100"^^<xs:integer>) .
+ *       FILTER (?balance &lt; "100"^^&lt;xs:integer&gt;) .
  *   ?subject ?pred4 ?nicclient4 .
- *     ?nicclient4 rdf:type <NICClient> .
+ *     ?nicclient4 rdf:type &lt;NICClient&gt; .
  *     ?nicclient4 ?pred5 ?mldocument5 .
- *       ?mldocument5 rdf:type <MLDocument> .
+ *       ?mldocument5 rdf:type &lt;MLDocument&gt; .
  *       ?mldocument5 ?pred6 ?docuri .
  *     ?nicclient4 ?pred7 ?nicclientid
  * }
@@ -6476,10 +6475,10 @@ mljs.prototype.sparqlbuilder.prototype.with = function(childTerm) {
 
 
 
-/****
+/**
  * Functional mixin pattern for easier logging. Could be used for other functions too.
  * See {@link http://javascriptweblog.wordpress.com/2011/05/31/a-fresh-look-at-javascript-mixins/} for pattern details.
- ****/
+ **/
 (function () { // first IIFE definition ensures asLogSink does not end up as a global variable
   var asLogSink = (function() {
     function __d(msg) {
@@ -6517,9 +6516,9 @@ mljs.prototype.sparqlbuilder.prototype.with = function(childTerm) {
 
 
 
-/****
+/**
  * Node JS mljs namespace function mappings
- ****/
+ **/
 mljs.prototype.textToXML = textToXML;
 mljs.prototype.xmlToJson = xmlToJson;
 

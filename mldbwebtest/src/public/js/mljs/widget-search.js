@@ -1217,9 +1217,9 @@ com.marklogic.widgets.searchresults.prototype._navigateTo = function(uri) {
 };
 
 /**
- * Adds a result highlight listener to this widget.
+ * Adds a result highlight listener to this widget. 
  * 
- * @param {function(uri array)} sl - Search listener function
+ * @param {function} sl - Search listener function. Function will be passed a uri array
  */
 com.marklogic.widgets.searchresults.prototype.addResultHighlightListener = function(sl) {
   this.highlightPublisher.subscribe(sl);
@@ -1228,7 +1228,7 @@ com.marklogic.widgets.searchresults.prototype.addResultHighlightListener = funct
 /**
  * Removes a result higlight listener.
  * 
- * @param {function(uri array)} sl - Search listener function
+ * @param {function} sl - Search listener function. Function will be passed a uri array
  */
 com.marklogic.widgets.searchresults.prototype.removeResultHighlightListener = function(sl) {
   this.highlightPublisher.unsubscribe(sl);
@@ -1237,7 +1237,7 @@ com.marklogic.widgets.searchresults.prototype.removeResultHighlightListener = fu
 /**
  * Adds a result selection listener to this widget.
  * 
- * @param {function(uri array)} sl - Search listener function
+ * @param {function} sl - Search listener function. Function will be passed a uri array
  */
 com.marklogic.widgets.searchresults.prototype.addResultSelectionListener = function(sl) {
   this.selectionPublisher.subscribe(sl);
@@ -1246,7 +1246,7 @@ com.marklogic.widgets.searchresults.prototype.addResultSelectionListener = funct
 /**
  * Removes a result selection listener.
  * 
- * @param {function(uri array)} sl - Search listener function
+ * @param {function} sl - Search listener function. Function will be passed a uri array
  */
 com.marklogic.widgets.searchresults.prototype.removeResultSelectionListener = function(sl) {
   this.selectionPublisher.unsubscribe(sl);
@@ -1258,8 +1258,8 @@ com.marklogic.widgets.searchresults.prototype.removeResultSelectionListener = fu
  * Adds a result processor object to this widget.
  * 
  * @param {string} name - Processor name reference
- * @param {function(result)} matcher_func - Function to invoke to see if a particular result can be handled by this processor
- * @param {function(result)} processor_func - Function to process the result to generate representative XHTML
+ * @param {function} matcher_func - Function to invoke to see if a particular result can be handled by this processor. Function passed a result object
+ * @param {function} processor_func - Function to process the result to generate representative XHTML. Function passed a result object
  */
 com.marklogic.widgets.searchresults.prototype.addProcessor = function(name,matcher_func,processor_func) {
   this.processors[name] = {matcher:matcher_func,processor:processor_func};
