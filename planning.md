@@ -1,31 +1,23 @@
 # Development feature planning
 
 ## Upcoming releases
-
+    
 High priority field requests (Nov 2013)
- - DONE Core: Add annotation support in constraints and facets functions
-  - DONE Use annotations in widgets for facet name
-   - DONE Sort widget
-   - DONE searchfacets widget
  - Widgets: searchfacets - allow developer to specify facet value to human name. E.g. VALUE/hello -> Hello (still using "FACET/hello" as the actual value)
  - Docs: XML example for custom renderer support, with namespaces in XPath, date conversion to string
- - DONE Docs: date time dynamic bucketing example in search page sample
+ 
+Floating PoC Targets
+ - CSV Import improvements / testing
+  - Checkout XSLT upload and transform method
+  - Test PAF file format
+ - Nice to have: Widgets: Browse related Subjects in node diagram
 
-Targets for 1.1 Interim release (Nov 2013)
+Targets for 1.2 (Dec 2013)
  - Widgets: OpenLayers - Use MarkLogic as a tile cache rather than the browser (and do "cache first")
- - DONE Widgets: Tag Cloud for a facet
-  - DONE Allow sorting by name ascending (currently bubblesort only works descending)
  - Widgets: Address to Lon Lat - Perform address lookup for top matching point, feed as constraint in to structured query
   - MS VirtualEarth address lookup?
   - Accept radius as a property
  - App builder gap closing
-  - DONE Ensure 'Sort by relevancy' shows in sort drop down, when configured in the search (achieved via 'states' in AppBuilder)
-  - DONE Check for sort order annotation[0] to use as title rather than automatically determining it from element name/order
-  - NA Achieved via Workplace not alterations to searchpage - Embedding charts within search page widget like AppBuilder
-  - NA Achieved via Workplace not alterations to searchpage - Support for multiple layouts in search page
-  - DONE Phrase searches - surround with "some quotes"
-  - TEST Support Fields for range constraints
-  - DONE BUG: Widgets: HighCharts - handle 'undefined' in label on pie charts (only happens on chartsearch page, not on workplace page)
   - Core: Rework searchcontext
    - Allow contribution of facets/sort etc to alter both text (grammar) queries and structured query (independently, via searchcontext)
    - Support compound search mode in V7 (options + search)
@@ -37,12 +29,9 @@ Targets for 1.1 Interim release (Nov 2013)
    - High charts column
    - High charts line
    - Pie segment
-   - DONE Co-occurence (Structured query mode only, not via searchcontext)
-    - DONE BUG: Default constraint options handling (set up search options method?) is causing tuples to return nothing every time
   - Widgets: searchbar - Auto complete (suggestions), including constraint name suggestions
   - Widgets: searchfacets - Split out listing/altering selected facets (as opposed to facet value list) in to own widget. E.g. to be used with chart/co-occurence pages with a facet list widget
   - Widgets: HighCharts - Date time facet selection (column charts like markmail - allow vertical support (bar chart) too for better granularity)
-  - DONE dynamic and static: Date time bucketing
   - DEFERRED Shadow queries (MLJS' alternative mechanism)
   - DEFERRED Simple/complex view of results (AppBuilder achieves this via state configuration in search options)
  - IN PROGRESS NodeJS: Node.js tests for all functionality now in core MLJS
@@ -65,7 +54,7 @@ Targets for 1.1 Interim release (Nov 2013)
    - documentcontext.allowableProperty JSON
    - search properties transform parameters sprops_opt.transformParameters
    - sortOrder element/field/attribute spec
-  - DONE Core API jsdoc
+  - REVIEW Core API jsdoc
   - Widget API jsdoc
  - Docs: Tutorials
   - (Emil Zegers) RDB2RDF quick start tutorial
@@ -87,14 +76,8 @@ Targets for 1.1 Interim release (Nov 2013)
   - Don't return sem:triples documents at all by default
   - DONE actually write the pathConstraint function!
   - Investigate why REST insists upon some elements having indexes in the JSON namespace as well as the one required (E.g. xhtml and h1) - because using JSON mode???
-    
-Floating PoC Targets
- - CSV Import improvements / testing
-  - Checkout XSLT upload and transform method
-  - Test PAF file format
- - Nice to have: Widgets: Browse related Subjects in node diagram
-
-Targets for 1.2 (Dec 2013)
+  
+Targets for 1.3 Interim Release - Jan 2014  
  - Widgets: HighCharts
   - Support multiple series, axes and searchcontexts (how?) -> Use work in OpenLayers as a base
  - Docs: Further video tutorials
@@ -714,3 +697,25 @@ Targets for 19 Nov 2013
   - TEST Locate me automatic (browser) with no button
   - DONE Fix dynamic width/height detection (el.offsetHeight)
   - DEFERRED Listen for structured query parameter and draw search radius (E.g. 20 miles)
+
+Targets for 1.1 Interim release (Nov 2013)
+ - DONE Widgets: Tag Cloud for a facet
+  - DONE Allow sorting by name ascending (currently bubblesort only works descending)
+ - DONE App builder gap closing
+  - DONE Ensure 'Sort by relevancy' shows in sort drop down, when configured in the search (achieved via 'states' in AppBuilder)
+  - DONE Check for sort order annotation[0] to use as title rather than automatically determining it from element name/order
+  - NA Achieved via Workplace not alterations to searchpage - Embedding charts within search page widget like AppBuilder
+  - NA Achieved via Workplace not alterations to searchpage - Support for multiple layouts in search page
+  - DONE Phrase searches - surround with "some quotes"
+  - TEST Support Fields for range constraints
+  - DONE BUG: Widgets: HighCharts - handle 'undefined' in label on pie charts (only happens on chartsearch page, not on workplace page)
+  - DONE dynamic and static: Date time bucketing
+  - DONE Widgets: Navigable charts / co-occurence - clicking sets facet value
+   - DONE Co-occurence (Structured query mode only, not via searchcontext)
+    - DONE BUG: Default constraint options handling (set up search options method?) is causing tuples to return nothing every time
+ - DONE Core: Add annotation support in constraints and facets functions
+  - DONE Use annotations in widgets for facet name
+   - DONE Sort widget
+   - DONE searchfacets widget
+ - DONE Docs: date time dynamic bucketing example in search page sample
+ 
