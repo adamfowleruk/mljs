@@ -12,17 +12,12 @@ Floating PoC Targets
   - Test PAF file format
  - Nice to have: Widgets: Browse related Subjects in node diagram
 
-Targets for 1.2 (Dec 2013)
- - IN PROGRESS Test: Create MLJS Rest only (not Roxy hybrid) deployment project
- - Docs: Publish mljsrest to internal demo server
- - Widgets: OpenLayers - Use MarkLogic as a tile cache rather than the browser (and do "cache first")
- - Widgets: Address to Lon Lat - Perform address lookup for top matching point, feed as constraint in to structured query
-  - MS VirtualEarth address lookup?
-  - Accept radius as a property
+Targets for 1.2 (Dec 2013) - High priority
  - App builder gap closing
   - Core: Rework searchcontext
    - Allow contribution of facets/sort etc to alter both text (grammar) queries and structured query (independently, via searchcontext)
    - Support compound search mode in V7 (options + search)
+    - version rest extension
    - (Doubtful) Check if structured query supports dynamic text query constraints with grammar (i.e. one term with grammar parsing)
    - DEFERRED Do shadow query automatically in searchcontext rather than per-widget?
    - DEFERRED Come up with a strategy for parent-child relationships in search widgets (one way facet selection - E.g. genre THEN album)
@@ -31,16 +26,7 @@ Targets for 1.2 (Dec 2013)
    - High charts column
    - High charts line
    - Pie segment
-  - Widgets: searchbar - Auto complete (suggestions), including constraint name suggestions
-  - Widgets: searchfacets - Split out listing/altering selected facets (as opposed to facet value list) in to own widget. E.g. to be used with chart/co-occurence pages with a facet list widget
-  - Widgets: HighCharts - Date time facet selection (column charts like markmail - allow vertical support (bar chart) too for better granularity)
-  - DEFERRED Shadow queries (MLJS' alternative mechanism)
-  - DEFERRED Simple/complex view of results (AppBuilder achieves this via state configuration in search options)
  - IN PROGRESS NodeJS: Node.js tests for all functionality now in core MLJS
- - IN PROGRESS Widget: RDB2RDF in test app
-  - Remove jQuery specific code
-  - DONE Check Roxy installation of REST extension works automatically
-  - DONE validate CSS works correctly on all pages
  - IN PROGRESS Docs: Document all core concepts currently part of MLJS
   - IN PROGRESS Docs: searchcontext object
   - Widgets: Search Speed - As a tutorial for those wishing to contribute to MLJS by creating new widgets of their own
@@ -66,19 +52,40 @@ Targets for 1.2 (Dec 2013)
   2. IN PROGRESS Introduction to the MLJS Core API (text done. 4min21). Core communication with MarkLogic server. Introduction to Search Context and other Context objects
   3. Introduction to the MLJS Widget API. Briefly show the mldbwebtest app, deploying it, and a brief description of the widget test pages (and each widget).
   4. Creating a new Hyrbid app with MLJS. (Already exists, on blog site). Creating a search page and configuring options and facets. A search page with two charts (akin to an AppBuilder demo)
-  5. Loading documents with MLJS. Add test XML, JSON and text documents using MLJS and a test loading web page.
-  6. Customising how search results are displayed - The Renderer architecture. Detect and display data in a search results page in new and interesting ways
-  7. Using MLJS to explore data - Integrated charts, co-occurence, map, query bar
-  8. Loading triples with MLJS. How to use a simple JSON structure to load standalone facts.
-  9. Configuring an ontology to power Semantic Queries with Sparql. How to customise a sparql query bar widget, and create a subject browsing page
- - NOT A BUG searchfacets or searchbar widgets using facet title, not constraint name, to indicate constraint added to searchbar (also for lookup/matching)
-  - NA Actually, there is no 'facet title' just that constraint name and field name are generally the same. Need to add Title support somehow
+  5. Customising how search results are displayed - The Renderer architecture. Detect and display data in a search results page in new and interesting ways
  - IN PROGRESS Core: Search Options builder
   - hide sem:triple elements from snippet highlighting
   - Don't return sem:triples documents at all by default
   - DONE actually write the pathConstraint function!
-  - Investigate why REST insists upon some elements having indexes in the JSON namespace as well as the one required (E.g. xhtml and h1) - because using JSON mode???
-  
+  - TEST BUG WAS AN ISSUE IN MLJS CONSTRAINT SETTINGS: Investigate why REST insists upon some elements having indexes in the JSON namespace as well as the one required (E.g. xhtml and h1)
+
+Targets for 1.2 (Dec 2013) - Medium Priority
+ - IN PROGRESS Widget: RDB2RDF in test app
+  - Remove jQuery specific code
+  - DONE Check Roxy installation of REST extension works automatically
+  - DONE validate CSS works correctly on all pages
+ - Widgets: OpenLayers - Use MarkLogic as a tile cache rather than the browser (and do "cache first")
+ - Widgets: Address to Lon Lat - Perform address lookup for top matching point, feed as constraint in to structured query
+  - MS VirtualEarth address lookup?
+  - Accept radius as a property
+ - Docs: MLJS Webinar series of Video Tutorials
+  6. Loading documents with MLJS. Add test XML, JSON and text documents using MLJS and a test loading web page.
+  7. Using MLJS to explore data - Integrated charts, co-occurence, map, query bar
+  8. Loading triples with MLJS. How to use a simple JSON structure to load standalone facts.
+  9. Configuring an ontology to power Semantic Queries with Sparql. How to customise a sparql query bar widget, and create a subject browsing page
+
+Targets for 1.2 (Dec 2013) - Low Priority
+ - App builder gap closing
+  - Widgets: searchbar - Auto complete (suggestions), including constraint name suggestions
+  - Widgets: HighCharts - Date time facet selection (column charts like markmail - allow vertical support (bar chart) too for better granularity)
+  - Widgets: searchfacets - Split out listing/altering selected facets (as opposed to facet value list) in to own widget. E.g. to be used with chart/co-occurence pages with a facet list widget
+  - DEFERRED Shadow queries (MLJS' alternative mechanism)
+  - DEFERRED Simple/complex view of results (AppBuilder achieves this via state configuration in search options)
+ - IN PROGRESS Test: Create MLJS Rest only (not Roxy hybrid) deployment project
+ - Docs: Publish mljsrest to internal demo server
+ - NOT A BUG searchfacets or searchbar widgets using facet title, not constraint name, to indicate constraint added to searchbar (also for lookup/matching)
+  - NA Actually, there is no 'facet title' just that constraint name and field name are generally the same. Need to add Title support somehow
+
 Targets for 1.3 Interim Release - Jan 2014  
  - Widgets: HighCharts
   - Support multiple series, axes and searchcontexts (how?) -> Use work in OpenLayers as a base
