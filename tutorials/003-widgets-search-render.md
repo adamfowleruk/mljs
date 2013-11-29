@@ -30,10 +30,19 @@ supported within the HTML output, but that may be added in future.
 
 To add your own renderer to a searchresults widget, simply call the addProcessor(name,matcher_func,processor_func) method.
 
-## SVG custom renderer example
+## Custom renderer examples
 
-An example of a custom renderer can be found in the widgets-search.js file. Search for ```'this.builtinProcessors["svg"] = '``` to find it 
-in the code.
+There are three custom renderers previously built for different demonstrations. These show a range of functionality. The first one is a simple
+example to showing a JSON movie document in a summary. The next one performs similar work for an XML document. This also shows conversion
+and using XPath in the browser to extract data. 
+
+The final example shows how to use the built in post-render lazy loading callback feature
+to paint additional information after search results are displayed. The example shown renders a description of a powerpoint slide's snippet content,
+then uses lazy loading to draw an image linking to the PNG format image thumbnail for the slide.
+
+- [Simple JSON movie example from page-mljstest-movies.js]()
+- [Custom XML song renderer from PoC project]()
+- [Advanced lazy loading in powerpoint]()
 
 - - - -
 
