@@ -1,18 +1,12 @@
 # Development feature planning
 
 ## Upcoming releases
-    
-High priority field requests (Nov 2013)
- - TEST Widgets: searchfacets - allow developer to specify facet value to human name. E.g. VALUE/hello -> Hello (still using "FACET/hello" as the actual value)
- - DONE Docs: XML example for custom renderer support, with namespaces in XPath
- 
-Floating PoC Targets
- - CSV Import improvements / testing
-  - Checkout XSLT upload and transform method
-  - Test PAF file format
- - Nice to have: Widgets: Browse related Subjects in node diagram
 
 Targets for 1.2 (Dec 2013) - High priority
+ - DONE Widgets: searchfacets - allow developer to specify facet value to human name. E.g. VALUE/hello -> Hello (still using "FACET/hello" as the actual value)
+  - DONE Core: Change options builder to store text translations for facets
+  - DONE Core: Change searchcontext so that setOptions takes an options builder (as well as legacy options JSON), so as to maintain a reference to these transations
+ - DONE Docs: XML example for custom renderer support, with namespaces in XPath
  - Figure out why HTTP 500s result in throwing an exception rather than MLJS error handling (e.g. extension execution errors)
  - Ensure version extension absence errors gracefully
  - App builder gap closing
@@ -21,8 +15,9 @@ Targets for 1.2 (Dec 2013) - High priority
    - Add "values" as a searchcontext last function option
    - Ensure searchcontext supports updateFacets
    - IN PROGRESS Add addFacetSelection listener etc to highcharts widget
-   - TEST Support compound search mode in V7 (options + search) (search, searchCollection, structuredSearch, saveSearchOptionsCheck, searchcontext alterations)
-    - TEST version rest extension
+   - IN PROGRESS Support compound search mode in V7 (options + search) (search, searchCollection, structuredSearch, saveSearchOptionsCheck, searchcontext alterations)
+    - DONE version rest extension
+    - BUG: V7 ignores URL search parameters if submitting a structuredQuery and options (previously if supplying just query and referring to options, it'd work)
    - TEST Docs: Rework cooccurence example to use search context, and contributeStructureQuery
    - NA Not possible. Close approximation without grammar with term queries though: Check if structured query supports dynamic text query constraints with grammar (i.e. one term with grammar parsing)
    - DEFERRED Do shadow query automatically in searchcontext rather than per-widget?
@@ -90,8 +85,30 @@ Targets for 1.2 (Dec 2013) - Low Priority
   - DEFERRED Simple/complex view of results (AppBuilder achieves this via state configuration in search options)
  - IN PROGRESS Test: Create MLJS Rest only (not Roxy hybrid) deployment project
  - Docs: Publish mljsrest to internal demo server
+ - IN PROGRESS Widgets: Workplace - Removes any code anyone needs to write to use MLJS widgets
+  - IN PROGRESS Widgets: Add Drag and Drop support to widgets.js
+   - DONE DND pure Test page in mldbwebtest roxy project
+   - IN PROGRESS ensure basic drag and drop works
+   - IN PROGRESS Add rules around which draggables can be dropped on which droppables (dropzones)
+  - Support multiple modes
+   - (default) Detect URL of page. Search in ML for workplace json page that matches this URL (not including query strings)
+   - User default workplace. Find user's own 'personal-workplace' for currently logged in user (akin to a single page mode app)
+   - DEFERRED Embeddable. Assume embedded in external app. Use workplace-share-id as key to find, on remote server via W3C CORS, the 'page' (embed) to draw
+   - Fallback. If no Workplace detected, create a generic search page with a Workplace edit button (depending on app wide settings - 'save/edit allowed')
+    - Allow fallback to be set programmatically or via app wide settings
+  - Create WorkplaceContext object in workplace js file
+   - updatePage event - occurs when a page is loaded. E.g. from current page URL or for current logged in user or as fallback
+   - updateApp event
+   - loadApp
+   - loadPage
  - NOT A BUG searchfacets or searchbar widgets using facet title, not constraint name, to indicate constraint added to searchbar (also for lookup/matching)
   - NA Actually, there is no 'facet title' just that constraint name and field name are generally the same. Need to add Title support somehow
+
+Floating PoC Targets
+ - CSV Import improvements / testing
+  - Checkout XSLT upload and transform method
+  - Test PAF file format
+ - Nice to have: Widgets: Browse related Subjects in node diagram
 
 Targets for 1.3 Interim Release - Jan 2014  
  - Widgets: HighCharts
@@ -107,7 +124,7 @@ Targets for 1.3 Interim Release - Jan 2014
   - Point at Roxy generated App Builder download / local file system copy of appbuilder folder
   - Copy over rest extensions as required
   - Support pure REST and hybrid modes for app generation
-  - Generate standard "/" page and register as workplace page JSON editable by admin account
+  - Generate standard "/" page and register as Workplace page JSON editable by admin account
    - Layout thinthick | thinthick1chart | thinthick2chart
    - Widget assignment and default config
   - Copy over search options (and thus facet info) - from the db?
@@ -156,22 +173,7 @@ Targets for 1.3 Interim Release - Jan 2014
   - Hover over search results fires searchcontext highlight action
   - Document context highlighting configurable to fire get semantic info on MarkLogic document
   - MarkLogic document ontology
- - IN PROGRESS Widgets: Workplace - Removes any code anyone needs to write to use MLJS widgets
-  - IN PROGRESS Widgets: Add Drag and Drop support to widgets.js
-   - DONE DND pure Test page in mldbwebtest roxy project
-   - IN PROGRESS ensure basic drag and drop works
-   - IN PROGRESS Add rules around which draggables can be dropped on which droppables (dropzones)
-  - Support multiple modes
-   - (default) Detect URL of page. Search in ML for workplace json page that matches this URL (not including query strings)
-   - User default workplace. Find user's own 'personal-workplace' for currently logged in user (akin to a single page mode app)
-   - DEFERRED Embeddable. Assume embedded in external app. Use workplace-share-id as key to find, on remote server via W3C CORS, the 'page' (embed) to draw
-   - Fallback. If no Workplace detected, create a generic search page with a Workplace edit button (depending on app wide settings - 'save/edit allowed')
-    - Allow fallback to be set programmatically or via app wide settings
-  - Create WorkplaceContext object in workplace js file
-   - updatePage event - occurs when a page is loaded. E.g. from current page URL or for current logged in user or as fallback
-   - updateApp event
-   - loadApp
-   - loadPage
+  - Workplace context improvements
    - updatePreferences - used by widgets to globally (or in just this workplace page/sub layout) save and load preferences about this widget. E.g. last displayed place
    - loadPreferences
    - DEFERRED updateShareable - when executed as embedded shareable page, load all workplace page settings, and widget 'preferences' to use (as wont be 'current' user) - handle widget preferences transparently in this case - no special widget settings

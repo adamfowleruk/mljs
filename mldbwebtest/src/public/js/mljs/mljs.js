@@ -2902,10 +2902,15 @@ mljs.prototype.options.prototype.setFacetValueStrings = function(facetname,value
 };
 
 mljs.prototype.options.prototype.getFacetValueString = function(facetname,facetvalue) {
+  this.__d("options.getFacetValueString: name: " + facetname + ", value: " + facetvalue);
   var fvs = this.text.facets[facetname];
   if (undefined != fvs) {
-    return fvs[facetvalue];
+    this.__d("options.getFacetValueString: Got facet values object for: " + facetname);
+    var val = fvs[facetvalue];
+    this.__d("options.getFacetValueString: Got facet translated value: " + val);
+    return val;
   } else {
+    this.__d("options.getFacetValueString: NOT got facet values object for: " + facetname);
     return null;
   }
 };
