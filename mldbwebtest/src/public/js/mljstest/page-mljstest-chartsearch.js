@@ -54,9 +54,6 @@ window.onload = function() {
     .collectionConstraint() // default constraint name of 'collection' 
     .jsonRangeConstraint("animal",["item-order"]) // constraint name defaults to that of the range element name 
     .jsonRangeConstraint("family",["item-frequency"]); // constraint name defaults to that of the range element name 
-    
-  var options = ob.toJson();
-  console.log("Created options: " + JSON.stringify(options));
   
   var context = db.createSearchContext();
   
@@ -65,12 +62,12 @@ window.onload = function() {
   context.register(tempspline);
   context.register(tempcolumn);
   context.register(familypie);
-  context.setOptions(optionsName,options);
+  context.setOptions(optionsName,ob);
   context.setCollection("animals,testdata"); // restrict all search results
   
   context.addErrorListener(error.updateError);
   
-  context.dosimplequery();
+  context.doSimpleQuery();
   
   } catch (err) {
     error.show(err.message);
