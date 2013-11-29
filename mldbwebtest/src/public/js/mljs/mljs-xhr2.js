@@ -101,7 +101,7 @@ b.xhr2.prototype.request = function(reqname,options,content,callback) {
         var xml = xhr.responseXML;
         if (undefined != xml) {
           res.format = "xml";
-          res.doc = xml;
+          wibble = xml;
         } else {
           self.logger.debug("XHR2: response text: " + xhr.responseText);
           if (xhr.status == 201 /* created */ || xhr.status == 204 /* updated */) {

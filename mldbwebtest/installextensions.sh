@@ -4,7 +4,7 @@
 
 export USER="admin"
 export PASS="admin"
-export HOST="localhost"
+export HOST="192.168.123.133"
 export RESTPORT="8120"
 
 # Install code - do not modify
@@ -16,6 +16,9 @@ export RESTPORT="8120"
 #  "http://$HOST:$RESTPORT/v1/config/resources/whoami?method=get"
 
     
-curl -X PUT --anyauth --user $USER:$PASS -H "Content-type: application/xquery" -d@"./rest-api/ext/rdb2rdf.xqy" \
-    "http://$HOST:$RESTPORT/v1/config/resources/rdb2rdf"
+#curl -X PUT --anyauth --user $USER:$PASS -H "Content-type: application/xquery" -d@"./rest-api/ext/rdb2rdf.xqy" \
+#    "http://$HOST:$RESTPORT/v1/config/resources/rdb2rdf"
+
+curl -X PUT --anyauth --user $USER:$PASS -H "Content-type: application/xquery" -d@"./rest-api/ext/version.xqy" \
+    "http://$HOST:$RESTPORT/v1/config/resources/version"
     

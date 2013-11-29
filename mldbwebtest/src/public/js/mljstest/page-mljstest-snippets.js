@@ -7,16 +7,15 @@ window.onload = function() {
   var ob = db.createOptions();
   ob.defaultCollation("http://marklogic.com/collation/en")
     .collectionConstraint() // default constraint name of 'collection' 
-    .rangeConstraint("animal",["item-order"]) // constraint name defaults to that of the range element name 
-    .rangeConstraint("family",["item-frequency"]) // constraint name defaults to that of the range element name 
-    .rangeConstraint("actor",["item-frequency"],"http://marklogic.com/collation/")
-    .rangeConstraint("year",["item-order"],"http://marklogic.com/collation/")
-    .rangeConstraint("city",["item-order"],"http://marklogic.com/collation/")
-    .rangeConstraint("month",["item-order"],"http://marklogic.com/collation/")
+    .rangeConstraint("Animal","animal",ob.JSON,"xs:string","http://marklogic.com/collation/",true,["item-order"]) // constraint name defaults to that of the range element name 
+    .rangeConstraint("Family","family",ob.JSON,"xs:string","http://marklogic.com/collation/",true,["item-frequency"]) // constraint name defaults to that of the range element name 
+    .rangeConstraint("Actor","actor",ob.JSON,"xs:string","http://marklogic.com/collation/",true,["item-frequency"])
+    .rangeConstraint("Year","year",ob.JSON,"xs:string","http://marklogic.com/collation/",true,["item-order"])
+    .rangeConstraint("City","city",ob.JSON,"xs:string","http://marklogic.com/collation/",true,["item-order"])
+    .rangeConstraint("Month","month",ob.JSON,"xs:string","http://marklogic.com/collation/",true,["item-order"])
     .snippet();
-  var options = ob.toJson();
   
-  wgt.setOptions("mljstest-page-search-options",options);
+  wgt.setOptions("mljstest-page-search-options",ob);
   wgt.execute();
   
 };

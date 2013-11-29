@@ -38,7 +38,7 @@ window.onload = function() {
              .bucket("2013-03-01","2013-03-31","mar2013","Mar 2013");
              
   // add facet value names for cities - just an example. Better example SOME/weirdValue -> "Nice Display Name"
-  options.setFacetValueString("city",{
+  ob.setFacetValueStrings("city",{
     Derby: "City of Derby", London: "City of London"
   });
   //var options = ob.toJson();

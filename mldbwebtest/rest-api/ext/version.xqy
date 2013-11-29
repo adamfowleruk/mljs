@@ -2,7 +2,7 @@ xquery version "1.0-ml";
 
 module namespace ext = "http://marklogic.com/rest-api/resource/version";
 
-import module namespace config = "http://marklogic.com/roxy/config" at "/app/config/config.xqy";
+(: import module namespace config = "http://marklogic.com/roxy/config" at "/app/config/config.xqy"; :)
 import module namespace json6 = "http://marklogic.com/xdmp/json" at "/MarkLogic/json/json.xqy";
 
 declare namespace roxy = "http://marklogic.com/roxy";
@@ -16,9 +16,7 @@ declare namespace roxy = "http://marklogic.com/roxy";
 
 (:
  :)
-declare 
-%roxy:params(())
-function ext:get(
+declare function ext:get(
   $context as map:map,
   $params  as map:map
 ) as document-node()*
@@ -32,7 +30,7 @@ function ext:get(
       if ("application/xml" = $preftype) then 
         <ext:version>{$out}</ext:version>
       else 
-        fn:concat("{{version: \"",$out,"\"}}")
+        fn:concat("{""version"": """,$out,"""}")
     }
   )
 };

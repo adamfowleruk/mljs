@@ -11,11 +11,11 @@ window.onload = function() {
   var optsName = "actor-genre-year";
 
   var ob = db.createOptions();
-  ob.tuples(agName,"actor","genre"); // first is tuple name. defaults to string, json namespace
-  ob.rangeConstraint("actor",["item-frequency"],"http://marklogic.com/collation/")
-    .rangeConstraint("year",["item-order"],"http://marklogic.com/collation/")
-    .rangeConstraint("genre",["item-order"],"http://marklogic.com/collation/");
-  ob.tuples(ayName,"actor","year"); // first is tuple name. defaults to string, json namespace
+  ob.tuples("actor-genre","actor","genre"); // first is tuple name. defaults to string, json namespace
+  ob.jsonRangeConstraint("actor",["item-frequency"])
+    .jsonRangeConstraint("year",["item-order"])
+    .jsonRangeConstraint("genre",["item-order"]);
+  ob.tuples("actor-year","actor","year"); // first is tuple name. defaults to string, json namespace
   var opts = ob.toJson();
   
   var coag = new com.marklogic.widgets.cooccurence("coag");

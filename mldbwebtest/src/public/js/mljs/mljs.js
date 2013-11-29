@@ -1337,6 +1337,7 @@ mljs.prototype.search = function(query_opt,options_opt,start_opt,sprops_opt,call
       }
     }
   }
+  var self = this;
   var v6func = function() {
   var content = null;
   var method = "GET";
@@ -1351,7 +1352,7 @@ mljs.prototype.search = function(query_opt,options_opt,start_opt,sprops_opt,call
     }*/
   }
   
-  url = this._applySearchProperties(url,sprops_opt);
+  url = self._applySearchProperties(url,sprops_opt);
   
   if (undefined != start_opt) {
     url += "&start=" + start_opt;
@@ -1361,16 +1362,15 @@ mljs.prototype.search = function(query_opt,options_opt,start_opt,sprops_opt,call
   // TODO check options' type - if string, then pass as options param. If JSON object, then do POST to /v1/search to provide options dynamically
   
   // make transaction aware
-  if (undefined != this.__transaction_id) {
-    url += "&txid=" + encodeURI(this.__transaction_id);
+  if (undefined != self.__transaction_id) {
+    url += "&txid=" + encodeURI(self.__transaction_id);
   }
     
   var options = {
     path: url,
     method: method
   };
-  var self = this;
-  this.__doreq("SEARCHV6",options,content,function(result) {
+  self.__doreq("SEARCHV6",options,content,function(result) {
     // Horrendous V7 EA1 workaround...
     //if ("xml" == result.format) {
       //self.logger.debug("result currently: " + JSON.stringify(result));
@@ -1395,12 +1395,12 @@ mljs.prototype.search = function(query_opt,options_opt,start_opt,sprops_opt,call
   }; // end v6 func
   
   this.v7check(v6func,function() {
-    var optionsdoc = this._optionsCache[options_opt || "all"];
+    var optionsdoc = self._optionsCache[options_opt || "all"];
     if (undefined == optionsdoc) {
       v6func();
     } else {
       var url = "/v1/search?q=" + encodeURI(query_opt) ;
-      url = this._applySearchProperties(url,sprops_opt);
+      url = self._applySearchProperties(url,sprops_opt);
       
       if (undefined != start_opt) {
         url += "&start=" + start_opt;
@@ -1408,21 +1408,20 @@ mljs.prototype.search = function(query_opt,options_opt,start_opt,sprops_opt,call
       url += "&view=all";
  
       // make transaction aware
-      if (undefined != this.__transaction_id) {
-        url += "&txid=" + encodeURI(this.__transaction_id);
+      if (undefined != self.__transaction_id) {
+        url += "&txid=" + encodeURI(self.__transaction_id);
       }
       
       var query = {search: {
-        options: optionsdoc,
+        options: optionsdoc.options,
         qtext: query_opt
       }};
   
       var options = {
         path: url,
-        method: method
+        method: "POST"
       };
-      var self = this;
-      this.__doreq("SEARCHV7",options,query,function(result) {
+      self.__doreq("SEARCHV7",options,query,function(result) {
         (callback||noop)(result);
       });
     } // end v7 options if
@@ -1499,7 +1498,7 @@ mljs.prototype.searchCollection = function(collection_opt,query_opt,options_opt,
       }
       
       var query = {search: {
-        options: optionsdoc,
+        options: optionsdoc.options,
         qtext: query_opt
       }};
       
@@ -1537,7 +1536,13 @@ mljs.prototype._applyTransformProperties = function(url,sprops_opt) {
  */
 mljs.prototype._applySearchProperties = function(url,sprops_opt) {
   // apply properties
-  var format = "&format=json";
+  var format = "";
+  if (-1 != url.indexOf("?")) {
+    format += "&";
+  } else {
+    format += "?";
+  }
+  format += "format=json";
   
   if (undefined != sprops_opt) {
     if (undefined != sprops_opt.collection) {
@@ -1599,7 +1604,7 @@ mljs.prototype.structuredSearch = function(query_opt,options_opt,sprops_opt,call
       url += "&options=" + encodeURI(options_opt);
     }
     
-    url = this._applySearchProperties(url,sprops_opt);
+    url = self._applySearchProperties(url,sprops_opt);
     
     // make transaction aware
     if (undefined != self.__transaction_id) {
@@ -1622,7 +1627,7 @@ mljs.prototype.structuredSearch = function(query_opt,options_opt,sprops_opt,call
       // V7, and we have local options
       var query = {"search":{
         "query": query_opt,
-        "options": optionsdoc}
+        "options": optionsdoc.options}
       }; 
       var url = "/v1/search";
       url = self._applySearchProperties(url,sprops_opt);
@@ -2669,7 +2674,8 @@ mljs.prototype.dlsrule = function(name,callback) {
 mljs.prototype.version = function(callback) {
   var options = {
     path: "/v1/resources/version",
-    method: "GET"
+    method: "GET",
+    headers: {Accept: "application/json"}
   };
   var that = this;
   this.__doreq("VERSION",options,null,function(result){that._version = result.doc.version;callback(result);});
@@ -3357,6 +3363,21 @@ mljs.prototype.options.prototype.elemattrRangeConstraint = function(constraint_n
   return this;
 };
 
+
+mljs.prototype.options.prototype.jsonRangeConstraint = function(name_or_key,type_opt,collation_opt,facet_opt,facet_options_opt,fragmentScope_opt,annotation_opt) {
+  if (Array.isArray(type_opt)) {
+    facet_options_opt = type_opt;
+    type_opt = undefined;
+  } else if (Array.isArray(collation_opt)) {
+    facet_options_opt = collation_opt;
+    collation_opt = undefined;
+  } else if (Array.isArray(facet_opt)) {
+    facet_options_opt = facet_opt;
+    facet_opt = undefined;
+  }
+  return this.rangeConstraint(name_or_key,name_or_key,"http://marklogic.com/xdmp/json/basic",type_opt || "xs:string",collation_opt, facet_opt || true, facet_options_opt,fragmentScope_opt,annotation_opt);
+};
+
 /**
  * Specifies a new range constraint, and adds it to the search options object
  * 
@@ -3867,7 +3888,7 @@ mljs.prototype.options.prototype.sortOrderClear = function() {
 mljs.prototype.options.prototype.sortOrderScore = function() {
   this._includeSearchDefaults();
   // TODO add check to see if we already exist
-  this.options["sort-order"].push({"direction": "descending","score": null, "annotation": ["Relevancy (Descending)"]});
+  this.options["sort-order"].push({"direction": "descending",score: "", "annotation": ["Relevancy (Descending)"]});
   return this;
 };
 mljs.prototype.options.prototype.relevance = mljs.prototype.options.prototype.sortOrderScore; // common alias
@@ -4653,6 +4674,7 @@ mljs.prototype.searchcontext.prototype.setOptions = function(name,options) {
   this.optionsName = name;
   var ob = null;
   if (undefined != options.toJson) {
+    this.__d("searchcontext.setOptions: Got an options builder instead of options JSON");
     // is an options builder object
     ob = options;
     options = ob.toJson();

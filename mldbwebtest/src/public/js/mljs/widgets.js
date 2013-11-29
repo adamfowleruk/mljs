@@ -190,7 +190,7 @@ function jsonExtractValue(json,namePath) {
 
 function xmlExtractValue(xmldoc,namePath) {
   // construct and apply XPath from namePath
-  var xpath = "/" + namePath.replaceAll(".","/");
+  var xpath = "/" + namePath.replace(/\./g,"/");
   
   // TODO apply xpath to extract document value
   return 0;
@@ -629,7 +629,7 @@ com.marklogic.widgets.bits.base = function(newbase) {
  * @param {string} elid - The element for this widget's top level container
  */
 com.marklogic.widgets.bits.loading = function(elid) {
-  var s = "<img id='" + elid + "' class='bits-loading' src='" + com.marklogic.widgets.bits._base + "/loading.gif' style='width: 30px; height: 30px;' alt='Loading...' title='Loading...' />";
+  var s = "<img id='" + elid + "' class='bits-loading' src='" + com.marklogic.widgets.bits._base + "/mljs/loading.gif' style='width: 30px; height: 30px;' alt='Loading...' title='Loading...' />";
   
   return s;
 };
