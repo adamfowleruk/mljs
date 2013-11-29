@@ -4,7 +4,7 @@
     
 High priority field requests (Nov 2013)
  - TEST Widgets: searchfacets - allow developer to specify facet value to human name. E.g. VALUE/hello -> Hello (still using "FACET/hello" as the actual value)
- - IN PROGRESS Docs: XML example for custom renderer support, with namespaces in XPath, date conversion to string
+ - DONE Docs: XML example for custom renderer support, with namespaces in XPath
  
 Floating PoC Targets
  - CSV Import improvements / testing
