@@ -36,9 +36,14 @@ window.onload = function() {
   dateBuckets.bucket("2013-01-01","2013-01-31","jan2013","Jan 2013")
              .bucket("2013-02-01","2013-02-28","feb2013","Feb 2013")
              .bucket("2013-03-01","2013-03-31","mar2013","Mar 2013");
-  var options = ob.toJson();
+             
+  // add facet value names for cities - just an example. Better example SOME/weirdValue -> "Nice Display Name"
+  options.setFacetValueString("city",{
+    Derby: "City of Derby", London: "City of London"
+  });
+  //var options = ob.toJson();
   
-  wgt.setOptions("mljstest-page-search-options",options);
+  wgt.setOptions("mljstest-page-search-options",ob);
   wgt.execute();
   
 };

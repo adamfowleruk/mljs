@@ -3,8 +3,8 @@
 ## Upcoming releases
     
 High priority field requests (Nov 2013)
- - Widgets: searchfacets - allow developer to specify facet value to human name. E.g. VALUE/hello -> Hello (still using "FACET/hello" as the actual value)
- - Docs: XML example for custom renderer support, with namespaces in XPath, date conversion to string
+ - TEST Widgets: searchfacets - allow developer to specify facet value to human name. E.g. VALUE/hello -> Hello (still using "FACET/hello" as the actual value)
+ - IN PROGRESS Docs: XML example for custom renderer support, with namespaces in XPath, date conversion to string
  
 Floating PoC Targets
  - CSV Import improvements / testing
@@ -13,19 +13,26 @@ Floating PoC Targets
  - Nice to have: Widgets: Browse related Subjects in node diagram
 
 Targets for 1.2 (Dec 2013) - High priority
+ - Figure out why HTTP 500s result in throwing an exception rather than MLJS error handling (e.g. extension execution errors)
+ - Ensure version extension absence errors gracefully
  - App builder gap closing
-  - Core: Rework searchcontext
-   - Allow contribution of facets/sort etc to alter both text (grammar) queries and structured query (independently, via searchcontext)
+  - TEST Core: Rework searchcontext
+   - TEST Allow contribution of facets/sort etc to alter both text (grammar) queries and structured query (independently, via searchcontext)
+   - Add "values" as a searchcontext last function option
+   - Ensure searchcontext supports updateFacets
+   - IN PROGRESS Add addFacetSelection listener etc to highcharts widget
    - TEST Support compound search mode in V7 (options + search) (search, searchCollection, structuredSearch, saveSearchOptionsCheck, searchcontext alterations)
     - TEST version rest extension
-   - (Doubtful) Check if structured query supports dynamic text query constraints with grammar (i.e. one term with grammar parsing)
+   - TEST Docs: Rework cooccurence example to use search context, and contributeStructureQuery
+   - NA Not possible. Close approximation without grammar with term queries though: Check if structured query supports dynamic text query constraints with grammar (i.e. one term with grammar parsing)
    - DEFERRED Do shadow query automatically in searchcontext rather than per-widget?
    - DEFERRED Come up with a strategy for parent-child relationships in search widgets (one way facet selection - E.g. genre THEN album)
-   - Allow widgets to request information in results, rather than alter search options (E.g. request a heatmap, or particular metadata properties) - context updates options on the fly
-  - Widgets: Navigable charts / co-occurence - clicking sets facet value
-   - High charts column
-   - High charts line
-   - Pie segment
+   - NA alter the options to fetch data. Use updateResults to retrieve them for display: Allow widgets to request information in results, rather than alter search options (E.g. request a heatmap, or particular metadata properties) - context updates options on the fly
+  - IN PROGRESS Widgets: Navigable charts / co-occurence - clicking sets facet value
+   - TEST co-occurence
+   - IN PROGRESS High charts column
+   - IN PROGRESS High charts line
+   - IN PROGRESS Pie segment
  - IN PROGRESS NodeJS: Node.js tests for all functionality now in core MLJS
  - IN PROGRESS Docs: Document all core concepts currently part of MLJS
   - IN PROGRESS Docs: searchcontext object

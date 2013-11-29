@@ -40,6 +40,8 @@ com.marklogic.widgets.highcharts = function(container) {
   this.yTitle = "Values";
   this.type = "line";
   
+  this.ctx = mljs.defaultconnection.createSearchContext();
+  
   
   // TODO expose the below as configuration
   this.categoryOrdering = "month";
@@ -53,6 +55,10 @@ com.marklogic.widgets.highcharts = function(container) {
   this._updateOptions();
   
   this._refresh();
+};
+
+com.marklogic.widgets.highcharts.prototype.setContext = function(c) {
+  this.ctx = c;
 };
 
 com.marklogic.widgets.highcharts.getConfigurationDefinition = function() {
@@ -234,6 +240,15 @@ com.marklogic.widgets.highcharts.prototype._updateOptions = function() {
             },
             plotOptions: {
                 line: {
+                    point: {
+                        events: {
+                            click: function() {
+                              // this = data object
+                              hc._selectCategory(this.x || this.series.name, this.y);
+                            }
+                        }
+                    },
+
                     dataLabels: {
                         enabled: true
                     },
@@ -259,6 +274,10 @@ com.marklogic.widgets.highcharts.prototype._updateOptions = function() {
   }
   
   mljs.defaultconnection.logger.debug("highcharts.prototype._updateOptions(): Options now: " + JSON.stringify(this.options));
+};
+
+com.marklogic.widgets.highcharts.prototype._selectCategory = function(facetName,facetValue) {
+  this.ctx.updateFacets([{name: facetName, value: facetValue}]);
 };
 
 /**
@@ -571,4 +590,4 @@ com.marklogic.widgets.highcharts.prototype._displayResults = function(seriesName
   this.options.xAxis.categories = this.categories;
   
   this._refresh();
-}
+};

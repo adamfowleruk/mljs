@@ -2884,6 +2884,24 @@ mljs.prototype.options = function() {
   this.defaults.namespace = "http://marklogic.com/xdmp/json/basic";
   this.defaults.sortDirection = "ascending";
   this.defaults.facetOption = undefined; // limit=10
+  
+  // display text for where ML doesn't yet store annotations
+  this.text = {};
+  this.text.facets = {};
+  // this.text.facets[facetname][facetvalue] => "Display String"
+};
+
+mljs.prototype.options.prototype.setFacetValueStrings = function(facetname,valuehash) {
+  this.text.facets[facetname] = valuehash;
+};
+
+mljs.prototype.options.prototype.getFacetValueString = function(facetname,facetvalue) {
+  var fvs = this.text.facets[facetname];
+  if (undefined != fvs) {
+    return fvs[facetvalue];
+  } else {
+    return null;
+  }
 };
 
 mljs.prototype.options.prototype._includeSearchDefaults = function() {
@@ -4530,6 +4548,8 @@ mljs.prototype.searchcontext = function() {
   this._query = {};
   this.simplequery = "";
   
+  this._lastSearchFunction = "simple"; // either simple or structured
+  
   
   this.defaultSort = [];
   
@@ -4631,6 +4651,13 @@ mljs.prototype.searchcontext.prototype.setDirectory = function(dir) {
  */
 mljs.prototype.searchcontext.prototype.setOptions = function(name,options) {
   this.optionsName = name;
+  var ob = null;
+  if (undefined != options.toJson) {
+    // is an options builder object
+    ob = options;
+    options = ob.toJson();
+  }
+  this._optionsbuilder = ob;
   this._options = {options: options};
   if (undefined != options.options) {
     this._options = options; // no object wrapper
@@ -4647,6 +4674,10 @@ mljs.prototype.searchcontext.prototype.setOptions = function(name,options) {
   
   // check if options exist
   var self = this;
+};
+
+mljs.prototype.searchcontext.prototype.getOptionsBuilder = function() {
+  return this._optionsbuilder;
 };
 
 mljs.prototype.searchcontext.prototype.getOptions = function() {
@@ -4827,6 +4858,8 @@ mljs.prototype.searchcontext.prototype._queryToText = function(parsed) {
 mljs.prototype.searchcontext.prototype.doStructuredQuery = function(q,start) {
   var self = this;
   
+  this._lastSearchFunction = "structured";
+  
   self.resultsPublisher.publish(true); // forces refresh glyph to show
   self.facetsPublisher.publish(true);
   
@@ -4878,7 +4911,7 @@ mljs.prototype.searchcontext.prototype.contributeStructuredQuery = function(cont
   var qb = this.db.createQuery();
   qb.query(qb.and(terms));
   //var allqueries = { query: {"and-query": terms}}; // TODO replace with query builder
-  this.dostructuredquery(qb.toJson());
+  this.doStructuredQuery(qb.toJson());
 };
 
 mljs.prototype.searchcontext.prototype.updateGeoHeatmap = function(constraint_name,heatmap) {
@@ -4947,6 +4980,7 @@ mljs.prototype.searchcontext.prototype.doSimpleQuery = function(q,start) {
   if (null == q || undefined == q) {
     q = this.defaultQuery; // was ""
   }
+  this._lastSearchFunction = "simple";
   
   
   var self = this;
@@ -5154,12 +5188,26 @@ mljs.prototype.searchcontext.prototype.removeErrorListener = function(fl) {
  * @param {facetSelection} facetSelection - The facet value to restrict the search results by. 
  */
 mljs.prototype.searchcontext.prototype.updateFacets = function(facetSelection) {
-  var parsed = this._parseQuery(this.simplequery);
-  parsed.facets = facetSelection;
+  if ("simple" == this._lastSearchFunction) {
+    var parsed = this._parseQuery(this.simplequery);
+    parsed.facets = facetSelection;
   
-  var q = this._queryToText(parsed);
-  
-  this.dosimplequery(q);
+    var q = this._queryToText(parsed);
+    
+    this.dosimplequery(q);
+  } else {
+    // structured
+    var qb = this.db.createQuery();
+    
+    // build query terms
+    var terms = [];
+    
+    for (var i = 0;i < facetSelection.length;i++) {
+      terms[i] = qb.range(facetSelection[i].name,facetSelection[i].value);
+    }
+    
+    this.contributeStructuredQuery("__facets",qb.and(terms));
+  }
 };
 
 /**

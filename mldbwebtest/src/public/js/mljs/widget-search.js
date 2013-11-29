@@ -423,7 +423,7 @@ com.marklogic.widgets.searchfacets.prototype._refresh = function() {
       var s = this.selected[i];
       str += "<div class='searchfacets-selection'>" + 
         "<a href='#" + this.container + "-desel-" + s.name + "-" + s.value + "' class='searchfacets-deselect' id='" + this.container + "-desel-" + s.name + "-" + s.value + "'>X</a> " +
-        fname(s.name) + ": " + this._transformFacetValue(s.value) + "</div>";
+        fname(s.name) + ": " + this._transformFacetValue(s.name,s.value) + "</div>";
       // add deselection X link
       deselectionTodo.push(s);
     }
@@ -455,7 +455,7 @@ com.marklogic.widgets.searchfacets.prototype._refresh = function() {
           // limit number of values shown
           if (v < this.listSize || (v < this.extendedSize && settings.extended) || settings.showAll) {
             var fv = values[v];
-            facetStr += "<div class='searchfacets-facet-value' id='" + this.container + "-fv-" + name + "-" + fv.name + "'>" + this._transformFacetValue(fv.name) + " (" + fv.count + ")" + "</div>";
+            facetStr += "<div class='searchfacets-facet-value' id='" + this.container + "-fv-" + name + "-" + fv.name + "'>" + this._transformFacetValue(name,fv.name) + " (" + fv.count + ")" + "</div>";
             facetHandlersTodo.push({name: name, value: fv.name});
           }
         }
@@ -586,13 +586,19 @@ com.marklogic.widgets.searchfacets.prototype._transformFacetName = function(face
   return com.marklogic.widgets.searchhelper.processValue(facetName,this.facetNameTransform);
 };
 
-com.marklogic.widgets.searchfacets.prototype._transformFacetValue = function(facetValue) {
+com.marklogic.widgets.searchfacets.prototype._transformFacetValue = function(facetName,facetValue) {
   /*var name = facetValue;
   name = com.marklogic.widgets.searchhelper.splitdash(name,this.facetValueTransform);
   name = com.marklogic.widgets.searchhelper.splitunderscore(name,this.facetValueTransform);
   name = com.marklogic.widgets.searchhelper.camelcase(name,this.facetValueTransform);
   return name;*/
-  return com.marklogic.widgets.searchhelper.processValue(facetValue,this.facetValueTransform);
+  // try options cache first
+  var fv = this.ctx.getOptionsBuilder().getFacetValueString(facetName,facetValue);
+  if (null == fv) {
+    return com.marklogic.widgets.searchhelper.processValue(facetValue,this.facetValueTransform);
+  } else {
+    return fv;
+  }
 };
 
 
