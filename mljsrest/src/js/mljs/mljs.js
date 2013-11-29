@@ -417,7 +417,8 @@ mljs.prototype.configure = function(dboptions) {
     this.logger.debug("MERGED: " + JSON.stringify(this.dboptions)); // TODO TEST
   }
   
-  
+  this._version = null; // unknown
+  this._optionsCache = {}; // caching options when calling saveOptions
   
   this.dboptions.wrappers = new Array();
   
@@ -1336,6 +1337,8 @@ mljs.prototype.search = function(query_opt,options_opt,start_opt,sprops_opt,call
       }
     }
   }
+  var self = this;
+  var v6func = function() {
   var content = null;
   var method = "GET";
   var url = "/v1/search?q=" + encodeURI(query_opt) ;
@@ -1349,7 +1352,7 @@ mljs.prototype.search = function(query_opt,options_opt,start_opt,sprops_opt,call
     }*/
   }
   
-  url = this._applySearchProperties(url,sprops_opt);
+  url = self._applySearchProperties(url,sprops_opt);
   
   if (undefined != start_opt) {
     url += "&start=" + start_opt;
@@ -1359,16 +1362,15 @@ mljs.prototype.search = function(query_opt,options_opt,start_opt,sprops_opt,call
   // TODO check options' type - if string, then pass as options param. If JSON object, then do POST to /v1/search to provide options dynamically
   
   // make transaction aware
-  if (undefined != this.__transaction_id) {
-    url += "&txid=" + encodeURI(this.__transaction_id);
+  if (undefined != self.__transaction_id) {
+    url += "&txid=" + encodeURI(self.__transaction_id);
   }
     
   var options = {
     path: url,
     method: method
   };
-  var self = this;
-  this.__doreq("SEARCH",options,content,function(result) {
+  self.__doreq("SEARCHV6",options,content,function(result) {
     // Horrendous V7 EA1 workaround...
     //if ("xml" == result.format) {
       //self.logger.debug("result currently: " + JSON.stringify(result));
@@ -1389,6 +1391,40 @@ mljs.prototype.search = function(query_opt,options_opt,start_opt,sprops_opt,call
       //self.logger.debug("Result doc now: " + JSON.stringify(result.doc));
     //}
     (callback||noop)(result);
+  });
+  }; // end v6 func
+  
+  this.v7check(v6func,function() {
+    var optionsdoc = self._optionsCache[options_opt || "all"];
+    if (undefined == optionsdoc) {
+      v6func();
+    } else {
+      var url = "/v1/search?q=" + encodeURI(query_opt) ;
+      url = self._applySearchProperties(url,sprops_opt);
+      
+      if (undefined != start_opt) {
+        url += "&start=" + start_opt;
+      }
+      url += "&view=all";
+ 
+      // make transaction aware
+      if (undefined != self.__transaction_id) {
+        url += "&txid=" + encodeURI(self.__transaction_id);
+      }
+      
+      var query = {search: {
+        options: optionsdoc.options,
+        qtext: query_opt
+      }};
+  
+      var options = {
+        path: url,
+        method: "POST"
+      };
+      self.__doreq("SEARCHV7",options,query,function(result) {
+        (callback||noop)(result);
+      });
+    } // end v7 options if
   });
 };
 
@@ -1415,26 +1451,64 @@ mljs.prototype.searchCollection = function(collection_opt,query_opt,options_opt,
       sprops_opt = undefined;
     }
   }
-  var url = "/v1/search?q=" + encodeURI(query_opt);
-  if (undefined != collection_opt) {
-    url += "&collection=" + encodeURI(collection_opt);
-  }
-  if (options_opt != undefined) {
-    url += "&options=" + encodeURI(options_opt);
-  }
-  
-  url = this._applySearchProperties(url,sprops_opt);
-  
-  // make transaction aware
-  if (undefined != this.__transaction_id) {
-    url += "&txid=" + encodeURI(this.__transaction_id);
-  }
+  var self = this;
+  var v6func = function() {
+    var url = "/v1/search?q=" + encodeURI(query_opt);
+    if (undefined != collection_opt) {
+      url += "&collection=" + encodeURI(collection_opt);
+    }
+    if (options_opt != undefined) {
+      url += "&options=" + encodeURI(options_opt);
+    }
     
-  var options = {
-    path: url,
-    method: "GET"
+    url = self._applySearchProperties(url,sprops_opt);
+    
+    // make transaction aware
+    if (undefined != self.__transaction_id) {
+      url += "&txid=" + encodeURI(self.__transaction_id);
+    }
+      
+    var options = {
+      path: url,
+      method: "GET"
+    };
+    self.__doreq("SEARCHCOLLECTIONV6",options,null,callback);
   };
-  this.__doreq("SEARCHCOLLECTION",options,null,callback);
+  this.v7check(v6func,function() {
+    var optionsdoc = self._optionsCache[options_opt];
+    if (undefined == optionsdoc) {
+      v6func();
+    } else {
+      var url = "/v1/search";
+      var gotQuestionMark = false;
+      if (undefined != collection_opt) {
+        gotQuestionMark = true;
+        url += "?collection=" + encodeURI(collection_opt);
+      }
+      url = self._applySearchProperties(url,sprops_opt);
+      
+      // make transaction aware
+      if (undefined != self.__transaction_id) {
+        if (gotQuestionMark) {
+          url += "&";
+        } else {
+          url += "?";
+        }
+        url += "txid=" + encodeURI(self.__transaction_id);
+      }
+      
+      var query = {search: {
+        options: optionsdoc.options,
+        qtext: query_opt
+      }};
+      
+      var options = {
+        path: url,
+        method: "POST"
+      };
+      self.__doreq("SEARCHCOLLECTIONV7",options,query,callback);
+    }
+  });
 };
 
 /**
@@ -1462,7 +1536,13 @@ mljs.prototype._applyTransformProperties = function(url,sprops_opt) {
  */
 mljs.prototype._applySearchProperties = function(url,sprops_opt) {
   // apply properties
-  var format = "&format=json";
+  var format = "";
+  if (-1 != url.indexOf("?")) {
+    format += "&";
+  } else {
+    format += "?";
+  }
+  format += "format=json";
   
   if (undefined != sprops_opt) {
     if (undefined != sprops_opt.collection) {
@@ -1515,26 +1595,81 @@ mljs.prototype.structuredSearch = function(query_opt,options_opt,sprops_opt,call
       }
     }
   }
-  var url = "/v1/search?structuredQuery=" + encodeURI(JSON.stringify(query_opt));
-  if (options_opt != undefined) {
-    url += "&options=" + encodeURI(options_opt);
-  }
-  
-  url = this._applySearchProperties(url,sprops_opt);
-  
-  // make transaction aware
-  if (undefined != this.__transaction_id) {
-    url += "&txid=" + encodeURI(this.__transaction_id);
-  }
-  
-  var options = {
-    path: url,
-    method: "GET"
+  var self = this;
+  // IF ON V7 THEN DO COMBINED QUERY ALWAYS
+  var v6func = function() {
+    // V6 assume options already saved
+    var url = "/v1/search?structuredQuery=" + encodeURI(JSON.stringify(query_opt));
+    if (options_opt != undefined) {
+      url += "&options=" + encodeURI(options_opt);
+    }
+    
+    url = self._applySearchProperties(url,sprops_opt);
+    
+    // make transaction aware
+    if (undefined != self.__transaction_id) {
+      url += "&txid=" + encodeURI(self.__transaction_id);
+    }
+    var options = {
+      path: url,
+      method: "GET"
+    };
+    //console.log("OPTIONS: " + JSON.stringify(options));
+    self.__doreq("STRUCTUREDSEARCHV6",options,null,callback);
   };
-  //console.log("OPTIONS: " + JSON.stringify(options));
-  this.__doreq("STRUCTUREDSEARCH",options,null,callback);
+  this.v7check(v6func,function() {
+    // V7 combined query
+    var optionsdoc = self._optionsCache[options_opt || "all"];
+    if (undefined == optionsdoc) {
+      // hopefully it'll be on the server
+      v6func();
+    } else {
+      // V7, and we have local options
+      var query = {"search":{
+        "query": query_opt,
+        "options": optionsdoc.options}
+      }; 
+      var url = "/v1/search";
+      url = self._applySearchProperties(url,sprops_opt);
+      
+      // make transaction aware
+      if (undefined != self.__transaction_id) {
+        url += "&txid=" + encodeURI(self.__transaction_id);
+      }
+      var options = {
+        path: url,
+        method: "POST"
+      };
+      //console.log("OPTIONS: " + JSON.stringify(options));
+      self.__doreq("STRUCTUREDSEARCHV7",options,query,callback);
+    }
+  });
 };
 mljs.prototype.structuredQuery = mljs.prototype.structuredSearch;
+
+/**
+ * Uses the version rest extension to verify if we're on V7+ or less than V7. First func is called if less than V7, second func called if V7 or above.
+ */
+mljs.prototype.v7check = function(v6func,v7func) {
+  // check version number first
+  var self = this;
+  var doit = function() {
+    if (null == self._version || self._version.substring(0,self._version.indexOf(".")) < 7) {
+      v6func();
+    } else {
+      v7func();
+    }
+  };
+  if (this._version == null) {
+    try {
+      this.version(doit);
+    } catch (err) {
+      this.db.logger.debug("mljs.v7check: Failed to get version. Extension not installed? Assume V6.");
+    }
+  } else {
+    doit();
+  }
+};
 
 /**
  * Saves search options with the given name. These are referred to by mljs.structuredSearch.
@@ -1554,7 +1689,35 @@ mljs.prototype.saveSearchOptions = function(name,searchoptions,callback_opt) {
     path: "/v1/config/query/" + name + "?format=json",
     method: "PUT"
   };
+  this._optionsCache[name] = searchoptions;
   this.__doreq("SAVESEARCHOPTIONS",options,searchoptions,callback_opt);
+};
+
+/**
+ * Call this if you only want to save search options on versions of MarkLogic prior to V7, but want to use
+ * Combined Query if executing on V7 and above.
+ * 
+ * {@link http://docs.marklogic.com/REST/PUT/v1/config/query/*}
+ * 
+ * For structured search options see {@link http://docs.marklogic.com/guide/rest-dev/search#id_48838}
+ * 
+ * Use this function in conjunction with the Search Options Builder. {@see mljs.prototype.options}
+ * 
+ * @param {string} name - The name to install the search options under
+ * @param {JSON} searchoptions - The search options JSON object. {@see mljs.prototype.options.prototype.toJson}
+ * @param {function} callback_opt - The optional callback to invoke after the method completes
+ */
+mljs.prototype.saveSearchOptionsCheck = function(name,searchoptions,callback_opt) {
+  var self = this;
+  var v6func = function() {
+    self.saveSearchOptions(name,searchoptions,callback_opt);
+  };
+  this.v7check(v6func, function() {
+    // just cache them instead
+    self._optionsCache[name] = searchoptions;
+    
+    (callback_opt || noop)({error: false});
+  });
 };
 
 /**
@@ -1572,6 +1735,7 @@ mljs.prototype.searchOptions = function(name,callback) {
     path: "/v1/config/query/" + name + "?format=json",
     method: "GET"
   };
+  // don't cache on retrieve - if they're already on the server that's fine
   this.__doreq("SEARCHOPTIONS",options,null,callback);
 };
 mljs.prototype.searchoptions = mljs.prototype.searchOptions; // typo workaround for backwards compatibility
@@ -2502,6 +2666,28 @@ mljs.prototype.dlsrule = function(name,callback) {
 };
 
 
+/**
+ * Requires custom rest API Extension version.xqy - Adam Fowler adam.fowler@marklogic.com - Fetches output of xdmp:version(). E.g. 7.0-1
+ * 
+ * @param {function} callback - The callback to invoke after the method completes
+ */
+mljs.prototype.version = function(callback) {
+  var options = {
+    path: "/v1/resources/version",
+    method: "GET",
+    headers: {Accept: "application/json"}
+  };
+  var that = this;
+  this.__doreq("VERSION",options,null,function(result){that._version = result.doc.version;callback(result);});
+};
+
+/**
+ * Returns the current version string (E.g. 7.0-1) or null if version() has not yet been called.
+ */
+mljs.prototype.getVersion = function() {
+  return this._version;
+};
+
 
 /**
  * REQUIRES CURSTOM REST API EXTENSION - rdb2rdf.xqy - Adam Fowler adam.fowler@marklogic.com - List DB schema attached to an MLSAM URL endpoint.
@@ -2704,6 +2890,29 @@ mljs.prototype.options = function() {
   this.defaults.namespace = "http://marklogic.com/xdmp/json/basic";
   this.defaults.sortDirection = "ascending";
   this.defaults.facetOption = undefined; // limit=10
+  
+  // display text for where ML doesn't yet store annotations
+  this.text = {};
+  this.text.facets = {};
+  // this.text.facets[facetname][facetvalue] => "Display String"
+};
+
+mljs.prototype.options.prototype.setFacetValueStrings = function(facetname,valuehash) {
+  this.text.facets[facetname] = valuehash;
+};
+
+mljs.prototype.options.prototype.getFacetValueString = function(facetname,facetvalue) {
+  //this.__d("options.getFacetValueString: name: " + facetname + ", value: " + facetvalue);
+  var fvs = this.text.facets[facetname];
+  if (undefined != fvs) {
+    //this.__d("options.getFacetValueString: Got facet values object for: " + facetname);
+    var val = fvs[facetvalue];
+    //this.__d("options.getFacetValueString: Got facet translated value: " + val);
+    return val;
+  } else {
+    //this.__d("options.getFacetValueString: NOT got facet values object for: " + facetname);
+    return null;
+  }
 };
 
 mljs.prototype.options.prototype._includeSearchDefaults = function() {
@@ -3157,6 +3366,21 @@ mljs.prototype.options.prototype.elemattrRangeConstraint = function(constraint_n
   this.addConstraint(range);
   
   return this;
+};
+
+
+mljs.prototype.options.prototype.jsonRangeConstraint = function(name_or_key,type_opt,collation_opt,facet_opt,facet_options_opt,fragmentScope_opt,annotation_opt) {
+  if (Array.isArray(type_opt)) {
+    facet_options_opt = type_opt;
+    type_opt = undefined;
+  } else if (Array.isArray(collation_opt)) {
+    facet_options_opt = collation_opt;
+    collation_opt = undefined;
+  } else if (Array.isArray(facet_opt)) {
+    facet_options_opt = facet_opt;
+    facet_opt = undefined;
+  }
+  return this.rangeConstraint(name_or_key,name_or_key,"http://marklogic.com/xdmp/json/basic",type_opt || "xs:string",collation_opt, facet_opt || true, facet_options_opt,fragmentScope_opt,annotation_opt);
 };
 
 /**
@@ -3669,7 +3893,7 @@ mljs.prototype.options.prototype.sortOrderClear = function() {
 mljs.prototype.options.prototype.sortOrderScore = function() {
   this._includeSearchDefaults();
   // TODO add check to see if we already exist
-  this.options["sort-order"].push({"direction": "descending","score": null, "annotation": ["Relevancy (Descending)"]});
+  this.options["sort-order"].push({"direction": "descending",score: "", "annotation": ["Relevancy (Descending)"]});
   return this;
 };
 mljs.prototype.options.prototype.relevance = mljs.prototype.options.prototype.sortOrderScore; // common alias
@@ -4350,11 +4574,13 @@ mljs.prototype.searchcontext = function() {
   this._query = {};
   this.simplequery = "";
   
+  this._lastSearchFunction = "simple"; // either simple or structured
+  
   
   this.defaultSort = [];
   
   this.optionsExist = false;
-  this.optionssavemode = "persist"; // persist or dynamic (v7 only)
+  //this.optionssavemode = "persist"; // persist or dynamic (v7 only)
   
   this.structuredContrib = new Array();
   
@@ -4451,6 +4677,14 @@ mljs.prototype.searchcontext.prototype.setDirectory = function(dir) {
  */
 mljs.prototype.searchcontext.prototype.setOptions = function(name,options) {
   this.optionsName = name;
+  var ob = null;
+  if (undefined != options.toJson) {
+    this.__d("searchcontext.setOptions: Got an options builder instead of options JSON");
+    // is an options builder object
+    ob = options;
+    options = ob.toJson();
+  }
+  this._optionsbuilder = ob;
   this._options = {options: options};
   if (undefined != options.options) {
     this._options = options; // no object wrapper
@@ -4467,6 +4701,10 @@ mljs.prototype.searchcontext.prototype.setOptions = function(name,options) {
   
   // check if options exist
   var self = this;
+};
+
+mljs.prototype.searchcontext.prototype.getOptionsBuilder = function() {
+  return this._optionsbuilder;
 };
 
 mljs.prototype.searchcontext.prototype.getOptions = function() {
@@ -4647,6 +4885,8 @@ mljs.prototype.searchcontext.prototype._queryToText = function(parsed) {
 mljs.prototype.searchcontext.prototype.doStructuredQuery = function(q,start) {
   var self = this;
   
+  this._lastSearchFunction = "structured";
+  
   self.resultsPublisher.publish(true); // forces refresh glyph to show
   self.facetsPublisher.publish(true);
   
@@ -4657,15 +4897,15 @@ mljs.prototype.searchcontext.prototype.doStructuredQuery = function(q,start) {
   this.__d("searchcontext.dostructuredquery: " + JSON.stringify(q) + ", ourstart: " + ourstart);
   
   var dos = function() {
-   self.db.structuredSearch(q,self.optionsName,function(result) { 
-    if (result.inError) {
-      // report error on screen somewhere sensible (e.g. under search bar)
-      self.__d(result.error);
-      self.resultsPublisher.publish(false); // hides refresh glyth on error
-    } else {
-      self.resultsPublisher.publish(result.doc);
-    }
-   });
+      self.db.structuredSearch(q,self.optionsName,function(result) { 
+       if (result.inError) {
+         // report error on screen somewhere sensible (e.g. under search bar)
+         self.__d(result.error);
+         self.resultsPublisher.publish(false); // hides refresh glyth on error
+       } else {
+         self.resultsPublisher.publish(result.doc);
+       }
+      });
   };
   
   this._persistAndDo(dos);
@@ -4698,7 +4938,7 @@ mljs.prototype.searchcontext.prototype.contributeStructuredQuery = function(cont
   var qb = this.db.createQuery();
   qb.query(qb.and(terms));
   //var allqueries = { query: {"and-query": terms}}; // TODO replace with query builder
-  this.dostructuredquery(qb.toJson());
+  this.doStructuredQuery(qb.toJson());
 };
 
 mljs.prototype.searchcontext.prototype.updateGeoHeatmap = function(constraint_name,heatmap) {
@@ -4767,6 +5007,7 @@ mljs.prototype.searchcontext.prototype.doSimpleQuery = function(q,start) {
   if (null == q || undefined == q) {
     q = this.defaultQuery; // was ""
   }
+  this._lastSearchFunction = "simple";
   
   
   var self = this;
@@ -4850,9 +5091,12 @@ mljs.prototype.searchcontext.prototype.updateResults = function(msg) {
   this.resultsPublisher.publish(msg);
 };
 
+  
 mljs.prototype.searchcontext.prototype._persistAndDo = function(callback) {
   var self = this;
-  if ("persist" == this.optionssavemode) {
+  var persistFunc = function() {
+    // NB that.db._version MUST be set by now 
+   //if ("persist" == self.optionssavemode) { // REPLACED BY V7 CHECK IN CORE
     //self.db.searchoptions(this.optionsName,function(result) {
       //self.__d("RESULT: " + JSON.stringify(result.doc));
       //if (result.inError) {
@@ -4865,7 +5109,7 @@ mljs.prototype.searchcontext.prototype._persistAndDo = function(callback) {
         if (self.optionsExist) {
           callback();
         } else {
-        self.db.saveSearchOptions(self.optionsName,self._options,function(result) {
+          self.db.saveSearchOptionsCheck(self.optionsName,self._options,function(result) {
           if (result.inError) {
             self.__d("Error saving Search options " + self.optionsName); 
           } else {
@@ -4878,7 +5122,9 @@ mljs.prototype.searchcontext.prototype._persistAndDo = function(callback) {
       }
       //}
     //});
-  }
+   //} 
+  };
+  persistFunc();
   
 };
 
@@ -4969,12 +5215,26 @@ mljs.prototype.searchcontext.prototype.removeErrorListener = function(fl) {
  * @param {facetSelection} facetSelection - The facet value to restrict the search results by. 
  */
 mljs.prototype.searchcontext.prototype.updateFacets = function(facetSelection) {
-  var parsed = this._parseQuery(this.simplequery);
-  parsed.facets = facetSelection;
+  if ("simple" == this._lastSearchFunction) {
+    var parsed = this._parseQuery(this.simplequery);
+    parsed.facets = facetSelection;
   
-  var q = this._queryToText(parsed);
-  
-  this.dosimplequery(q);
+    var q = this._queryToText(parsed);
+    
+    this.dosimplequery(q);
+  } else {
+    // structured
+    var qb = this.db.createQuery();
+    
+    // build query terms
+    var terms = [];
+    
+    for (var i = 0;i < facetSelection.length;i++) {
+      terms[i] = qb.range(facetSelection[i].name,facetSelection[i].value);
+    }
+    
+    this.contributeStructuredQuery("__facets",qb.and(terms));
+  }
 };
 
 /**

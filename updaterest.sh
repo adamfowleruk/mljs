@@ -22,6 +22,7 @@ cp -R mldbwebtest/src/public/images/mljs mljsrest/src/images
 # other dependencies now
 cp -R mldbwebtest/src/public/js/OpenLayers-2.13.1 mljsrest/src/js
 cp -R mldbwebtest/src/public/js/dataproviders mljsrest/src/js
+cp -R mldbwebtest/src/public/js/heatmap mljsrest/src/js
 cp mldbwebtest/src/public/js/highcharts.js mljsrest/src/js/
 cp mldbwebtest/src/public/js/kratu.js mljsrest/src/js/
 cp mldbwebtest/src/public/js/kratuSignalAdjustments.js mljsrest/src/js/
@@ -33,7 +34,7 @@ cp mldbwebtest/src/public/js/lib/jquery-1.7.1.min.js mljsrest/src/js/lib/
 #cp mldbwebtest/src/public/css/vars.less mljsrest/src/css/vars.css
 cp mldbwebtest/src/public/css/bootstrap-roxy.css mljsrest/src/css/bootstrap-roxy.css
 cp mldbwebtest/src/public/css/kratu.css mljsrest/src/css/kratu.css
-cp mldbwebtest/src/public/css/reset.css mljsrest/src/css/reset.css
+#cp mldbwebtest/src/public/css/reset.css mljsrest/src/css/reset.css
 
 cp -R mldbwebtest/src/public/css/960 mljsrest/src/css/
 

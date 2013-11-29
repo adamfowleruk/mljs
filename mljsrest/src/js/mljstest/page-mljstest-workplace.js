@@ -11,8 +11,8 @@ window.onload = function() {
   var ob = db.createOptions();
   ob.defaultCollation("http://marklogic.com/collation/en")
     .collectionConstraint() // default constraint name of 'collection' 
-    .rangeConstraint("animal",["item-order"]) // constraint name defaults to that of the range element name 
-    .rangeConstraint("family",["item-frequency"]); // constraint name defaults to that of the range element name 
+    .jsonRangeConstraint("animal",["item-order"]) // constraint name defaults to that of the range element name 
+    .jsonRangeConstraint("family",["item-frequency"]); // constraint name defaults to that of the range element name 
     
   var options = ob.toJson();
   

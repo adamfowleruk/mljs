@@ -54,18 +54,20 @@ com.marklogic.widgets.kratu.prototype.render = function(render) {
  * @param {JSON} results - The REST API JSON results object to display. See GET /v1/search
  */
 com.marklogic.widgets.kratu.prototype.updateResults = function(results) {
-  this.results = results;
-  
-  if ("content" == this.render) {
-    var content = new Array();
-    for (var i = 0;i < this.results.results.length;i++) {
-      content.push(JSON.parse(this.results.results[i].content)); // TODO support XML and other types too
+  if (typeof (results) != "boolean" && undefined != results && null != results && undefined != results.qtext) {
+    this.results = results;
+    
+    if ("content" == this.render) {
+      var content = new Array();
+      for (var i = 0;i < this.results.results.length;i++) {
+        content.push(JSON.parse(this.results.results[i].content)); // TODO support XML and other types too
+      }
+      this.kratu.setEntities(content);
+    } else {
+      this.kratu.setEntities(this.results.results);
     }
-    this.kratu.setEntities(content);
-  } else {
-    this.kratu.setEntities(this.results.results);
+    this._refresh();
   }
-  this._refresh();
 };
 
 /**
