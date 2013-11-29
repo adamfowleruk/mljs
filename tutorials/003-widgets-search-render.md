@@ -40,9 +40,9 @@ The final example shows how to use the built in post-render lazy loading callbac
 to paint additional information after search results are displayed. The example shown renders a description of a powerpoint slide's snippet content,
 then uses lazy loading to draw an image linking to the PNG format image thumbnail for the slide.
 
-- [Simple JSON movie example from page-mljstest-movies.js]()
-- [Custom XML song renderer from PoC project]()
-- [Advanced lazy loading in powerpoint]()
+- [Simple JSON movie example from page-mljstest-movies.js](https://github.com/adamfowleruk/mljs/blob/master/samples/003-renderer-json.js)
+- [Custom XML song renderer from PoC project](https://github.com/adamfowleruk/mljs/blob/master/samples/004-renderer-xml.js)
+- [Advanced lazy loading in powerpoint](https://github.com/adamfowleruk/mljs/blob/master/samples/005-renderer-lazy.js)
 
 - - - -
 
