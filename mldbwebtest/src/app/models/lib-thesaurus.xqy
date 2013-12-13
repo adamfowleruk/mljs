@@ -7,7 +7,7 @@ import module namespace thsr="http://marklogic.com/xdmp/thesaurus" at "/MarkLogi
  : Creates a cts:or-query of cts:word queries based on the words provided in the query.
  : Uses the thesaurus functions in MarkLogic
  :
- : NOTE: ALTER the /admin/thesaurus/riot.xml file to YOUR THESUARUS XML FILE
+ : NOTE: ALTER the /admin/thesaurus/riot.xml file to YOUR THESAURUS XML FILE
  :
  : NOTE: This is used by mljs.options.thesaurusConstraint
  :)

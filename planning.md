@@ -17,8 +17,8 @@ Targets for 1.2 (Dec 2013) - High priority
   - TEST Add thesaurus support using custom constraint
   - TEST element query constraint
   - TEST Add extract metadata support (For use by custom renderers)
-  - searchable expression
-  - Add custom grammar support
+  - TEST searchable expression
+  - TEST Add custom grammar support
   - TEST Top level options properties: search-option, 
   - (default)suggestion-source
  - App builder gap closing
