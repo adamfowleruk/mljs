@@ -11,6 +11,16 @@ Targets for 1.2 (Dec 2013) - High priority
  - DONE Ensure version extension absence errors gracefully
  - DONE Rework all examples to use searchcontext rather than direct invocation of mljs methods
  - BUG cooccurence widget now not returning results in combined V7 query mode
+ - IN PROGRESS Core: Options Builder
+  - TEST Added all options support for geoElement, geoElementPair, geoAttributePair and geoPath Constraints
+  - TEST Add custom constraint support
+  - TEST Add thesaurus support using custom constraint
+  - TEST element query constraint
+  - Add extract metadata support
+  - Add custom grammar support
+  - TEST Top level options properties: search-option, 
+  - (default)suggestion-source
+  - searchable expression
  - App builder gap closing
   - TEST Core: Rework searchcontext
    - DONE Allow contribution of facets/sort etc to alter both text (grammar) queries and structured query (independently, via searchcontext)
