@@ -27,11 +27,12 @@ Targets for 1.2 (Dec 2013) - High priority
    - DONE Allow contribution of facets/sort etc to alter both text (grammar) queries and structured query (independently, via searchcontext)
    - DONE Add "values" as a searchcontext endpoint option (either /v1/search (default) or /v1/values/{tuplesname})
    - DONE Add V7 combined options + values support to mljs.values()
-   - Ensure searchcontext supports updateFacets
+   - DONE Ensure searchcontext supports updateFacets
    - IN PROGRESS Add addFacetSelection listener etc to highcharts widget
    - IN PROGRESS Support compound search mode in V7 (options + search) (search, searchCollection, structuredSearch, saveSearchOptionsCheck, searchcontext alterations)
     - DONE version rest extension
     - BUG: V7 ignores URL search parameters if submitting a structuredQuery and options (previously if supplying just query and referring to options, it'd work)
+     - Fix chart search page
    - DONE Docs: Rework cooccurence example to use search context, and contributeStructureQuery
    - NA Not possible. Close approximation without grammar with term queries though: Check if structured query supports dynamic text query constraints with grammar (i.e. one term with grammar parsing)
    - DEFERRED Do shadow query automatically in searchcontext rather than per-widget?

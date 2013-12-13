@@ -2,6 +2,14 @@
 window.onload = function() {
   var db = new mljs(); 
   
+  /**
+   * WARNING: This page uses the convenience searchpage() widget. If you need changes to the position or number of widgets shown
+   *          then DO NOT edit that widget, but instead use the same HTML as in the widget-search.js' searchpage() constructor directly
+   *          in your page. You are then free to edit, in your page, whatever you like. searchpage is purely for convenience when
+   *          you do not want to create this HTML manually.
+   */
+  
+  
   var wgt = new com.marklogic.widgets.searchpage("search-page");
   // README NOW!!! If you don't know what addProcessor does, comment out the lines! MLJS provides default processors that may well work if using JSON, XHTML or some XML
   wgt.results.addProcessor("animals", function(result) {
@@ -44,6 +52,6 @@ window.onload = function() {
   //var options = ob.toJson();
   
   wgt.setOptions("mljstest-page-search-options",ob);
-  wgt.execute();
+  wgt.execute(); // uses search context
   
 };

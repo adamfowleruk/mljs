@@ -5541,10 +5541,6 @@ mljs.prototype.searchcontext.prototype.doStructuredQuery = function(q,start) {
   
   this._lastSearchFunction = "structured";
   
-  self.resultsPublisher.publish(true); // forces refresh glyph to show
-  self.facetsPublisher.publish(true);
-  self.valuesPublisher.publish(true);
-  
   var ourstart = 1;
   if (0 != start && undefined != start) {
     ourstart = start;
@@ -5553,16 +5549,22 @@ mljs.prototype.searchcontext.prototype.doStructuredQuery = function(q,start) {
   
   var dos = function() {
     if ("search" == self._searchEndpoint) {
+      self.resultsPublisher.publish(true); // forces refresh glyph to show
+      self.facetsPublisher.publish(true);
+  
       self.db.structuredSearch(q,self.optionsName,function(result) { 
         if (result.inError) {
           // report error on screen somewhere sensible (e.g. under search bar)
           self.__d(result.error);
           self.resultsPublisher.publish(false); // hides refresh glyth on error
+          self.facetsPublisher.publish(false); // hides refresh glyth on error
         } else {
           self.resultsPublisher.publish(result.doc);
+          self.facetsPublisher.publish(result.doc.facets);
         }
       });
     } else { // values()
+      self.valuesPublisher.publish(true);
       self.db.values(q,self._tuplesName,self.optionsName,null,function(result) {
         if (result.inError) {
           // report error on screen somewhere sensible (e.g. under search bar)
@@ -5678,8 +5680,7 @@ mljs.prototype.searchcontext.prototype.doSimpleQuery = function(q,start) {
   
   
   var self = this;
-  self.resultsPublisher.publish(true); // forces refresh glyph to show
-  self.facetsPublisher.publish(true);
+  
   var ourstart = 1;
   if (0 != start && undefined != start) {
     ourstart = start;
@@ -5724,16 +5725,21 @@ mljs.prototype.searchcontext.prototype.doSimpleQuery = function(q,start) {
     }
     
     if ("search" == self._searchEndpoint) {
+      self.resultsPublisher.publish(true); // forces refresh glyph to show
+      self.facetsPublisher.publish(true);
       self.db.search(q,self.optionsName,ourstart,sprops,function(result) { 
         if (result.inError) {
           // report error on screen somewhere sensible (e.g. under search bar)
           self.__d(result.error);
           self.resultsPublisher.publish(false); // hides refresh glyth on error
+          self.facetsPublisher.publish(false); // hides refresh glyth on error
         } else {
           self.resultsPublisher.publish(result.doc);
+          self.facetsPublisher.publish(result.doc.facets);
         }
       });
     } else { // values
+      self.valuesPublisher.publish(true);
       self.db.values(q,self._tuplesName,self.optionsName,null,function(result) {
         if (result.inError) {
           // report error on screen somewhere sensible (e.g. under search bar)

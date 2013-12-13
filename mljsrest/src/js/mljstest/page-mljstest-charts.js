@@ -10,7 +10,7 @@ window.onload = function() {
   var optionsName = "page-charts-tempchart";
   var ob = db.createOptions();
   ob.pageLength(100);
-  var options = ob.toJson();
+  //var options = ob.toJson();
   
   var tempchart = new com.marklogic.widgets.highcharts("tempchart");
   tempchart.addErrorListener(error.updateError);
@@ -85,6 +85,20 @@ window.onload = function() {
   qb.query(qb.and([qb.collection("testdata"),qb.collection("temperatures")]));
   var query = qb.toJson();
   
+  var context = db.createSearchContext();
+  context.setOptions(optionsName,ob);
+  context.register(tempchart);
+  context.register(tempspline);
+  context.register(tempbar);
+  context.register(temparea);
+  context.register(tempsarea);
+  context.register(tempsbar);
+  context.register(tempcolumn);
+  context.register(tempscolumn);
+  context.doStructuredQuery(query);
+  
+  /*
+  // THE OLD WAY:-
   db.saveSearchOptions(optionsName,options,function(result) {
     db.structuredSearch(query,optionsName,function(result) {
       
@@ -99,7 +113,7 @@ window.onload = function() {
       tempcolumn.updateResults(result.doc);
       tempscolumn.updateResults(result.doc);
     });
-  });
+  });*/
   
   } catch (err) {
     error.show(err.message);

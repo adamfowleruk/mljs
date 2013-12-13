@@ -42,6 +42,7 @@ cp mldbwebtest/rest-api/ext/* mljsrest/rest-api/ext/
 
 
 cp mldbwebtest/src/app/models/rdb2rdf-lib.xqy mljsrest/src/app/models/
+cp mldbwebtest/src/app/models/lib-thesaurus.xqy mljsrest/src/app/models/
 cp mldbwebtest/src/app/config/config.xqy mljsrest/src/app/config/
 cp mldbwebtest/src/roxy/config/defaults.xqy mljsrest/src/roxy/config/
 cp mldbwebtest/src/app/models/sql.xqy mljsrest/src/app/models/
