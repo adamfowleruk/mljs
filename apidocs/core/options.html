@@ -251,7 +251,7 @@ This is for any constraints you wish to add that don't have their own method her
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3811">line 3811</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3912">line 3912</a>
     </li></ul></dd>
     
     
@@ -368,7 +368,7 @@ This is for any constraints you wish to add that don't have their own method her
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3189">line 3189</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3205">line 3205</a>
     </li></ul></dd>
     
     
@@ -511,7 +511,7 @@ This is for any constraints you wish to add that don't have their own method her
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3768">line 3768</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3869">line 3869</a>
     </li></ul></dd>
     
     
@@ -633,7 +633,7 @@ If you don't specify label, it will default to the name specified or calculated 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3746">line 3746</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3847">line 3847</a>
     </li></ul></dd>
     
     
@@ -822,7 +822,7 @@ If you don't specify label, it will default to the name specified or calculated 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3827">line 3827</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3928">line 3928</a>
     </li></ul></dd>
     
     
@@ -944,7 +944,7 @@ If you don't specify label, it will default to the name specified or calculated 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3788">line 3788</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3889">line 3889</a>
     </li></ul></dd>
     
     
@@ -1061,7 +1061,381 @@ If you don't specify label, it will default to the name specified or calculated 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3212">line 3212</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3228">line 3228</a>
+    </li></ul></dd>
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="customConstraint"><span class="type-signature"></span>customConstraint<span class="signature">(constraint_name, parsefunction, parsenamesapce, parselibrary, startfunction, startnamesapce, startlibrary, finishfunction, finishnamesapce, finishlibrary, annotation_opt, additional_properties_opt)</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        <p>Defines a custom constraint. To skip one of parse, start or finish, set the function parameter to null.</p>
+<p>">http://docs.marklogic.com/guide/rest-dev/appendixa#id\_87763}</a></p>
+    </div>
+    
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+		
+		<th>Type</th>
+		
+		
+		
+		
+		
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+	
+	<tbody>
+	
+	
+        <tr>
+            
+                <td class="name"><code>constraint_name</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last"><p>The name of the constraint to create</p></td>
+        </tr>
+	
+	
+	
+        <tr>
+            
+                <td class="name"><code>parsefunction</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last"><p>The function local name</p></td>
+        </tr>
+	
+	
+	
+        <tr>
+            
+                <td class="name"><code>parsenamesapce</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last"><p>The namespace of the function</p></td>
+        </tr>
+	
+	
+	
+        <tr>
+            
+                <td class="name"><code>parselibrary</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last"><p>The XQuery library path in the modules database for the function</p></td>
+        </tr>
+	
+	
+	
+        <tr>
+            
+                <td class="name"><code>startfunction</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last"><p>The function local name</p></td>
+        </tr>
+	
+	
+	
+        <tr>
+            
+                <td class="name"><code>startnamesapce</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last"><p>The namespace of the function</p></td>
+        </tr>
+	
+	
+	
+        <tr>
+            
+                <td class="name"><code>startlibrary</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last"><p>The XQuery library path in the modules database for the function</p></td>
+        </tr>
+	
+	
+	
+        <tr>
+            
+                <td class="name"><code>finishfunction</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last"><p>The function local name</p></td>
+        </tr>
+	
+	
+	
+        <tr>
+            
+                <td class="name"><code>finishnamesapce</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last"><p>The namespace of the function</p></td>
+        </tr>
+	
+	
+	
+        <tr>
+            
+                <td class="name"><code>finishlibrary</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last"><p>The XQuery library path in the modules database for the function</p></td>
+        </tr>
+	
+	
+	
+        <tr>
+            
+                <td class="name"><code>annotation_opt</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+|
+
+<span class="param-type">Array</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last"><p>The annotation to add to the constraint. MLJS uses annotation[0] as the display title, falling back to camel case constraint name if not specified</p></td>
+        </tr>
+	
+	
+	
+        <tr>
+            
+                <td class="name"><code>additional_properties_opt</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">json</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last"><p>Additional rest api properties to apply to this constraint. Copied after constraint constructed. E.g. fragmentScope.</p></td>
+        </tr>
+	
+	
+	</tbody>
+</table>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3516">line 3516</a>
     </li></ul></dd>
     
     
@@ -1178,7 +1552,7 @@ If you don't specify label, it will default to the name specified or calculated 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3222">line 3222</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3238">line 3238</a>
     </li></ul></dd>
     
     
@@ -1295,7 +1669,7 @@ If you don't specify label, it will default to the name specified or calculated 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3409">line 3409</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3425">line 3425</a>
     </li></ul></dd>
     
     
@@ -1412,7 +1786,7 @@ If you don't specify label, it will default to the name specified or calculated 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3439">line 3439</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3455">line 3455</a>
     </li></ul></dd>
     
     
@@ -1529,7 +1903,7 @@ If you don't specify label, it will default to the name specified or calculated 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3419">line 3419</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3435">line 3435</a>
     </li></ul></dd>
     
     
@@ -1646,7 +2020,7 @@ If you don't specify label, it will default to the name specified or calculated 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3429">line 3429</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3445">line 3445</a>
     </li></ul></dd>
     
     
@@ -1950,7 +2324,197 @@ If you don't specify label, it will default to the name specified or calculated 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3506">line 3506</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3607">line 3607</a>
+    </li></ul></dd>
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="elementQuery"><span class="type-signature"></span>elementQuery<span class="signature">(constraint_name, elementname, elementns, annotation_opt)</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        <p>Restricts all search parameters to the specified element.</p>
+<p>">http://docs.marklogic.com/guide/rest-dev/appendixa#id\_62771}</a></p>
+    </div>
+    
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+		
+		<th>Type</th>
+		
+		
+		
+		
+		
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+	
+	<tbody>
+	
+	
+        <tr>
+            
+                <td class="name"><code>constraint_name</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last"><p>The name of the constraint to create</p></td>
+        </tr>
+	
+	
+	
+        <tr>
+            
+                <td class="name"><code>elementname</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last"><p>The name of the element to match</p></td>
+        </tr>
+	
+	
+	
+        <tr>
+            
+                <td class="name"><code>elementns</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last"><p>The namespace of the element to match</p></td>
+        </tr>
+	
+	
+	
+        <tr>
+            
+                <td class="name"><code>annotation_opt</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+|
+
+<span class="param-type">Array</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last"><p>The annotation to add to the constraint. MLJS uses annotation[0] as the display title, falling back to camel case constraint name if not specified</p></td>
+        </tr>
+	
+	
+	</tbody>
+</table>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3485">line 3485</a>
     </li></ul></dd>
     
     
@@ -2020,7 +2584,7 @@ If you don't specify label, it will default to the name specified or calculated 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4130">line 4130</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4232">line 4232</a>
     </li></ul></dd>
     
     
@@ -2301,7 +2865,7 @@ If you don't specify label, it will default to the name specified or calculated 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3695">line 3695</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3796">line 3796</a>
     </li></ul></dd>
     
     
@@ -2421,7 +2985,7 @@ If you don't specify label, it will default to the name specified or calculated 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3231">line 3231</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3247">line 3247</a>
     </li></ul></dd>
     
     
@@ -2538,7 +3102,7 @@ If you don't specify label, it will default to the name specified or calculated 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3246">line 3246</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3262">line 3262</a>
     </li></ul></dd>
     
     
@@ -2936,7 +3500,7 @@ NB Requires WGS84 or RAW co-ordinates (depending on how you are storing your dat
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3975">line 3975</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4077">line 4077</a>
     </li></ul></dd>
     
     
@@ -3194,7 +3758,7 @@ NB Requires WGS84 or RAW co-ordinates (depending on how you are storing your dat
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3862">line 3862</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3963">line 3963</a>
     </li></ul></dd>
     
     
@@ -3592,7 +4156,7 @@ NB Requires WGS84 or RAW co-ordinates (depending on how you are storing your dat
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3922">line 3922</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4024">line 4024</a>
     </li></ul></dd>
     
     
@@ -3787,7 +4351,7 @@ and {@link <a href="http://docs.marklogic.com/guide/rest-dev/search#id\_39144}">
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4025">line 4025</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4127">line 4127</a>
     </li></ul></dd>
     
     
@@ -3857,7 +4421,7 @@ and {@link <a href="http://docs.marklogic.com/guide/rest-dev/search#id\_39144}">
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4143">line 4143</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4245">line 4245</a>
     </li></ul></dd>
     
     
@@ -3926,7 +4490,7 @@ and {@link <a href="http://docs.marklogic.com/guide/rest-dev/search#id\_39144}">
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3198">line 3198</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3214">line 3214</a>
     </li></ul></dd>
     
     
@@ -4043,7 +4607,7 @@ and {@link <a href="http://docs.marklogic.com/guide/rest-dev/search#id\_39144}">
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4069">line 4069</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4171">line 4171</a>
     </li></ul></dd>
     
     
@@ -4324,7 +4888,7 @@ and {@link <a href="http://docs.marklogic.com/guide/rest-dev/search#id\_39144}">
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3456">line 3456</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3557">line 3557</a>
     </li></ul></dd>
     
     
@@ -4441,7 +5005,7 @@ and {@link <a href="http://docs.marklogic.com/guide/rest-dev/search#id\_39144}">
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4049">line 4049</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4151">line 4151</a>
     </li></ul></dd>
     
     
@@ -4558,7 +5122,7 @@ and {@link <a href="http://docs.marklogic.com/guide/rest-dev/search#id\_39144}">
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3256">line 3256</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3272">line 3272</a>
     </li></ul></dd>
     
     
@@ -4862,7 +5426,7 @@ and {@link <a href="http://docs.marklogic.com/guide/rest-dev/search#id\_39144}">
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3574">line 3574</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3675">line 3675</a>
     </li></ul></dd>
     
     
@@ -4932,7 +5496,7 @@ and {@link <a href="http://docs.marklogic.com/guide/rest-dev/search#id\_39144}">
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4098">line 4098</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4200">line 4200</a>
     </li></ul></dd>
     
     
@@ -5049,7 +5613,7 @@ and {@link <a href="http://docs.marklogic.com/guide/rest-dev/search#id\_39144}">
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3266">line 3266</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3282">line 3282</a>
     </li></ul></dd>
     
     
@@ -5166,7 +5730,7 @@ and {@link <a href="http://docs.marklogic.com/guide/rest-dev/search#id\_39144}">
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3279">line 3279</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3295">line 3295</a>
     </li></ul></dd>
     
     
@@ -5283,7 +5847,7 @@ and {@link <a href="http://docs.marklogic.com/guide/rest-dev/search#id\_39144}">
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3292">line 3292</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3308">line 3308</a>
     </li></ul></dd>
     
     
@@ -5400,7 +5964,7 @@ and {@link <a href="http://docs.marklogic.com/guide/rest-dev/search#id\_39144}">
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3305">line 3305</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3321">line 3321</a>
     </li></ul></dd>
     
     
@@ -5517,7 +6081,7 @@ and {@link <a href="http://docs.marklogic.com/guide/rest-dev/search#id\_39144}">
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3318">line 3318</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3334">line 3334</a>
     </li></ul></dd>
     
     
@@ -5634,7 +6198,7 @@ and {@link <a href="http://docs.marklogic.com/guide/rest-dev/search#id\_39144}">
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3331">line 3331</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3347">line 3347</a>
     </li></ul></dd>
     
     
@@ -5751,7 +6315,7 @@ and {@link <a href="http://docs.marklogic.com/guide/rest-dev/search#id\_39144}">
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3344">line 3344</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3360">line 3360</a>
     </li></ul></dd>
     
     
@@ -5868,7 +6432,7 @@ and {@link <a href="http://docs.marklogic.com/guide/rest-dev/search#id\_39144}">
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3357">line 3357</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3373">line 3373</a>
     </li></ul></dd>
     
     
@@ -5985,7 +6549,7 @@ and {@link <a href="http://docs.marklogic.com/guide/rest-dev/search#id\_39144}">
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3370">line 3370</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3386">line 3386</a>
     </li></ul></dd>
     
     
@@ -6102,7 +6666,7 @@ and {@link <a href="http://docs.marklogic.com/guide/rest-dev/search#id\_39144}">
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3383">line 3383</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3399">line 3399</a>
     </li></ul></dd>
     
     
@@ -6219,7 +6783,7 @@ and {@link <a href="http://docs.marklogic.com/guide/rest-dev/search#id\_39144}">
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3396">line 3396</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3412">line 3412</a>
     </li></ul></dd>
     
     
@@ -6361,7 +6925,128 @@ Facets still operate at the document level even if they are not within the searc
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4180">line 4180</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4282">line 4282</a>
+    </li></ul></dd>
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="searchOptions"><span class="type-signature"></span>searchOptions<span class="signature">(searchOptions)</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        <p>Specifies the search options to configure. E.g. filtered, unfiltered, score-logtfidf.</p>
+<p>">http://docs.marklogic.com/6.0/cts:search?q=cts:search}</a></p>
+    </div>
+    
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+		
+		<th>Type</th>
+		
+		
+		
+		
+		
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+	
+	<tbody>
+	
+	
+        <tr>
+            
+                <td class="name"><code>searchOptions</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+|
+
+<span class="param-type">Array</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last"><p>A single string option, or string array, holding search options.</p></td>
+        </tr>
+	
+	
+	</tbody>
+</table>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3082">line 3082</a>
     </li></ul></dd>
     
     
@@ -6431,7 +7116,7 @@ Facets still operate at the document level even if they are not within the searc
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4111">line 4111</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4213">line 4213</a>
     </li></ul></dd>
     
     
@@ -6620,7 +7305,7 @@ Facets still operate at the document level even if they are not within the searc
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4199">line 4199</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4301">line 4301</a>
     </li></ul></dd>
     
     
@@ -6689,7 +7374,7 @@ Facets still operate at the document level even if they are not within the searc
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4154">line 4154</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4256">line 4256</a>
     </li></ul></dd>
     
     
@@ -6758,7 +7443,149 @@ Facets still operate at the document level even if they are not within the searc
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4163">line 4163</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4265">line 4265</a>
+    </li></ul></dd>
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="thesaurusConstraint"><span class="type-signature"></span>thesaurusConstraint<span class="signature">(constraint_name, additional_properties_opt)</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        <p>Adds a thesaurus constraint to these options. Uses a custom constraint.
+NOTE: You MUST alter the custom constraint to specify your own thesaurus xml file. This should be only as large as your application requires.</p>
+<p>{@link: <a href="https://github.com/adamfowleruk/mljs/tree/master/mldbwebtest/src/app/models/lib-thesaurus.xqy}">https://github.com/adamfowleruk/mljs/tree/master/mldbwebtest/src/app/models/lib-thesaurus.xqy}</a></p>
+    </div>
+    
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+		
+		<th>Type</th>
+		
+		
+		
+		
+		
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+	
+	<tbody>
+	
+	
+        <tr>
+            
+                <td class="name"><code>constraint_name</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last"><p>The name of the constraint to create</p></td>
+        </tr>
+	
+	
+	
+        <tr>
+            
+                <td class="name"><code>additional_properties_opt</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">json</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last"><p>Additional rest api properties to apply to this constraint. Copied after constraint constructed. E.g. fragmentScope.</p></td>
+        </tr>
+	
+	
+	</tbody>
+</table>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3469">line 3469</a>
     </li></ul></dd>
     
     
@@ -6827,7 +7654,7 @@ Facets still operate at the document level even if they are not within the searc
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3152">line 3152</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line3168">line 3168</a>
     </li></ul></dd>
     
     
@@ -6990,7 +7817,7 @@ Facets still operate at the document level even if they are not within the searc
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4082">line 4082</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4184">line 4184</a>
     </li></ul></dd>
     
     
@@ -7159,7 +7986,7 @@ Facets still operate at the document level even if they are not within the searc
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4285">line 4285</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4387">line 4387</a>
     </li></ul></dd>
     
     
@@ -7328,7 +8155,7 @@ Facets still operate at the document level even if they are not within the searc
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4303">line 4303</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4405">line 4405</a>
     </li></ul></dd>
     
     
@@ -7375,7 +8202,7 @@ Facets still operate at the document level even if they are not within the searc
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Fri Dec 13 2013 12:45:52 GMT-0000 (GMT)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Fri Dec 13 2013 13:39:10 GMT-0000 (GMT)
 </footer>
 
 <script> prettyPrint(); </script>

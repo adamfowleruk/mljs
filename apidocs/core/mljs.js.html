@@ -3099,6 +3099,22 @@ mljs.prototype.options = function() {
   // this.text.facets[facetname][facetvalue] => "Display String"
 };
 
+/**
+ * Specifies the search options to configure. E.g. filtered, unfiltered, score-logtfidf.
+ * 
+ * {@link http://docs.marklogic.com/6.0/cts:search?q=cts:search}
+ * 
+ * @param {string|Array} searchOptions - A single string option, or string array, holding search options.
+ */
+mljs.prototype.options.prototype.searchOptions = function(searchOptions) {
+  this._includeSearchDefaults();
+  if (!Array.isArray(searchOptions)) {
+    searchOptions = [searchOptions];
+  }
+  this.options["search-option"] = searchOptions;
+  return this;
+};
+
 mljs.prototype.options.prototype.setFacetValueStrings = function(facetname,valuehash) {
   this.text.facets[facetname] = valuehash;
 };
@@ -3465,6 +3481,91 @@ mljs.prototype.options.prototype.defaultType = function(type) {
  */
 mljs.prototype.options.prototype.defaultNamespace = function(ns) {
   this.defaults.namespace = ns;
+  return this;
+};
+
+/**
+ * Adds a thesaurus constraint to these options. Uses a custom constraint.
+ * NOTE: You MUST alter the custom constraint to specify your own thesaurus xml file. This should be only as large as your application requires.
+ * 
+ * {@link: https://github.com/adamfowleruk/mljs/tree/master/mldbwebtest/src/app/models/lib-thesaurus.xqy}
+ * 
+ * @param {string} constraint_name - The name of the constraint to create
+ * @param {json} additional_properties_opt - Additional rest api properties to apply to this constraint. Copied after constraint constructed. E.g. fragmentScope.
+ */
+mljs.prototype.options.prototype.thesaurusConstraint = function(constraint_name,annotation_opt,additional_properties_opt) {
+  this.customConstraint(constraint_name || "thes","parse","http://marklogic.com/xdmp/thesaurus","/app/models/lib-thesaurus.xqy",null,null,null,null,null,null,
+  annotation_opt,additional_properties_opt);
+  return this;
+};
+
+/**
+ * Restricts all search parameters to the specified element.
+ * 
+ * {@link http://docs.marklogic.com/guide/rest-dev/appendixa#id_62771}
+ * 
+ * @param {string} constraint_name - The name of the constraint to create
+ * @param {string} elementname - The name of the element to match
+ * @param {string} elementns - The namespace of the element to match
+ * @param {string|Array} annotation_opt - The annotation to add to the constraint. MLJS uses annotation[0] as the display title, falling back to camel case constraint name if not specified
+ */
+mljs.prototype.options.prototype.elementQuery = function(constraint_name,elementname,elementns,annotation_opt) {
+  this._includeSearchDefaults();
+  var con = {name: constraint_name, "element-query": {name: elementname, ns: elementns}};
+  if (undefined != annotation_opt) {
+    if ("string" == typeof(annotation_opt)) {
+      annotation_opt = [annotation_opt];
+    }
+    con.annotation = annotation_opt;
+  }
+  this.addConstraint(con);
+  return this;
+};
+
+/**
+ * Defines a custom constraint. To skip one of parse, start or finish, set the function parameter to null.
+ * 
+ * {@link http://docs.marklogic.com/guide/rest-dev/appendixa#id_87763}
+ * 
+ * @param {string} constraint_name - The name of the constraint to create
+ * @param {string} parsefunction - The function local name
+ * @param {string} parsenamesapce - The namespace of the function
+ * @param {string} parselibrary - The XQuery library path in the modules database for the function
+ * @param {string} startfunction - The function local name
+ * @param {string} startnamesapce - The namespace of the function
+ * @param {string} startlibrary - The XQuery library path in the modules database for the function
+ * @param {string} finishfunction - The function local name
+ * @param {string} finishnamesapce - The namespace of the function
+ * @param {string} finishlibrary - The XQuery library path in the modules database for the function
+ * @param {string|Array} annotation_opt - The annotation to add to the constraint. MLJS uses annotation[0] as the display title, falling back to camel case constraint name if not specified
+ * @param {json} additional_properties_opt - Additional rest api properties to apply to this constraint. Copied after constraint constructed. E.g. fragmentScope.
+ */
+mljs.prototype.options.prototype.customConstraint = function(constraint_name,parsefunction,parsenamespace,parselibrary,startfunction,startnamespace,startlibrary, finishfunction,finishnamespace,finishlibrary,annotation_opt,additional_properties_opt) {
+  this._includeSearchDefaults();
+  var con = {name:constraint_name,
+    "custom": {
+    }
+  };
+  if (null != parsefunction) {
+    con.custom.parse = {apply: parsefunction,ns:parsens,at:parselibrary};
+  }
+  if (null != startfunction) {
+    con.custom.start = {apply: startfunction,ns:startns,at:startlibrary};
+  }
+  if (null != finishfunction) {
+    con.custom.finish = {apply: finishfunction,ns:finishns,at:finishlibrary};
+  }
+  if (undefined != annotation_opt) {
+    if ("string" == typeof(annotation_opt)) {
+      annotation_opt = [annotation_opt];
+    }
+    con.annotation = annotation_opt;
+  }
+  // copy over additional properties
+  for (var n in additional_properties_opt) {
+    con["custom"][n] = additional_properties_opt[n];
+  }
+  this.addConstraint(con);
   return this;
 };
 
@@ -3887,6 +3988,7 @@ mljs.prototype.options.prototype.collection = mljs.prototype.options.prototype.c
  * @param {json} additional_properties_opt - Additional rest api properties to apply to this constraint. Copied after constraint constructed. E.g. fragmentScope.
  */
 mljs.prototype.options.prototype.geoElementConstraint = function(constraint_name,parent,ns_opt,element,ns_el_opt,annotation_opt,additional_properties_opt) {
+  this._includeSearchDefaults();
   if (undefined == element) {
     if (undefined == ns_opt) {
       element = parent;
@@ -4736,10 +4838,6 @@ mljs.prototype.query.prototype.term = function(wordOrPhrase) {
   };
   return tq;
 };
-
-// TODO bounding box query
-
-// TODO within polygon query
 
 /*
 mljs.prototype.query = function() {
@@ -7102,7 +7200,7 @@ mljs.prototype.xmlToText = xmlToText;
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Fri Dec 13 2013 12:45:51 GMT-0000 (GMT)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Fri Dec 13 2013 13:39:09 GMT-0000 (GMT)
 </footer>
 
 <script> prettyPrint(); </script>
