@@ -20,7 +20,7 @@ describe("010-save-auto-uri",function() {
   db.setLogger(logger);
   
   logger.debug("****** Creating doc");
-  db.save({from: "test", to: "all", body: "wibble"}, {collection: "messages"},function(result) {
+  db.save({from: "test", to: "all", body: "wibble"}, null, {collection: "messages"},function(result) {
     var uri = result.docuri;
     logger.debug("TEST: Generated docuri: " + uri);
     
@@ -28,7 +28,7 @@ describe("010-save-auto-uri",function() {
     logger.debug("****** Doc created. Fetching doc.");
     var doc = db.get(uri, function(result) {
       // now print it
-      logger.debug("****** Doc content: " + JSON.stringify(result.doc));
+      //logger.debug("****** Doc content: " + JSON.stringify(result.doc));
       
       // now delete it
       logger.debug("****** deleting doc");

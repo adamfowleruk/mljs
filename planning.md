@@ -8,10 +8,12 @@ Targets for 1.2 (Dec 2013) - High priority
   - DONE Core: Change searchcontext so that setOptions takes an options builder (as well as legacy options JSON), so as to maintain a reference to these transations
  - DONE Docs: XML example for custom renderer support, with namespaces in XPath
  - Figure out why HTTP 500s result in throwing an exception rather than MLJS error handling (e.g. extension execution errors)
- - Ensure version extension absence errors gracefully
+ - DONE Ensure version extension absence errors gracefully
+ - DONE Rework all examples to use searchcontext rather than direct invocation of mljs methods
+ - BUG cooccurence widget now not returning results in combined V7 query mode
  - App builder gap closing
   - TEST Core: Rework searchcontext
-   - TEST Allow contribution of facets/sort etc to alter both text (grammar) queries and structured query (independently, via searchcontext)
+   - DONE Allow contribution of facets/sort etc to alter both text (grammar) queries and structured query (independently, via searchcontext)
    - Add "values" as a searchcontext last function option
    - Ensure searchcontext supports updateFacets
    - IN PROGRESS Add addFacetSelection listener etc to highcharts widget
@@ -28,6 +30,7 @@ Targets for 1.2 (Dec 2013) - High priority
    - IN PROGRESS High charts column
    - IN PROGRESS High charts line
    - IN PROGRESS Pie segment
+ - Try N-way cooccurence
  - IN PROGRESS NodeJS: Node.js tests for all functionality now in core MLJS
  - IN PROGRESS Docs: Document all core concepts currently part of MLJS
   - IN PROGRESS Docs: searchcontext object
@@ -52,8 +55,9 @@ Targets for 1.2 (Dec 2013) - High priority
  - Docs: MLJS Webinar series of Video Tutorials
   1. DONE Introduction to MLJS (text done. 3min 15) - Why should I care? (Akin to the first 5 minutes of my company wide webinar)
   2. IN PROGRESS Introduction to the MLJS Core API (text done. 4min21). Core communication with MarkLogic server. Introduction to Search Context and other Context objects
-  3. Introduction to the MLJS Widget API. Briefly show the mldbwebtest app, deploying it, and a brief description of the widget test pages (and each widget).
-  4. Creating a new Hyrbid app with MLJS. (Already exists, on blog site). Creating a search page and configuring options and facets. A search page with two charts (akin to an AppBuilder demo)
+  3. DONE Introduction to the MLJS Widget API. Briefly show the mldbwebtest app, deploying it, and a brief description of the widget test pages
+  4. Creating a new Hybrid app with MLJS. (Already exists, on blog site). Creating a search page and configuring options and facets. A search page with two charts (akin to an AppBuilder demo)
+   a. Creating a new REST app with MLJS
   5. Customising how search results are displayed - The Renderer architecture. Detect and display data in a search results page in new and interesting ways
  - IN PROGRESS Core: Search Options builder
   - hide sem:triple elements from snippet highlighting
@@ -83,8 +87,8 @@ Targets for 1.2 (Dec 2013) - Low Priority
   - Widgets: searchfacets - Split out listing/altering selected facets (as opposed to facet value list) in to own widget. E.g. to be used with chart/co-occurence pages with a facet list widget
   - DEFERRED Shadow queries (MLJS' alternative mechanism)
   - DEFERRED Simple/complex view of results (AppBuilder achieves this via state configuration in search options)
- - IN PROGRESS Test: Create MLJS Rest only (not Roxy hybrid) deployment project
- - Docs: Publish mljsrest to internal demo server
+ - DONE Test: Create MLJS Rest only (not Roxy hybrid) deployment project
+ - IN PROGRESS Docs: Publish mljsrest and mldbwebtest to internal demo server
  - IN PROGRESS Widgets: Workplace - Removes any code anyone needs to write to use MLJS widgets
   - IN PROGRESS Widgets: Add Drag and Drop support to widgets.js
    - DONE DND pure Test page in mldbwebtest roxy project
@@ -102,13 +106,24 @@ Targets for 1.2 (Dec 2013) - Low Priority
    - loadApp
    - loadPage
  - NOT A BUG searchfacets or searchbar widgets using facet title, not constraint name, to indicate constraint added to searchbar (also for lookup/matching)
-  - NA Actually, there is no 'facet title' just that constraint name and field name are generally the same. Need to add Title support somehow
+  - NA Actually, there is no 'facet title' just that constraint name and field name are generally the same. Need to add Title support somehow (DONE via annotation[0])
 
 Floating PoC Targets
  - CSV Import improvements / testing
   - Checkout XSLT upload and transform method
   - Test PAF file format
  - Nice to have: Widgets: Browse related Subjects in node diagram
+ - TEST Core: Add support for save/get/delete/list transforms
+ - Widgets: Transforms administration
+  - Upload (New) transform / Edit / View
+  - List transforms
+  - Add test document + run XSLT
+  - Advanced Edit - syntax highlighting for XQuery/XSLT
+ - Widgets: Information flow administration
+  - List pre/post commit triggers, action module name, whether acting on collection or URI base
+  - List alerts, match criteria, actions list
+  - List CPF pipeline information and flow
+  - List norm configurations and denormalisation targets (including XSLT invocation)
 
 Targets for 1.3 Interim Release - Jan 2014  
  - Widgets: HighCharts

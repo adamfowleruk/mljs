@@ -4,6 +4,8 @@ window.onload = function() {
   var db = new mljs(); // calls default configure
   db.logger.setLogLevel("debug");
   
+  db.forceVersion("6.0.2"); // disabled combined query
+  
   var error = new com.marklogic.widgets.error("errors");
   
   try {
@@ -15,7 +17,11 @@ window.onload = function() {
   ob.jsonRangeConstraint("actor",["item-frequency"])
     .jsonRangeConstraint("year",["item-order"])
     .jsonRangeConstraint("genre",["item-order"]);
-  ob.tuples("actor-year","actor","year"); // first is tuple name. defaults to string, json namespace
+  //ob.tuples("actor-year","actor","year"); // first is tuple name. defaults to string, json namespace
+  
+  // FOLLOWING MUST BE HERE TO RECEIVE ANY CO-OCCURENCE RESULTS! Disabled by default
+  ob.returnValues(true).returnResults(false).returnFacets(false);
+  
   var opts = ob.toJson();
   
   var coag = new com.marklogic.widgets.cooccurence("coag");
@@ -23,21 +29,21 @@ window.onload = function() {
   coag.title = "Actor vs. Movie Genre";
   coag.setTupleConstraints(["actor","genre"]);
   
-  var coay = new com.marklogic.widgets.cooccurence("coay");
-  coay.addErrorListener(error.updateError);
-  coay.title = "Actor vs. Movie Year";
-  coay.setTupleConstraints(["actor","year"]);
+  //var coay = new com.marklogic.widgets.cooccurence("coay");
+  //coay.addErrorListener(error.updateError);
+  //coay.title = "Actor vs. Movie Year";
+  //coay.setTupleConstraints(["actor","year"]);
   
   var qb = db.createQuery();
-  qb.query(qb.collection("movies"));
-  var query = qb.toJson();
+  var colQuery = qb.collection("movies");
+  //var query = qb.toJson();
   
   var sc = db.createSearchContext();
   sc.register(coag);
-  sc.register(coay);
+  //sc.register(coay);
   
   sc.setOptions(optsName,opts);
-  sc.contributeStructuredQuery("base",query);
+  sc.contributeStructuredQuery("base",colQuery);
   
   } catch (err) {
     error.show(err.message);

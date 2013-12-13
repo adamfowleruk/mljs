@@ -41,6 +41,9 @@ declare option xdmp:mapping "false";
  Full details available, around an MLJS communication error:-
  <div id="error-details">Details</div>
  <hr />
+ Handling of missing extension error:-
+ <div id="error-extension">Details</div>
+ <hr />
  Handling of non MLJS JavaScript errors:-
  <div id="error-js">JS Details</div>
  <hr />

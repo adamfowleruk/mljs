@@ -25,7 +25,7 @@ describe("001-save-get-delete",function() {
     logger.debug("****** Doc created. Fetching doc.");
     db.get("/messages/1", function(result) {
       // now print it
-      logger.debug("****** Doc content: " + JSON.stringify(result.doc));
+      //logger.debug("****** Doc content: " + JSON.stringify(result.doc));
       
       // now delete it
       logger.debug("****** deleting doc");

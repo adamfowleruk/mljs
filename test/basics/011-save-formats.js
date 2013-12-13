@@ -34,7 +34,7 @@ describe("011-save-formats",function() {
     var doc = db.get(uri, function(result) {
       assert.equal(result.inError,false,"get() JSON should not be in error");
       // now print it
-      logger.debug("****** Doc content: " + JSON.stringify(result.doc));
+      //logger.debug("****** Doc content: " + JSON.stringify(result.doc));
       
       // now delete it
       logger.debug("****** deleting doc");

@@ -14,7 +14,7 @@ var logger = new (winston.Logger)({
 });
 
 describe("005-merge",function() {
-  it("Should complete entirely",function(done){
+  it.skip("Should complete entirely",function(done){
   var db = new mljs(); // default options
   configurator.configure(db);
   db.setLogger(logger);
