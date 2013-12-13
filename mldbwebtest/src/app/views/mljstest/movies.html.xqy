@@ -44,4 +44,7 @@ declare option xdmp:mapping "false";
   <div id="coag" class="grid_6">coag</div>
   <div id="coay" class="grid_6">coay</div>
  </div>
+ <div class="container_12"> 
+  <div id="coagy" class="grid_12">coagy</div>
+ </div>
 </div>

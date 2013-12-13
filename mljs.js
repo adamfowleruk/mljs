@@ -4607,16 +4607,21 @@ mljs.prototype.options.prototype._quickRange = function(el) {
  * Creates a tuples definition for returning co-occurence values
  * 
  * @param {string} name - The name of the tuples configuration to create
- * @param {string|JSON} el - The first element for a co-occurence. Either an element/json key name (string) or a full REST API range type object (JSON)
- * @param {string|JSON} el - The second element for a co-occurence. Either an element/json key name (string) or a full REST API range type object (JSON)
+ * @param {string|JSON} el - The json element for a co-occurence. Either an element/json key name (string) or a full REST API range type object (JSON). You can specify any number of these as required (minimum 2)
  */
-mljs.prototype.options.prototype.tuples = function(name,el,el2) { // TODO handle infinite tuple definitions (think /v1/ only does 2 at the moment anyway)
+mljs.prototype.options.prototype.tuples = function(name) { // TODO handle infinite tuple definitions (think /v1/ only does 2 at the moment anyway)
   var tuples = {name: name,range: new Array()};
   if (undefined == this.options.tuples) {
     this.options.tuples = new Array();
   }
-  tuples.range.push(this._quickRange(el));
-  tuples.range.push(this._quickRange(el2));
+  //tuples.range.push(this._quickRange(el));
+  //tuples.range.push(this._quickRange(el2));
+  //if (undefined != el3) {
+  //  tuples.range.push(this._quickRange(el3));
+  //}
+  for (var i = 1;i < arguments.length;i++) {
+    tuples.range.push(this._quickRange(arguments[i]));
+  }
   this.options.tuples.push(tuples);
   return this;
 };

@@ -10,8 +10,9 @@ Targets for 1.2 (Dec 2013) - High priority
  - Figure out why HTTP 500s result in throwing an exception rather than MLJS error handling (e.g. extension execution errors)
  - DONE Ensure version extension absence errors gracefully
  - DONE Rework all examples to use searchcontext rather than direct invocation of mljs methods
- - BUG cooccurence widget now not returning results in combined V7 query mode
- - IN PROGRESS Core: Options Builder
+ - DONE need to use values() not search() - BUG cooccurence widget now not returning results in combined V7 query mode
+ - DONE Try N-way cooccurence (See co-occurence widget test page)
+ - TEST Core: Options Builder
   - TEST Added all options support for geoElement, geoElementPair, geoAttributePair and geoPath Constraints
   - TEST Add custom constraint support
   - TEST Add thesaurus support using custom constraint
@@ -20,7 +21,7 @@ Targets for 1.2 (Dec 2013) - High priority
   - TEST searchable expression
   - TEST Add custom grammar support
   - TEST Top level options properties: search-option, 
-  - (default)suggestion-source
+  - DEFERRED (default)suggestion-source
  - App builder gap closing
   - TEST Core: Rework searchcontext
    - DONE Allow contribution of facets/sort etc to alter both text (grammar) queries and structured query (independently, via searchcontext)
@@ -40,7 +41,6 @@ Targets for 1.2 (Dec 2013) - High priority
    - IN PROGRESS High charts column
    - IN PROGRESS High charts line
    - IN PROGRESS Pie segment
- - Try N-way cooccurence
  - IN PROGRESS NodeJS: Node.js tests for all functionality now in core MLJS
  - IN PROGRESS Docs: Document all core concepts currently part of MLJS
   - IN PROGRESS Docs: searchcontext object

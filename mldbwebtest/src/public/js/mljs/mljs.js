@@ -3072,22 +3072,6 @@ mljs.prototype.options = function() {
   // this.text.facets[facetname][facetvalue] => "Display String"
 };
 
-/**
- * Specifies the search options to configure. E.g. filtered, unfiltered, score-logtfidf.
- * 
- * {@link http://docs.marklogic.com/6.0/cts:search?q=cts:search}
- * 
- * @param {string|Array} searchOptions - A single string option, or string array, holding search options.
- */
-mljs.prototype.options.prototype.searchOptions = function(searchOptions) {
-  this._includeSearchDefaults();
-  if (!Array.isArray(searchOptions)) {
-    searchOptions = [searchOptions];
-  }
-  this.options["search-option"] = searchOptions;
-  return this;
-};
-
 mljs.prototype.options.prototype.setFacetValueStrings = function(facetname,valuehash) {
   this.text.facets[facetname] = valuehash;
 };
@@ -4240,6 +4224,171 @@ mljs.prototype.options.prototype.properties = mljs.prototype.options.prototype.p
 
 // Other options features
 
+mljs.prototype.options.prototype._includeGrammar = function() {
+  if (undefined == this.options.grammar) {
+    this.options.grammar = {
+      starter: [], joiner: [], quotation: "\"", "implicit": "<cts:and-query strength=\"20\" xmlns=\"http:\/\/marklogic.com\/appservices\/search\" xmlns:cts=\"http:\/\/marklogic.com\/cts\"\/>"
+    };
+  }
+};
+
+/**
+ * Defines a Custom Grammar starter. This enables term grouping (E.g. ( and ) is a group) and prefixing (E.g. negation).
+ * See also the convenience grouping() and prefix() methods.
+ * 
+ * {@link http://docs.marklogic.com/guide/rest-dev/appendixa#id_50275}
+ * 
+ * @param {string} label - the first encountered character to indicate this is a starter (E.g. '(' or '-' characters)
+ * @param {string} apply - Whether this should be a "grouping" or "prefix" starter
+ * @param {integer} strength - Precedence of this starter over others
+ * @param {json} additional_properties - Other properties to add. E.g. element, delimiter, ns, at, tokenize
+ */
+mljs.prototype.options.prototype.starter = function(label,apply,strength,additional_properties_opt) {
+  this._includeGrammar();
+  var st = {label: label, apply: apply, strength: strength};
+  for (var n in additional_properties_opt) {
+    st[n] = additional_properties_opt[n];
+  }
+  this.options.grammar.start.push(st);
+  return this;
+};
+
+/**
+ * Convenience method for defining a custom grammar starter. See starter() also.
+ * 
+ * {@link http://docs.marklogic.com/guide/rest-dev/appendixa#id_50275}
+ * 
+ * @param {string} label - the first encountered character to indicate this is a starter (E.g. '(' or '-' characters)
+ * @param {string} element - Query to use. E.g. "cts:not-query"
+ * @param {integer} strength - Precedence of this starter over others
+ * @param {json} additional_properties - Other properties to add. E.g. element, delimiter, ns, at, tokenize
+ */
+mljs.prototype.options.prototype.prefix = function(label,element,strength,additional_properties_opt) {
+  var json = {"element": element};
+  for (var n in additional_properties_opt) {
+    json[n] = additional_properties_opt[n];
+  }
+  return this.starter(label,"prefix",strength,json);
+};
+
+/**
+ * Convenience method for defining a custom grammar starter. See starter() also.
+ * 
+ * {@link http://docs.marklogic.com/guide/rest-dev/appendixa#id_50275}
+ * 
+ * @param {string} label - the first encountered character to indicate this is a starter (E.g. '(' or '-' characters)
+ * @param {string} delimiter - The trailing character to denote the end of this group. E.g. the ')' character. (Start character defined in 'label')
+ * @param {integer} strength - Precedence of this starter over others
+ * @param {json} additional_properties - Other properties to add. E.g. element, delimiter, ns, at, tokenize
+ */
+mljs.prototype.options.prototype.grouping = function(label,delimiter,strength,additional_properties_opt) {
+  var json = {"delimiter": delimiter};
+  for (var n in additional_properties_opt) {
+    json[n] = additional_properties_opt[n];
+  }
+  return this.starter(label,"grouping",strength,json);
+};
+
+/**
+ * Adds a joiner configuration to the custom search grammar definition.
+ * 
+ * {@link http://docs.marklogic.com/guide/rest-dev/appendixa#id_37224}
+ * 
+ * @param {string} label - The joiner word. E.g. "OR" or "AND"
+ * @param {string} apply - Local name of the function. E.g. "infix"
+ * @param {integer} strength - Precedence of this joiner over others
+ * @param {json} additional_properties - Other properties to add. E.g. element, options, tokenize etc
+ */
+mljs.prototype.options.prototype.joiner = function(label,apply,strength,additional_properties_opt) {
+  this._includeGrammar();
+  var joiner = {label:label,apply:apply,strength:strength};
+  for (var n in additional_properties_opt) {
+    joiner[n] = additional_properties_opt[n];
+  }
+  this.options.grammar.joiner.push(joiner);
+  return this;
+};
+
+/**
+ * Specifies the quotation character for this custom grammar
+ * 
+ * {@link http://docs.marklogic.com/guide/rest-dev/appendixa#id_13284}
+ * 
+ * @param {string} quotation - Quotation character. E.g. "\""
+ */
+mljs.prototype.options.prototype.quotation = function(quotation) {
+  this._includeGrammar();
+  this.options.grammar.quotation = quotation;
+  return this;
+};
+
+/**
+ * The cts-query literal to use to join two terms together. See implicitAnd() and implicitOr() for convenience methods. 
+ * Defaults to and-query.
+ * 
+ * {@link http://docs.marklogic.com/guide/rest-dev/appendixa#id_13284}
+ * 
+ * @param {string} ctsquery - The serialized CTS query to use to join two terms together. See REST API docs for example.
+ */
+mljs.prototype.options.prototype.implicit = function(ctsquery) {
+  this._includeGrammar();
+  this.options.grammar.implicit = ctsquery;
+  return this;
+};
+
+/**
+ * Convenience function to specify an and-query as a term joiner for a custom grammar.
+ * 
+ * {@link http://docs.marklogic.com/guide/rest-dev/appendixa#id_13284}
+ */
+mljs.prototype.options.prototype.implicitAnd = function() {
+  return this.implicit("<cts:and-query strength=\"20\" xmlns=\"http:\/\/marklogic.com\/appservices\/search\" xmlns:cts=\"http:\/\/marklogic.com\/cts\"\/>");
+};
+
+/**
+ * Convenience function to specify an or-query as a term joiner for a custom grammar.
+ * 
+ * {@link http://docs.marklogic.com/guide/rest-dev/appendixa#id_13284}
+ */
+mljs.prototype.options.prototype.implicitOr = function() {
+  return this.implicit("<cts:or-query strength=\"20\" xmlns=\"http:\/\/marklogic.com\/appservices\/search\" xmlns:cts=\"http:\/\/marklogic.com\/cts\"\/>");
+};
+
+/**
+ * Specifies the search options to configure. E.g. filtered, unfiltered, score-logtfidf.
+ * 
+ * {@link http://docs.marklogic.com/6.0/cts:search?q=cts:search}
+ * 
+ * @param {string|Array} searchOptions - A single string option, or string array, holding search options.
+ */
+mljs.prototype.options.prototype.searchOptions = function(searchOptions) {
+  this._includeSearchDefaults();
+  if (!Array.isArray(searchOptions)) {
+    searchOptions = [searchOptions];
+  }
+  this.options["search-option"] = searchOptions;
+  return this;
+};
+
+/**
+ * Restricts the query to the specified XPath searchable expression.
+ * 
+ * {@link http://docs.marklogic.com/guide/rest-dev/appendixa#id_65046}
+ * 
+ * NOTE: Any namespaces used in the XPath must be specified as {a: "myns1", b: "myns2"} in namespace_json
+ * 
+ * @param {string} path - The XPath of the element to restrict search constraints to. 
+ * @param {json} namespace_json - The namespace json to use. null if no namespaces are used in the path
+ */
+mljs.prototype.options.prototype.searchableExpression = function(xpath,namespace_json) {
+  this._includeSearchDefaults();
+  this.options["searchable-expression"] = {
+    text: path,
+    namespaces: namespace_json
+  };
+  return this;
+};
+
 /**
  * Specifies the number of search results to return on each page
  * 
@@ -4458,16 +4607,21 @@ mljs.prototype.options.prototype._quickRange = function(el) {
  * Creates a tuples definition for returning co-occurence values
  * 
  * @param {string} name - The name of the tuples configuration to create
- * @param {string|JSON} el - The first element for a co-occurence. Either an element/json key name (string) or a full REST API range type object (JSON)
- * @param {string|JSON} el - The second element for a co-occurence. Either an element/json key name (string) or a full REST API range type object (JSON)
+ * @param {string|JSON} el - The json element for a co-occurence. Either an element/json key name (string) or a full REST API range type object (JSON). You can specify any number of these as required (minimum 2)
  */
-mljs.prototype.options.prototype.tuples = function(name,el,el2) { // TODO handle infinite tuple definitions (think /v1/ only does 2 at the moment anyway)
+mljs.prototype.options.prototype.tuples = function(name) { // TODO handle infinite tuple definitions (think /v1/ only does 2 at the moment anyway)
   var tuples = {name: name,range: new Array()};
   if (undefined == this.options.tuples) {
     this.options.tuples = new Array();
   }
-  tuples.range.push(this._quickRange(el));
-  tuples.range.push(this._quickRange(el2));
+  //tuples.range.push(this._quickRange(el));
+  //tuples.range.push(this._quickRange(el2));
+  //if (undefined != el3) {
+  //  tuples.range.push(this._quickRange(el3));
+  //}
+  for (var i = 1;i < arguments.length;i++) {
+    tuples.range.push(this._quickRange(arguments[i]));
+  }
   this.options.tuples.push(tuples);
   return this;
 };
