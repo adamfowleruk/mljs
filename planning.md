@@ -16,7 +16,7 @@ Targets for 1.2 (Dec 2013) - High priority
   - TEST Add custom constraint support
   - TEST Add thesaurus support using custom constraint
   - TEST element query constraint
-  - Add extract metadata support
+  - Add extract metadata support (For use by custom renderers)
   - Add custom grammar support
   - TEST Top level options properties: search-option, 
   - (default)suggestion-source

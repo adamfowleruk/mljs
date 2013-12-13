@@ -3473,6 +3473,84 @@ mljs.prototype.options.prototype.thesaurusConstraint = function(constraint_name,
 };
 
 /**
+ * Extracts metadata from a json key value.
+ * 
+ * {@link http://docs.marklogic.com/guide/rest-dev/appendixa#id_41417}
+ * 
+ * @param {string|Array} strings - Single string or string array containing json key names
+ */
+mljs.prototype.options.prototype.extractJsonMetadata = function(strings) {
+  this.options["extract-metadata"] = this.options["extract-metadata"] || {};
+  if (!Array.isArray(strings)) {
+    strings = [strings];
+  }
+  var news = [];
+  if (undefined != this.options["extract-metadata"]["json-key"]) {
+    for (var i = 0;i < this.options["extract-metadata"]["json-key"].length;i++) {
+      news.push(this.options["extract-metadata"]["json-key"][i]);
+    }
+  }
+  for (var i = 0;i < strings.length;i++) {
+    news.push(strings[i]);
+  }
+  this.options["extract-metadata"]["json-key"] = news;
+  return this;
+};
+
+/**
+ * Extracts metadata for a single constraint
+ * 
+ * {@link http://docs.marklogic.com/guide/rest-dev/appendixa#id_41417}
+ * 
+ * @param {string} constraint_name - The name of the constraint whose content should be extracted
+ */
+mljs.prototype.options.prototype.extractConstraintMetadata = function(constraint_name) {
+  this.options["extract-metadata"] = this.options["extract-metadata"] || {};
+  if (undefined == this.options["extract-metadata"]["constraint-value"]) {
+    this.options["extract-metadata"]["constraint-value"] = [];
+  }
+  this.options["extract-metadata"]["constraint-value"].push({"ref": constraint_name});
+  return this;
+};
+
+/**
+ * Extracts metadata for a single element.
+ * 
+ * {@link http://docs.marklogic.com/guide/rest-dev/appendixa#id_41417}
+ * 
+ * @param {string} elementname - Local name of the element to extract
+ * @param {string} elementns - Namespace of the element to extract
+ */
+mljs.prototype.options.prototype.extractElementMetadata = function(elementname,elementns) {
+  this.options["extract-metadata"] = this.options["extract-metadata"] || {};
+  if (undefined == this.options["extract-metadata"]["qname"]) {
+    this.options["extract-metadata"]["qname"] = [];
+  }
+  this.options["extract-metadata"]["qname"].push({"elem-ns": elementns, "elem-name": elementname});
+  return this;
+};
+
+
+/**
+ * Extracts metadata for a single element's attribrute.
+ * 
+ * {@link http://docs.marklogic.com/guide/rest-dev/appendixa#id_41417}
+ * 
+ * @param {string} elementname - Local name of the element to extract
+ * @param {string} elementns - Namespace of the element to extract
+ * @param {string} attributename - Local name of the attribute
+ * @param {string} attributens_opt - Optional namespace of the attribute to extract. Defaults if not specified to the element namespace
+ */
+mljs.prototype.options.prototype.extractAttributeMetadata = function(elementname,elementns,attributename,attributens_opt) {
+  this.options["extract-metadata"] = this.options["extract-metadata"] || {};
+  if (undefined == this.options["extract-metadata"]["qname"]) {
+    this.options["extract-metadata"]["qname"] = [];
+  }
+  this.options["extract-metadata"]["qname"].push({"elem-ns": elementns, "elem-name": elementname, "attr-ns": attributens_opt || elementns, "attr-name": attributename});
+  return this;
+};
+
+/**
  * Restricts all search parameters to the specified element.
  * 
  * {@link http://docs.marklogic.com/guide/rest-dev/appendixa#id_62771}
