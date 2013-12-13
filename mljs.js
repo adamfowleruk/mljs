@@ -4193,17 +4193,16 @@ mljs.prototype.options.prototype.geoattrpair = mljs.prototype.options.prototype.
  * {@link http://docs.marklogic.com/guide/rest-dev/appendixa#id_86685}
  * NB Requires WGS84 or RAW co-ordinates (depending on how you are storing your data) - See the proj4js project for conversions
  * 
- * NOTE: Any namespaces used in the XPath must have been set up via the REST API previously. 
- * See {@link http://docs.marklogic.com/REST/POST/v1/config/namespaces} 
- * and {@link http://docs.marklogic.com/guide/rest-dev/search#id_39144} for details.
+ * NOTE: Any namespaces used in the XPath must be specified as {a: "myns1", b: "myns2"} in namespace_json
  * 
  * @param {string} constraint_name - Name of the constraint to create
  * @param {string} path - The XPath of the element containing the coordinates. 
+ * @param {json} namespace_json - The namespace json to use. null if no namespaces are used in the path
  * @param {string|Array} annotation_opt - The annotation to add to the constraint. MLJS uses annotation[0] as the display title, falling back to camel case constraint name if not specified
  * @param {json} additional_properties_opt - Additional rest api properties to apply to this constraint. Copied after constraint constructed. E.g. fragmentScope.
  */
-mljs.prototype.options.prototype.geoPathConstraint = function(constraint_name,path,annotation_opt,additional_properties_opt) {
-  var con = {name: constraint_name, "path-index": path};
+mljs.prototype.options.prototype.geoPathConstraint = function(constraint_name,path,namespace_json,annotation_opt,additional_properties_opt) {
+  var con = {name: constraint_name, "path-index": {text: path, namespaces: namespace_json}};
   if (undefined != annotation_opt) {
     if ("string" == typeof(annotation_opt)) {
       annotation_opt = [annotation_opt];
