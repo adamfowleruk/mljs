@@ -2020,7 +2020,7 @@ If you don't specify label, it will default to the name specified or calculated 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4094">line 4094</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4130">line 4130</a>
     </li></ul></dd>
     
     
@@ -2566,7 +2566,7 @@ If you don't specify label, it will default to the name specified or calculated 
         
             
 <dt>
-    <h4 class="name" id="geoAttributePairConstraint"><span class="type-signature"></span>geoAttributePairConstraint<span class="signature">(constraint_name_opt, parentelement, parentns, latattr, latns, lonattr, lonns, heatmap_opt, geo_options_opt, facet_opt, facet_options_opt, annotation_opt, additional_properties_opt)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="geoAttributePairConstraint"><span class="type-signature"></span>geoAttributePairConstraint<span class="signature">(constraint_name, parentelement, parentns, latattr, latns, lonattr, lonns, heatmap_opt, geo_options_opt, facet_opt, facet_options_opt, annotation_opt, additional_properties_opt)</span><span class="type-signature"></span></h4>
     
     
 </dt>
@@ -2610,7 +2610,7 @@ NB Requires WGS84 or RAW co-ordinates (depending on how you are storing your dat
 	
         <tr>
             
-                <td class="name"><code>constraint_name_opt</code></td>
+                <td class="name"><code>constraint_name</code></td>
             
             
             <td class="type">
@@ -2626,7 +2626,7 @@ NB Requires WGS84 or RAW co-ordinates (depending on how you are storing your dat
             
             
             
-            <td class="description last"><p>Optional name of the constraint to create</p></td>
+            <td class="description last"><p>Name of the constraint to create</p></td>
         </tr>
 	
 	
@@ -2964,7 +2964,7 @@ NB Requires WGS84 or RAW co-ordinates (depending on how you are storing your dat
         
             
 <dt>
-    <h4 class="name" id="geoElementConstraint"><span class="type-signature"></span>geoElementConstraint<span class="signature">(constraint_name_opt, parent, ns_opt, element, ns_el_opt, annotation_opt, additional_properties_opt)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="geoElementConstraint"><span class="type-signature"></span>geoElementConstraint<span class="signature">(constraint_name, parent, ns_opt, element, ns_el_opt, annotation_opt, additional_properties_opt)</span><span class="type-signature"></span></h4>
     
     
 </dt>
@@ -3006,7 +3006,7 @@ NB Requires WGS84 or RAW co-ordinates (depending on how you are storing your dat
 	
         <tr>
             
-                <td class="name"><code>constraint_name_opt</code></td>
+                <td class="name"><code>constraint_name</code></td>
             
             
             <td class="type">
@@ -3022,7 +3022,7 @@ NB Requires WGS84 or RAW co-ordinates (depending on how you are storing your dat
             
             
             
-            <td class="description last"><p>Optional name of the constraint to create</p></td>
+            <td class="description last"><p>Name of the constraint to create</p></td>
         </tr>
 	
 	
@@ -3222,7 +3222,7 @@ NB Requires WGS84 or RAW co-ordinates (depending on how you are storing your dat
         
             
 <dt>
-    <h4 class="name" id="geoElementPairConstraint"><span class="type-signature"></span>geoElementPairConstraint<span class="signature">(constraint_name_opt, parentelement, parentns, latelement, latns, lonelement, lonns, heatmap_opt, geo_options_opt, facet_opt, facet_options_opt, annotation_opt, additional_properties_opt)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="geoElementPairConstraint"><span class="type-signature"></span>geoElementPairConstraint<span class="signature">(constraint_name, parentelement, parentns, latelement, latns, lonelement, lonns, heatmap_opt, geo_options_opt, facet_opt, facet_options_opt, annotation_opt, additional_properties_opt)</span><span class="type-signature"></span></h4>
     
     
 </dt>
@@ -3266,7 +3266,7 @@ NB Requires WGS84 or RAW co-ordinates (depending on how you are storing your dat
 	
         <tr>
             
-                <td class="name"><code>constraint_name_opt</code></td>
+                <td class="name"><code>constraint_name</code></td>
             
             
             <td class="type">
@@ -3282,7 +3282,7 @@ NB Requires WGS84 or RAW co-ordinates (depending on how you are storing your dat
             
             
             
-            <td class="description last"><p>Optional name of the constraint to create</p></td>
+            <td class="description last"><p>Name of the constraint to create</p></td>
         </tr>
 	
 	
@@ -3620,6 +3620,201 @@ NB Requires WGS84 or RAW co-ordinates (depending on how you are storing your dat
         
             
 <dt>
+    <h4 class="name" id="geoPathConstraint"><span class="type-signature"></span>geoPathConstraint<span class="signature">(constraint_name, path, annotation_opt, additional_properties_opt)</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        <p>Creates a geospatial path range index constraint.</p>
+<p>Assumes the value of the element is &quot;lat,lon&quot;. This can be reversed using the &quot;long-lat-point&quot; option. See the below URL for details.</p>
+<p>">http://docs.marklogic.com/guide/rest-dev/appendixa#id\_86685}</a>
+NB Requires WGS84 or RAW co-ordinates (depending on how you are storing your data) - See the proj4js project for conversions</p>
+<p>NOTE: Any namespaces used in the XPath must have been set up via the REST API previously. 
+See ">http://docs.marklogic.com/REST/POST/v1/config/namespaces}</a> 
+and {@link <a href="http://docs.marklogic.com/guide/rest-dev/search#id\_39144}">http://docs.marklogic.com/guide/rest-dev/search#id\_39144}</a> for details.</p>
+    </div>
+    
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+		
+		<th>Type</th>
+		
+		
+		
+		
+		
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+	
+	<tbody>
+	
+	
+        <tr>
+            
+                <td class="name"><code>constraint_name</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last"><p>Name of the constraint to create</p></td>
+        </tr>
+	
+	
+	
+        <tr>
+            
+                <td class="name"><code>path</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last"><p>The XPath of the element containing the coordinates.</p></td>
+        </tr>
+	
+	
+	
+        <tr>
+            
+                <td class="name"><code>annotation_opt</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+|
+
+<span class="param-type">Array</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last"><p>The annotation to add to the constraint. MLJS uses annotation[0] as the display title, falling back to camel case constraint name if not specified</p></td>
+        </tr>
+	
+	
+	
+        <tr>
+            
+                <td class="name"><code>additional_properties_opt</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">json</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last"><p>Additional rest api properties to apply to this constraint. Copied after constraint constructed. E.g. fragmentScope.</p></td>
+        </tr>
+	
+	
+	</tbody>
+</table>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4025">line 4025</a>
+    </li></ul></dd>
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+</dd>
+
+        
+            
+<dt>
     <h4 class="name" id="metadata"><span class="type-signature"></span>metadata<span class="signature">()</span><span class="type-signature"></span></h4>
     
     
@@ -3662,7 +3857,7 @@ NB Requires WGS84 or RAW co-ordinates (depending on how you are storing your dat
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4107">line 4107</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4143">line 4143</a>
     </li></ul></dd>
     
     
@@ -3848,7 +4043,7 @@ NB Requires WGS84 or RAW co-ordinates (depending on how you are storing your dat
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4033">line 4033</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4069">line 4069</a>
     </li></ul></dd>
     
     
@@ -4246,7 +4441,7 @@ NB Requires WGS84 or RAW co-ordinates (depending on how you are storing your dat
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4013">line 4013</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4049">line 4049</a>
     </li></ul></dd>
     
     
@@ -4737,7 +4932,7 @@ NB Requires WGS84 or RAW co-ordinates (depending on how you are storing your dat
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4062">line 4062</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4098">line 4098</a>
     </li></ul></dd>
     
     
@@ -6166,7 +6361,7 @@ Facets still operate at the document level even if they are not within the searc
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4144">line 4144</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4180">line 4180</a>
     </li></ul></dd>
     
     
@@ -6236,7 +6431,7 @@ Facets still operate at the document level even if they are not within the searc
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4075">line 4075</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4111">line 4111</a>
     </li></ul></dd>
     
     
@@ -6425,7 +6620,7 @@ Facets still operate at the document level even if they are not within the searc
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4163">line 4163</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4199">line 4199</a>
     </li></ul></dd>
     
     
@@ -6494,7 +6689,7 @@ Facets still operate at the document level even if they are not within the searc
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4118">line 4118</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4154">line 4154</a>
     </li></ul></dd>
     
     
@@ -6563,7 +6758,7 @@ Facets still operate at the document level even if they are not within the searc
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4127">line 4127</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4163">line 4163</a>
     </li></ul></dd>
     
     
@@ -6795,7 +6990,7 @@ Facets still operate at the document level even if they are not within the searc
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4046">line 4046</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4082">line 4082</a>
     </li></ul></dd>
     
     
@@ -6964,7 +7159,7 @@ Facets still operate at the document level even if they are not within the searc
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4249">line 4249</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4285">line 4285</a>
     </li></ul></dd>
     
     
@@ -7133,7 +7328,7 @@ Facets still operate at the document level even if they are not within the searc
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4267">line 4267</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line4303">line 4303</a>
     </li></ul></dd>
     
     
@@ -7180,7 +7375,7 @@ Facets still operate at the document level even if they are not within the searc
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Fri Dec 13 2013 12:36:14 GMT-0000 (GMT)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Fri Dec 13 2013 12:45:52 GMT-0000 (GMT)
 </footer>
 
 <script> prettyPrint(); </script>

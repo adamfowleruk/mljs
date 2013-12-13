@@ -3878,7 +3878,7 @@ mljs.prototype.options.prototype.collection = mljs.prototype.options.prototype.c
 /**
  * Create a geospatial element pair constraint, and adds it to the search options object
  * 
- * @param {string} constraint_name_opt - Optional name of the constraint to create
+ * @param {string} constraint_name - Name of the constraint to create
  * @param {string} parent - Parent element name
  * @param {string} ns_opt - Optional namespace of the parent element. If not provided, uses the default namespace
  * @param {string} element - Element name of the geospatial pair element
@@ -3886,7 +3886,7 @@ mljs.prototype.options.prototype.collection = mljs.prototype.options.prototype.c
  * @param {string|Array} annotation_opt - The annotation to add to the constraint. MLJS uses annotation[0] as the display title, falling back to camel case constraint name if not specified
  * @param {json} additional_properties_opt - Additional rest api properties to apply to this constraint. Copied after constraint constructed. E.g. fragmentScope.
  */
-mljs.prototype.options.prototype.geoElementConstraint = function(constraint_name_opt,parent,ns_opt,element,ns_el_opt,annotation_opt,additional_properties_opt) {
+mljs.prototype.options.prototype.geoElementConstraint = function(constraint_name,parent,ns_opt,element,ns_el_opt,annotation_opt,additional_properties_opt) {
   if (undefined == element) {
     if (undefined == ns_opt) {
       element = parent;
@@ -3932,7 +3932,7 @@ mljs.prototype.options.prototype.geoelemConstraint = mljs.prototype.options.prot
  * {@link http://docs.marklogic.com/guide/rest-dev/appendixa#id_33146}
  * NB Requires WGS84 or RAW co-ordinates (depending on how you are storing your data) - See the proj4js project for conversions
  * 
- * @param {string} constraint_name_opt - Optional name of the constraint to create
+ * @param {string} constraint_name - Name of the constraint to create
  * @param {string} parentelement - Parent element name
  * @param {string} parentns - Optional namespace of the parent element. If not provided, uses the default namespace
  * @param {string} latelement - Element name of the latitude element within the parent
@@ -3985,7 +3985,7 @@ mljs.prototype.options.prototype.geoElemPair = mljs.prototype.options.prototype.
  * {@link http://docs.marklogic.com/guide/rest-dev/appendixa#id_41124}
  * NB Requires WGS84 or RAW co-ordinates (depending on how you are storing your data) - See the proj4js project for conversions
  * 
- * @param {string} constraint_name_opt - Optional name of the constraint to create
+ * @param {string} constraint_name - Name of the constraint to create
  * @param {string} parentelement - Parent element name
  * @param {string} parentns - Optional namespace of the parent element. If not provided, uses the default namespace
  * @param {string} latattr - Attribute name of the latitude attribute within the parent
@@ -4031,6 +4031,42 @@ mljs.prototype.options.prototype.geoAttributePairConstraint = function(constrain
 };
 mljs.prototype.options.prototype.geoattr = mljs.prototype.options.prototype.geoAttributePairConstraint;
 mljs.prototype.options.prototype.geoattrpair = mljs.prototype.options.prototype.geoAttributePairConstraint;
+
+/**
+ * Creates a geospatial path range index constraint.
+ * 
+ * Assumes the value of the element is "lat,lon". This can be reversed using the "long-lat-point" option. See the below URL for details.
+ * 
+ * {@link http://docs.marklogic.com/guide/rest-dev/appendixa#id_86685}
+ * NB Requires WGS84 or RAW co-ordinates (depending on how you are storing your data) - See the proj4js project for conversions
+ * 
+ * NOTE: Any namespaces used in the XPath must have been set up via the REST API previously. 
+ * See {@link http://docs.marklogic.com/REST/POST/v1/config/namespaces} 
+ * and {@link http://docs.marklogic.com/guide/rest-dev/search#id_39144} for details.
+ * 
+ * @param {string} constraint_name - Name of the constraint to create
+ * @param {string} path - The XPath of the element containing the coordinates. 
+ * @param {string|Array} annotation_opt - The annotation to add to the constraint. MLJS uses annotation[0] as the display title, falling back to camel case constraint name if not specified
+ * @param {json} additional_properties_opt - Additional rest api properties to apply to this constraint. Copied after constraint constructed. E.g. fragmentScope.
+ */
+mljs.prototype.options.prototype.geoPathConstraint = function(constraint_name,path,annotation_opt,additional_properties_opt) {
+  var con = {name: constraint_name, "path-index": path};
+  if (undefined != annotation_opt) {
+    if ("string" == typeof(annotation_opt)) {
+      annotation_opt = [annotation_opt];
+    }
+    con.annotation = annotation_opt;
+  }
+  // copy over additional properties
+  for (var n in additional_properties_opt) {
+    con["geo-attr-pair"][n] = additional_properties_opt[n];
+  }
+  this.addConstraint(con);
+  return this;
+};
+mljs.prototype.options.prototype.geoPath = mljs.prototype.options.prototype.geoPathConstraint;
+mljs.prototype.options.prototype.geopath = mljs.prototype.options.prototype.geoPathConstraint;
+
 
 /**
  * Adds a properties constraint to the search options. Forces the entire search to be constrained to the properties fragment only.
@@ -7066,7 +7102,7 @@ mljs.prototype.xmlToText = xmlToText;
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Fri Dec 13 2013 12:36:13 GMT-0000 (GMT)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Fri Dec 13 2013 12:45:51 GMT-0000 (GMT)
 </footer>
 
 <script> prettyPrint(); </script>
