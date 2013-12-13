@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Tutorial: 050-core-contexts</title>
+    
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+    
+    <h1 class="page-title">Tutorial: 050-core-contexts</h1>
+    
+    <section>
+    
+<header>
+    
+
+    <h2>050-core-contexts</h2>
+</header>  
+
+<article>
+    <p><a href="tutorial-all.html">Back to All Tutorials list</a></p>
+<h1>All about Context objects</h1>
+<p>Context objects are used to bridge the gap between web widgets / Node JS objects and the underlying MLJS remote API calls. They are useful as brokers
+when multiple objects need to respond to related events. An example is a search bar executing a search, and the facet, pager, sort and results widgets
+all needing to be updated (if registered with the context, and present on the webpage).</p>
+<p>Below are a list of context object's currently available:-</p>
+<table>
+<thead>
+<tr>
+<th>Context Object</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>searchcontext</td>
+<td>Content Search Context. Stitches together anything that generates search calls (default grammar text or structured search), or relies on these operations' results.</td>
+</tr>
+<tr>
+<td>semanticcontext</td>
+<td>Sparql Semantic Search Context. Links anything that executes Sparql, either to generate a list of subjects returned, facts about a particular subject, or all facts returned from generic sparql</td>
+</tr>
+<tr>
+<td>documentcontext</td>
+<td>Document information / editing context. Allows single document operations such as fetching all of a document's properties, updating a property, of fetching all of a document's facet values.</td>
+</tr>
+</tbody>
+</table>
+<p>These contexts are typically the ones that execute MLJS calls - the widgets themselves do not generally do this. This is because contexts may pull together multiple pieces of information to do their work. For example, the search context supports the ability for multiple widgets to contribute a structured query term each. The context then stitches these together in an and-query before executing.</p>
+<p>There are other objects that help prepare UI widgets, inform contexts, or used to generate configuration for contexts. These are contexts in their own right. What makes them different is that they never execute any MLJS Core calls to the REST API themselves - they just hold configuration. Here is a list:-</p>
+<table>
+<thead>
+<tr>
+<th>Helper Object</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>query</td>
+<td>Query Builder. Call a function to generate a query term. Use JavaScript method chaining to stitch together multiple terms in a single and or or query.</td>
+</tr>
+<tr>
+<td>options</td>
+<td>Query Options Builder. Chain function calls together to add constraints. Automatically adds sort definitions and facet calculations for the constraints. Convenience method to avoid writing your own search option JSON configuration, which is buggy to do manually.</td>
+</tr>
+<tr>
+<td>tripleconfig</td>
+<td>Describe an ontology, it's entities, predicates (entity-entity relationships) and properties (entity-intrinsic values). Used typically to draw a UI that generates SPARQL. Used by semantic context rather than held independently by widget objects.</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<p><a href="tutorial-all.html">Back to All Tutorials list</a></p>
+</article>
+
+</section>  
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Index</a></h2><h3>Classes</h3><ul><li><a href="com.marklogic.widgets.collectionuris.html">collectionuris</a></li><li><a href="com.marklogic.widgets.cooccurence.html">cooccurence</a></li><li><a href="com.marklogic.widgets.create.html">create</a></li><li><a href="com.marklogic.widgets.docviewer.html">docviewer</a></li><li><a href="com.marklogic.widgets.entityfacts.html">entityfacts</a></li><li><a href="com.marklogic.widgets.error.html">error</a></li><li><a href="com.marklogic.widgets.graphexplorer.html">graphexplorer</a></li><li><a href="com.marklogic.widgets.highcharts.html">highcharts</a></li><li><a href="com.marklogic.widgets.kratu.html">kratu</a></li><li><a href="com.marklogic.widgets.markings.html">markings</a></li><li><a href="com.marklogic.widgets.openlayers.html">openlayers</a></li><li><a href="com.marklogic.widgets.profile.html">profile</a></li><li><a href="com.marklogic.widgets.rdb2rdf.html">rdb2rdf</a></li><li><a href="com.marklogic.widgets.searchbar.html">searchbar</a></li><li><a href="com.marklogic.widgets.searchpage.html">searchpage</a></li><li><a href="com.marklogic.widgets.searchpager.html">searchpager</a></li><li><a href="com.marklogic.widgets.searchresults.html">searchresults</a></li><li><a href="com.marklogic.widgets.searchselection.html">searchselection</a></li><li><a href="com.marklogic.widgets.searchsort.html">searchsort</a></li><li><a href="com.marklogic.widgets.selection.html">selection</a></li><li><a href="com.marklogic.widgets.sparqlbar.html">sparqlbar</a></li><li><a href="com.marklogic.widgets.sparqlresults.html">sparqlresults</a></li><li><a href="com.marklogic.widgets.workplace.html">workplace</a></li></ul><h3>Namespaces</h3><ul><li><a href="com.marklogic.widgets.bits.html">bits</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-001-intro.html">001-intro</a></li><li><a href="tutorial-001-widgets-list.html">001-widgets-list</a></li><li><a href="tutorial-002-intro-firstpage.html">002-intro-firstpage</a></li><li><a href="tutorial-002-widgets-search.html">002-widgets-search</a></li><li><a href="tutorial-003-widgets-search-render.html">003-widgets-search-render</a></li><li><a href="tutorial-004-widgets-highcharts.html">004-widgets-highcharts</a></li><li><a href="tutorial-011-browser-create-app.html">011-browser-create-app</a></li><li><a href="tutorial-012-browser-install-app.html">012-browser-install-app</a></li><li><a href="tutorial-013-browser-samples-app.html">013-browser-samples-app</a></li><li><a href="tutorial-014-browser-workplace.html">014-browser-workplace</a></li><li><a href="tutorial-050-core-contexts.html">050-core-contexts</a></li><li><a href="tutorial-901-ontology.html">901-ontology</a></li><li><a href="tutorial-999-samples.html">999-samples</a></li><li><a href="tutorial-all.html">all</a></li></ul><h3>Global</h3><ul><li><a href="global.html#com">com</a></li></ul>
+</nav>
+
+<br clear="both">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Fri Dec 13 2013 23:35:30 GMT-0000 (GMT)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
