@@ -1822,21 +1822,52 @@ mljs.prototype.values = function(query,tuplesname,optionsname,sprops_opt,callbac
     callback_opt = sprops_opt;
     sprops_opt = undefined;
   }
-  var options = {
-    path: "/v1/values/" + tuplesname + "?options=" + encodeURI(optionsname),
-    method: "GET"
+  var self = this;
+  var v6func = function() {
+    var options = {
+      path: "/v1/values/" + tuplesname + "?options=" + encodeURI(optionsname),
+      method: "GET"
+    };
+    if (typeof query == "string") {
+      // plain text query
+      options.path += "&q=" + encodeURI(query);
+    } else if (typeof query == "object") {
+      // structured query
+      options.path += "&structuredQuery=" + encodeURI(JSON.stringify(query));
+    }
+    
+    options.path = self._applySearchProperties(options.path,sprops_opt);
+    
+    self.__doreq("VALUESV6",options,null,callback_opt);
   };
-  if (typeof query == "string") {
-    // plain text query
-    options.path += "&q=" + encodeURI(query);
-  } else if (typeof query == "object") {
-    // structured query
-    options.path += "&structuredQuery=" + encodeURI(JSON.stringify(query));
-  }
   
-  options.path = this._applySearchProperties(options.path,sprops_opt);
-  
-  this.__doreq("VALUES",options,null,callback_opt);
+  this.v7check(v6func,function() {
+    // V7 combined query
+    var optionsdoc = self._optionsCache[optionsname];
+    if (undefined == optionsdoc) {
+      // hopefully it'll be on the server
+      v6func();
+    } else {
+      var options = {
+        path: "/v1/values/" + tuplesname,
+        method: "POST"
+      };
+      var search = { search:{
+        options: optionsdoc.options
+      }};
+      if (typeof query == "string") {
+        // plain text query
+        search.qtext = query;
+      } else if (typeof query == "object") {
+        // structured query
+        search.query = query.query;
+      }
+      
+      options.path = self._applySearchProperties(options.path,sprops_opt); // WONT THIS BE IGNORED?
+      
+      self.__doreq("VALUESV7",options,search,callback_opt);
+    }
+  });
 };
 
 /**
