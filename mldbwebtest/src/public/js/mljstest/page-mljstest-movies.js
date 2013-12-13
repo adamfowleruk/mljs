@@ -45,16 +45,26 @@ window.onload = function() {
   
   // SEARCH CONTEXT METHOD
   
-  //var query = qb.toJson();
+  var sc1 = db.createSearchContext();
+  sc1.valuesEndpoint("actor-genre");
+  sc1.register(coag);
+  sc1.setOptions(optsName,opts);
+  sc1.contributeStructuredQuery("base",colQuery);
   
-  //var sc = db.createSearchContext();
-  //sc.register(coag);
-  //sc.register(coay);
+  var sc2 = db.createSearchContext();
+  sc2.valuesEndpoint("actor-year");
+  sc2.register(coay);
+  sc2.setOptions(optsName,opts);
+  sc2.contributeStructuredQuery("base",colQuery);
   
-  //sc.setOptions(optsName,opts);
-  //sc.contributeStructuredQuery("base",colQuery);
+  var sc3 = db.createSearchContext();
+  sc3.valuesEndpoint("actor-genre-year");
+  sc3.register(coagy);
+  sc3.setOptions(optsName,opts);
+  sc3.contributeStructuredQuery("base",colQuery);
   
   // VALUES METHODS
+  /*
   db.saveSearchOptions(optsName,opts, function(result) {
     db.values(qb.toJson(),"actor-genre",optsName,null,function(result) {
       coag.updateValues(result.doc);
@@ -66,6 +76,7 @@ window.onload = function() {
       coagy.updateValues(result.doc);
     });
   });
+  */
   
   } catch (err) {
     error.show(err.message);

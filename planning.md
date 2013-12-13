@@ -25,7 +25,8 @@ Targets for 1.2 (Dec 2013) - High priority
  - App builder gap closing
   - TEST Core: Rework searchcontext
    - DONE Allow contribution of facets/sort etc to alter both text (grammar) queries and structured query (independently, via searchcontext)
-   - Add "values" as a searchcontext last function option
+   - DONE Add "values" as a searchcontext endpoint option (either /v1/search (default) or /v1/values/{tuplesname})
+   - Add V7 combined options + values support to mljs.values()
    - Ensure searchcontext supports updateFacets
    - IN PROGRESS Add addFacetSelection listener etc to highcharts widget
    - IN PROGRESS Support compound search mode in V7 (options + search) (search, searchCollection, structuredSearch, saveSearchOptionsCheck, searchcontext alterations)
@@ -38,6 +39,7 @@ Targets for 1.2 (Dec 2013) - High priority
    - NA alter the options to fetch data. Use updateResults to retrieve them for display: Allow widgets to request information in results, rather than alter search options (E.g. request a heatmap, or particular metadata properties) - context updates options on the fly
   - IN PROGRESS Widgets: Navigable charts / co-occurence - clicking sets facet value
    - TEST co-occurence
+    - Requires values() support in searchcontext
    - IN PROGRESS High charts column
    - IN PROGRESS High charts line
    - IN PROGRESS Pie segment

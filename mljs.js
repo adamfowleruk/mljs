@@ -5176,7 +5176,8 @@ mljs.prototype.searchcontext = function() {
   this.simplequery = "";
   
   this._lastSearchFunction = "simple"; // either simple or structured
-  
+  this._searchEndpoint = "search"; // either search or values
+  this._tuplesName = null; // for values mode
   
   this.defaultSort = [];
   
@@ -5193,6 +5194,7 @@ mljs.prototype.searchcontext = function() {
   // set up event handlers
   this.optionsPublisher = new com.marklogic.events.Publisher(); // updated search options JSON object, for parsing not storing a copy
   this.resultsPublisher = new com.marklogic.events.Publisher(); // publishes search results (including facet values)
+  this.valuesPublisher = new com.marklogic.events.Publisher(); // publishes co-occurence and lexicon values
   this.facetsPublisher = new com.marklogic.events.Publisher(); // publishese facets selection changes
   this.sortPublisher = new com.marklogic.events.Publisher(); // publishes sort changes (from query bar)
   this.errorPublisher = new com.marklogic.events.Publisher(); // errors occuring at search time
@@ -5240,6 +5242,23 @@ mljs.prototype.searchcontext.prototype.setTransform = function(t) {
  */
 mljs.prototype.searchcontext.prototype.setTransform = function(tps) {
   this.transformParameters = tps;
+};
+
+/**
+ * Instructs this context to use the /v1/search endpoint, and thus the search() or structuredSearch() methods on MLJS
+ */
+mljs.prototype.searchcontext.prototype.searchEndpoint = function() {
+  this._searchEndpoint = "search";
+};
+
+/**
+ * Instructs this context to use the /v1/values endpoint, and thus the values() method on MLJS
+ * 
+ * @param {string} tuplesname - The name of the tuple to fetch lexicon (or co-occurence) values for
+ */
+mljs.prototype.searchcontext.prototype.valuesEndpoint = function(tuplesname) {
+  this._searchEndpoint = "values";
+  this._tuplesName = tuplesname;
 };
 
 /**
@@ -5386,6 +5405,9 @@ mljs.prototype.searchcontext.prototype.register = function(searchWidget) {
   if ('function' === typeof(searchWidget.updateResultSelection)) {
     this.selectionPublisher.subscribe(function (selectionArray) {searchWidget.updateResultSelection(selectionArray);});
   }
+  if ('function' === typeof(searchWidget.updateValues)) {
+    this.valuesPublisher.subscribe(function (values) {searchWidget.updateValues(values);});
+  }
   var self = this;
   if ('function' === typeof(searchWidget.addSortListener)) {
     searchWidget.addSortListener(function (sort) {self.updateSort(sort);});
@@ -5490,6 +5512,7 @@ mljs.prototype.searchcontext.prototype.doStructuredQuery = function(q,start) {
   
   self.resultsPublisher.publish(true); // forces refresh glyph to show
   self.facetsPublisher.publish(true);
+  self.valuesPublisher.publish(true);
   
   var ourstart = 1;
   if (0 != start && undefined != start) {
@@ -5498,15 +5521,27 @@ mljs.prototype.searchcontext.prototype.doStructuredQuery = function(q,start) {
   this.__d("searchcontext.dostructuredquery: " + JSON.stringify(q) + ", ourstart: " + ourstart);
   
   var dos = function() {
+    if ("search" == self._searchEndpoint) {
       self.db.structuredSearch(q,self.optionsName,function(result) { 
-       if (result.inError) {
-         // report error on screen somewhere sensible (e.g. under search bar)
-         self.__d(result.error);
-         self.resultsPublisher.publish(false); // hides refresh glyth on error
-       } else {
-         self.resultsPublisher.publish(result.doc);
-       }
+        if (result.inError) {
+          // report error on screen somewhere sensible (e.g. under search bar)
+          self.__d(result.error);
+          self.resultsPublisher.publish(false); // hides refresh glyth on error
+        } else {
+          self.resultsPublisher.publish(result.doc);
+        }
       });
+    } else { // values()
+      self.db.values(q,self._tuplesName,self.optionsName,null,function(result) {
+        if (result.inError) {
+          // report error on screen somewhere sensible (e.g. under search bar)
+          self.__d(result.error);
+          self.valuesPublisher.publish(false); // hides refresh glyth on error
+        } else {
+          self.valuesPublisher.publish(result.doc);
+        }
+      });
+    }
   };
   
   this._persistAndDo(dos);
@@ -5641,30 +5676,43 @@ mljs.prototype.searchcontext.prototype.doSimpleQuery = function(q,start) {
   self.facetsPublisher.publish(parsed.facets);
   
   var dos = function() {
-   // fetch results (and update facets, sort)
-   var sprops = {};
-   if (null != self.collection) {
-     sprops.collection = self.collection;
-   }
-   if (null != self.directory) {
-     sprops.directory = self.directory;
-   }
-   if (null != self.transform) {
-     sprops.transform = self.transform;
-     sprops.transformParameters = self.transformParameters;
-   }
-   if (null != self.format) {
-     sprops.format = self.format;
-   }
-   self.db.search(q,self.optionsName,ourstart,sprops,function(result) { 
-    if (result.inError) {
-      // report error on screen somewhere sensible (e.g. under search bar)
-      self.__d(result.error);
-      self.resultsPublisher.publish(false); // hides refresh glyth on error
-    } else {
-      self.resultsPublisher.publish(result.doc);
+    // fetch results (and update facets, sort)
+    var sprops = {};
+    if (null != self.collection) {
+      sprops.collection = self.collection;
     }
-   });
+    if (null != self.directory) {
+      sprops.directory = self.directory;
+    }
+    if (null != self.transform) {
+      sprops.transform = self.transform;
+      sprops.transformParameters = self.transformParameters;
+    }
+    if (null != self.format) {
+      sprops.format = self.format;
+    }
+    
+    if ("search" == self._searchEndpoint) {
+      self.db.search(q,self.optionsName,ourstart,sprops,function(result) { 
+        if (result.inError) {
+          // report error on screen somewhere sensible (e.g. under search bar)
+          self.__d(result.error);
+          self.resultsPublisher.publish(false); // hides refresh glyth on error
+        } else {
+          self.resultsPublisher.publish(result.doc);
+        }
+      });
+    } else { // values
+      self.db.values(q,self._tuplesName,self.optionsName,null,function(result) {
+        if (result.inError) {
+          // report error on screen somewhere sensible (e.g. under search bar)
+          self.__d(result.error);
+          self.valuesPublisher.publish(false); // hides refresh glyth on error
+        } else {
+          self.valuesPublisher.publish(result.doc);
+        }
+      });
+    }
   };
   
   // check for options existance
