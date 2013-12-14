@@ -15,38 +15,22 @@ window.onload = function() {
   tempspline.setSeriesSources("#Animals","animal","age");
   tempspline.setAggregateFunction("mean");
   tempspline.setAutoCategories(true);
-  tempspline.options.title.text = "Average animal age";
-  tempspline.options.subtitle.text = "Years";
-  tempspline.options.yAxis.title.text = "Years";
-  tempspline.options.chart.type = 'spline';
-  tempspline.options.plotOptions = { spline: { dataLabels: { enabled: false }},tooltip:
-                {formatter: function() {
-                    return Highcharts.numberFormat(this.y,1);
-                } } };
+  // now for highcharts object configuration
+  tempspline.spline().title("Average animal age").subtitle("Years").yTitle("Years");
   
   var tempcolumn = new com.marklogic.widgets.highcharts("column");
   tempcolumn.addErrorListener(error.updateError);
   tempcolumn.setSeriesSources("#Animals","animal","animal");
   tempcolumn.setAggregateFunction("count");
   tempcolumn.setAutoCategories(true);
-  tempcolumn.options.title.text = "Animal Popularity";
-  tempcolumn.options.subtitle.text = "";
-  tempcolumn.options.yAxis.title.text = "Count";
-  tempcolumn.options.chart.type = "column";
-  tempcolumn.options.plotOptions = {column: {pointPadding: 0.2,borderWidth: 0,
-    dataLabels: { enabled: true, style: { fontWeight: 'bold' } } } };
+  tempcolumn.column().title("Animal Popularity").subtitle("").yTitle("Count");
     
   var familypie = new com.marklogic.widgets.highcharts("pie");
   familypie.addErrorListener(error.updateError);
   familypie.setSeriesSources("#Family","!family",null);
   familypie.setAggregateFunction("none");
   familypie.setAutoCategories(true);
-  familypie.options.title.text = "Animal Family";
-  familypie.options.subtitle.text = "";
-  //familypie.options.yAxis.title.text = "Count";
-  familypie.options.chart.type = "pie";
-  //familypie.options.plotOptions = {pie: {pointPadding: 0.2,borderWidth: 0,
-  //  dataLabels: { enabled: true, style: { fontWeight: 'bold' } } } };
+  familypie.pie().title("Animal Family").subtitle("");
   
   var ob = db.createOptions();
   ob.defaultCollation("http://marklogic.com/collation/en")

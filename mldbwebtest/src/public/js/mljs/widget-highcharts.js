@@ -599,6 +599,7 @@ com.marklogic.widgets.highcharts.prototype._displayResults = function(seriesName
  */
 com.marklogic.widgets.highcharts.prototype.noclick = function() {
   this.options.plotOptions[this.options.chart.type].point.events.click = function() {};
+  return this;
 };
 
 com.marklogic.widgets.highcharts.prototype._addPointClickHandler = function(charttype) {
