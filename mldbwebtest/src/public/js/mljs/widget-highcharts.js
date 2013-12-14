@@ -594,7 +594,12 @@ com.marklogic.widgets.highcharts.prototype._displayResults = function(seriesName
   this._refresh();
 };
 
-
+/**
+ * Removes click handler from the points on a highchart. Only works before chart is refreshed with data.
+ */
+com.marklogic.widgets.highcharts.prototype.noclick = function() {
+  this.options.plotOptions[this.options.chart.type].point.events.click = function() {};
+};
 
 com.marklogic.widgets.highcharts.prototype._addPointClickHandler = function(charttype) {
   var self = this;
