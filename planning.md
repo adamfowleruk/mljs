@@ -23,6 +23,7 @@ Targets for 1.2 (Dec 2013) - High priority
   - TEST Top level options properties: search-option, 
   - DEFERRED (default)suggestion-source
  - App builder gap closing
+  - DONE Widgets: HighCharts: Apply chaining pattern to highchart options to make them simpler
   - TEST Core: Rework searchcontext
    - DONE Allow contribution of facets/sort etc to alter both text (grammar) queries and structured query (independently, via searchcontext)
    - DONE Add "values" as a searchcontext endpoint option (either /v1/search (default) or /v1/values/{tuplesname})
@@ -40,10 +41,11 @@ Targets for 1.2 (Dec 2013) - High priority
    - NA alter the options to fetch data. Use updateResults to retrieve them for display: Allow widgets to request information in results, rather than alter search options (E.g. request a heatmap, or particular metadata properties) - context updates options on the fly
   - IN PROGRESS Widgets: Navigable charts / co-occurence - clicking sets facet value
    - TEST co-occurence
-    - Requires values() support in searchcontext
+    - DONE Requires values() support in searchcontext
    - IN PROGRESS High charts column
    - IN PROGRESS High charts line
    - IN PROGRESS Pie segment
+   - BUG passing 2:"8" - 2 is the x position, not the x value - should be 'pet' on the pie on chartsearch page
  - IN PROGRESS NodeJS: Node.js tests for all functionality now in core MLJS
  - IN PROGRESS Docs: Document all core concepts currently part of MLJS
   - IN PROGRESS Docs: searchcontext object
