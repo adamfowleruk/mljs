@@ -9,6 +9,8 @@ window.onload = function() {
   
   var optionsName = "page-charts-tempchart";
   var ob = db.createOptions();
+  ob.jsonRangeConstraint("city","xs:string","http://marklogic.com/collation/",["item-order"])
+    .jsonRangeConstraint("month","xs:string","http://marklogic.com/collation/",["item-order"]);
   ob.pageLength(100);
   //var options = ob.toJson();
   

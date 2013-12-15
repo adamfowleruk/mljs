@@ -28,16 +28,19 @@ window.onload = function() {
   var coag = new com.marklogic.widgets.cooccurence("coag");
   coag.addErrorListener(error.updateError);
   coag.title = "Actor vs. Movie Genre";
+  coag.displayTuple("actor-genre");
   coag.setTupleConstraints(["actor","genre"]);
   
   var coay = new com.marklogic.widgets.cooccurence("coay");
   coay.addErrorListener(error.updateError);
   coay.title = "Actor vs. Movie Year";
+  coay.displayTuple("actor-year");
   coay.setTupleConstraints(["actor","year"]);
   
   var coagy = new com.marklogic.widgets.cooccurence("coagy");
   coagy.addErrorListener(error.updateError);
   coagy.title = "Actor vs. Genre vs. Year";
+  coagy.displayTuple("actor-genre-year");
   coagy.setTupleConstraints(["actor","genre","year"]);
   
   var qb = db.createQuery();
@@ -46,22 +49,23 @@ window.onload = function() {
   // SEARCH CONTEXT METHOD
   
   var sc1 = db.createSearchContext();
-  sc1.valuesEndpoint("actor-genre");
+  sc1.valuesEndpoint("actor-genre","actor-year","actor-genre-year");
   sc1.register(coag);
   sc1.setOptions(optsName,opts);
+  
+  //var sc2 = db.createSearchContext();
+  //sc2.valuesEndpoint("actor-year");
+  sc1.register(coay);
+  //sc2.setOptions(optsName,opts);
+  //sc2.contributeStructuredQuery("base",colQuery);
+  
+  //var sc3 = db.createSearchContext();
+  //sc3.valuesEndpoint("actor-genre-year");
+  sc1.register(coagy);
+  //sc3.setOptions(optsName,opts);
+  //sc3.contributeStructuredQuery("base",colQuery);
+  
   sc1.contributeStructuredQuery("base",colQuery);
-  
-  var sc2 = db.createSearchContext();
-  sc2.valuesEndpoint("actor-year");
-  sc2.register(coay);
-  sc2.setOptions(optsName,opts);
-  sc2.contributeStructuredQuery("base",colQuery);
-  
-  var sc3 = db.createSearchContext();
-  sc3.valuesEndpoint("actor-genre-year");
-  sc3.register(coagy);
-  sc3.setOptions(optsName,opts);
-  sc3.contributeStructuredQuery("base",colQuery);
   
   // VALUES METHODS
   /*

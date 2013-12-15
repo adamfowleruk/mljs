@@ -39,13 +39,15 @@ Targets for 1.2 (Dec 2013) - High priority
    - DEFERRED Do shadow query automatically in searchcontext rather than per-widget?
    - DEFERRED Come up with a strategy for parent-child relationships in search widgets (one way facet selection - E.g. genre THEN album)
    - NA alter the options to fetch data. Use updateResults to retrieve them for display: Allow widgets to request information in results, rather than alter search options (E.g. request a heatmap, or particular metadata properties) - context updates options on the fly
-  - IN PROGRESS Widgets: Navigable charts / co-occurence - clicking sets facet value
+  - DONE Core: SearchContext to support multiple searches when same context used across multiple tuple names
+  - TEST Widgets: Navigable charts / co-occurence - clicking sets facet value
    - TEST co-occurence
     - DONE Requires values() support in searchcontext
-   - IN PROGRESS High charts column
-   - IN PROGRESS High charts line
-   - IN PROGRESS Pie segment
-   - BUG passing 2:"8" - 2 is the x position, not the x value - should be 'pet' on the pie on chartsearch page
+    - BUG: POST /v1/tuples also ignoring query string parameters
+   - DONE High charts column
+   - DONE High charts line
+   - DONE Pie segment
+   - DONE translated to category from x position: BUG passing 2:"8" - 2 is the x position, not the x value - should be 'pet' on the pie on chartsearch page
  - IN PROGRESS NodeJS: Node.js tests for all functionality now in core MLJS
  - IN PROGRESS Docs: Document all core concepts currently part of MLJS
   - IN PROGRESS Docs: searchcontext object

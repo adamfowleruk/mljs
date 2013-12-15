@@ -5208,7 +5208,7 @@ mljs.prototype.searchcontext = function() {
   
   this._lastSearchFunction = "simple"; // either simple or structured
   this._searchEndpoint = "search"; // either search or values
-  this._tuplesName = null; // for values mode
+  this._tuples = new Array(); // for values mode
   
   this.defaultSort = [];
   
@@ -5220,7 +5220,7 @@ mljs.prototype.searchcontext = function() {
   this._selectedResults = new Array(); // Array of document URIs
   this._highlightedResults = new Array(); // Array of document URIs
   
-  
+  this._facetSelection = new Array();
   
   // set up event handlers
   this.optionsPublisher = new com.marklogic.events.Publisher(); // updated search options JSON object, for parsing not storing a copy
@@ -5285,11 +5285,13 @@ mljs.prototype.searchcontext.prototype.searchEndpoint = function() {
 /**
  * Instructs this context to use the /v1/values endpoint, and thus the values() method on MLJS
  * 
- * @param {string} tuplesname - The name of the tuple to fetch lexicon (or co-occurence) values for
+ * @param {string} tuplesname - The name of the tuple to fetch lexicon (or co-occurence) values for. Multiple tuples names allowed
  */
-mljs.prototype.searchcontext.prototype.valuesEndpoint = function(tuplesname) {
+mljs.prototype.searchcontext.prototype.valuesEndpoint = function() {
   this._searchEndpoint = "values";
-  this._tuplesName = tuplesname;
+  for (var i = 0;i < arguments.length;i++) {
+    this._tuples.push(arguments[i]);
+  }
 };
 
 /**
@@ -5468,11 +5470,11 @@ mljs.prototype.searchcontext.prototype._parseQuery = function(q) {
   var sort = null;
   var parts = q.trim().split(" "); // handles spaces in facet values
   for (var i = 0;i < parts.length;i++) {
-    this.__d("searchbar._parseQuery: parts[" + i + "]: " + parts[i]);
+    this.__d("searchcontext._parseQuery: parts[" + i + "]: " + parts[i]);
     var newIdx = i;
     var colonQuote = parts[i].indexOf(":\"");
     var finalQuote = parts[i].indexOf("\"",colonQuote + 2);
-    this.__d("searchbar._parseQuery: colonQuote: " + colonQuote + ", finalQuote: " + finalQuote);
+    this.__d("searchcontext._parseQuery: colonQuote: " + colonQuote + ", finalQuote: " + finalQuote);
     if (-1 != colonQuote && -1 == finalQuote) { // found first quote without end quote
       do {
         newIdx++;
@@ -5480,27 +5482,27 @@ mljs.prototype.searchcontext.prototype._parseQuery = function(q) {
           parts[i] = parts[i] + " " + parts[newIdx];
         }
       } while (newIdx < parts.length && parts[newIdx].indexOf("\"") != parts[newIdx].length - 1);
-      this.__d("searchbar._parseQuery: parts[" + i + "] now: " + parts[i]);
+      this.__d("searchcontext._parseQuery: parts[" + i + "] now: " + parts[i]);
     }
       if (0 == parts[i].indexOf(this.sortWord + ":")) {
         sort = parts[i].substring(5);
       } else if (-1 != parts[i].indexOf(":")) {
-        this.__d("FOUND A FACET IN QUERY: " + parts[i]);
+        this.__d("searchcontext._parseQuery: FOUND A FACET IN QUERY: " + parts[i]);
         var fv = parts[i].split(":");
-        this.__d("Facet name: " + fv[0] + " value: " + fv[1]);
+        this.__d("searchcontext._parseQuery: Facet name: " + fv[0] + " value: " + fv[1]);
         if (0 == fv[1].indexOf("\"")) {
           fv[1] = fv[1].substring(1);
           if ((fv[1].length - 1) == fv[1].indexOf("\"")) {
             fv[1] = fv[1].substring(0,fv[1].length-1);
           }
         }
-        this.__d("Facet info now name: " + fv[0] + " value: " + fv[1]);
+        this.__d("searchcontext._parseQuery: Facet info now name: " + fv[0] + " value: " + fv[1]);
         var found = false;
         for (var f = 0;f < facets.length;f++) {
-          this.__d(" - testing FACET: " + facets[f].name + " = " + facets[f].value);
+          this.__d("searchcontext._parseQuery:  - testing FACET: " + facets[f].name + " = " + facets[f].value);
           if (facets[f].name == fv[0] && facets[f].value == fv[1]) {
             // mark as found so we don't add this again as a facet. NB multiples for same facet are allowed, but not multiples of same facet value
-            this.__d(" - facets match, marking as found");
+            this.__d("searchcontext._parseQuery:  - facets match, marking as found");
             found = true;
           }
         }
@@ -5509,7 +5511,10 @@ mljs.prototype.searchcontext.prototype._parseQuery = function(q) {
         }
       
     } else {
-      text += " " + parts[i];
+      if ("" != text) {
+        text += " ";
+      }
+      text += parts[i];
     }
     i = newIdx;
   }
@@ -5525,7 +5530,12 @@ mljs.prototype.searchcontext.prototype._queryToText = function(parsed) {
     q += " " + this.sortWord + ":" + parsed.sort;
   }
   for (var i = 0;i < parsed.facets.length;i++) {
-    q += " " + parsed.facets[i].name + ":\"" + parsed.facets[i].value + "\"";
+    if (i > 0) {
+      q += " ";
+    }
+    if (undefined != parsed.facets[i]) { // possible somehow. Not sure how.
+      q += parsed.facets[i].name + ":\"" + parsed.facets[i].value + "\"";
+    }
   }
   return q;
 };
@@ -5565,15 +5575,17 @@ mljs.prototype.searchcontext.prototype.doStructuredQuery = function(q,start) {
       });
     } else { // values()
       self.valuesPublisher.publish(true);
-      self.db.values(q,self._tuplesName,self.optionsName,null,function(result) {
-        if (result.inError) {
-          // report error on screen somewhere sensible (e.g. under search bar)
-          self.__d(result.error);
-          self.valuesPublisher.publish(false); // hides refresh glyth on error
-        } else {
-          self.valuesPublisher.publish(result.doc);
-        }
-      });
+      for (var i = 0;i < self._tuples.length;i++) {
+        self.db.values(q,self._tuples[i],self.optionsName,null,function(result) {
+          if (result.inError) {
+            // report error on screen somewhere sensible (e.g. under search bar)
+            self.__d(result.error);
+            self.valuesPublisher.publish(false); // hides refresh glyth on error
+          } else {
+            self.valuesPublisher.publish(result.doc);
+          }
+        });
+      }
     }
   };
   
@@ -5740,15 +5752,17 @@ mljs.prototype.searchcontext.prototype.doSimpleQuery = function(q,start) {
       });
     } else { // values
       self.valuesPublisher.publish(true);
-      self.db.values(q,self._tuplesName,self.optionsName,null,function(result) {
-        if (result.inError) {
-          // report error on screen somewhere sensible (e.g. under search bar)
-          self.__d(result.error);
-          self.valuesPublisher.publish(false); // hides refresh glyth on error
-        } else {
-          self.valuesPublisher.publish(result.doc);
-        }
-      });
+      for (var i = 0;i < self._tuples.length;i++) {
+        self.db.values(q,self._tuples[i],self.optionsName,null,function(result) {
+          if (result.inError) {
+            // report error on screen somewhere sensible (e.g. under search bar)
+            self.__d(result.error);
+            self.valuesPublisher.publish(false); // hides refresh glyth on error
+          } else {
+            self.valuesPublisher.publish(result.doc);
+          }
+        });
+      }
     }
   };
   
@@ -5895,10 +5909,46 @@ mljs.prototype.searchcontext.prototype.removeErrorListener = function(fl) {
   this.errorPublisher.unsubscribe(fl);
 };
 
+mljs.prototype.searchcontext.prototype.deselectFacet = function(facetName,facetValue_opt) {
+  var newFacetSelection = new Array();
+  for (var i = 0,fs;i < this._facetSelection.length;i++) {
+    fs = this._facetSelection[i];
+    if (fs.facetName == facetName) {
+      if (undefined == facetValue_opt) {
+        // don't add this facet to the new array
+      } else {
+        if (fs.facetValue = facetValue_opt) {
+          // don't add
+        } else {
+          // keep it
+          newFacetSelection.push(fs);
+        }
+      }
+    } else {
+      // keep it
+      newFacetSelection.push(fs);
+    }
+  }
+  this._facetSelection = newFacetSelection;
+  
+  this.updateFacets(this._facetSelection);
+};
+
+mljs.prototype.searchcontext.prototype.contributeFacet = function(facetName,facetValue) {
+  if (undefined == facetName || undefined == facetValue) {
+    return;
+  }
+  this._facetSelection.push({name: facetName,value: facetValue});
+  
+  // rerun search
+  this.updateFacets(this._facetSelection);
+};
+
+
 /**
  * Event target. Useful to call directly from a Search Facets widget upon selection of a facet value. Executes a new search.
- * facetSelection = {name: facetName, value: facetValue}
- * @param {facetSelection} facetSelection - The facet value to restrict the search results by. 
+ * 
+ * @param {Array} facetSelection - The facet values to restrict the search results by. [{name: "facetName", value: "facetValue"}, ... ]
  */
 mljs.prototype.searchcontext.prototype.updateFacets = function(facetSelection) {
   if ("simple" == this._lastSearchFunction) {

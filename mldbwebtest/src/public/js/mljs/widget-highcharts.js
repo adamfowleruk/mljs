@@ -40,6 +40,8 @@ com.marklogic.widgets.highcharts = function(container) {
   this._yTitle = "Values";
   this._type = "line";
   
+  this._seriesNameToFacetName = {};
+  
   this.ctx = mljs.defaultconnection.createSearchContext();
   
   
@@ -240,15 +242,6 @@ com.marklogic.widgets.highcharts.prototype._updateOptions = function() {
             },
             plotOptions: {
                 line: {
-                    point: {
-                        events: {
-                            click: function() {
-                              // this = data object
-                              console.log("Point clicked: x:" + this.x + ", series name:'" + this.series.name + "', y:" + this.y);
-                              hc._selectCategory(this.x || this.series.name, this.y);
-                            }
-                        }
-                    },
 
                     dataLabels: {
                         enabled: false
@@ -258,6 +251,7 @@ com.marklogic.widgets.highcharts.prototype._updateOptions = function() {
             },
     series: this.series
   };
+  this.line();
   /*
   if ("pie" == hc.options.chart.type) {
     this.options.tooltip.pointFormat = '<b>{point.y}</b>';
@@ -279,7 +273,8 @@ com.marklogic.widgets.highcharts.prototype._updateOptions = function() {
 };
 
 com.marklogic.widgets.highcharts.prototype._selectCategory = function(facetName,facetValue) {
-  this.ctx.updateFacets([{name: facetName, value: facetValue}]);
+  //this.ctx.updateFacets([{name: facetName, value: facetValue}]);
+  this.ctx.contributeFacet(facetName, facetValue);
 };
 
 /**
@@ -462,6 +457,14 @@ com.marklogic.widgets.highcharts.prototype.updateResults = function(results) {
     var value = extractValue(resdoc,this.valueSource);
     //mljs.defaultconnection.logger.debug(" -  -  - value: " + value);
     
+    // series name (highcharts) to facet name (categorySource) mapping
+    if (this.categorySource.startsWith("!")) {
+      this._seriesNameToFacetName[name] = this.categorySource.substring(1); // assume facet
+    } else {
+      // assume from a value, and facet name is same as property name (json)
+      this._seriesNameToFacetName[name] = this.categorySource; 
+    }
+    
     var category = extractValue(resdoc,this.categorySource);
     //mljs.defaultconnection.logger.debug(" -  -  - category: " + category);
     if (!allCategories.contains(category)) {
@@ -608,8 +611,27 @@ com.marklogic.widgets.highcharts.prototype._addPointClickHandler = function(char
     events: {
       click: function() {
         // this = data object
-        console.log("Poitn clicked: x:" + this.x + ", series name:'" + this.series.name + "', y:" + this.y);
-        self._selectCategory(this.x || this.series.name, this.y);
+        var data = this.series.data[this.x].name;
+        console.log("Point clicked: x:" + this.x + ", series name:'" + this.series.name + "', y:" + this.y, " data: " + data);
+        if (undefined == data) {
+          // non pie chart
+          data = this.category; // category axis => x value
+          /*if (!self.autoCategories) {
+            // translate to hard coded month category value
+            var myd = null;
+            for (var i = 0;i > self.categories.length;i++) {
+              myd = self.categories[i];
+              if (myd == data) {
+                data = i;
+              }
+            }
+          }*/
+          self._selectCategory(self._seriesNameToFacetName[this.series.name],data);
+          
+        } else {
+          // likely a pie chart
+          self._selectCategory(this.series.name,data);
+        }
       }
     }
   };
