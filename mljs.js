@@ -4837,7 +4837,7 @@ mljs.prototype.query.prototype.collection = function(uri_opt,depth_opt) {
  * @param {positiveInteger} radius - The radius from the circle centre to use. Defaults to statute (not nautical) miles. Supports "miles", "m" (metres), "km", "nm" (nautical miles), "degrees" (degrees longitude at the equator, or latitude)
  * @param {string} radiusmeasure_opt - The units used. Default is statute miles. m=metres, km=kilometres, nm=nautical miles, degrees=degrees of rotation of the Earth
  */
-mljs.prototype.query.prototype.georadius = function(constraint_name,lat,lon,radius,radiusmeasure_opt) {
+mljs.prototype.query.prototype.geoRadius = function(constraint_name,lat,lon,radius,radiusmeasure_opt) {
   var radiusactual = this._convertRadius(radius,radiusmeasure_opt);
   return {
     "geospatial-constraint-query" : {
@@ -4849,6 +4849,7 @@ mljs.prototype.query.prototype.georadius = function(constraint_name,lat,lon,radi
     }
   }
 };
+mljs.prototype.query.prototype.georadius = mljs.prototype.query.prototype.geoRadius;
 
 mljs.prototype.query.prototype._convertRadius = function(radius,radiusmeasure_opt) {
   var radiusactual = radius;

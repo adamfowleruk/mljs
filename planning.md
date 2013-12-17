@@ -48,9 +48,27 @@ Targets for 1.2 (Dec 2013) - High priority
    - DONE High charts line
    - DONE Pie segment
    - DONE translated to category from x position: BUG passing 2:"8" - 2 is the x position, not the x value - should be 'pet' on the pie on chartsearch page
+ - IN PROGRESS Widgets: Workplace - Removes any code anyone needs to write to use MLJS widgets
+  - IN PROGRESS Widgets: Add Drag and Drop support to widgets.js
+   - DONE DND pure Test page in mldbwebtest roxy project
+   - IN PROGRESS ensure basic drag and drop works
+   - IN PROGRESS Add rules around which draggables can be dropped on which droppables (dropzones)
+  - Support multiple modes
+   - (default) Detect URL of page. Search in ML for workplace json page that matches this URL (not including query strings)
+   - User default workplace. Find user's own 'personal-workplace' for currently logged in user (akin to a single page mode app)
+   - DEFERRED Embeddable. Assume embedded in external app. Use workplace-share-id as key to find, on remote server via W3C CORS, the 'page' (embed) to draw
+   - Fallback. If no Workplace detected, create a generic search page with a Workplace edit button (depending on app wide settings - 'save/edit allowed')
+    - Allow fallback to be set programmatically or via app wide settings
+  - Create WorkplaceContext object in workplace js file
+   - updatePage event - occurs when a page is loaded. E.g. from current page URL or for current logged in user or as fallback
+   - updateApp event
+   - loadApp
+   - loadPage
  - IN PROGRESS NodeJS: Node.js tests for all functionality now in core MLJS
  - IN PROGRESS Docs: Document all core concepts currently part of MLJS
-  - IN PROGRESS Docs: searchcontext object
+  - DONE Docs: searchcontext object
+  - Docs: Search results - parsing REST JSON for results
+  - Widgets: Page template js file - for those wanting to create a new MLJS powered page
   - Widgets: Search Speed - As a tutorial for those wishing to contribute to MLJS by creating new widgets of their own
   - Docs: documentcontext object
   - Docs: tripleconfig
@@ -76,21 +94,19 @@ Targets for 1.2 (Dec 2013) - High priority
   4. Creating a new Hybrid app with MLJS. (Already exists, on blog site). Creating a search page and configuring options and facets. A search page with two charts (akin to an AppBuilder demo)
    a. Creating a new REST app with MLJS
   5. Customising how search results are displayed - The Renderer architecture. Detect and display data in a search results page in new and interesting ways
- - IN PROGRESS Core: Search Options builder
-  - hide sem:triple elements from snippet highlighting
-  - Don't return sem:triples documents at all by default
+ - DONE Core: Search Options builder
+  - DEFERRED hide sem:triple elements from snippet highlighting
+  - DEFERRED Don't return sem:triples documents at all by default (Top level only)
   - DONE actually write the pathConstraint function!
-  - TEST BUG WAS AN ISSUE IN MLJS CONSTRAINT SETTINGS: Investigate why REST insists upon some elements having indexes in the JSON namespace as well as the one required (E.g. xhtml and h1)
+  - DONE BUG WAS AN ISSUE IN MLJS CONSTRAINT SETTINGS: Investigate why REST insists upon some elements having indexes in the JSON namespace as well as the one required (E.g. xhtml and h1)
+ - DONE Test: Create MLJS Rest only (not Roxy hybrid) deployment project
+ - DONE Docs: Publish mljsrest and mldbwebtest to internal demo server
 
 Targets for 1.2 (Dec 2013) - Medium Priority
  - IN PROGRESS Widget: RDB2RDF in test app
   - Remove jQuery specific code
   - DONE Check Roxy installation of REST extension works automatically
   - DONE validate CSS works correctly on all pages
- - Widgets: OpenLayers - Use MarkLogic as a tile cache rather than the browser (and do "cache first")
- - Widgets: Address to Lon Lat - Perform address lookup for top matching point, feed as constraint in to structured query
-  - MS VirtualEarth address lookup?
-  - Accept radius as a property
  - Docs: MLJS Webinar series of Video Tutorials
   6. Loading documents with MLJS. Add test XML, JSON and text documents using MLJS and a test loading web page.
   7. Using MLJS to explore data - Integrated charts, co-occurence, map, query bar
@@ -104,24 +120,10 @@ Targets for 1.2 (Dec 2013) - Low Priority
   - Widgets: searchfacets - Split out listing/altering selected facets (as opposed to facet value list) in to own widget. E.g. to be used with chart/co-occurence pages with a facet list widget
   - DEFERRED Shadow queries (MLJS' alternative mechanism)
   - DEFERRED Simple/complex view of results (AppBuilder achieves this via state configuration in search options)
- - DONE Test: Create MLJS Rest only (not Roxy hybrid) deployment project
- - IN PROGRESS Docs: Publish mljsrest and mldbwebtest to internal demo server
- - IN PROGRESS Widgets: Workplace - Removes any code anyone needs to write to use MLJS widgets
-  - IN PROGRESS Widgets: Add Drag and Drop support to widgets.js
-   - DONE DND pure Test page in mldbwebtest roxy project
-   - IN PROGRESS ensure basic drag and drop works
-   - IN PROGRESS Add rules around which draggables can be dropped on which droppables (dropzones)
-  - Support multiple modes
-   - (default) Detect URL of page. Search in ML for workplace json page that matches this URL (not including query strings)
-   - User default workplace. Find user's own 'personal-workplace' for currently logged in user (akin to a single page mode app)
-   - DEFERRED Embeddable. Assume embedded in external app. Use workplace-share-id as key to find, on remote server via W3C CORS, the 'page' (embed) to draw
-   - Fallback. If no Workplace detected, create a generic search page with a Workplace edit button (depending on app wide settings - 'save/edit allowed')
-    - Allow fallback to be set programmatically or via app wide settings
-  - Create WorkplaceContext object in workplace js file
-   - updatePage event - occurs when a page is loaded. E.g. from current page URL or for current logged in user or as fallback
-   - updateApp event
-   - loadApp
-   - loadPage
+ - Widgets: OpenLayers - Use MarkLogic as a tile cache rather than the browser (and do "cache first")
+ - Widgets: Address to Lon Lat - Perform address lookup for top matching point, feed as constraint in to structured query
+  - MS VirtualEarth address lookup?
+  - Accept radius as a property
  - NOT A BUG searchfacets or searchbar widgets using facet title, not constraint name, to indicate constraint added to searchbar (also for lookup/matching)
   - NA Actually, there is no 'facet title' just that constraint name and field name are generally the same. Need to add Title support somehow (DONE via annotation[0])
 
