@@ -51,6 +51,7 @@
     <div class="description">
         <p>A Search Context links together any objects affecting the query, sorting, facets or that
 wants to be notified of changes to those, and to any new results or pages being retrieved.</p>
+<p>Defaults to operating against the /v1/search endpoint, but can be changed to operate against the /v1/values endpoint, depending on need.</p>
     </div>
     
 
@@ -85,7 +86,7 @@ wants to be notified of changes to those, and to any new results or pages being 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line5172">line 5172</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line5207">line 5207</a>
     </li></ul></dd>
     
     
@@ -172,7 +173,7 @@ wants to be notified of changes to those, and to any new results or pages being 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line5241">line 5241</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line5276">line 5276</a>
     </li></ul></dd>
     
     
@@ -289,7 +290,7 @@ wants to be notified of changes to those, and to any new results or pages being 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line5899">line 5899</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line5966">line 5966</a>
     </li></ul></dd>
     
     
@@ -406,7 +407,7 @@ wants to be notified of changes to those, and to any new results or pages being 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line5881">line 5881</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line5948">line 5948</a>
     </li></ul></dd>
     
     
@@ -523,7 +524,7 @@ wants to be notified of changes to those, and to any new results or pages being 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line5845">line 5845</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line5912">line 5912</a>
     </li></ul></dd>
     
     
@@ -640,7 +641,7 @@ wants to be notified of changes to those, and to any new results or pages being 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line5863">line 5863</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line5930">line 5930</a>
     </li></ul></dd>
     
     
@@ -668,7 +669,7 @@ wants to be notified of changes to those, and to any new results or pages being 
         
             
 <dt>
-    <h4 class="name" id="contributeStructuredQuery"><span class="type-signature"></span>contributeStructuredQuery<span class="signature">()</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="contributeFacet"><span class="type-signature"></span>contributeFacet<span class="signature">(facetName, facetValue)</span><span class="type-signature"></span></h4>
     
     
 </dt>
@@ -676,8 +677,7 @@ wants to be notified of changes to those, and to any new results or pages being 
     
     
     <div class="description">
-        <p>For situations where many objects are contributing top level structured query terms that need AND-ing together.</p>
-<p>NOTE: queryTerm needs to be the result of queryBuilder.toJson().query[0] and not the top level query JSON itself - i.e. we need a term, not a full query object.</p>
+        <p>Contributes a facet selection to the underlying query (simple or structured).</p>
     </div>
     
 
@@ -685,6 +685,77 @@ wants to be notified of changes to those, and to any new results or pages being 
     
     
     
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+		
+		<th>Type</th>
+		
+		
+		
+		
+		
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+	
+	<tbody>
+	
+	
+        <tr>
+            
+                <td class="name"><code>facetName</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last"><p>The name of the facet to contribute a selection for</p></td>
+        </tr>
+	
+	
+	
+        <tr>
+            
+                <td class="name"><code>facetValue</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last"><p>The value selection to contribute</p></td>
+        </tr>
+	
+	
+	</tbody>
+</table>
     
     
     
@@ -710,7 +781,311 @@ wants to be notified of changes to those, and to any new results or pages being 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line5601">line 5601</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line6016">line 6016</a>
+    </li></ul></dd>
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="contributeStructuredQuery"><span class="type-signature"></span>contributeStructuredQuery<span class="signature">(contributor, queryTerm, start_opt)</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        <p>For situations where many objects are contributing top level structured query terms that need AND-ing together.</p>
+<p>NOTE: queryTerm needs to be the result of queryBuilder.toJson().query[0] and not the top level query JSON itself - i.e. we need a term, not a full query object.</p>
+    </div>
+    
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+		
+		<th>Type</th>
+		
+		
+		
+		
+		
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+	
+	<tbody>
+	
+	
+        <tr>
+            
+                <td class="name"><code>contributor</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last"><p>Unique name of the contributor (to prevent clashes)</p></td>
+        </tr>
+	
+	
+	
+        <tr>
+            
+                <td class="name"><code>queryTerm</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">json</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last"><p>The query JSON for the REST API (E.g. an and-query instance)</p></td>
+        </tr>
+	
+	
+	
+        <tr>
+            
+                <td class="name"><code>start_opt</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">integer</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last"><p>The optional first result to show (defaults to 1)</p></td>
+        </tr>
+	
+	
+	</tbody>
+</table>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line5651">line 5651</a>
+    </li></ul></dd>
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="deselectFacet"><span class="type-signature"></span>deselectFacet<span class="signature">(facetName, facetValue_opt)</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        <p>Deselects the specified facet, or facet value pair</p>
+    </div>
+    
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+		
+		<th>Type</th>
+		
+		
+		
+		
+		
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+	
+	<tbody>
+	
+	
+        <tr>
+            
+                <td class="name"><code>facetName</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last"><p>The name of the facet to deselect</p></td>
+        </tr>
+	
+	
+	
+        <tr>
+            
+                <td class="name"><code>facetValue_opt</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last"><p>The value to deselect. If undefined, all values of this facet are deselected.</p></td>
+        </tr>
+	
+	
+	</tbody>
+</table>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line5985">line 5985</a>
     </li></ul></dd>
     
     
@@ -850,7 +1225,7 @@ wants to be notified of changes to those, and to any new results or pages being 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line5687">line 5687</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line5749">line 5749</a>
     </li></ul></dd>
     
     
@@ -990,7 +1365,146 @@ wants to be notified of changes to those, and to any new results or pages being 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line5549">line 5549</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line5595">line 5595</a>
+    </li></ul></dd>
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="getOptions"><span class="type-signature"></span>getOptions<span class="signature">()</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        <p>Returns the raw options JSON object.</p>
+    </div>
+    
+
+    
+    
+    
+    
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line5407">line 5407</a>
+    </li></ul></dd>
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="getOptionsBuilder"><span class="type-signature"></span>getOptionsBuilder<span class="signature">()</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        <p>If setOptions was passed an options builder instance instead of a JSON REST API options object, this function will return the options builder object.
+This is useful when you want to introspect the options. E.g. to translate facet values to human readable text.</p>
+    </div>
+    
+
+    
+    
+    
+    
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line5400">line 5400</a>
     </li></ul></dd>
     
     
@@ -1107,7 +1621,7 @@ wants to be notified of changes to those, and to any new results or pages being 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line5409">line 5409</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line5455">line 5455</a>
     </li></ul></dd>
     
     
@@ -1224,7 +1738,7 @@ wants to be notified of changes to those, and to any new results or pages being 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line5908">line 5908</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line5975">line 5975</a>
     </li></ul></dd>
     
     
@@ -1341,7 +1855,7 @@ wants to be notified of changes to those, and to any new results or pages being 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line5890">line 5890</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line5957">line 5957</a>
     </li></ul></dd>
     
     
@@ -1458,7 +1972,7 @@ wants to be notified of changes to those, and to any new results or pages being 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line5854">line 5854</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line5921">line 5921</a>
     </li></ul></dd>
     
     
@@ -1575,7 +2089,7 @@ wants to be notified of changes to those, and to any new results or pages being 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line5872">line 5872</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line5939">line 5939</a>
     </li></ul></dd>
     
     
@@ -1644,7 +2158,7 @@ wants to be notified of changes to those, and to any new results or pages being 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line6075">line 6075</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line6155">line 6155</a>
     </li></ul></dd>
     
     
@@ -1713,7 +2227,7 @@ wants to be notified of changes to those, and to any new results or pages being 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line5281">line 5281</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line5318">line 5318</a>
     </li></ul></dd>
     
     
@@ -1830,7 +2344,7 @@ wants to be notified of changes to those, and to any new results or pages being 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line5311">line 5311</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line5348">line 5348</a>
     </li></ul></dd>
     
     
@@ -1947,7 +2461,7 @@ wants to be notified of changes to those, and to any new results or pages being 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line5250">line 5250</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line5285">line 5285</a>
     </li></ul></dd>
     
     
@@ -2064,7 +2578,7 @@ wants to be notified of changes to those, and to any new results or pages being 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line5401">line 5401</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line5446">line 5446</a>
     </li></ul></dd>
     
     
@@ -2181,7 +2695,7 @@ wants to be notified of changes to those, and to any new results or pages being 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line5387">line 5387</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line5432">line 5432</a>
     </li></ul></dd>
     
     
@@ -2298,7 +2812,7 @@ wants to be notified of changes to those, and to any new results or pages being 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line5320">line 5320</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line5357">line 5357</a>
     </li></ul></dd>
     
     
@@ -2415,7 +2929,7 @@ wants to be notified of changes to those, and to any new results or pages being 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line5302">line 5302</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line5339">line 5339</a>
     </li></ul></dd>
     
     
@@ -2525,7 +3039,7 @@ In V7 this will be passed on the fly to MarkLogic.</p>
             
             
             
-            <td class="description last"><p>The REST API JSON search options object to use</p></td>
+            <td class="description last"><p>The REST API JSON search options object to use, or the MLJS search options builder object. (For caching for later modification or introspection. E.g. to use for translating facet values to human readable text)</p></td>
         </tr>
 	
 	
@@ -2556,7 +3070,7 @@ In V7 this will be passed on the fly to MarkLogic.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line5331">line 5331</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line5368">line 5368</a>
     </li></ul></dd>
     
     
@@ -2673,7 +3187,7 @@ In V7 this will be passed on the fly to MarkLogic.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line5836">line 5836</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line5903">line 5903</a>
     </li></ul></dd>
     
     
@@ -2790,7 +3304,7 @@ In V7 this will be passed on the fly to MarkLogic.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line5266">line 5266</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line5302">line 5302</a>
     </li></ul></dd>
     
     
@@ -2907,7 +3421,7 @@ In V7 this will be passed on the fly to MarkLogic.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line5274">line 5274</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line5311">line 5311</a>
     </li></ul></dd>
     
     
@@ -3024,7 +3538,264 @@ In V7 this will be passed on the fly to MarkLogic.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line5953">line 5953</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line6032">line 6032</a>
+    </li></ul></dd>
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="updateGeoHeatmap"><span class="type-signature"></span>updateGeoHeatmap<span class="signature">(constraint_name, heatmap)</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        <p>Updates a geospatial searches heatmap configuration using the provided heatmap JSON configuration</p>
+    </div>
+    
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+		
+		<th>Type</th>
+		
+		
+		
+		
+		
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+	
+	<tbody>
+	
+	
+        <tr>
+            
+                <td class="name"><code>constraint_name</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last"><p>The name of the constraint whose heatmap should be changed</p></td>
+        </tr>
+	
+	
+	
+        <tr>
+            
+                <td class="name"><code>heatmap</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">json</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last"><p>The REST API heatmap configuration</p></td>
+        </tr>
+	
+	
+	</tbody>
+</table>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line5681">line 5681</a>
+    </li></ul></dd>
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="updateGeoSelection"><span class="type-signature"></span>updateGeoSelection<span class="signature">(selection)</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        <p>Updates the selected area, be it a radius, polugon, or bounding box (or indeed empty - null)</p>
+    </div>
+    
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+		
+		<th>Type</th>
+		
+		
+		
+		
+		
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+	
+	<tbody>
+	
+	
+        <tr>
+            
+                <td class="name"><code>selection</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">JSON</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last"><p>The JSON area selection object {contributor: &quot;somename&quot;, type: &quot;circle|polygon|box|null&quot;, &quot;constraint_name&quot;: &quot;name&quot;, box: {north:, south: , east:,  west:}, polygon: polygon-config, latitude: ,longitude: , radiusmiles: , heatmap: heatmap-json}</p></td>
+        </tr>
+	
+	
+	</tbody>
+</table>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line5715">line 5715</a>
     </li></ul></dd>
     
     
@@ -3144,7 +3915,7 @@ multiple search results over time (e.g. between pages of results).</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line6015">line 6015</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line6094">line 6094</a>
     </li></ul></dd>
     
     
@@ -3262,7 +4033,124 @@ json = {show: number, start: number}</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line6041">line 6041</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line6121">line 6121</a>
+    </li></ul></dd>
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="updateResults"><span class="type-signature"></span>updateResults<span class="signature">(msg)</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        <p>Update all listeners' results with the provided search results</p>
+    </div>
+    
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+		
+		<th>Type</th>
+		
+		
+		
+		
+		
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+	
+	<tbody>
+	
+	
+        <tr>
+            
+                <td class="name"><code>msg</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">json</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last"><p>The results json (or true(result being refreshed) or false(results refresh failed) )</p></td>
+        </tr>
+	
+	
+	</tbody>
+</table>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line5857">line 5857</a>
     </li></ul></dd>
     
     
@@ -3382,7 +4270,7 @@ multiple search results over time (e.g. between pages of results).</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line5985">line 5985</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line6064">line 6064</a>
     </li></ul></dd>
     
     
@@ -3499,7 +4387,7 @@ multiple search results over time (e.g. between pages of results).</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line6055">line 6055</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line6135">line 6135</a>
     </li></ul></dd>
     
     
@@ -3585,7 +4473,7 @@ multiple search results over time (e.g. between pages of results).</p>
             
             
             
-            <td class="description last"><p>The name of the tuple to fetch lexicon (or co-occurence) values for. Multiple tuples names allowed</p></td>
+            <td class="description last"><p>The name of the tuple to fetch lexicon (or co-occurence) values for. Multiple tuples name arguments allowed (not as an array).</p></td>
         </tr>
 	
 	
@@ -3616,7 +4504,7 @@ multiple search results over time (e.g. between pages of results).</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line5290">line 5290</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#line5327">line 5327</a>
     </li></ul></dd>
     
     
@@ -3657,13 +4545,13 @@ multiple search results over time (e.g. between pages of results).</p>
 </div>
 
 <nav>
-    <h2><a href="index.html">Index</a></h2><h3>Classes</h3><ul><li><a href="BasicWrapper.html">BasicWrapper</a></li><li><a href="com.marklogic.events.Publisher.html">Publisher</a></li><li><a href="com.marklogic.semantic.tripleconfig.html">tripleconfig</a></li><li><a href="DigestWrapper.html">DigestWrapper</a></li><li><a href="mljs.html">mljs</a></li><li><a href="documentcontext.html">documentcontext</a></li><li><a href="options.html">options</a></li><li><a href="query.html">query</a></li><li><a href="searchcontext.html">searchcontext</a></li><li><a href="semanticcontext.html">semanticcontext</a></li><li><a href="PassThroughWrapper.html">PassThroughWrapper</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-001-intro.html">001-intro</a></li><li><a href="tutorial-001-widgets-list.html">001-widgets-list</a></li><li><a href="tutorial-002-intro-firstpage.html">002-intro-firstpage</a></li><li><a href="tutorial-002-widgets-search.html">002-widgets-search</a></li><li><a href="tutorial-003-widgets-search-render.html">003-widgets-search-render</a></li><li><a href="tutorial-004-widgets-highcharts.html">004-widgets-highcharts</a></li><li><a href="tutorial-011-browser-create-app.html">011-browser-create-app</a></li><li><a href="tutorial-012-browser-install-app.html">012-browser-install-app</a></li><li><a href="tutorial-013-browser-samples-app.html">013-browser-samples-app</a></li><li><a href="tutorial-014-browser-workplace.html">014-browser-workplace</a></li><li><a href="tutorial-050-core-contexts.html">050-core-contexts</a></li><li><a href="tutorial-901-ontology.html">901-ontology</a></li><li><a href="tutorial-999-samples.html">999-samples</a></li><li><a href="tutorial-all.html">all</a></li></ul><h3>Global</h3><ul><li><a href="global.html#padNC">padNC</a></li><li><a href="global.html#parseDigest">parseDigest</a></li><li><a href="global.html#textToXML">textToXML</a></li><li><a href="global.html#xmlToJson">xmlToJson</a></li><li><a href="global.html#xmlToJsonSearchResults">xmlToJsonSearchResults</a></li><li><a href="global.html#xmlToJsonStrict">xmlToJsonStrict</a></li></ul>
+    <h2><a href="index.html">Index</a></h2><h3>Classes</h3><ul><li><a href="BasicWrapper.html">BasicWrapper</a></li><li><a href="com.marklogic.events.Publisher.html">Publisher</a></li><li><a href="com.marklogic.semantic.tripleconfig.html">tripleconfig</a></li><li><a href="DigestWrapper.html">DigestWrapper</a></li><li><a href="mljs.html">mljs</a></li><li><a href="documentcontext.html">documentcontext</a></li><li><a href="options.html">options</a></li><li><a href="query.html">query</a></li><li><a href="searchcontext.html">searchcontext</a></li><li><a href="semanticcontext.html">semanticcontext</a></li><li><a href="sparqlbuilder.html">sparqlbuilder</a></li><li><a href="PassThroughWrapper.html">PassThroughWrapper</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-001-intro.html">001-intro</a></li><li><a href="tutorial-001-widgets-list.html">001-widgets-list</a></li><li><a href="tutorial-002-intro-firstpage.html">002-intro-firstpage</a></li><li><a href="tutorial-002-widgets-search.html">002-widgets-search</a></li><li><a href="tutorial-003-widgets-search-render.html">003-widgets-search-render</a></li><li><a href="tutorial-004-widgets-highcharts.html">004-widgets-highcharts</a></li><li><a href="tutorial-011-browser-create-app.html">011-browser-create-app</a></li><li><a href="tutorial-012-browser-install-app.html">012-browser-install-app</a></li><li><a href="tutorial-013-browser-samples-app.html">013-browser-samples-app</a></li><li><a href="tutorial-014-browser-workplace.html">014-browser-workplace</a></li><li><a href="tutorial-050-core-contexts.html">050-core-contexts</a></li><li><a href="tutorial-901-ontology.html">901-ontology</a></li><li><a href="tutorial-999-samples.html">999-samples</a></li><li><a href="tutorial-all.html">all</a></li></ul><h3>Global</h3><ul><li><a href="global.html#padNC">padNC</a></li><li><a href="global.html#parseDigest">parseDigest</a></li><li><a href="global.html#textToXML">textToXML</a></li><li><a href="global.html#xmlToJson">xmlToJson</a></li><li><a href="global.html#xmlToJsonSearchResults">xmlToJsonSearchResults</a></li><li><a href="global.html#xmlToJsonStrict">xmlToJsonStrict</a></li></ul>
 </nav>
 
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Sun Dec 15 2013 00:03:41 GMT-0000 (GMT)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Tue Dec 17 2013 01:52:42 GMT-0000 (GMT)
 </footer>
 
 <script> prettyPrint(); </script>
