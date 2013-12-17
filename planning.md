@@ -64,7 +64,7 @@ Targets for 1.2 (Dec 2013) - High priority
    - documentcontext.allowableProperty JSON
    - search properties transform parameters sprops_opt.transformParameters
    - sortOrder element/field/attribute spec
-  - REVIEW Core API jsdoc
+  - DONE Core API jsdoc
   - Widget API jsdoc
  - Docs: Tutorials
   - (Emil Zegers) RDB2RDF quick start tutorial
