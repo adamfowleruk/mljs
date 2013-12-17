@@ -19,9 +19,9 @@ export RESTPORT="8120"
 #curl -X PUT --anyauth --user $USER:$PASS -H "Content-type: application/xquery" -d@"./rest-api/ext/rdb2rdf.xqy" \
 #    "http://$HOST:$RESTPORT/v1/config/resources/rdb2rdf"
 
-curl -X PUT --anyauth --user $USER:$PASS -H "Content-type: application/xquery" -d@"./rest-api/ext/version.xqy" \
-    "http://$HOST:$RESTPORT/v1/config/resources/version"
+#curl -X PUT --anyauth --user $USER:$PASS -H "Content-type: application/xquery" -d@"./rest-api/ext/version.xqy" \
+#    "http://$HOST:$RESTPORT/v1/config/resources/version"
 
 # Remove versions extension
-#curl --anyauth --user $USER:$PASS -X DELETE -i http://$HOST:$RESTPORT/v1/config/resources/version
+curl --anyauth --user $USER:$PASS -X DELETE -i http://$HOST:$RESTPORT/v1/config/resources/version
     

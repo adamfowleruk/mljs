@@ -17,7 +17,8 @@ can introspect each widget to determine how it can be used.
 In the above example both the search bar and results widgets have a setContext() method and an updateResults()
 event listener method. These are discovered by the searchcontext.register() function and called as appropriate.
 
-## Register function
+## The Search Context
+### Register function
 
 This function introspects the given object to see if it can receive events or allows certain listeners to be
 added to it. The Search Context then registers itself to the appropriate add*Listener methods, and adds
@@ -33,7 +34,7 @@ intricacies of event passing for search between objects and the search context. 
 application developers registering their own callback functions on the search context for event handling
 directly, though.
 
-## Endpoints
+### Endpoints
 
 The search context's main job is to take inputs from a variety of sources, create a query, submit it to
 MarkLogic, and distribute the result. There are two REST API endpoints that accept these text or structured
@@ -46,7 +47,7 @@ the search context also. When using the co-occurence widget or lexicon lookups t
 against the values endpoint. Calling valuesEndpoint() on a search context instance makes this happen.
 The search context will then raise updateValues() callbacks on registered widgets.
 
-## Text versus structured query
+### Text versus structured query
 
 In many human driven scenarios a 'google like' text box is used allowing a query to be entered. This is
 free text with a few extra options, such as using AND and OR for boolean logic, () parantheses to surround
@@ -66,9 +67,9 @@ method allows several components to affect different parts of the query. The sea
 just the part of the query contributed by this widget, and then produces an and-query of this plus
 the other unchanged query terms, and executes this against MarkLogic.
 
-## Search results format
+### Search results format
 
-MarkLogic search supports results in either a JSON or XML wrapper. The search context is independant
+MarkLogic search supports results in either a JSON or XML wrapper. The search context is independent
 of these, but defaults to json. Call the setFormat("json|xml") method on the search context to select
 this.
 
@@ -78,7 +79,15 @@ to an XMLDocument instance.
 
 This is useful for if you want to execute XPath over the content within the browser.
 
+## Widget structure
 
+### Methods required
+
+TODO
+
+### Responding to results
+
+TODO
 
 - - - -
 
