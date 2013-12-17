@@ -3257,6 +3257,7 @@ mljs.prototype.options.prototype.concurrencyLevel = function(level) {
  */
 mljs.prototype.options.prototype.debug = function(dbg) {
   this.options.debug = dbg;
+  return this;
 };
 
 /**
@@ -5211,21 +5212,21 @@ mljs.prototype.searchcontext = function() {
   this.defaultQuery = ""; // should be set E.g. to "sort:relevance"
   this.optionsName = mljs.__dogenid();
   this._options = {
-                      options: {
-                        "return-results": true,
-                        "page-length": 10,
-                        "transform-results": {
-                          apply: "raw"/*, ns: "http://marklogic.com/rest-api/transform/transformresultsjson", at: "/modules/transform-results-json.xqy"*/
-                        },
-                        constraint: [
-                        {
-        "name": "collection",
-        "collection": {
-          "prefix": ""
-        }
-      } // other constraints here
+    options: {
+      "return-results": true,
+      "page-length": 10,
+      "transform-results": {
+        apply: "raw"/*, ns: "http://marklogic.com/rest-api/transform/transformresultsjson", at: "/modules/transform-results-json.xqy"*/
+      },
+      constraint: [
+        {
+          "name": "collection",
+          "collection": {
+            "prefix": ""
+          }
+        } // other constraints here
       ]
-                      }
+    }
   };
   this.collection = null;
   this.directory = null;

@@ -9,7 +9,7 @@ Below are a list of context object's currently available:-
 
 | Context Object | Description |
 | --- | --- |
-| searchcontext | Content Search Context. Stitches together anything that generates search calls (default grammar text or structured search), or relies on these operations' results. |
+| searchcontext | Content Search Context. Stitches together anything that generates search calls (default grammar text or structured search), or relies on these operations' results. Supports queries against the search endpoint and (Lexicon/Cooccurence) values endpoint. |
 | semanticcontext | Sparql Semantic Search Context. Links anything that executes Sparql, either to generate a list of subjects returned, facts about a particular subject, or all facts returned from generic sparql |
 | documentcontext | Document information / editing context. Allows single document operations such as fetching all of a document's properties, updating a property, of fetching all of a document's facet values. |
 
@@ -22,6 +22,7 @@ There are other objects that help prepare UI widgets, inform contexts, or used t
 | query | Query Builder. Call a function to generate a query term. Use JavaScript method chaining to stitch together multiple terms in a single and or or query. |
 | options | Query Options Builder. Chain function calls together to add constraints. Automatically adds sort definitions and facet calculations for the constraints. Convenience method to avoid writing your own search option JSON configuration, which is buggy to do manually. |
 | tripleconfig | Describe an ontology, it's entities, predicates (entity-entity relationships) and properties (entity-intrinsic values). Used typically to draw a UI that generates SPARQL. Used by semantic context rather than held independently by widget objects. |
+| sparqlbuilder | Call methods to create a SPARQL query without needing to know SPARQL syntax. Early days on this at the moment, very little functionality. |
 
 - - - -
 

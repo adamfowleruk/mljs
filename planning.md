@@ -24,13 +24,13 @@ Targets for 1.2 (Dec 2013) - High priority
   - DEFERRED (default)suggestion-source
  - App builder gap closing
   - DONE Widgets: HighCharts: Apply chaining pattern to highchart options to make them simpler
-  - TEST Core: Rework searchcontext
+  - BUG Core: Rework searchcontext
    - DONE Allow contribution of facets/sort etc to alter both text (grammar) queries and structured query (independently, via searchcontext)
    - DONE Add "values" as a searchcontext endpoint option (either /v1/search (default) or /v1/values/{tuplesname})
    - DONE Add V7 combined options + values support to mljs.values()
    - DONE Ensure searchcontext supports updateFacets
-   - IN PROGRESS Add addFacetSelection listener etc to highcharts widget
-   - IN PROGRESS Support compound search mode in V7 (options + search) (search, searchCollection, structuredSearch, saveSearchOptionsCheck, searchcontext alterations)
+   - NA Done when query refreshes anyway: Add addFacetSelection listener etc to highcharts widget
+   - BUG Support compound search mode in V7 (options + search) (search, searchCollection, structuredSearch, saveSearchOptionsCheck, searchcontext alterations)
     - DONE version rest extension
     - BUG: V7 ignores URL search parameters if submitting a structuredQuery and options (previously if supplying just query and referring to options, it'd work)
      - Fix chart search page
@@ -40,8 +40,8 @@ Targets for 1.2 (Dec 2013) - High priority
    - DEFERRED Come up with a strategy for parent-child relationships in search widgets (one way facet selection - E.g. genre THEN album)
    - NA alter the options to fetch data. Use updateResults to retrieve them for display: Allow widgets to request information in results, rather than alter search options (E.g. request a heatmap, or particular metadata properties) - context updates options on the fly
   - DONE Core: SearchContext to support multiple searches when same context used across multiple tuple names
-  - TEST Widgets: Navigable charts / co-occurence - clicking sets facet value
-   - TEST co-occurence
+  - BUG Widgets: Navigable charts / co-occurence - clicking sets facet value
+   - BUG co-occurence
     - DONE Requires values() support in searchcontext
     - BUG: POST /v1/tuples also ignoring query string parameters
    - DONE High charts column
