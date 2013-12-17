@@ -2572,6 +2572,31 @@ mljs.prototype.saveAll2 = function(doc_array,uri_array_opt,callback_opt) {
 
 // REST API EXTENSIONS
 
+
+// MLJS WORKPLACE
+mljs.prototype.getWorkplace = function(name,callback) {
+  this.get("/admin/workplace/" + encodeURI(name) + ".json", callback);
+};
+
+mljs.prototype.saveWorkplace = function(json,uri_opt,props_opt,callback) {
+  this.save(json,uri_opt || "/admin/workplace/" + this.__genid() + ".json",props_opt,callback);
+};
+
+mljs.prototype.findWorkplace = function(pageurl,callback) {
+  // query http://docs.marklogic.com/guide/search-dev/structured-query#id_47536
+  // options http://docs.marklogic.com/guide/rest-dev/appendixa#id_62771
+  // docs missing at the moment
+  // TODO ensure we ask for RAW results, limit 1
+  // TODO support multiple users (ASSUME: security handling visibility for same url, different config)
+};
+
+mljs.prototype.listSharedWorkplaces = function(callback) {
+  // query http://docs.marklogic.com/guide/search-dev/structured-query#id_47536
+  // options http://docs.marklogic.com/guide/rest-dev/appendixa#id_62771
+  // docs missing at the moment
+  // TODO ensure we ask for RAW results, limit 1
+};
+
 // START EXTENSION 
 /**
  * REQUIRES CUSTOM REST API EXTENSION - subscribe-resource.xqy - Adam Fowler adam.fowler@marklogic.com - Save searches by name, 

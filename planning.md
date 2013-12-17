@@ -49,18 +49,36 @@ Targets for 1.2 (Dec 2013) - High priority
    - DONE Pie segment
    - DONE translated to category from x position: BUG passing 2:"8" - 2 is the x position, not the x value - should be 'pet' on the pie on chartsearch page
  - IN PROGRESS Widgets: Workplace - Removes any code anyone needs to write to use MLJS widgets
+  - IN PROGRESS Main edit page framework
+   - Layout rendering in edit mode
+   - IN PROGRESS Page (configuration) settings
+    - DONE Get workplace rest extension and wrapper
+    - DONE Save workplace rest extension and wrapper
+    - DONE Workplace config JSON format - including 'shared' flag, title, description
+    - visuals
+   - Widgets settings
+    - Widget toolbox
+    - Laying out widget positions within page Layout
+   - Widget configuration settings (popup box)
+    - visuals
+    - Contexts - add new (auto named)
+   - Action settings
+    - on page load
+    - on page unload
+    - searchcontext on selection
   - IN PROGRESS Widgets: Add Drag and Drop support to widgets.js
    - DONE DND pure Test page in mldbwebtest roxy project
-   - IN PROGRESS ensure basic drag and drop works
+   - DONE ensure basic drag and drop works
    - IN PROGRESS Add rules around which draggables can be dropped on which droppables (dropzones)
-  - Support multiple modes
+  - Render Workplace
    - (default) Detect URL of page. Search in ML for workplace json page that matches this URL (not including query strings)
    - User default workplace. Find user's own 'personal-workplace' for currently logged in user (akin to a single page mode app)
    - DEFERRED Embeddable. Assume embedded in external app. Use workplace-share-id as key to find, on remote server via W3C CORS, the 'page' (embed) to draw
    - Fallback. If no Workplace detected, create a generic search page with a Workplace edit button (depending on app wide settings - 'save/edit allowed')
     - Allow fallback to be set programmatically or via app wide settings
-  - Create WorkplaceContext object in workplace js file
+  - IN PROGRESS Create WorkplaceContext object in workplace js file
    - updatePage event - occurs when a page is loaded. E.g. from current page URL or for current logged in user or as fallback
+   - updateSummary
    - updateApp event
    - loadApp
    - loadPage
