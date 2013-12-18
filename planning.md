@@ -48,6 +48,7 @@ Targets for 1.2 (Dec 2013) - High priority
    - DONE High charts line
    - DONE Pie segment
    - DONE translated to category from x position: BUG passing 2:"8" - 2 is the x position, not the x value - should be 'pet' on the pie on chartsearch page
+ - DONE BUG: OpenLayers polygon/circle selection no longer removing markers when executing more restrictive search
  - IN PROGRESS Widgets: Workplace - Removes any code anyone needs to write to use MLJS widgets
   - IN PROGRESS Main edit page framework
    - Layout rendering in edit mode
@@ -745,7 +746,6 @@ Targets for 19 Nov 2013
    - DONE BUG: Contribute query does not include one selected from drop down
    - DONE BUG: When clearing query, not contributed query is used at all (just two nulls)
    - DONE Widgets: OpenLayers - Configure OpenLayers/test page to use structured Contrib mode for queries
-   - BUG: OpenLayers polygon/circle selection no longer removing markers when executing more restrictive search
   - NA using Highlight instead due to popups being poor in OpenLayers: Show number with pin
   - NA using Highlight instead due to popups being poor in OpenLayers: Details popup for pins
   - DONE 'highlight' support for search result aka click on pin (not mouse over)

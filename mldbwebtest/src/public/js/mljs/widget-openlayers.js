@@ -863,7 +863,7 @@ com.marklogic.widgets.openlayers.prototype.addSeries = function(title,searchcont
       }
       return;
     }
-    /*
+    
         mljs.defaultconnection.logger.debug("openlayers.addSeries.listfunc: Deleting results markers in layer: " + title);
         // remove all markers
         var oldm = layer.markers;
@@ -873,7 +873,7 @@ com.marklogic.widgets.openlayers.prototype.addSeries = function(title,searchcont
           layer.removeMarker(mark); 
           mark.destroy();
         }
-        layer.clearMarkers();*/
+        layer.clearMarkers();
     
     mljs.defaultconnection.logger.debug("openlayers.addSeries.listfunc: Processing results");
     // add each marker in new result set
