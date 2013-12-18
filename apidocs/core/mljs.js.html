@@ -2599,6 +2599,31 @@ mljs.prototype.saveAll2 = function(doc_array,uri_array_opt,callback_opt) {
 
 // REST API EXTENSIONS
 
+
+// MLJS WORKPLACE
+mljs.prototype.getWorkplace = function(name,callback) {
+  this.get("/admin/workplace/" + encodeURI(name) + ".json", callback);
+};
+
+mljs.prototype.saveWorkplace = function(json,uri_opt,props_opt,callback) {
+  this.save(json,uri_opt || "/admin/workplace/" + this.__genid() + ".json",props_opt,callback);
+};
+
+mljs.prototype.findWorkplace = function(pageurl,callback) {
+  // query http://docs.marklogic.com/guide/search-dev/structured-query#id_47536
+  // options http://docs.marklogic.com/guide/rest-dev/appendixa#id_62771
+  // docs missing at the moment
+  // TODO ensure we ask for RAW results, limit 1
+  // TODO support multiple users (ASSUME: security handling visibility for same url, different config)
+};
+
+mljs.prototype.listSharedWorkplaces = function(callback) {
+  // query http://docs.marklogic.com/guide/search-dev/structured-query#id_47536
+  // options http://docs.marklogic.com/guide/rest-dev/appendixa#id_62771
+  // docs missing at the moment
+  // TODO ensure we ask for RAW results, limit 1
+};
+
 // START EXTENSION 
 /**
  * REQUIRES CUSTOM REST API EXTENSION - subscribe-resource.xqy - Adam Fowler adam.fowler@marklogic.com - Save searches by name, 
@@ -4864,7 +4889,7 @@ mljs.prototype.query.prototype.collection = function(uri_opt,depth_opt) {
  * @param {positiveInteger} radius - The radius from the circle centre to use. Defaults to statute (not nautical) miles. Supports "miles", "m" (metres), "km", "nm" (nautical miles), "degrees" (degrees longitude at the equator, or latitude)
  * @param {string} radiusmeasure_opt - The units used. Default is statute miles. m=metres, km=kilometres, nm=nautical miles, degrees=degrees of rotation of the Earth
  */
-mljs.prototype.query.prototype.georadius = function(constraint_name,lat,lon,radius,radiusmeasure_opt) {
+mljs.prototype.query.prototype.geoRadius = function(constraint_name,lat,lon,radius,radiusmeasure_opt) {
   var radiusactual = this._convertRadius(radius,radiusmeasure_opt);
   return {
     "geospatial-constraint-query" : {
@@ -4876,6 +4901,7 @@ mljs.prototype.query.prototype.georadius = function(constraint_name,lat,lon,radi
     }
   }
 };
+mljs.prototype.query.prototype.georadius = mljs.prototype.query.prototype.geoRadius;
 
 mljs.prototype.query.prototype._convertRadius = function(radius,radiusmeasure_opt) {
   var radiusactual = radius;
@@ -5599,12 +5625,12 @@ mljs.prototype.searchcontext.prototype._parseQuery = function(q) {
 
 
 mljs.prototype.searchcontext.prototype._queryToText = function(parsed) {
-  var q = parsed.q;
+  var q = "" + parsed.q;
   if (null != parsed.sort) {
     q += " " + this.sortWord + ":" + parsed.sort;
   }
   for (var i = 0;i &lt; parsed.facets.length;i++) {
-    if (i > 0) {
+    if (i > 0 || q.length > 0) {
       q += " ";
     }
     if (undefined != parsed.facets[i]) { // possible somehow. Not sure how.
@@ -7649,13 +7675,13 @@ mljs.prototype.xmlToText = xmlToText;
 </div>
 
 <nav>
-    <h2><a href="index.html">Index</a></h2><h3>Classes</h3><ul><li><a href="BasicWrapper.html">BasicWrapper</a></li><li><a href="com.marklogic.events.Publisher.html">Publisher</a></li><li><a href="com.marklogic.semantic.tripleconfig.html">tripleconfig</a></li><li><a href="DigestWrapper.html">DigestWrapper</a></li><li><a href="mljs.html">mljs</a></li><li><a href="documentcontext.html">documentcontext</a></li><li><a href="options.html">options</a></li><li><a href="query.html">query</a></li><li><a href="searchcontext.html">searchcontext</a></li><li><a href="semanticcontext.html">semanticcontext</a></li><li><a href="sparqlbuilder.html">sparqlbuilder</a></li><li><a href="PassThroughWrapper.html">PassThroughWrapper</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-001-intro.html">001-intro</a></li><li><a href="tutorial-001-widgets-list.html">001-widgets-list</a></li><li><a href="tutorial-002-intro-firstpage.html">002-intro-firstpage</a></li><li><a href="tutorial-002-widgets-search.html">002-widgets-search</a></li><li><a href="tutorial-003-widgets-search-render.html">003-widgets-search-render</a></li><li><a href="tutorial-004-widgets-highcharts.html">004-widgets-highcharts</a></li><li><a href="tutorial-011-browser-create-app.html">011-browser-create-app</a></li><li><a href="tutorial-012-browser-install-app.html">012-browser-install-app</a></li><li><a href="tutorial-013-browser-samples-app.html">013-browser-samples-app</a></li><li><a href="tutorial-014-browser-workplace.html">014-browser-workplace</a></li><li><a href="tutorial-050-core-contexts.html">050-core-contexts</a></li><li><a href="tutorial-901-ontology.html">901-ontology</a></li><li><a href="tutorial-999-samples.html">999-samples</a></li><li><a href="tutorial-all.html">all</a></li></ul><h3>Global</h3><ul><li><a href="global.html#padNC">padNC</a></li><li><a href="global.html#parseDigest">parseDigest</a></li><li><a href="global.html#textToXML">textToXML</a></li><li><a href="global.html#xmlToJson">xmlToJson</a></li><li><a href="global.html#xmlToJsonSearchResults">xmlToJsonSearchResults</a></li><li><a href="global.html#xmlToJsonStrict">xmlToJsonStrict</a></li></ul>
+    <h2><a href="index.html">Index</a></h2><h3>Classes</h3><ul><li><a href="BasicWrapper.html">BasicWrapper</a></li><li><a href="com.marklogic.events.Publisher.html">Publisher</a></li><li><a href="com.marklogic.semantic.tripleconfig.html">tripleconfig</a></li><li><a href="DigestWrapper.html">DigestWrapper</a></li><li><a href="mljs.html">mljs</a></li><li><a href="documentcontext.html">documentcontext</a></li><li><a href="options.html">options</a></li><li><a href="query.html">query</a></li><li><a href="searchcontext.html">searchcontext</a></li><li><a href="semanticcontext.html">semanticcontext</a></li><li><a href="sparqlbuilder.html">sparqlbuilder</a></li><li><a href="PassThroughWrapper.html">PassThroughWrapper</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-001-intro.html">001-intro</a></li><li><a href="tutorial-001-widgets-list.html">001-widgets-list</a></li><li><a href="tutorial-002-intro-firstpage.html">002-intro-firstpage</a></li><li><a href="tutorial-002-widgets-search.html">002-widgets-search</a></li><li><a href="tutorial-003-widgets-search-render.html">003-widgets-search-render</a></li><li><a href="tutorial-004-widgets-highcharts.html">004-widgets-highcharts</a></li><li><a href="tutorial-011-browser-create-app.html">011-browser-create-app</a></li><li><a href="tutorial-012-browser-install-app.html">012-browser-install-app</a></li><li><a href="tutorial-013-browser-samples-app.html">013-browser-samples-app</a></li><li><a href="tutorial-014-browser-workplace.html">014-browser-workplace</a></li><li><a href="tutorial-050-core-contexts.html">050-core-contexts</a></li><li><a href="tutorial-060-rest-ext.html">060-rest-ext</a></li><li><a href="tutorial-901-ontology.html">901-ontology</a></li><li><a href="tutorial-999-samples.html">999-samples</a></li><li><a href="tutorial-all.html">all</a></li></ul><h3>Global</h3><ul><li><a href="global.html#padNC">padNC</a></li><li><a href="global.html#parseDigest">parseDigest</a></li><li><a href="global.html#textToXML">textToXML</a></li><li><a href="global.html#xmlToJson">xmlToJson</a></li><li><a href="global.html#xmlToJsonSearchResults">xmlToJsonSearchResults</a></li><li><a href="global.html#xmlToJsonStrict">xmlToJsonStrict</a></li></ul>
 </nav>
 
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Tue Dec 17 2013 15:16:12 GMT-0000 (GMT)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Wed Dec 18 2013 22:50:01 GMT-0000 (GMT)
 </footer>
 
 <script> prettyPrint(); </script>

@@ -297,6 +297,157 @@ com.marklogic.widgets.actions.javascript.prototype.execute = function(executionC
 
 
 
+com.marklogic.widgets.workplacecontext = function() {
+  this._json = {
+    shared: false,
+    widgets: [], assignments: [], contexts: [], actions: {
+      onload: [], onunload: []
+    }
+  };
+  this._uri = null;
+  
+  this.db = mljs.defaultconnection;
+};
+
+com.marklogic.widgets.workplacecontext.prototype.getSummary = function() {
+  return {title: this._json.title,urls: this._json.urls,layout: this._json.layout,shared:this._json.shared};
+}
+com.marklogic.widgets.workplacecontext.prototype.setSummary = function(title, urls, layout,shared) {
+  this._json.title = title;
+  this._json.urls = urls;
+  this._json.layout = layout;
+  this._json.shared = shared;
+};
+
+com.marklogic.widgets.workplacecontext.prototype.getWidgets = function() {
+  return this._json.widgets;
+};
+
+com.marklogic.widgets.workplacecontext.prototype.addWidget = function(name,type,config) {
+  var wgt = {widget: name, type: type, config: config};
+  this._json.widgets.push(wgt);
+};
+
+com.marklogic.widgets.workplacecontext.prototype.removeWidget = function(name) {
+  var wgts = [];
+  for (var i = 0;i &lt; this._json.widgets.length;i++) {
+    if (this._json.widgets[i].name == name) {
+      // do nothing
+    } else {
+      wgts.push(this._json.widgets[i]);
+    }
+  }
+  this._json.widgets = wgts;
+};
+
+com.marklogic.widgets.workplacecontext.prototype.getAssignments = function() {
+  return this._json.assignments;
+};
+
+com.marklogic.widgets.workplacecontext.prototype.placeWidget = function(name,zone,order) {
+  // get other widgets in zone
+  var zoneWidgets = [];
+  var otherWidgets = [];
+  var maxo = 0;
+  for (var i = 0,w, max = this._json.assignments.length;i &lt; max;i++) {
+    w = this._json.assignments[i];
+    if (w.zone == zone) {
+      zoneWidgets[w.order-1] = w;
+      maxo = w.order;
+    } else {
+      otherWidgets.push(w);
+    }
+  }
+  // increment indexes on this and subsequent widget placements
+  for (var i = maxo-1; i > order - 1;i--) {
+    zoneWidgets[maxo] = zoneWidgets[maxo - 1];
+    zoneWidgets[maxo].order++;
+    zoneWidgets[maxo - 1] = undefined;
+  }
+  // now add in our widget
+  zoneWidgets[order - 1] = {widget: name,zone:zone,order:order};
+  
+  var places = [];
+  for (var i = 0;i &lt; otherWidgets.length;i++) {
+    places.push(otherWidgets[i]);
+  }
+  for (var i = 0;i &lt; zoneWidgets.length;i++) {
+    places.push(zoneWidgets[i]);
+  }
+  this._json.assignments = places;
+};
+
+com.marklogic.widgets.workplacecontext.prototype.getContexts = function() {
+  return this._json.contexts;
+};
+
+com.marklogic.widgets.workplacecontext.prototype.addContext = function(name,type,config) {
+  this._json.contexts.push({context: name,type:type,config:config,register:[]});
+};
+
+com.marklogic.widgets.workplacecontext.prototype.registerWidget = function(widgetName,contextName) {
+  for (var i = 0, max = this._json.contexts.length,c;i &lt; max;i++) {
+    c = this._json.contexts[i];
+    if (c.context == contextName) {
+      c.register.push(widgetName);
+      return;
+    }
+  }
+};
+
+com.marklogic.widgets.workplacecontext.prototype.setWidgetConfig = function(widgetName,config) {
+  for (var i = 0, max = this._json.widgets.length,w;i &lt; max;i++) {
+    w = this._json.widgets[i];
+    if (w.widget == widgetName) {
+      w.config = config;
+      return;
+    }
+  }
+};
+
+com.marklogic.widgets.workplacecontext.prototype.getActions = function() {
+  return this._json.actions;
+};
+
+com.marklogic.widgets.workplacecontext.prototype.addOnloadAction = function(type, config) {
+  this._json.actions.onload.push({type: type,config: config});
+};
+
+com.marklogic.widgets.workplacecontext.prototype.addOnunloadAction = function(type,config) {
+  this._json.actions.onunload.push({type: type,config: config});
+  
+};
+
+com.marklogic.widgets.workplacecontext.prototype.addContextAction = function(context_name,event,actiontype,actionconfig) {
+  // TODO
+};
+
+
+com.marklogic.widgets.workplacecontext.prototype.editPage = function(url) {
+  var self = this;
+  this.db.findWorkplace(url,function(result) {
+    // assume just one
+    self._uri = result.doc.results[0].uri;
+    self._json = result.doc.results[0].content;
+    if ("string" == typeof (self._json)) {
+      self._json = JSON.parse(self._json);
+    }
+    // TODO fire updatePage event
+  });
+};
+
+com.marklogic.widgets.workplacecontext.prototype.editPageWithUri = function(uri) {
+  this._uri = uri;
+  var self = this;
+  this.db.getWorkplace(uri,function(result) {
+    self._json = result.doc;
+    // TODO fire updatePage event
+  });
+};
+
+
+
+
 
 
 
@@ -395,13 +546,13 @@ com.marklogic.widgets.workplaceadmin.prototype._refresh = function() {
 </div>
 
 <nav>
-    <h2><a href="index.html">Index</a></h2><h3>Classes</h3><ul><li><a href="com.marklogic.widgets.collectionuris.html">collectionuris</a></li><li><a href="com.marklogic.widgets.cooccurence.html">cooccurence</a></li><li><a href="com.marklogic.widgets.create.html">create</a></li><li><a href="com.marklogic.widgets.docviewer.html">docviewer</a></li><li><a href="com.marklogic.widgets.entityfacts.html">entityfacts</a></li><li><a href="com.marklogic.widgets.error.html">error</a></li><li><a href="com.marklogic.widgets.graphexplorer.html">graphexplorer</a></li><li><a href="com.marklogic.widgets.highcharts.html">highcharts</a></li><li><a href="com.marklogic.widgets.kratu.html">kratu</a></li><li><a href="com.marklogic.widgets.markings.html">markings</a></li><li><a href="com.marklogic.widgets.openlayers.html">openlayers</a></li><li><a href="com.marklogic.widgets.profile.html">profile</a></li><li><a href="com.marklogic.widgets.rdb2rdf.html">rdb2rdf</a></li><li><a href="com.marklogic.widgets.searchbar.html">searchbar</a></li><li><a href="com.marklogic.widgets.searchpage.html">searchpage</a></li><li><a href="com.marklogic.widgets.searchpager.html">searchpager</a></li><li><a href="com.marklogic.widgets.searchresults.html">searchresults</a></li><li><a href="com.marklogic.widgets.searchselection.html">searchselection</a></li><li><a href="com.marklogic.widgets.searchsort.html">searchsort</a></li><li><a href="com.marklogic.widgets.selection.html">selection</a></li><li><a href="com.marklogic.widgets.sparqlbar.html">sparqlbar</a></li><li><a href="com.marklogic.widgets.sparqlresults.html">sparqlresults</a></li><li><a href="com.marklogic.widgets.workplace.html">workplace</a></li></ul><h3>Namespaces</h3><ul><li><a href="com.marklogic.widgets.bits.html">bits</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-001-intro.html">001-intro</a></li><li><a href="tutorial-001-widgets-list.html">001-widgets-list</a></li><li><a href="tutorial-002-intro-firstpage.html">002-intro-firstpage</a></li><li><a href="tutorial-002-widgets-search.html">002-widgets-search</a></li><li><a href="tutorial-003-widgets-search-render.html">003-widgets-search-render</a></li><li><a href="tutorial-004-widgets-highcharts.html">004-widgets-highcharts</a></li><li><a href="tutorial-011-browser-create-app.html">011-browser-create-app</a></li><li><a href="tutorial-012-browser-install-app.html">012-browser-install-app</a></li><li><a href="tutorial-013-browser-samples-app.html">013-browser-samples-app</a></li><li><a href="tutorial-014-browser-workplace.html">014-browser-workplace</a></li><li><a href="tutorial-050-core-contexts.html">050-core-contexts</a></li><li><a href="tutorial-901-ontology.html">901-ontology</a></li><li><a href="tutorial-999-samples.html">999-samples</a></li><li><a href="tutorial-all.html">all</a></li></ul><h3>Global</h3><ul><li><a href="global.html#com">com</a></li></ul>
+    <h2><a href="index.html">Index</a></h2><h3>Classes</h3><ul><li><a href="com.marklogic.widgets.collectionuris.html">collectionuris</a></li><li><a href="com.marklogic.widgets.cooccurence.html">cooccurence</a></li><li><a href="com.marklogic.widgets.create.html">create</a></li><li><a href="com.marklogic.widgets.docviewer.html">docviewer</a></li><li><a href="com.marklogic.widgets.entityfacts.html">entityfacts</a></li><li><a href="com.marklogic.widgets.error.html">error</a></li><li><a href="com.marklogic.widgets.graphexplorer.html">graphexplorer</a></li><li><a href="com.marklogic.widgets.highcharts.html">highcharts</a></li><li><a href="com.marklogic.widgets.kratu.html">kratu</a></li><li><a href="com.marklogic.widgets.markings.html">markings</a></li><li><a href="com.marklogic.widgets.openlayers.html">openlayers</a></li><li><a href="com.marklogic.widgets.profile.html">profile</a></li><li><a href="com.marklogic.widgets.rdb2rdf.html">rdb2rdf</a></li><li><a href="com.marklogic.widgets.searchbar.html">searchbar</a></li><li><a href="com.marklogic.widgets.searchpage.html">searchpage</a></li><li><a href="com.marklogic.widgets.searchpager.html">searchpager</a></li><li><a href="com.marklogic.widgets.searchresults.html">searchresults</a></li><li><a href="com.marklogic.widgets.searchselection.html">searchselection</a></li><li><a href="com.marklogic.widgets.searchsort.html">searchsort</a></li><li><a href="com.marklogic.widgets.selection.html">selection</a></li><li><a href="com.marklogic.widgets.sparqlbar.html">sparqlbar</a></li><li><a href="com.marklogic.widgets.sparqlresults.html">sparqlresults</a></li><li><a href="com.marklogic.widgets.workplace.html">workplace</a></li></ul><h3>Namespaces</h3><ul><li><a href="com.marklogic.widgets.bits.html">bits</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-001-intro.html">001-intro</a></li><li><a href="tutorial-001-widgets-list.html">001-widgets-list</a></li><li><a href="tutorial-002-intro-firstpage.html">002-intro-firstpage</a></li><li><a href="tutorial-002-widgets-search.html">002-widgets-search</a></li><li><a href="tutorial-003-widgets-search-render.html">003-widgets-search-render</a></li><li><a href="tutorial-004-widgets-highcharts.html">004-widgets-highcharts</a></li><li><a href="tutorial-011-browser-create-app.html">011-browser-create-app</a></li><li><a href="tutorial-012-browser-install-app.html">012-browser-install-app</a></li><li><a href="tutorial-013-browser-samples-app.html">013-browser-samples-app</a></li><li><a href="tutorial-014-browser-workplace.html">014-browser-workplace</a></li><li><a href="tutorial-050-core-contexts.html">050-core-contexts</a></li><li><a href="tutorial-060-rest-ext.html">060-rest-ext</a></li><li><a href="tutorial-901-ontology.html">901-ontology</a></li><li><a href="tutorial-999-samples.html">999-samples</a></li><li><a href="tutorial-all.html">all</a></li></ul><h3>Global</h3><ul><li><a href="global.html#com">com</a></li></ul>
 </nav>
 
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Tue Dec 17 2013 15:16:19 GMT-0000 (GMT)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Wed Dec 18 2013 22:50:09 GMT-0000 (GMT)
 </footer>
 
 <script> prettyPrint(); </script>
