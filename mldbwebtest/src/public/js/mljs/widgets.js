@@ -191,9 +191,17 @@ function jsonExtractValue(json,namePath) {
 function xmlExtractValue(xmldoc,namePath) {
   // construct and apply XPath from namePath
   var xpath = "/" + namePath.replace(/\./g,"/");
+  xpath = xpath.replace(/\/.*:/g,"/*:"); // replace all namespaces with global namespace - temporary hack
   
   // TODO apply xpath to extract document value
-  return 0;
+  var myfunc = function(prefix) {
+    return null; // assume always default namespace
+    // TODO support namespaces globally somehow - global context? page context?
+  };
+  
+  var evalResult = xmldoc.evaluate(xpath,xmlDoc,myfunc,2,null); // 2=string
+  
+  return evalResult;
 };
 
 function extractValue(jsonOrXml,namePath) {

@@ -49,6 +49,8 @@ Targets for 1.2 (Dec 2013) - High priority
    - DONE Pie segment
    - DONE translated to category from x position: BUG passing 2:"8" - 2 is the x position, not the x value - should be 'pet' on the pie on chartsearch page
  - DONE BUG: OpenLayers polygon/circle selection no longer removing markers when executing more restrictive search
+ - BUG: Search sort widget showing [Object: object] instead of name in drop down
+ - Widgets: Tag cloud - add hover over text to include frequency of result
  - IN PROGRESS Widgets: Workplace - Removes any code anyone needs to write to use MLJS widgets
   - IN PROGRESS Main edit page framework
    - Layout rendering in edit mode
@@ -185,6 +187,8 @@ Targets for 1.3 Interim Release - Jan 2014
   - REST request re-writer to point to Workplace page (mljs-workplace.html.xqy), pass on other requests to REST API
   - Document preview page (may apply XSLT) on /view?uri= - check the appbuilder URL for this
  - Roxy commands for creating entire MLJS powered pages, controllers, and template JavaScript (E.g. ./ml mljs mycontroller/search searchpage leftchart=pie rightchart=map options=mysearchoptions )
+ - Widgets: Circular node diagram, support for size and colour to relate information
+ - Widgets: 2 way Co-occurence drawn as x by y grid, with size and colour of points relating to values 
  - Widgets: Sparql: Other sparql improvements (via sparql builder)
   - Support OPTIONAL?
   - Support UNION?
