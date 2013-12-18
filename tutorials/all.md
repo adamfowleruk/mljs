@@ -11,6 +11,7 @@
 ## mljs Core tutorials
 <ul>
   <li><a href=tutorial-050-core-contexts.html>All about Context objects</a></li>
+  <li><a href=tutorial-060-rest-ext.html>REST Extensions supported by MLJS</a></li>
   <li><a href=tutorial-999-samples.html>Old Code Snippets</a></li>
 </ul>
 

@@ -885,6 +885,17 @@ com.marklogic.widgets.searchresults = function(container) {
         self.ctx.db.logger.debug("defaultProcessor: Got JSON Object content");
         
         return handleJson(result,result.content);
+      } else if (result.format == "text") {
+        // plain text result
+        
+        var resStr = "<div class='searchresults-result'><h3>" + result.index + ". " + result.uri + "</h3>";
+        if (result.content.length <= 100) {
+          resStr += result.content;
+        } else {
+          resStr += result.content.substring(0,100) + "...";
+        }
+        resStr += "</div>";
+        return resStr;
       } else {
         // ATTEMPT TO PARSE AS XML
         self.ctx.db.logger.debug("defaultProcessor: Got escaped string - Could be XML or JSON ...");
@@ -1607,13 +1618,13 @@ com.marklogic.widgets.searchsort.prototype._refresh = function() {
       // element, element attribute, path etc sort options
       if (undefined != o.element) {
         if (undefined != o.attribute) {
-          val = o["attribute"];
+          val = o["attribute"].name;
         } else {
-          val = o["element"];
+          val = o["element"].name;
         }
       }
       if (undefined != o.field) {
-        val = o["field"];
+        val = o["field"].name;
       }
       
       // check for annotation to override title
@@ -1621,7 +1632,7 @@ com.marklogic.widgets.searchsort.prototype._refresh = function() {
     if (undefined != o.annotation && undefined != o.annotation[0]) {
       title = o.annotation[0];
     }
-    if ("" == title) {
+    if (undefined == title || "" == title) {
       title = com.marklogic.widgets.searchhelper.processValueAll(val);
       
       if ("" != title && undefined != o.direction) {

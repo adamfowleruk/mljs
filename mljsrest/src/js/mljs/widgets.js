@@ -191,9 +191,17 @@ function jsonExtractValue(json,namePath) {
 function xmlExtractValue(xmldoc,namePath) {
   // construct and apply XPath from namePath
   var xpath = "/" + namePath.replace(/\./g,"/");
+  xpath = xpath.replace(/\/.*:/g,"/*:"); // replace all namespaces with global namespace - temporary hack
   
   // TODO apply xpath to extract document value
-  return 0;
+  var myfunc = function(prefix) {
+    return null; // assume always default namespace
+    // TODO support namespaces globally somehow - global context? page context?
+  };
+  
+  var evalResult = xmldoc.evaluate(xpath,xmlDoc,myfunc,2,null); // 2=string
+  
+  return evalResult;
 };
 
 function extractValue(jsonOrXml,namePath) {
@@ -700,6 +708,7 @@ com.marklogic.widgets.dnd.accept = function(elid,droppableClass,draggableTypeArr
   var el = document.getElementById(elid);
   mljs.defaultconnection.logger.debug("dnd.onto: adding event handlers to: " + elid);
   el.addEventListener("dragover",function(ev) {
+  //el.ondragover = function(ev) {
     mljs.defaultconnection.logger.debug("dnd.onto: ondragover: " + elid);
     //var match = com.marklogic.widgets.dnd._compatible(el,elid,droppable); // TODO find and pass draggable elid
     //if (match) {
@@ -708,20 +717,21 @@ com.marklogic.widgets.dnd.accept = function(elid,droppableClass,draggableTypeArr
     ev.preventDefault();
     mljs.defaultconnection.logger.debug("dnd.accept: ondragover: returning false");
     return false;
-  });
+  },false); // )
   // TODO on drag out?
   el.addEventListener("drop",function(ev) {
+  //el.ondrop = function(ev) {
     mljs.defaultconnection.logger.debug("dnd.onto: ondrop: " + elid);
     //var match = com.marklogic.widgets.dnd._compatible(el,elid,droppable); // TODO find and pass draggable elid
     //if (match) {
-      var data = JDON.parse(ev.dataTransfer.getData("application/javascript"));
+      var data = JSON.parse(ev.dataTransfer.getData("application/javascript"));
     mljs.defaultconnection.logger.debug("dnd.accept: ondrop: calling action callback");
       droppable.action(data);
     //}
-    ev.preventDefault();
+    //ev.preventDefault();
     mljs.defaultconnection.logger.debug("dnd.accept: ondrop: returning false");
-    return false;
-  });
+    //return false;
+  },false); // )
   mljs.defaultconnection.logger.debug("dnd.onto: completed adding event handlers to: " + elid);
 };
 
@@ -732,7 +742,8 @@ com.marklogic.widgets.dnd.onto = function(elid,draggableClass,droppableTypeArray
   com.marklogic.widgets.dnd.draggables[elid] = draggable;
   // add event handlers
   var el = document.getElementById(elid);
-  el.ondragstart = function(ev) {
+  //el.ondragstart = function(ev) {
+  el.addEventListener("dragstart", function(ev) {
     mljs.defaultconnection.logger.debug("dnd.onto: ondragstart: " + elid);
     //var match = com.marklogic.widgets.dnd._draggableCompatible(el,elid,draggable); // TODO get elid of droppable and pass that too
     //if (match) {
@@ -748,10 +759,10 @@ com.marklogic.widgets.dnd.onto = function(elid,draggableClass,droppableTypeArray
       ev.dataTransfer.setData("application/javascript",sd);
       mljs.defaultconnection.logger.debug("dnd.onto: ondragstart: sent data: " + sd);
     //}
-    ev.preventDefault();
+    //ev.preventDefault();
     mljs.defaultconnection.logger.debug("dnd.onto: ondragstart: returning false");
-    return false;
-  };
+    //return false;
+  },false);
 };
 
 com.marklogic.widgets.dnd._compatible = function(el,elid,droppable,draggableElid) {

@@ -5598,12 +5598,12 @@ mljs.prototype.searchcontext.prototype._parseQuery = function(q) {
 
 
 mljs.prototype.searchcontext.prototype._queryToText = function(parsed) {
-  var q = parsed.q;
+  var q = "" + parsed.q;
   if (null != parsed.sort) {
     q += " " + this.sortWord + ":" + parsed.sort;
   }
   for (var i = 0;i < parsed.facets.length;i++) {
-    if (i > 0) {
+    if (i > 0 || q.length > 0) {
       q += " ";
     }
     if (undefined != parsed.facets[i]) { // possible somehow. Not sure how.

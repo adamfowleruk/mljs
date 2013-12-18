@@ -7,13 +7,14 @@ Targets for 1.2 (Dec 2013) - High priority
   - DONE Core: Change options builder to store text translations for facets
   - DONE Core: Change searchcontext so that setOptions takes an options builder (as well as legacy options JSON), so as to maintain a reference to these transations
  - DONE Docs: XML example for custom renderer support, with namespaces in XPath
- - Figure out why HTTP 500s result in throwing an exception rather than MLJS error handling (e.g. extension execution errors)
+ - NA Not happening now: Figure out why HTTP 500s result in throwing an exception rather than MLJS error handling (e.g. extension execution errors)
  - DONE Ensure version extension absence errors gracefully
  - DONE Rework all examples to use searchcontext rather than direct invocation of mljs methods
  - DONE need to use values() not search() - BUG cooccurence widget now not returning results in combined V7 query mode
  - DONE Try N-way cooccurence (See co-occurence widget test page)
  - TEST Core: Options Builder
   - TEST Added all options support for geoElement, geoElementPair, geoAttributePair and geoPath Constraints
+   - BUG geo-elem-pair constraint seems to ignore fragment-scope=properties option (reported to ENG)
   - TEST Add custom constraint support
   - TEST Add thesaurus support using custom constraint
   - TEST element query constraint
@@ -24,13 +25,13 @@ Targets for 1.2 (Dec 2013) - High priority
   - DEFERRED (default)suggestion-source
  - App builder gap closing
   - DONE Widgets: HighCharts: Apply chaining pattern to highchart options to make them simpler
-  - BUG Core: Rework searchcontext
+  - IN PROGRESS Core: Rework searchcontext
    - DONE Allow contribution of facets/sort etc to alter both text (grammar) queries and structured query (independently, via searchcontext)
    - DONE Add "values" as a searchcontext endpoint option (either /v1/search (default) or /v1/values/{tuplesname})
    - DONE Add V7 combined options + values support to mljs.values()
    - DONE Ensure searchcontext supports updateFacets
    - NA Done when query refreshes anyway: Add addFacetSelection listener etc to highcharts widget
-   - BUG Support compound search mode in V7 (options + search) (search, searchCollection, structuredSearch, saveSearchOptionsCheck, searchcontext alterations)
+   - IN PROGRESS Support compound search mode in V7 (options + search) (search, searchCollection, structuredSearch, saveSearchOptionsCheck, searchcontext alterations)
     - DONE version rest extension
     - BUG: V7 ignores URL search parameters if submitting a structuredQuery and options (previously if supplying just query and referring to options, it'd work)
      - Fix chart search page
@@ -40,17 +41,36 @@ Targets for 1.2 (Dec 2013) - High priority
    - DEFERRED Come up with a strategy for parent-child relationships in search widgets (one way facet selection - E.g. genre THEN album)
    - NA alter the options to fetch data. Use updateResults to retrieve them for display: Allow widgets to request information in results, rather than alter search options (E.g. request a heatmap, or particular metadata properties) - context updates options on the fly
   - DONE Core: SearchContext to support multiple searches when same context used across multiple tuple names
-  - BUG Widgets: Navigable charts / co-occurence - clicking sets facet value
-   - BUG co-occurence
+  - IN PROGRESS Widgets: Navigable charts / co-occurence - clicking sets facet value
+   - IN PROGRESS co-occurence
     - DONE Requires values() support in searchcontext
-    - BUG: POST /v1/tuples also ignoring query string parameters
+    - BUG POST /v1/tuples also ignoring query string parameters
    - DONE High charts column
    - DONE High charts line
    - DONE Pie segment
    - DONE translated to category from x position: BUG passing 2:"8" - 2 is the x position, not the x value - should be 'pet' on the pie on chartsearch page
  - DONE BUG: OpenLayers polygon/circle selection no longer removing markers when executing more restrictive search
- - BUG: Search sort widget showing [Object: object] instead of name in drop down
- - Widgets: Tag cloud - add hover over text to include frequency of result
+ - DONE BUG: Search sort widget showing [Object: object] instead of name in drop down
+ - DONE BUG: Widget: Search results. Plain text parsing error.
+ - DONE Widgets: Tag cloud - add hover over text to include frequency of result
+ - IN PROGRESS NodeJS: Node.js tests for all functionality now in core MLJS
+ - IN PROGRESS Docs: Document all core concepts currently part of MLJS
+  - DONE Docs: searchcontext object
+  - DONE Docs: Supported rest extensions tutorial doc
+  - DONE Core API jsdoc
+  - Widget API jsdoc
+ - Docs: Tutorials
+  - (Emil Zegers) RDB2RDF quick start tutorial
+  - (Emil Zegers) OpenLayers quick start tutorial
+ - DONE Core: Search Options builder
+  - DEFERRED hide sem:triple elements from snippet highlighting
+  - DEFERRED Don't return sem:triples documents at all by default (Top level only)
+  - DONE actually write the pathConstraint function!
+  - DONE BUG WAS AN ISSUE IN MLJS CONSTRAINT SETTINGS: Investigate why REST insists upon some elements having indexes in the JSON namespace as well as the one required (E.g. xhtml and h1)
+ - DONE Test: Create MLJS Rest only (not Roxy hybrid) deployment project
+ - DONE Docs: Publish mljsrest and mldbwebtest to internal demo server
+
+Targets for 1.2 (Dec 2013) - Medium Priority
  - IN PROGRESS Widgets: Workplace - Removes any code anyone needs to write to use MLJS widgets
   - IN PROGRESS Main edit page framework
    - Layout rendering in edit mode
@@ -85,9 +105,7 @@ Targets for 1.2 (Dec 2013) - High priority
    - updateApp event
    - loadApp
    - loadPage
- - IN PROGRESS NodeJS: Node.js tests for all functionality now in core MLJS
- - IN PROGRESS Docs: Document all core concepts currently part of MLJS
-  - DONE Docs: searchcontext object
+ - IN PROGRESS Docs: Further MLJS docs
   - Docs: Search results - parsing REST JSON for results
   - Widgets: Page template js file - for those wanting to create a new MLJS powered page
   - Widgets: Search Speed - As a tutorial for those wishing to contribute to MLJS by creating new widgets of their own
@@ -103,11 +121,6 @@ Targets for 1.2 (Dec 2013) - High priority
    - documentcontext.allowableProperty JSON
    - search properties transform parameters sprops_opt.transformParameters
    - sortOrder element/field/attribute spec
-  - DONE Core API jsdoc
-  - Widget API jsdoc
- - Docs: Tutorials
-  - (Emil Zegers) RDB2RDF quick start tutorial
-  - (Emil Zegers) OpenLayers quick start tutorial
  - Docs: MLJS Webinar series of Video Tutorials
   1. DONE Introduction to MLJS (text done. 3min 15) - Why should I care? (Akin to the first 5 minutes of my company wide webinar)
   2. IN PROGRESS Introduction to the MLJS Core API (text done. 4min21). Core communication with MarkLogic server. Introduction to Search Context and other Context objects
@@ -115,15 +128,6 @@ Targets for 1.2 (Dec 2013) - High priority
   4. Creating a new Hybrid app with MLJS. (Already exists, on blog site). Creating a search page and configuring options and facets. A search page with two charts (akin to an AppBuilder demo)
    a. Creating a new REST app with MLJS
   5. Customising how search results are displayed - The Renderer architecture. Detect and display data in a search results page in new and interesting ways
- - DONE Core: Search Options builder
-  - DEFERRED hide sem:triple elements from snippet highlighting
-  - DEFERRED Don't return sem:triples documents at all by default (Top level only)
-  - DONE actually write the pathConstraint function!
-  - DONE BUG WAS AN ISSUE IN MLJS CONSTRAINT SETTINGS: Investigate why REST insists upon some elements having indexes in the JSON namespace as well as the one required (E.g. xhtml and h1)
- - DONE Test: Create MLJS Rest only (not Roxy hybrid) deployment project
- - DONE Docs: Publish mljsrest and mldbwebtest to internal demo server
-
-Targets for 1.2 (Dec 2013) - Medium Priority
  - IN PROGRESS Widget: RDB2RDF in test app
   - Remove jQuery specific code
   - DONE Check Roxy installation of REST extension works automatically

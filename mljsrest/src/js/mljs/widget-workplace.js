@@ -270,6 +270,157 @@ com.marklogic.widgets.actions.javascript.prototype.execute = function(executionC
 
 
 
+com.marklogic.widgets.workplacecontext = function() {
+  this._json = {
+    shared: false,
+    widgets: [], assignments: [], contexts: [], actions: {
+      onload: [], onunload: []
+    }
+  };
+  this._uri = null;
+  
+  this.db = mljs.defaultconnection;
+};
+
+com.marklogic.widgets.workplacecontext.prototype.getSummary = function() {
+  return {title: this._json.title,urls: this._json.urls,layout: this._json.layout,shared:this._json.shared};
+}
+com.marklogic.widgets.workplacecontext.prototype.setSummary = function(title, urls, layout,shared) {
+  this._json.title = title;
+  this._json.urls = urls;
+  this._json.layout = layout;
+  this._json.shared = shared;
+};
+
+com.marklogic.widgets.workplacecontext.prototype.getWidgets = function() {
+  return this._json.widgets;
+};
+
+com.marklogic.widgets.workplacecontext.prototype.addWidget = function(name,type,config) {
+  var wgt = {widget: name, type: type, config: config};
+  this._json.widgets.push(wgt);
+};
+
+com.marklogic.widgets.workplacecontext.prototype.removeWidget = function(name) {
+  var wgts = [];
+  for (var i = 0;i < this._json.widgets.length;i++) {
+    if (this._json.widgets[i].name == name) {
+      // do nothing
+    } else {
+      wgts.push(this._json.widgets[i]);
+    }
+  }
+  this._json.widgets = wgts;
+};
+
+com.marklogic.widgets.workplacecontext.prototype.getAssignments = function() {
+  return this._json.assignments;
+};
+
+com.marklogic.widgets.workplacecontext.prototype.placeWidget = function(name,zone,order) {
+  // get other widgets in zone
+  var zoneWidgets = [];
+  var otherWidgets = [];
+  var maxo = 0;
+  for (var i = 0,w, max = this._json.assignments.length;i < max;i++) {
+    w = this._json.assignments[i];
+    if (w.zone == zone) {
+      zoneWidgets[w.order-1] = w;
+      maxo = w.order;
+    } else {
+      otherWidgets.push(w);
+    }
+  }
+  // increment indexes on this and subsequent widget placements
+  for (var i = maxo-1; i > order - 1;i--) {
+    zoneWidgets[maxo] = zoneWidgets[maxo - 1];
+    zoneWidgets[maxo].order++;
+    zoneWidgets[maxo - 1] = undefined;
+  }
+  // now add in our widget
+  zoneWidgets[order - 1] = {widget: name,zone:zone,order:order};
+  
+  var places = [];
+  for (var i = 0;i < otherWidgets.length;i++) {
+    places.push(otherWidgets[i]);
+  }
+  for (var i = 0;i < zoneWidgets.length;i++) {
+    places.push(zoneWidgets[i]);
+  }
+  this._json.assignments = places;
+};
+
+com.marklogic.widgets.workplacecontext.prototype.getContexts = function() {
+  return this._json.contexts;
+};
+
+com.marklogic.widgets.workplacecontext.prototype.addContext = function(name,type,config) {
+  this._json.contexts.push({context: name,type:type,config:config,register:[]});
+};
+
+com.marklogic.widgets.workplacecontext.prototype.registerWidget = function(widgetName,contextName) {
+  for (var i = 0, max = this._json.contexts.length,c;i < max;i++) {
+    c = this._json.contexts[i];
+    if (c.context == contextName) {
+      c.register.push(widgetName);
+      return;
+    }
+  }
+};
+
+com.marklogic.widgets.workplacecontext.prototype.setWidgetConfig = function(widgetName,config) {
+  for (var i = 0, max = this._json.widgets.length,w;i < max;i++) {
+    w = this._json.widgets[i];
+    if (w.widget == widgetName) {
+      w.config = config;
+      return;
+    }
+  }
+};
+
+com.marklogic.widgets.workplacecontext.prototype.getActions = function() {
+  return this._json.actions;
+};
+
+com.marklogic.widgets.workplacecontext.prototype.addOnloadAction = function(type, config) {
+  this._json.actions.onload.push({type: type,config: config});
+};
+
+com.marklogic.widgets.workplacecontext.prototype.addOnunloadAction = function(type,config) {
+  this._json.actions.onunload.push({type: type,config: config});
+  
+};
+
+com.marklogic.widgets.workplacecontext.prototype.addContextAction = function(context_name,event,actiontype,actionconfig) {
+  // TODO
+};
+
+
+com.marklogic.widgets.workplacecontext.prototype.editPage = function(url) {
+  var self = this;
+  this.db.findWorkplace(url,function(result) {
+    // assume just one
+    self._uri = result.doc.results[0].uri;
+    self._json = result.doc.results[0].content;
+    if ("string" == typeof (self._json)) {
+      self._json = JSON.parse(self._json);
+    }
+    // TODO fire updatePage event
+  });
+};
+
+com.marklogic.widgets.workplacecontext.prototype.editPageWithUri = function(uri) {
+  this._uri = uri;
+  var self = this;
+  this.db.getWorkplace(uri,function(result) {
+    self._json = result.doc;
+    // TODO fire updatePage event
+  });
+};
+
+
+
+
 
 
 
