@@ -1,7 +1,8 @@
 var mljs = require("../../mljs"),
     tests = exports,
     configurator = require('../../testconfig'),
-    assert = require('assert'),
+    //assert = require('assert'),
+    assert = require('chai').assert,
     winston = require('winston');
 
      var logger = new (winston.Logger)({
@@ -22,7 +23,7 @@ describe("001-save-get-merge-delete-graph",function() {
   
   describe("#save() N-triples string", function(){
    
-    it.skip("V7: Should complete entirely",function(done){
+    it("V7: Should complete entirely",function(done){
       var ntriples = "</people/adam> <likes> </objects/cheese> .\n</objects/cheese> <foodtype> \"fatty\".\n";
       
       db.saveGraph(ntriples,"mytesttriples",function(result) {
@@ -48,7 +49,7 @@ describe("001-save-get-merge-delete-graph",function() {
   
   describe("#merge() JSON", function(){
    
-    it.skip("V7: Should complete entirely",function(done){
+    it("V7: Should complete entirely",function(done){
       var triplejson = [
         {subject: "/people/adam", predicate: "name", object: "Adam Fowler"},
         {subject: "/objects/cheese", predicate: "cheesefamily", object: "Wensleydale"},
@@ -79,7 +80,7 @@ describe("001-save-get-merge-delete-graph",function() {
   
   describe("#sparql()", function(){
    
-    it.skip("V7: Should complete entirely",function(done){
+    it("V7: Should complete entirely",function(done){
       db.sparql("SELECT ?s, ?p, o FROM {?s ?p ?o. ?p=<likes>}",function(result) {
         logger.debug("RESULT: " + JSON.stringify(result));
         assert.equal(result.inError,false,"deleteGraph() should not be in error");
@@ -104,7 +105,7 @@ describe("001-save-get-merge-delete-graph",function() {
   
   describe("#deleteGraph()", function(){
    
-    it.skip("V7: Should complete entirely",function(done){
+    it("V7: Should complete entirely",function(done){
       db.deleteGraph("mytesttriples",function(result) {
         logger.debug("RESULT: " + JSON.stringify(result));
         assert.equal(result.inError,false,"deleteGraph() should not be in error");

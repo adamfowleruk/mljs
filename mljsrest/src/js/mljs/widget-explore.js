@@ -59,6 +59,12 @@ com.marklogic.widgets.graphexplorer = function(container) {
   this._init();
 };
 
+/**
+ * Ensures that a drawn column (to place Subject rectangles in) is at least so many pixels wide.
+ * 
+ * @param {integer} colnum - The column number (1 based)
+ * @param {double} width - The minimum column width in pixels
+ */
 com.marklogic.widgets.graphexplorer.prototype.checkColumnWidth = function(colnum,width) {
   var curwidth = this.columnWidths[colnum];
   mljs.defaultconnection.logger.debug("checkColumnWidth: colnum: " + colnum + ", curwidth: " + curwidth + ", width: " + width);
@@ -70,6 +76,12 @@ com.marklogic.widgets.graphexplorer.prototype.checkColumnWidth = function(colnum
   }
 };
 
+/**
+ * Ensures that a drawn row (to place Subject rectangles in) is at least so many pixels high.
+ * 
+ * @param {integer} num - The row number (1 based)
+ * @param {double} height - The minimum row height in pixels
+ */
 com.marklogic.widgets.graphexplorer.prototype.checkRowHeight = function(num,height) {
   var cur = this.rowHeights[num];
   mljs.defaultconnection.logger.debug("checkRowHeight: rownum: " + num + ", curheight: " + cur + ", height: " + height);
@@ -81,6 +93,11 @@ com.marklogic.widgets.graphexplorer.prototype.checkRowHeight = function(num,heig
   }
 };
 
+/**
+ * Adding all column's widths up before the specified column. Used to find an appropriate left css style value.
+ * 
+ * @param {integer} column - The column index to determine the left pixel for
+ */
 com.marklogic.widgets.graphexplorer.prototype.widthBefore = function(column) {
   var width = 0;
   for (var i = 1;i < this.columnWidths.length && i < column;i++) {
@@ -90,6 +107,11 @@ com.marklogic.widgets.graphexplorer.prototype.widthBefore = function(column) {
   return width;
 };
 
+/**
+ * Adding all row's heights up before the specified row. Used to find an appropriate top css style value.
+ * 
+ * @param {integer} row - The row index to determine the top pixel for
+ */
 com.marklogic.widgets.graphexplorer.prototype.heightBefore = function(row) {
   var height = 0;
   for (var i = 1;i < this.rowHeights.length && i < row;i++) {
@@ -99,27 +121,50 @@ com.marklogic.widgets.graphexplorer.prototype.heightBefore = function(row) {
   return height;
 };
 
-
+/**
+ * Sets the name of the search options to use for retrieving viewable document facets.
+ * 
+ * @param {string} name - The name of the search options saved on the server
+ */
 com.marklogic.widgets.graphexplorer.prototype.setSearchOptionsName = function(name) {
   this.searchOptionsName = name;
 };
 
+/**
+ * Gets the name of the search options to use for retrieving viewable document facets.
+ */
 com.marklogic.widgets.graphexplorer.prototype.getSearchOptionsName = function() {
   return this.searchOptionsName;
 };
 
+/**
+ * Sets the document context for this widget
+ * 
+ * @param {documentcontext} ctx - The document context instance
+ */
 com.marklogic.widgets.graphexplorer.prototype.setDocumentContext = function(ctx) {
   this.documentContext = ctx;
 };
 
+/**
+ * Gets the document context for this widget
+ */
 com.marklogic.widgets.graphexplorer.prototype.getDocumentContext = function() {
   return this.documentContext;
 };
 
+/**
+ * Sets the semantic context for this widget
+ * 
+ * @param {semanticcontext} ctx - The semantic context instance
+ */
 com.marklogic.widgets.graphexplorer.prototype.setSemanticContext = function(ctx) {
   this.semanticContext = ctx;
 };
 
+/**
+ * Gets the semantic context for this widget
+ */
 com.marklogic.widgets.graphexplorer.prototype.getSemanticContext = function() {
   return this.semanticContext;
 };
@@ -276,6 +321,12 @@ com.marklogic.widgets.graphexplorer.prototype._loadSubjectInformation = function
   this.semanticContext.getFacts(iri,false);
 };
 
+/**
+ * Indicates that a subject's facets have been received by the semantic context and the subject should be redrawn
+ * UNUSED
+ * 
+ * @param {string} subjectIri - The IRI of the subject to display
+ */
 com.marklogic.widgets.graphexplorer.prototype.updateSelectedSubject = function(subjectIri) {
   // find primary node in diagram
   // create if does not exist
@@ -299,6 +350,14 @@ com.marklogic.widgets.graphexplorer.prototype._getColumnCount = function(column)
   return count;
 };
 
+/**
+ * Draw the specified subject in this widget. Determines position from parent property.
+ * 
+ * @param {string} subjectIri - The IRI of the primary subject to draw
+ * @param {string} parentIri - The IRI of the parent to draw this subject under
+ * @param {integer} column - The column to draw this subject in
+ * @param {integer} row - The row to draw this subject in
+ */
 com.marklogic.widgets.graphexplorer.prototype.drawSubject = function(subjectIri,parentIri,column,row) {
     if (1 == column && 1 == row) {
       this._incrementColumnCount(1);
@@ -678,7 +737,11 @@ com.marklogic.widgets.graphexplorer.prototype._getSubjectPredicate = function(ca
   return null;
 };
 
-
+/**
+ * Called by a semantic context to indicate facts have been received from a SPARQL endpoint about a specified subject
+ * 
+ * @param {object} result - The MLJS result wrapper. result.doc contains the SPARQL result in a JSON expression
+ */
 com.marklogic.widgets.graphexplorer.prototype.updateSubjectFacts = function(result) {
   mljs.defaultconnection.logger.debug("graphexplorer.updateSubjectFacts: " + result.subject);
   
@@ -719,6 +782,11 @@ com.marklogic.widgets.graphexplorer.prototype.updateSubjectFacts = function(resu
   this.drawWhenComplete = newDrawWhenComplete;
 };
 
+/**
+ * Called by a document context to indicate facets have been received describing a document
+ * 
+ * @param {object} result - The MLJS result wrapper. result.doc contains the search API response JSON expression containing (only?) facet information
+ */
 com.marklogic.widgets.graphexplorer.prototype.updateDocumentFacets = function(result) {
   // TODO for each result, lookup MLDocument node with the docuri predicate matching each docuri of the result
   // TODO SHOULD be a single document result as we're only ever looking up 1 doc at a time by URI

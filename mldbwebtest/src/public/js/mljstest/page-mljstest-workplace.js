@@ -59,6 +59,7 @@ window.onload = function() {
     
     var workplace = new com.marklogic.widgets.workplace("workplace");
     workplace.editable();
+    //workplace.saveable(false); // don't persist changes
     workplace.loadPage(page); // could instead use loadPage() to determine automatically via window.location, or loadPage("/my/path") to load via search in content database
  /* 
   } catch (err) {

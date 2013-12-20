@@ -21,6 +21,9 @@ com.marklogic.widgets = window.com.marklogic.widgets || {};
 /**
  * Creates a HighCharts wrapper widget. HighCharts is a commercial JavaScript graphing widget distributed with MarkLogic. 
  * If you are using this widget against a MarkLogic application, you are licensed to use HighCharts
+ * 
+ * This widget is MLJS Workplace enabled.
+ * 
  * @constructor
  * @param {string} container - HTML ID of the element to place this widget's content within.
  */
@@ -59,10 +62,20 @@ com.marklogic.widgets.highcharts = function(container) {
   this._refresh();
 };
 
+/**
+ * Sets the search context for this widget
+ * 
+ * @param {searchcontext} c - The searchcontext to link to
+ */
 com.marklogic.widgets.highcharts.prototype.setContext = function(c) {
   this.ctx = c;
 };
 
+/**
+ * Returns the MLJS Workplace configuration definition listing config properties supported by this widget
+ * 
+ * @static
+ */
 com.marklogic.widgets.highcharts.getConfigurationDefinition = function() {
   return {
     
@@ -134,7 +147,11 @@ com.marklogic.widgets.highcharts.getConfigurationDefinition = function() {
   // TODO other internal HighCharts settings
 };
 
-
+/**
+ * Sets the configuration for this instance of a widget in an MLJS Workplace
+ * 
+ * @param {json} config - The JSON Workplace widget configuration to apply
+ */
 com.marklogic.widgets.highcharts.prototype.setConfiguration = function(config) {
   for (var prop in config) {
     if (prop == "title" || prop == "subtitle" || prop == "xTitle" || prop == "yTitle" || prop == "type") {
@@ -323,6 +340,7 @@ com.marklogic.widgets.highcharts.prototype.setSeriesSources = function(nameSourc
  * Event handler. Intended as a parameter for an addSubjectFactsListener.
  * Takes triple facts and extracts in to chart
  * 
+ * @param {object} facts - The MLJS result wrapper. result.doc.facts contains the sparql result returned in a JSON expression.
  */
 com.marklogic.widgets.highcharts.prototype.updateSubjectFacts = function(facts) {
   if (false == facts || true == facts ) {

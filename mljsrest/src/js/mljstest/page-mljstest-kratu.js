@@ -15,6 +15,10 @@ window.onload = function() {
   var wgt = new com.marklogic.widgets.kratu("el-kratu");
   wgt.addErrorListener(error.updateError);
   
+  var wgtp = new com.marklogic.widgets.kratu("el-kratu-props");
+  wgtp.render("properties");
+  wgtp.addErrorListener(error.updateError);
+  
   var qb = db.createQuery();
   var query = qb.query(qb.collection("animals")).toJson();
   /*
@@ -28,6 +32,7 @@ window.onload = function() {
   
   var ctx = db.createSearchContext();
   ctx.register(wgt);
+  ctx.register(wgtp);
   
   ctx.setOptions(optionsName,ob);
   ctx.doStructuredQuery(query,optionsName);

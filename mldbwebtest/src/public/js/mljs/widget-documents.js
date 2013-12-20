@@ -20,7 +20,12 @@ com.marklogic.widgets = window.com.marklogic.widgets || {};
 
 
 
-
+/**
+ * Shows an editable list of document properties from the document's properties fragment.
+ * 
+ * @constructor
+ * @param {string} container - ID of the HTML element to draw the widget within
+ */
 com.marklogic.widgets.docproperties = function(container) {
   this.container = container;
 
@@ -32,10 +37,18 @@ com.marklogic.widgets.docproperties = function(container) {
   this._init();
 };
 
+/**
+ * Sets the document context for this widget
+ * 
+ * @param {documentcontext} ctx - The document context instance
+ */
 com.marklogic.widgets.docproperties.prototype.setDocumentContext = function(ctx) {
   this.documentcontext = ctx;
 };
 
+/**
+ * Gets the document context for this widget
+ */
 com.marklogic.widgets.docproperties.prototype.getDocumentContext = function() {
   return this.documentcontext;
 };
@@ -51,6 +64,12 @@ com.marklogic.widgets.docproperties.prototype._init = function() {
   document.getElementById(this.container).innerHTML = html;
 };
 
+/**
+ * Called my a document context to indicate the document properties have been updated and should
+ * be redrawn
+ * 
+ * @param {result} result - The MLJS result wrapper object
+ */ 
 com.marklogic.widgets.docproperties.prototype.updateDocumentProperties = function(result) {
   this._hidePropertyEditor();
   /*
@@ -388,6 +407,12 @@ com.marklogic.widgets.docproperties.prototype._hidePropertyEditor = function() {
   com.marklogic.widgets.hide(document.getElementById(this.container + "-docproperties-editor"),true);
 };
 
+/**
+ * Called by the document context to indicate that a document is being updated through a MarkLogic server call
+ * and that the UI should be disabled until complete.
+ * 
+ * @param {object} msg - The operation description of what is happening to the document (e.g. setProperties called)
+ */
 com.marklogic.widgets.docproperties.prototype.updateOperation = function(msg) {
   if (msg.docuri == this._docuri) {
     if ("setProperties" == msg.operation) {
@@ -407,7 +432,14 @@ com.marklogic.widgets.docproperties.prototype.updateOperation = function(msg) {
 
 
 
-
+/**
+ * Views the head section properties from an XHTML document. These properties are
+ * always embedded within a document. This is distinct from MarkLogic document properties
+ * which are held in the document properties fragment and are nothing to do with XHTML.
+ * 
+ * @constructor
+ * @param {string} container - ID of the HTML element to draw this widget in
+ */
 com.marklogic.widgets.docheadviewer = function(container) {
   this.container = container;
 
@@ -416,14 +448,29 @@ com.marklogic.widgets.docheadviewer = function(container) {
   this._init();
 };
 
+/**
+ * Adds an action handler with a specified property name. A pattern is given that
+ * indicates the page to navigate to when the property value is clicked.
+ *
+ * @param {string} name - The property name
+ * @param {string} pattern - The string pattern to replace #DOCURI# in, in order to navigate to a new page
+ */
 com.marklogic.widgets.docheadviewer.prototype.addUriHandler = function(name,pattern) {
   this._uriHandlers[name] = pattern;
 };
 
+/**
+ * Sets the document context for this widget
+ * 
+ * @param {documentcontext} ctx - The document context instance
+ */
 com.marklogic.widgets.docheadviewer.prototype.setDocumentContext = function(ctx) {
   this.documentcontext = ctx;
 };
 
+/**
+ * Gets the document context for this widget
+ */
 com.marklogic.widgets.docheadviewer.prototype.getDocumentContext = function() {
   return this.documentcontext;
 };
@@ -438,6 +485,11 @@ com.marklogic.widgets.docheadviewer.prototype._init = function() {
   document.getElementById(this.container).innerHTML = html;
 };
 
+/**
+ * Called by a document context to indicate that the document content has been reloaded, and should be redrawn
+ * 
+ * @param {result} result - The MLJS result wrapper
+ */
 com.marklogic.widgets.docheadviewer.prototype.updateDocumentContent = function(result) {
 
   // If not XHTML or not head element, hide ourselves
@@ -598,7 +650,8 @@ com.marklogic.widgets.docheadviewer.prototype.updateDocumentContent = function(r
 
 
 /**
- * Previews a document. Tries to introspect the document to use the most appropriate method.
+ * Previews an (XHTML) document. Tries to introspect the document to use the most appropriate method.
+ * 
  * @constructor
  * @param {string} container - The HTML ID of the element to place this widget's content within.
  */
@@ -609,12 +662,18 @@ com.marklogic.widgets.docviewer = function(container) {
   this._init();
 };
 
-
-
+/**
+ * Sets the document context for this widget
+ * 
+ * @param {documentcontext} ctx - The document context instance
+ */
 com.marklogic.widgets.docviewer.prototype.setDocumentContext = function(ctx) {
   this.documentcontext = ctx;
 };
 
+/**
+ * Gets the document context for this widget
+ */
 com.marklogic.widgets.docviewer.prototype.getDocumentContext = function() {
   return this.documentcontext;
 };

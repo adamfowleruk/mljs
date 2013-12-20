@@ -39,6 +39,9 @@ declare option xdmp:mapping "false";
  <div class="container_12">  
   <div id="errors" class="grid_12"></div>
  </div>
+<b>Kratu over JSON document content</b>
 <div id="el-kratu"></div>
+<b>Kratu over result search metadata</b>
+<div id="el-kratu-props"></div>
 
 </div>

@@ -53,32 +53,15 @@ Targets for 1.2 (Dec 2013) - High priority
  - DONE BUG: Search sort widget showing [Object: object] instead of name in drop down
  - DONE BUG: Widget: Search results. Plain text parsing error.
  - DONE Widgets: Tag cloud - add hover over text to include frequency of result
- - IN PROGRESS NodeJS: Node.js tests for all functionality now in core MLJS
- - IN PROGRESS Docs: Document all core concepts currently part of MLJS
-  - DONE Docs: searchcontext object
-  - DONE Docs: Supported rest extensions tutorial doc
-  - DONE Core API jsdoc
-  - Widget API jsdoc
- - Docs: Tutorials
-  - (Emil Zegers) RDB2RDF quick start tutorial
-  - (Emil Zegers) OpenLayers quick start tutorial
- - DONE Core: Search Options builder
-  - DEFERRED hide sem:triple elements from snippet highlighting
-  - DEFERRED Don't return sem:triples documents at all by default (Top level only)
-  - DONE actually write the pathConstraint function!
-  - DONE BUG WAS AN ISSUE IN MLJS CONSTRAINT SETTINGS: Investigate why REST insists upon some elements having indexes in the JSON namespace as well as the one required (E.g. xhtml and h1)
- - DONE Test: Create MLJS Rest only (not Roxy hybrid) deployment project
- - DONE Docs: Publish mljsrest and mldbwebtest to internal demo server
-
-Targets for 1.2 (Dec 2013) - Medium Priority
  - IN PROGRESS Widgets: Workplace - Removes any code anyone needs to write to use MLJS widgets
   - IN PROGRESS Main edit page framework
-   - Layout rendering in edit mode
+   - DONE Layout rendering in edit mode
+   - saving previous tab settings on switching tabs
    - IN PROGRESS Page (configuration) settings
     - DONE Get workplace rest extension and wrapper
     - DONE Save workplace rest extension and wrapper
     - DONE Workplace config JSON format - including 'shared' flag, title, description
-    - visuals
+    - visuals (drop downs)
    - Widgets settings
     - Widget toolbox
     - Laying out widget positions within page Layout
@@ -88,7 +71,12 @@ Targets for 1.2 (Dec 2013) - Medium Priority
    - Action settings
     - on page load
     - on page unload
-    - searchcontext on selection
+    - DEFERRED searchcontext on selection
+  - Programmatic access
+   - getWidget by name (so you can programmatically add settings after load)
+   - getContext (could be done via widget optionally too)
+   - addLoadedListener (so you can programmatically add settings after load)
+   - 'app level' settings - configured search options
   - IN PROGRESS Widgets: Add Drag and Drop support to widgets.js
    - DONE DND pure Test page in mldbwebtest roxy project
    - DONE ensure basic drag and drop works
@@ -105,6 +93,32 @@ Targets for 1.2 (Dec 2013) - Medium Priority
    - updateApp event
    - loadApp
    - loadPage
+ - IN PROGRESS NodeJS: Node.js tests for all functionality now in core MLJS
+  - Convert all assert usage to  assert = require('chai').assert (better exception handling)
+  - Once assert changed, modify tests to remove skipped tests, retest and bugfix
+  - Add 'sunny day' success tests - at least one per function
+  - Add tests for each bug previously squashed/reported to ENG
+ - DONE Latest REST API returns JSON as object not text: BUG Kratu no longer rendering content since migration to searchcontext
+ - IN PROGRESS Docs: Document all core concepts currently part of MLJS
+  - DONE Docs: searchcontext object
+  - DONE Docs: Supported rest extensions tutorial doc
+  - DONE Core API jsdoc
+  - Widget API jsdoc
+  - Figure out how to document own JSON formats within jsdoc and link to external references of them. (E.g. REST API)
+  - Document return types for all functions
+ - DONE Core: Search Options builder
+  - DEFERRED hide sem:triple elements from snippet highlighting
+  - DEFERRED Don't return sem:triples documents at all by default (Top level only)
+  - DONE actually write the pathConstraint function!
+  - DONE BUG WAS AN ISSUE IN MLJS CONSTRAINT SETTINGS: Investigate why REST insists upon some elements having indexes in the JSON namespace as well as the one required (E.g. xhtml and h1)
+ - DONE Test: Create MLJS Rest only (not Roxy hybrid) deployment project
+ - DONE Docs: Publish mljsrest and mldbwebtest to internal demo server
+
+Targets for 1.2 (Dec 2013) - Medium Priority
+ - Widgets: searchresults add default renderer for documents containing triples (sem-triples parser?)
+ - Docs: Tutorials
+  - (Emil Zegers) RDB2RDF quick start tutorial
+  - (Emil Zegers) OpenLayers quick start tutorial
  - IN PROGRESS Docs: Further MLJS docs
   - Docs: Search results - parsing REST JSON for results
   - Widgets: Page template js file - for those wanting to create a new MLJS powered page

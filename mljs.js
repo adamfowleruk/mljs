@@ -421,7 +421,7 @@ mljs.prototype.configure = function(dboptions) {
       this.dboptions[a] = dboptions[a];
     }
     //this.dboptions = this.__merge(defaultdboptions,dboptions);
-    this.logger.debug("MERGED: " + JSON.stringify(this.dboptions)); // TODO TEST
+    //this.logger.debug("MERGED: " + JSON.stringify(this.dboptions)); // TODO TEST
   }
   
   this._version = null; // unknown

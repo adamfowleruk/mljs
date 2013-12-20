@@ -41,12 +41,27 @@ com.marklogic.widgets = window.com.marklogic.widgets || {};
 
 // SEARCH HELPER STATIC OBJECT FUNCTIONS
 
+/**
+ * Helper functions used by search widgets primarily
+ * @static
+ */
 com.marklogic.widgets.searchhelper = {};
 
+/**
+ * Converts a value in to separate words, splitting the words by dash, underscore, and CamelCase
+ * 
+ * @param {string} str - The value to process
+ */
 com.marklogic.widgets.searchhelper.processValueAll = function(str) {
   return com.marklogic.widgets.searchhelper.processValue(str,"all");
 };
 
+/**
+ * Converts a value in to separate words, using the specified mode
+ * 
+ * @param {string} str - The value to process
+ * @param {string} mode - The mode ("all|splitdash|splitunderscore|camelcase")
+ */
 com.marklogic.widgets.searchhelper.processValue = function(str,mode) {
   var name = str;
   name = com.marklogic.widgets.searchhelper.splitdash(name,mode);
@@ -55,6 +70,11 @@ com.marklogic.widgets.searchhelper.processValue = function(str,mode) {
   return name;
 };
 
+/**
+ * Generate a standard set of snippet HTML. Useful for integrating to custom search results renderers
+ * 
+ * @param {result} result - REST result JSON. Should contain result.matches[{"match-text": ["", ... ]}, ... ]
+ */
 com.marklogic.widgets.searchhelper.snippet = function(result) {
   var resStr = "";
   
@@ -73,6 +93,12 @@ com.marklogic.widgets.searchhelper.snippet = function(result) {
   return resStr;
 };
 
+/**
+ * Splits a string in to words when it encounters a dash. Returns a string with spaces instead of dashes.
+ * 
+ * @param {string} value - The original value
+ * @param {string} mode - The mode. Function only operates is mode is "all" or "splitdash"
+ */
 com.marklogic.widgets.searchhelper.splitdash = function(value,mode) {
   if (value == undefined || value == null) {
     mljs.defaultconnection.logger.warn("WARNING: splitdash(): value is " + value);
@@ -95,6 +121,12 @@ com.marklogic.widgets.searchhelper.splitdash = function(value,mode) {
   return name;
 };
 
+/**
+ * Splits a string in to words when it encounters an underscore. Returns a string with spaces instead of underscores.
+ * 
+ * @param {string} value - The original value
+ * @param {string} mode - The mode. Function only operates is mode is "all" or "splitdunderscore"
+ */
 com.marklogic.widgets.searchhelper.splitunderscore = function(value,mode) {
   var name = value;
   if ("all" == mode || "splitunderscore" == mode) {
@@ -109,6 +141,12 @@ com.marklogic.widgets.searchhelper.splitunderscore = function(value,mode) {
   return name;
 };
 
+/**
+ * Splits a string in to words when it encounters a capital letter. Returns a string with spaces before a capital letter.
+ * 
+ * @param {string} value - The original value
+ * @param {string} mode - The mode. Function only operates is mode is "all" or "camelcase"
+ */
 com.marklogic.widgets.searchhelper.camelcase = function(value,mode) {
   var name = value;
   if ("all" == mode || "camelcase" == mode) {
@@ -123,6 +161,11 @@ com.marklogic.widgets.searchhelper.camelcase = function(value,mode) {
   return name;
 };
 
+/**
+ * Converts any JSON object to a nested HTML representation. Do NOT pass this function circular JSON objects.
+ * 
+ * @param {json} json - The JSON to display
+ */
 com.marklogic.widgets.searchhelper.jsontohtml = function(json) {
   var str = "<div class='jsonhtml'>";
   for (var tag in json) {
@@ -142,6 +185,9 @@ com.marklogic.widgets.searchhelper.jsontohtml = function(json) {
   return str;
 };
 
+/**
+ * NOT IMPLEMENTED
+ */
 com.marklogic.widgets.searchhelper.xmltohtml = function(xml) {
   // Take first text element as title, second as snippet
   // TODO if needed - see search results logic itself for xmlDoc.evaluate
@@ -162,7 +208,9 @@ com.marklogic.widgets.searchhelper.xmltohtml = function(xml) {
 
 /**
  * Creates a search bar widget
+ * 
  * @constructor
+ * @param {string} container - The ID of the HTML element to render this widget within
  */
 com.marklogic.widgets.searchbar = function(container) {
   if (undefined == com.marklogic.widgets.searchbar.list) {
@@ -233,10 +281,20 @@ com.marklogic.widgets.searchbar.prototype.execute = function() {
   this.ctx.dosimplequery(q);
 };
 
+/**
+ * Sets the search mode. (Defaults to 'full query')
+ * 
+ * NOTE: If in contribute mode then a term query will be generated. This does seem to use the default grammar, so you can provide things like "animal:dog family:pet".
+ * 
+ * @param {string} mode - The mode. Either "fullquery" (default) or "contributestructured"
+ */
 com.marklogic.widgets.searchbar.prototype.setMode = function(mode) {
   this._mode = mode;
 };
 
+/**
+ * Convenience method to set the mode to contributed from the default of "fullquery"
+ */
 com.marklogic.widgets.searchbar.prototype.setModeContributeStructured = function() {
   this._mode = "contributestructured";
 };
@@ -255,6 +313,11 @@ com.marklogic.widgets.searchbar.prototype._dosearch = function(self) {
   }
 };
 
+/**
+ * Called by a search context when the query string is updated by another widget. Does not result in a search being executed by this widget.
+ * 
+ * @param {string} q - The new query
+ */
 com.marklogic.widgets.searchbar.prototype.updateSimpleQuery = function(q) {
   if (null != q && undefined != q && "" != q) {
     mljs.defaultconnection.logger.debug(" - updateSimpleQuery: Setting query string to: " + q);
@@ -262,6 +325,11 @@ com.marklogic.widgets.searchbar.prototype.updateSimpleQuery = function(q) {
   }
 };
 
+/**
+ * Called by a search context when new search results are received.
+ * 
+ * @param {results} results - The JSON results object from the REST server
+ */
 com.marklogic.widgets.searchbar.prototype.updateResults = function(results) {
   if (typeof (results) != "boolean" && undefined != results && null != results && undefined != results.qtext) {
     mljs.defaultconnection.logger.debug(" - updateResults: Setting query string to: " + results.qtext);
@@ -297,6 +365,9 @@ com.marklogic.widgets.searchbar.prototype.getContext = function() {
 /**
  * Creates a search facets interactive widget in the specified container.
  * 
+ * This widget is MLJS Workplace enabled.
+ * 
+ * @constructor
  * @param {string} container - The HTML ID of the element this widget should place its content in to.
  */
 com.marklogic.widgets.searchfacets = function(container) {
@@ -327,6 +398,11 @@ com.marklogic.widgets.searchfacets = function(container) {
   this._refresh();
 };
 
+/**
+ * Returns the MLJS Workplace configuration definition listing config properties supported by this widget
+ * 
+ * @static
+ */
 com.marklogic.widgets.searchfacets.getConfigurationDefinition = function() {
   return {
     listSize: {type: "positiveInteger", minimum: 1, default: 5, title: "List Size", description: "How many facet values to show at first."},
@@ -338,7 +414,11 @@ com.marklogic.widgets.searchfacets.getConfigurationDefinition = function() {
   // TODO include facet settings (if applicable?)
 };
 
-
+/**
+ * Sets the configuration for this instance of a widget in an MLJS Workplace
+ * 
+ * @param {json} config - The JSON Workplace widget configuration to apply
+ */
 com.marklogic.widgets.searchfacets.prototype.setConfiguration = function(config) {
   for (var prop in config) {
     this[prop] = config[prop];
@@ -701,6 +781,8 @@ com.marklogic.widgets.searchfacets.prototype.updateSelectedFacets = function(fac
  * Supports both JSON and XML (likely XHTML) content display by default.
  * Also allows making the entire result clickable, to navigate to another application page, supporting dynamic URL creation.
  * 
+ * This widget is partially MLJS Workplace enabled.
+ * 
  * @constructor
  * @param {string} container - HTML ID of the element in which to draw this widget's content
  */
@@ -1032,6 +1114,11 @@ com.marklogic.widgets.searchresults = function(container) {
   this.highlightPublisher = new com.marklogic.events.Publisher();
 };
 
+/**
+ * Returns the MLJS Workplace configuration definition listing config properties supported by this widget
+ * 
+ * @static
+ */
 com.marklogic.widgets.searchresults.getConfigurationDefinition = function() {
   return {
     selectionMode: {type: "enum", default: "append", title: "Selection Mode", description: "If no action happens on click, which selection mode to use.",
@@ -1042,6 +1129,11 @@ com.marklogic.widgets.searchresults.getConfigurationDefinition = function() {
   }
 };
 
+/**
+ * Sets the configuration for this instance of a widget in an MLJS Workplace
+ * 
+ * @param {json} config - The JSON Workplace widget configuration to apply
+ */
 com.marklogic.widgets.searchresults.prototype.setConfiguration = function(config) {
   for (var p in config) {
     this[p] = config[p];
@@ -1220,6 +1312,11 @@ com.marklogic.widgets.searchresults.prototype._refresh = function() {
   }
 };
 
+/**
+ * Generates a lazy loading ID. Used by custom renderers when they want to call a function after this widget renders individual result HTML renderings. 
+ * Usually action event handlers.
+ * 
+ */
 com.marklogic.widgets.searchresults.prototype.generateLazyID = function() {
   return this.lazyId++;
 };
