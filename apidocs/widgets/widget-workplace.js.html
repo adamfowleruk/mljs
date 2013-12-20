@@ -61,29 +61,55 @@ com.marklogic.widgets.workplace = function(container) {
   
   this._contexts = new Array(); // contextname => contextObject instance
   
+  this._workplaceContext = new com.marklogic.widgets.workplacecontext();
+  this._workplaceContext.register(this);
+  
   this._init();
 };
 
 com.marklogic.widgets.workplace.prototype._init = function() {
-  // TODO create editable div container at bottom of document, hidden
+  // create two divs, one transparent in front of the other. When hover over top right, show an edit button if editable.
+  var str = "&lt;div id='" + this.container + "-container' class='workplace-container'>";
+  str += " &lt;div id='" + this.container + "-layout'>&lt;/div>";
+  str += " &lt;div id='" + this.container + "-mask' class='workplace-mask'>";
+  str += "  &lt;div class='workplace-mask-icon' >&lt;img id='" + this.container + "-link' src='/images/mljs/setting-small.png' title='Edit this Workplace' class='workplace-edit-link' />&lt;/div>";
+  str += " &lt;/div>";
+  str += "&lt;/div>";
+  document.getElementById(this.container).innerHTML = str;
+  
+  // add click event handler
+  var self = this;
+  document.getElementById(this.container + "-link").onclick = function(evt) {
+    com.marklogic.widgets.workplaceadmin.renderFullscreen(self._workplaceContext);
+  }
 };
 
 com.marklogic.widgets.workplace.prototype.editable = function(editme) {
   if (undefined == editme) {
-    this._editable = true;
-    return;
+    editme = true;
   }
   this._editable = editme;
   
-  // TODO show editable div within page, minimised
+  // show editable div within page
+  if (this._editable) {
+    document.getElementById(this.container + "-mask").style.display = "block";
+  } else {
+    document.getElementById(this.container + "-mask").style.display = "none";
+  }
 };
 
 com.marklogic.widgets.workplace.prototype.loadPage = function(jsonOrString) {
-  var json = jsonOrString; // TODO lookup json config if nothing or path specified
+  this._workplaceContext.loadPage(jsonOrString);
+};
+
+com.marklogic.widgets.workplace.prototype.updateWorkplace = function(context) {
+  //var json = jsonOrString; // TODO lookup json config if nothing or path specified
+  
+  var json = this._workplaceContext.getJson();
   
   // load top level layout for this page (or panel we are managing, at least)
   mljs.defaultconnection.logger.debug("Creating layout");
-  var layout = new (com.marklogic.widgets.layouts[json.layout])(this.container);
+  var layout = new (com.marklogic.widgets.layouts[json.layout])(this.container + "-layout");
   
   // generate named areas for widgets to be contained
   mljs.defaultconnection.logger.debug("Creating zones");
@@ -195,6 +221,8 @@ com.marklogic.widgets.layouts.thinthick = function(container) {
   
   this.assignments = new Array(); // [widgetid] => assignment json, with elementid for element linked to
   
+  this._nextID = 1;
+  
   this._init();
 };
 
@@ -213,17 +241,29 @@ com.marklogic.widgets.layouts.thinthick.prototype.createZones = function(assignm
   zones["A"] = new Array();
   zones["B"] = new Array();
   
-  for (var i = 0, max = assignments.length,ass;i &lt; max;i++) {
-    mljs.defaultconnection.logger.debug("createZones: i: " + i); 
-    ass = assignments[i];
-    mljs.defaultconnection.logger.debug("createZones: i: " + i + " has ass: " + JSON.stringify(ass));
-    zones[ass.zone][ass.order] = ass;
+  if (undefined != assignments) {
+    for (var i = 0, max = assignments.length,ass;i &lt; max;i++) {
+      mljs.defaultconnection.logger.debug("createZones: i: " + i); 
+      ass = assignments[i];
+      mljs.defaultconnection.logger.debug("createZones: i: " + i + " has ass: " + JSON.stringify(ass));
+      zones[ass.zone][ass.order] = ass;
+    }
   }
   
   // do zone A then zone B
   this._genZones("A",zones["A"]);
   this._genZones("B",zones["B"]);
   
+};
+com.marklogic.widgets.layouts.thinthick.prototype.appendToZone = function(zone,html) {
+  var zoneel = document.getElementById(this.container + "-" + zone);
+  
+  var id = this.container + "-" + zone + "-" + this._nextID++;
+  var div = document.createElement("div");
+  div.id = id;
+  div.innerHTML = html;
+  zoneel.appendChild(div);
+  return id;
 };
 
 com.marklogic.widgets.layouts.thinthick.prototype.getElementID = function(widgetid) {
@@ -241,7 +281,7 @@ com.marklogic.widgets.layouts.thinthick.prototype._genZones = function(zone,arr)
     ass = arr[i];
     mljs.defaultconnection.logger.debug("_genZones: zone: " + zone + " has ass: " + JSON.stringify(ass));
     if (undefined != ass) {
-      var id = this.container + "-" + zone + "-" + i;
+      var id = this.container + "-" + zone + "-" + this._nextID++;
       ass.elementid = id;
       this.assignments[ass.widget] = ass;
       s += "&lt;div id='" + id + "'>&lt;/div>";
@@ -296,17 +336,38 @@ com.marklogic.widgets.actions.javascript.prototype.execute = function(executionC
 
 
 
-
+/**
+ * Acts as a co-ordinating context for a single MLJS Workplace Page configuration
+ * 
+ * @constructor
+ */
 com.marklogic.widgets.workplacecontext = function() {
   this._json = {
     shared: false,
     widgets: [], assignments: [], contexts: [], actions: {
       onload: [], onunload: []
-    }
+    },
+    layout: "thinthick",
+    title: "New Workplace"
   };
+  this._lastSaved = this._json;
   this._uri = null;
   
   this.db = mljs.defaultconnection;
+  
+  this.updatePublisher = new com.marklogic.events.Publisher(); // page loaded from server
+};
+
+com.marklogic.widgets.workplacecontext.prototype.revert = function() {
+  this._json = this._lastSaved;
+};
+
+com.marklogic.widgets.workplacecontext.prototype.save = function(callback) {
+  // TODO
+};
+
+com.marklogic.widgets.workplacecontext.prototype.getJson = function() {
+  return this._json; // DO NOT EDIT the returned JSON - use context functions only
 };
 
 com.marklogic.widgets.workplacecontext.prototype.getSummary = function() {
@@ -423,26 +484,62 @@ com.marklogic.widgets.workplacecontext.prototype.addContextAction = function(con
 };
 
 
-com.marklogic.widgets.workplacecontext.prototype.editPage = function(url) {
-  var self = this;
-  this.db.findWorkplace(url,function(result) {
-    // assume just one
-    self._uri = result.doc.results[0].uri;
-    self._json = result.doc.results[0].content;
-    if ("string" == typeof (self._json)) {
-      self._json = JSON.parse(self._json);
-    }
-    // TODO fire updatePage event
-  });
+com.marklogic.widgets.workplacecontext.prototype.loadPage = function(jsonOrString) {
+  if (typeof(jsonOrString) == "string") {
+    // doc uri
+    var self = this;
+    this.db.findWorkplace(url,function(result) {
+      // assume just one
+      self._uri = result.doc.results[0].uri;
+      self._json = result.doc.results[0].content;
+      if ("string" == typeof (self._json)) {
+        self._json = JSON.parse(self._json);
+      }
+      self._fireUpdate();
+    });
+  } else {
+    this._json = jsonOrString;
+    this._fireUpdate();
+  }
 };
 
-com.marklogic.widgets.workplacecontext.prototype.editPageWithUri = function(uri) {
+com.marklogic.widgets.workplacecontext.prototype.loadPageWithUri = function(uri) {
   this._uri = uri;
   var self = this;
   this.db.getWorkplace(uri,function(result) {
     self._json = result.doc;
-    // TODO fire updatePage event
+    
+    // fire updatePage event
+    self._fireUpdate();
   });
+};
+
+// Context event handling
+
+com.marklogic.widgets.workplacecontext.prototype.register = function(widget) {
+  if (undefined != widget.setWorkplaceContext) {
+    widget.setWorkplaceContext(this);
+  }
+  if (undefined != widget.updateWorkplace) {
+    this.addWorkplaceUpdateListener(function(wp) {widget.updateWorkplace(wp);});
+  }
+};
+
+/**
+ * Workplace update fired whenever the configuration is loaded/changed on the server. (Not when saved to the server)
+ * @private
+ */
+com.marklogic.widgets.workplacecontext.prototype._fireUpdate = function() {
+  this.updatePublisher.publish(this);
+};
+
+com.marklogic.widgets.workplacecontext.prototype.addWorkplaceUpdateListener = function(lis) {
+  this.updatePublisher.subscribe(lis);
+};
+
+
+com.marklogic.widgets.workplacecontext.prototype.removeWorkplaceUpdatelistener = function(lis) {
+  this.updatePublisher.unsubscribe(lis);
 };
 
 
@@ -455,6 +552,8 @@ com.marklogic.widgets.workplacecontext.prototype.editPageWithUri = function(uri)
 
 com.marklogic.widgets.workplaceadmin = function(container) {
   this.container = container;
+  
+  this._workplaceContext = new com.marklogic.widgets.workplacecontext();
 
   this._config = {
     widgetList: [
@@ -479,24 +578,70 @@ com.marklogic.widgets.workplaceadmin = function(container) {
       {title: "Semantic Search Results", classname: "com.marklogic.widgets.sparqlresults", description: "Show a summary of Subjects returned from a SPARQL query."},
       {title: "Semantic Subject Facts", classname: "com.marklogic.widgets.entityfacts", description: "Show the list of facts about a specific subject."}
     ]
-  }
+  };
+  
+  this.closePublisher = new com.marklogic.events.Publisher();
+  
+  this._refresh();
+};
+
+
+/**
+ * Helper function to draw the edit screen full screen
+ */
+com.marklogic.widgets.workplaceadmin.renderFullscreen = function(workplacecontext) {
+  // draw container
+  // ensure main window is 960 pixels wide (for 960.css to ensure consistent rendering)
+  // ensure main window has vertical scroll bar
+  //str = " &lt;div id='workplaceeditorcontainer'>Loading...&lt;/div>";
+  
+  var el = document.createElement("div");
+  el.id = "workplaceeditormain";
+  //el.innerHTML = str;
+  document.body.appendChild(el);
+  
+  var admin = new com.marklogic.widgets.workplaceadmin("workplaceeditormain");
+  workplacecontext.register(admin);
+  admin.updateWorkplace(workplacecontext);
+  
+  // add event listener to workplace admin for closing admin widget
+  admin.addCloseListener(function(wgt) {
+    // destroy edit div on close
+    document.body.removeChild(document.getElementById("workplaceeditormain"));
+  });
+};
+
+com.marklogic.widgets.workplaceadmin.prototype.addCloseListener = function(lis) {
+  this.closePublisher.subscribe(lis);
+};
+
+com.marklogic.widgets.workplaceadmin.prototype.removeCloseListener = function(lis) {
+  this.closePublisher.unsubscribe(lis);
+};
+
+com.marklogic.widgets.workplaceadmin.prototype.setWorkplaceContext = function(ctx) {
+  this._workplaceContext = ctx;
+};
+
+com.marklogic.widgets.workplaceadmin.prototype.getWorkplaceContext = function() {
+  return this._workplaceContext;
 };
 
 com.marklogic.widgets.workplaceadmin.prototype._refresh = function() {
   var str = "&lt;div id='" + this.container + "-workplaceadmin' class='mljswidget workplaceadmin'>";
-  str += "&lt;div id='" + this.container + "-panels' class='workplaceadmin-panels'>";
+  str += " &lt;div id='" + this.container + "-panels' class='workplaceadmin-panels'>";
   
-  str += "&lt;div id='" + this.container + "-page-heading' class='workplaceadmin-page-heading'>Page Settings&lt;/div>";
-  str += "&lt;div id='" + this.container + "-page-content' class='workplaceadmin-page-content'>";
+  str += "  &lt;div id='" + this.container + "-page-heading' class='workplaceadmin-page-heading subtitle active'>Page Settings&lt;/div>";
+  str += "  &lt;div id='" + this.container + "-page-content' class='workplaceadmin-page-content'>";
   str += "&lt;table class='mljstable'>";
   str += "&lt;tr>&lt;td>Page Name:&lt;/td>&lt;td>&lt;input type='text' size='25' id='" + this.container + "-page-name' />&lt;/td>&lt;/tr>";
   str += "&lt;tr>&lt;td>URL(s):&lt;/td>&lt;td>&lt;textarea cols='25' rows='4' id='" + this.container + "-page-urls'>&lt;/textarea>&lt;/td>&lt;/tr>";
   str += "&lt;tr>&lt;td>Main Layout:&lt;/td>&lt;td>&lt;input type='text' size='25' id='" + this.container + "-page-layout' />&lt;/td>&lt;/tr>"; // TODO replace with drop down
   str += "&lt;/table>";
-  str += "&lt;/div>";
+  str += "  &lt;/div>";
   
-  str += "&lt;div id='" + this.container + "-widgets-heading' class='workplaceadmin-widgets-heading'>Widgets&lt;/div>";
-  str += "&lt;div id='" + this.container + "-widgets-content' class='workplaceadmin-widgets-content hidden'>";
+  str += "  &lt;div id='" + this.container + "-widgets-heading' class='workplaceadmin-widgets-heading subtitle active'>Widgets&lt;/div>";
+  str += "  &lt;div id='" + this.container + "-widgets-content' class='workplaceadmin-widgets-content hidden'>";
   str += "&lt;table class-'mljstable workplaceadmin-widgets-list'>"
   for (var i = 0, col = 0, max = this._config.widgetList.length,w;i &lt; max;i++) {
     w = this._config.widgetList[i];
@@ -519,23 +664,74 @@ com.marklogic.widgets.workplaceadmin.prototype._refresh = function() {
     str += "&lt;/tr>";
   }
   str += "&lt;/table>";
-  str += "&lt;/div>";
+  str += "  &lt;/div>";
   
-  str += "&lt;div id='" + this.container + "-contexts-heading' class='workplaceadmin-contexts-heading'>Contexts&lt;/div>";
-  str += "&lt;div id='" + this.container + "-contexts-content' class='workplaceadmin-contexts-content hidden'>TODO&lt;/div>";
-  str += "&lt;div id='" + this.container + "-actions-heading' class='workplaceadmin-actions-heading'>Actions&lt;/div>";
-  str += "&lt;div id='" + this.container + "-actions-content' class='workplaceadmin-actions-content hidden'>TODO&lt;/div>";
-  str += "&lt;/div>&lt;div id='" + this.container + "-config' class='workplaceadmin-config'>";
-  
-  str += "&lt;/div>";
+  str += "  &lt;div id='" + this.container + "-contexts-heading' class='workplaceadmin-contexts-heading subtitle active'>Contexts&lt;/div>";
+  str += "  &lt;div id='" + this.container + "-contexts-content' class='workplaceadmin-contexts-content hidden'>TODO&lt;/div>";
+  str += "  &lt;div id='" + this.container + "-actions-heading' class='workplaceadmin-actions-heading subtitle active'>Actions&lt;/div>";
+  str += "  &lt;div id='" + this.container + "-actions-content' class='workplaceadmin-actions-content hidden'>TODO&lt;/div>";
+  str += "  &lt;div class='workplaceadmin-buttonbar'>";
+  str += "   &lt;input class='btn btn-primary' id='" + this.container + "-save' value='Save' type='submit' />";
+  str += "   &lt;input class='btn btn-secondary' id='" + this.container + "-cancel' value='Cancel' type='submit' />";
+  str += "  &lt;/div>";
+  str += " &lt;/div>";
+  str += " &lt;div id='" + this.container + "-config' class='workplaceadmin-config container_12'>";
+  str += " &lt;/div>";
   str += "&lt;/div>";
   
   document.getElementById(this.container).innerHTML = str;
   
   // TODO event handlers etc.
   // widget drag/drop/click
+  var self = this;
+  document.getElementById(this.container + "-page-heading").onclick = function(evt) {
+    self._showTab("page");
+  };
+  document.getElementById(this.container + "-widgets-heading").onclick = function(evt) {
+    self._showTab("widgets");
+  };
+  document.getElementById(this.container + "-contexts-heading").onclick = function(evt) {
+    self._showTab("contexts");
+  };
+  document.getElementById(this.container + "-actions-heading").onclick = function(evt) {
+    self._showTab("actions");
+  };
+  
+  document.getElementById(this.container + "-cancel").onclick = function(evt) {
+    self._workplaceContext.revert();
+    self.closePublisher.publish(true);
+  };
+  document.getElementById(this.container + "-save").onclick = function(evt) {
+    self._workplaceContext.save(function(result) {
+      // TODO do something like show a save message
+    });
+  };
 };
 
+
+com.marklogic.widgets.workplaceadmin.prototype._showTab = function(tab) {
+  mljs.defaultconnection.logger.debug("workplaceadmin._showTab: Showing " + tab);
+  com.marklogic.widgets.hide(document.getElementById(this.container + "-page-content"),("page" != tab));
+  com.marklogic.widgets.hide(document.getElementById(this.container + "-widgets-content"),("widgets" != tab));
+  com.marklogic.widgets.hide(document.getElementById(this.container + "-contexts-content"),("contexts" != tab));
+  com.marklogic.widgets.hide(document.getElementById(this.container + "-actions-content"),("actions" != tab));
+};
+
+com.marklogic.widgets.workplaceadmin.prototype.updateWorkplace = function(ctx) {
+  // do something with this._workplaceContext.getJson()
+  
+  // draw layout inside this container
+  
+  var json = this._workplaceContext.getJson();
+  
+  // load top level layout for this page (or panel we are managing, at least)
+  mljs.defaultconnection.logger.debug("Creating layout");
+  this._layout = new (com.marklogic.widgets.layouts[json.layout])(this.container + "-config");
+  
+  // assign element to layout dynamically
+  this._layout.appendToZone("A","&lt;p>Some test HTML&lt;/p>");
+  this._layout.appendToZone("B","&lt;p>Some other test HTML&lt;/p>");
+};
 </code></pre>
         </article>
     </section>
@@ -546,13 +742,13 @@ com.marklogic.widgets.workplaceadmin.prototype._refresh = function() {
 </div>
 
 <nav>
-    <h2><a href="index.html">Index</a></h2><h3>Classes</h3><ul><li><a href="com.marklogic.widgets.collectionuris.html">collectionuris</a></li><li><a href="com.marklogic.widgets.cooccurence.html">cooccurence</a></li><li><a href="com.marklogic.widgets.create.html">create</a></li><li><a href="com.marklogic.widgets.docviewer.html">docviewer</a></li><li><a href="com.marklogic.widgets.entityfacts.html">entityfacts</a></li><li><a href="com.marklogic.widgets.error.html">error</a></li><li><a href="com.marklogic.widgets.graphexplorer.html">graphexplorer</a></li><li><a href="com.marklogic.widgets.highcharts.html">highcharts</a></li><li><a href="com.marklogic.widgets.kratu.html">kratu</a></li><li><a href="com.marklogic.widgets.markings.html">markings</a></li><li><a href="com.marklogic.widgets.openlayers.html">openlayers</a></li><li><a href="com.marklogic.widgets.profile.html">profile</a></li><li><a href="com.marklogic.widgets.rdb2rdf.html">rdb2rdf</a></li><li><a href="com.marklogic.widgets.searchbar.html">searchbar</a></li><li><a href="com.marklogic.widgets.searchpage.html">searchpage</a></li><li><a href="com.marklogic.widgets.searchpager.html">searchpager</a></li><li><a href="com.marklogic.widgets.searchresults.html">searchresults</a></li><li><a href="com.marklogic.widgets.searchselection.html">searchselection</a></li><li><a href="com.marklogic.widgets.searchsort.html">searchsort</a></li><li><a href="com.marklogic.widgets.selection.html">selection</a></li><li><a href="com.marklogic.widgets.sparqlbar.html">sparqlbar</a></li><li><a href="com.marklogic.widgets.sparqlresults.html">sparqlresults</a></li><li><a href="com.marklogic.widgets.workplace.html">workplace</a></li></ul><h3>Namespaces</h3><ul><li><a href="com.marklogic.widgets.bits.html">bits</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-001-intro.html">001-intro</a></li><li><a href="tutorial-001-widgets-list.html">001-widgets-list</a></li><li><a href="tutorial-002-intro-firstpage.html">002-intro-firstpage</a></li><li><a href="tutorial-002-widgets-search.html">002-widgets-search</a></li><li><a href="tutorial-003-widgets-search-render.html">003-widgets-search-render</a></li><li><a href="tutorial-004-widgets-highcharts.html">004-widgets-highcharts</a></li><li><a href="tutorial-011-browser-create-app.html">011-browser-create-app</a></li><li><a href="tutorial-012-browser-install-app.html">012-browser-install-app</a></li><li><a href="tutorial-013-browser-samples-app.html">013-browser-samples-app</a></li><li><a href="tutorial-014-browser-workplace.html">014-browser-workplace</a></li><li><a href="tutorial-050-core-contexts.html">050-core-contexts</a></li><li><a href="tutorial-060-rest-ext.html">060-rest-ext</a></li><li><a href="tutorial-901-ontology.html">901-ontology</a></li><li><a href="tutorial-999-samples.html">999-samples</a></li><li><a href="tutorial-all.html">all</a></li></ul><h3>Global</h3><ul><li><a href="global.html#com">com</a></li></ul>
+    <h2><a href="index.html">Index</a></h2><h3>Classes</h3><ul><li><a href="com.marklogic.widgets.collectionuris.html">collectionuris</a></li><li><a href="com.marklogic.widgets.cooccurence.html">cooccurence</a></li><li><a href="com.marklogic.widgets.create.html">create</a></li><li><a href="com.marklogic.widgets.docheadviewer.html">docheadviewer</a></li><li><a href="com.marklogic.widgets.docproperties.html">docproperties</a></li><li><a href="com.marklogic.widgets.docviewer.html">docviewer</a></li><li><a href="com.marklogic.widgets.entityfacts.html">entityfacts</a></li><li><a href="com.marklogic.widgets.error.html">error</a></li><li><a href="com.marklogic.widgets.graphexplorer.html">graphexplorer</a></li><li><a href="com.marklogic.widgets.highcharts.html">highcharts</a></li><li><a href="com.marklogic.widgets.kratu.html">kratu</a></li><li><a href="com.marklogic.widgets.markings.html">markings</a></li><li><a href="com.marklogic.widgets.openlayers.html">openlayers</a></li><li><a href="com.marklogic.widgets.profile.html">profile</a></li><li><a href="com.marklogic.widgets.rdb2rdf.html">rdb2rdf</a></li><li><a href="com.marklogic.widgets.searchbar.html">searchbar</a></li><li><a href="com.marklogic.widgets.searchfacets.html">searchfacets</a></li><li><a href="com.marklogic.widgets.searchpage.html">searchpage</a></li><li><a href="com.marklogic.widgets.searchpager.html">searchpager</a></li><li><a href="com.marklogic.widgets.searchresults.html">searchresults</a></li><li><a href="com.marklogic.widgets.searchselection.html">searchselection</a></li><li><a href="com.marklogic.widgets.searchsort.html">searchsort</a></li><li><a href="com.marklogic.widgets.selection.html">selection</a></li><li><a href="com.marklogic.widgets.sparqlbar.html">sparqlbar</a></li><li><a href="com.marklogic.widgets.sparqlresults.html">sparqlresults</a></li><li><a href="com.marklogic.widgets.workplace.html">workplace</a></li><li><a href="com.marklogic.widgets.workplacecontext.html">workplacecontext</a></li></ul><h3>Namespaces</h3><ul><li><a href="com.marklogic.widgets.bits.html">bits</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-001-intro.html">001-intro</a></li><li><a href="tutorial-001-widgets-list.html">001-widgets-list</a></li><li><a href="tutorial-002-intro-firstpage.html">002-intro-firstpage</a></li><li><a href="tutorial-002-widgets-search.html">002-widgets-search</a></li><li><a href="tutorial-003-widgets-search-render.html">003-widgets-search-render</a></li><li><a href="tutorial-004-widgets-highcharts.html">004-widgets-highcharts</a></li><li><a href="tutorial-011-browser-create-app.html">011-browser-create-app</a></li><li><a href="tutorial-012-browser-install-app.html">012-browser-install-app</a></li><li><a href="tutorial-013-browser-samples-app.html">013-browser-samples-app</a></li><li><a href="tutorial-014-browser-workplace.html">014-browser-workplace</a></li><li><a href="tutorial-050-core-contexts.html">050-core-contexts</a></li><li><a href="tutorial-060-rest-ext.html">060-rest-ext</a></li><li><a href="tutorial-901-ontology.html">901-ontology</a></li><li><a href="tutorial-999-samples.html">999-samples</a></li><li><a href="tutorial-all.html">all</a></li></ul><h3>Global</h3><ul><li><a href="global.html#com">com</a></li></ul>
 </nav>
 
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Wed Dec 18 2013 22:50:09 GMT-0000 (GMT)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Fri Dec 20 2013 14:12:26 GMT-0000 (GMT)
 </footer>
 
 <script> prettyPrint(); </script>

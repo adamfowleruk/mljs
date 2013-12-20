@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Tutorial: 012-browser-install-app</title>
+    <title>JSDoc: Class: workplacecontext</title>
     
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,70 +17,120 @@
 
 <div id="main">
     
-    <h1 class="page-title">Tutorial: 012-browser-install-app</h1>
+    <h1 class="page-title">Class: workplacecontext</h1>
     
-    <section>
-    
-<header>
     
 
-    <h2>012-browser-install-app</h2>
+
+
+<section>
+    
+<header>
+    <h2>
+    workplacecontext
+    </h2>
+    
 </header>  
 
 <article>
-    <p><a href="tutorial-all.html">Back to All Tutorials list</a></p>
-<h1>Installing MLJS in to an existing application</h1>
-<p>WARNING: Currently MLJS can only run in a REST API application installed directly in to MarkLogic server. 
-It cannot be integrated to an application on another server, or that sits on a port that is not a REST API
-instance in MarkLogic. In future I will implement W3C CORS support to bypass this.</p>
-<p>You may have an existing Roxy application or just a few html pages installed in a REST Server instance. If
-you do and you want to use MLJS then how do you get started?</p>
-<p>Thankfully I've created a handy script that downloads the latest MLJS browser files and installs them to 
-a Roxy app folder of your choice. </p>
-<ol>
-<li>To get this script go to <a href="https://github.com/adamfowleruk/mljs">https://github.com/adamfowleruk/mljs</a> and download the mljsme.sh file.</li>
-<li>Install this script in a useful location. I'm going to assume it's in /Users/adamfowler/Documents/utilities/mljsme.sh</li>
-<li>Open a terminal session and edit your bash profile: vi ~/.bash_profile</li>
-<li>Add this line to it: alias mljsme=/Users/adamfowler/Documents/utilities/mljsme.sh &quot;$@&quot;</li>
-<li>Save the file and quit vi</li>
-<li>Exit all current terminals (only new terminals will pick up the alias)</li>
-</ol>
-<h2>Installing MLJS in to a Roxy Hybrid application</h2>
-<p>The mljsme script when executed will check for a -d option. This specifies the root folder of the Roxy app that
-MLJS should be installed in. i.e. the one that contains a 'src' and 'deploy' folder. If a -d option is not 
-specified then mljsme assumes the present working directory is where your Roxy app resides.</p>
-<ol>
-<li>Open a terminal window</li>
-<li>cd in to your existing Roxy Hybrid application's folder</li>
-<li>type <code>mljsme</code> and hit enter</li>
-</ol>
-<h2>Installing MLJS in a vanilla REST Server instance</h2>
-<p>the mljsme script by default assumes that javascript, css and image files should be installed in the
-./src/public/js ./src/public/css and ./src/public/images folders, respectively. This matches the
-architecture of a Roxy application.</p>
-<p>To install MLJS in your own REST application with a different structure, you use the -j, -i and -c
-options for the javascript, images, and css folders, respectively. Consider the following command:-</p>
-<p><code>mljsme -d /Users/adamfowler/Documents/git/myownapp -j javascript -i assets/images -c assets/css</code></p>
-<p>This command will install the MLJS javascript files in to the javascript subfolder within the myownapp
-folder. Similar happens for images and css. Each option assumes that the -d (or present working directory
-if -d is not specified) is the parent folder of the subfolder option specified.</p>
-<p>WARNING: As of Fri 09 Aug 2013 the -j, -i and -c options are not working as expected. Please check back for
-updates, or suggest a fix yourself.</p>
-<h2>What does MLJSME do?</h2>
-<p>The script does several things in order:-</p>
-<ol>
-<li>Creates a new temporary directory for downloaded files</li>
-<li>Downloads the latest mljs-browser.tar.gz distribution file from MLJS GitHub</li>
-<li>Unpacks this in the temporary folder</li>
-<li>Copies the relevant files to the folders specified (Will always overwrite existing files with same names)</li>
-<li>Cleans up the temporary files created</li>
-</ol>
-<p>Please let me know how you get on with this script.</p>
-<hr>
-<p><a href="tutorial-all.html">Back to All Tutorials list</a></p>
+    <div class="container-overview">
+    
+    
+    
+        
+<dt>
+    <h4 class="name" id="workplacecontext"><span class="type-signature"></span>new workplacecontext<span class="signature">()</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        <p>Acts as a co-ordinating context for a single MLJS Workplace Page configuration</p>
+    </div>
+    
+
+    
+    
+    
+    
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="widget-workplace.js.html">widget-workplace.js</a>, <a href="widget-workplace.js.html#line317">line 317</a>
+    </li></ul></dd>
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+</dd>
+
+    
+    </div>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
 </article>
 
 </section>  
+
+
+
 
 </div>
 

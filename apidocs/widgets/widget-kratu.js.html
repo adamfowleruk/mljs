@@ -47,6 +47,7 @@ com.marklogic.widgets = window.com.marklogic.widgets || {};
 
 /**
  * A wrapper for the Google Kratu tabular data exploration widget
+ * 
  * @constructor
  * @param {string} container - The HTML ID of the element to place this widget's content within.
  */
@@ -57,9 +58,10 @@ com.marklogic.widgets.kratu = function(container) {
   this.results = null;
   this.facts = null;
   this.kratu = new Kratu();
-  this.kratu.setRenderElement( document.getElementById(this.container) );
+  document.getElementById(container).innerHTML = "&lt;div id='" + container + "-inner' class='mljswidget'>&lt;/div>"
+  this.kratu.setRenderElement( document.getElementById(this.container + "-inner") );
   
-  this.render = "content"; // summary = top level ML search info, content = raw document info
+  this._render = "content"; // summary = top level ML search info, content = raw document info
   
   this._refresh();
 };
@@ -69,10 +71,10 @@ com.marklogic.widgets.kratu = function(container) {
  * summary = the search result summary. E.g. URI, score, etc.
  * content = the JSON content (default)
  * 
- * @param {string} render - What to render from the search result information
+ * @param {string} render - What to render from the search result information. "content|properties"
  */
 com.marklogic.widgets.kratu.prototype.render = function(render) {
-  this.render = render;
+  this._render = render;
 };
 
 /**
@@ -81,16 +83,32 @@ com.marklogic.widgets.kratu.prototype.render = function(render) {
  * @param {JSON} results - The REST API JSON results object to display. See GET /v1/search
  */
 com.marklogic.widgets.kratu.prototype.updateResults = function(results) {
-  if (typeof (results) != "boolean" && undefined != results && null != results && undefined != results.qtext) {
+  mljs.defaultconnection.logger.debug("kratu.updateResults called");
+  if (typeof (results) != "boolean" && undefined != results && null != results) {
+    mljs.defaultconnection.logger.debug("kratu.updateResults: Got real results");
     this.results = results;
     
-    if ("content" == this.render) {
+    if ("content" == this._render) {
+      mljs.defaultconnection.logger.debug("kratu.updateResults: Rendering search result contents");
       var content = new Array();
-      for (var i = 0;i &lt; this.results.results.length;i++) {
-        content.push(JSON.parse(this.results.results[i].content)); // TODO support XML and other types too
+      for (var i = 0,r;i &lt; this.results.results.length;i++) {
+        r = this.results.results[i];
+        mljs.defaultconnection.logger.debug("kratu.updateResults: Parsing result " + i + "=" + r.content);
+        if (typeof(r.content) == "string") {
+          // TODO support plain text, xml text
+          content.push(JSON.parse(this.results.results[i].content)); // TODO support XML and other types too
+        } else if (typeof(r.content) == "object") {
+          // xml or JSON
+          if (undefined != r.content.nodeType) {
+            // TODO support XML object
+          } else {
+            content.push(r.content);
+          }
+        }
       }
       this.kratu.setEntities(content);
     } else {
+      mljs.defaultconnection.logger.debug("kratu.updateResults: Rendering search result statistics");
       this.kratu.setEntities(this.results.results);
     }
     this._refresh();
@@ -156,13 +174,13 @@ com.marklogic.widgets.kratu.prototype._refresh = function() {
 </div>
 
 <nav>
-    <h2><a href="index.html">Index</a></h2><h3>Classes</h3><ul><li><a href="com.marklogic.widgets.collectionuris.html">collectionuris</a></li><li><a href="com.marklogic.widgets.cooccurence.html">cooccurence</a></li><li><a href="com.marklogic.widgets.create.html">create</a></li><li><a href="com.marklogic.widgets.docviewer.html">docviewer</a></li><li><a href="com.marklogic.widgets.entityfacts.html">entityfacts</a></li><li><a href="com.marklogic.widgets.error.html">error</a></li><li><a href="com.marklogic.widgets.graphexplorer.html">graphexplorer</a></li><li><a href="com.marklogic.widgets.highcharts.html">highcharts</a></li><li><a href="com.marklogic.widgets.kratu.html">kratu</a></li><li><a href="com.marklogic.widgets.markings.html">markings</a></li><li><a href="com.marklogic.widgets.openlayers.html">openlayers</a></li><li><a href="com.marklogic.widgets.profile.html">profile</a></li><li><a href="com.marklogic.widgets.rdb2rdf.html">rdb2rdf</a></li><li><a href="com.marklogic.widgets.searchbar.html">searchbar</a></li><li><a href="com.marklogic.widgets.searchpage.html">searchpage</a></li><li><a href="com.marklogic.widgets.searchpager.html">searchpager</a></li><li><a href="com.marklogic.widgets.searchresults.html">searchresults</a></li><li><a href="com.marklogic.widgets.searchselection.html">searchselection</a></li><li><a href="com.marklogic.widgets.searchsort.html">searchsort</a></li><li><a href="com.marklogic.widgets.selection.html">selection</a></li><li><a href="com.marklogic.widgets.sparqlbar.html">sparqlbar</a></li><li><a href="com.marklogic.widgets.sparqlresults.html">sparqlresults</a></li><li><a href="com.marklogic.widgets.workplace.html">workplace</a></li></ul><h3>Namespaces</h3><ul><li><a href="com.marklogic.widgets.bits.html">bits</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-001-intro.html">001-intro</a></li><li><a href="tutorial-001-widgets-list.html">001-widgets-list</a></li><li><a href="tutorial-002-intro-firstpage.html">002-intro-firstpage</a></li><li><a href="tutorial-002-widgets-search.html">002-widgets-search</a></li><li><a href="tutorial-003-widgets-search-render.html">003-widgets-search-render</a></li><li><a href="tutorial-004-widgets-highcharts.html">004-widgets-highcharts</a></li><li><a href="tutorial-011-browser-create-app.html">011-browser-create-app</a></li><li><a href="tutorial-012-browser-install-app.html">012-browser-install-app</a></li><li><a href="tutorial-013-browser-samples-app.html">013-browser-samples-app</a></li><li><a href="tutorial-014-browser-workplace.html">014-browser-workplace</a></li><li><a href="tutorial-050-core-contexts.html">050-core-contexts</a></li><li><a href="tutorial-060-rest-ext.html">060-rest-ext</a></li><li><a href="tutorial-901-ontology.html">901-ontology</a></li><li><a href="tutorial-999-samples.html">999-samples</a></li><li><a href="tutorial-all.html">all</a></li></ul><h3>Global</h3><ul><li><a href="global.html#com">com</a></li></ul>
+    <h2><a href="index.html">Index</a></h2><h3>Classes</h3><ul><li><a href="com.marklogic.widgets.collectionuris.html">collectionuris</a></li><li><a href="com.marklogic.widgets.cooccurence.html">cooccurence</a></li><li><a href="com.marklogic.widgets.create.html">create</a></li><li><a href="com.marklogic.widgets.docheadviewer.html">docheadviewer</a></li><li><a href="com.marklogic.widgets.docproperties.html">docproperties</a></li><li><a href="com.marklogic.widgets.docviewer.html">docviewer</a></li><li><a href="com.marklogic.widgets.entityfacts.html">entityfacts</a></li><li><a href="com.marklogic.widgets.error.html">error</a></li><li><a href="com.marklogic.widgets.graphexplorer.html">graphexplorer</a></li><li><a href="com.marklogic.widgets.highcharts.html">highcharts</a></li><li><a href="com.marklogic.widgets.kratu.html">kratu</a></li><li><a href="com.marklogic.widgets.markings.html">markings</a></li><li><a href="com.marklogic.widgets.openlayers.html">openlayers</a></li><li><a href="com.marklogic.widgets.profile.html">profile</a></li><li><a href="com.marklogic.widgets.rdb2rdf.html">rdb2rdf</a></li><li><a href="com.marklogic.widgets.searchbar.html">searchbar</a></li><li><a href="com.marklogic.widgets.searchfacets.html">searchfacets</a></li><li><a href="com.marklogic.widgets.searchpage.html">searchpage</a></li><li><a href="com.marklogic.widgets.searchpager.html">searchpager</a></li><li><a href="com.marklogic.widgets.searchresults.html">searchresults</a></li><li><a href="com.marklogic.widgets.searchselection.html">searchselection</a></li><li><a href="com.marklogic.widgets.searchsort.html">searchsort</a></li><li><a href="com.marklogic.widgets.selection.html">selection</a></li><li><a href="com.marklogic.widgets.sparqlbar.html">sparqlbar</a></li><li><a href="com.marklogic.widgets.sparqlresults.html">sparqlresults</a></li><li><a href="com.marklogic.widgets.workplace.html">workplace</a></li><li><a href="com.marklogic.widgets.workplacecontext.html">workplacecontext</a></li></ul><h3>Namespaces</h3><ul><li><a href="com.marklogic.widgets.bits.html">bits</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-001-intro.html">001-intro</a></li><li><a href="tutorial-001-widgets-list.html">001-widgets-list</a></li><li><a href="tutorial-002-intro-firstpage.html">002-intro-firstpage</a></li><li><a href="tutorial-002-widgets-search.html">002-widgets-search</a></li><li><a href="tutorial-003-widgets-search-render.html">003-widgets-search-render</a></li><li><a href="tutorial-004-widgets-highcharts.html">004-widgets-highcharts</a></li><li><a href="tutorial-011-browser-create-app.html">011-browser-create-app</a></li><li><a href="tutorial-012-browser-install-app.html">012-browser-install-app</a></li><li><a href="tutorial-013-browser-samples-app.html">013-browser-samples-app</a></li><li><a href="tutorial-014-browser-workplace.html">014-browser-workplace</a></li><li><a href="tutorial-050-core-contexts.html">050-core-contexts</a></li><li><a href="tutorial-060-rest-ext.html">060-rest-ext</a></li><li><a href="tutorial-901-ontology.html">901-ontology</a></li><li><a href="tutorial-999-samples.html">999-samples</a></li><li><a href="tutorial-all.html">all</a></li></ul><h3>Global</h3><ul><li><a href="global.html#com">com</a></li></ul>
 </nav>
 
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Wed Dec 18 2013 22:50:09 GMT-0000 (GMT)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Fri Dec 20 2013 14:12:26 GMT-0000 (GMT)
 </footer>
 
 <script> prettyPrint(); </script>

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Class: cooccurence</title>
+    <title>JSDoc: Class: searchfacets</title>
     
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
     
-    <h1 class="page-title">Class: cooccurence</h1>
+    <h1 class="page-title">Class: searchfacets</h1>
     
     
 
@@ -27,7 +27,7 @@
     
 <header>
     <h2>
-    cooccurence
+    searchfacets
     </h2>
     
 </header>  
@@ -39,7 +39,7 @@
     
         
 <dt>
-    <h4 class="name" id="cooccurence"><span class="type-signature"></span>new cooccurence<span class="signature">(container)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="searchfacets"><span class="type-signature"></span>new searchfacets<span class="signature">(container)</span><span class="type-signature"></span></h4>
     
     
 </dt>
@@ -47,7 +47,8 @@
     
     
     <div class="description">
-        <p>Displays co-occurence results from a searches values list, ordered by inverse score.</p>
+        <p>Creates a search facets interactive widget in the specified container.</p>
+<p>This widget is MLJS Workplace enabled.</p>
     </div>
     
 
@@ -97,7 +98,7 @@
             
             
             
-            <td class="description last"><p>The HTML ID of the element to place this widget within.</p></td>
+            <td class="description last"><p>The HTML ID of the element this widget should place its content in to.</p></td>
         </tr>
 	
 	
@@ -128,7 +129,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="widget-cooccurence.js.html">widget-cooccurence.js</a>, <a href="widget-cooccurence.js.html#line26">line 26</a>
+        <a href="widget-search.js.html">widget-search.js</a>, <a href="widget-search.js.html#line373">line 373</a>
     </li></ul></dd>
     
     
@@ -174,7 +175,7 @@
         <dl>
             
 <dt>
-    <h4 class="name" id="addErrorListener"><span class="type-signature"></span>addErrorListener<span class="signature">(fl)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="getConfigurationDefinition"><span class="type-signature">&lt;static> </span>getConfigurationDefinition<span class="signature">()</span><span class="type-signature"></span></h4>
     
     
 </dt>
@@ -182,7 +183,76 @@
     
     
     <div class="description">
-        <p>Adds an error listener to this widget</p>
+        <p>Returns the MLJS Workplace configuration definition listing config properties supported by this widget</p>
+    </div>
+    
+
+    
+    
+    
+    
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="widget-search.js.html">widget-search.js</a>, <a href="widget-search.js.html#line406">line 406</a>
+    </li></ul></dd>
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="addFacetSelectionListener"><span class="type-signature"></span>addFacetSelectionListener<span class="signature">(sl)</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        <p>Adds a facet selection (click) listener to this widget</p>
     </div>
     
 
@@ -216,7 +286,7 @@
 	
         <tr>
             
-                <td class="name"><code>fl</code></td>
+                <td class="name"><code>sl</code></td>
             
             
             <td class="type">
@@ -232,7 +302,7 @@
             
             
             
-            <td class="description last"><p>The error listener to add</p></td>
+            <td class="description last"><p>Selection listener function</p></td>
         </tr>
 	
 	
@@ -263,7 +333,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="widget-cooccurence.js.html">widget-cooccurence.js</a>, <a href="widget-cooccurence.js.html#line56">line 56</a>
+        <a href="widget-search.js.html">widget-search.js</a>, <a href="widget-search.js.html#line722">line 722</a>
     </li></ul></dd>
     
     
@@ -291,7 +361,7 @@
         
             
 <dt>
-    <h4 class="name" id="addFacetSelectionListener"><span class="type-signature"></span>addFacetSelectionListener<span class="signature">(fl)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="clear"><span class="type-signature"></span>clear<span class="signature">()</span><span class="type-signature"></span></h4>
     
     
 </dt>
@@ -299,7 +369,145 @@
     
     
     <div class="description">
-        <p>Adds a facet selection listener to this widget</p>
+        <p>Clears the facet widget of all results.</p>
+    </div>
+    
+
+    
+    
+    
+    
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="widget-search.js.html">widget-search.js</a>, <a href="widget-search.js.html#line465">line 465</a>
+    </li></ul></dd>
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="getContext"><span class="type-signature"></span>getContext<span class="signature">()</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        <p>Get the search context object this widget will use for operations</p>
+    </div>
+    
+
+    
+    
+    
+    
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="widget-search.js.html">widget-search.js</a>, <a href="widget-search.js.html#line443">line 443</a>
+    </li></ul></dd>
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="removeFacetSelectionListener"><span class="type-signature"></span>removeFacetSelectionListener<span class="signature">(sl)</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        <p>Remove a facet selection listener from this widget</p>
     </div>
     
 
@@ -333,7 +541,7 @@
 	
         <tr>
             
-                <td class="name"><code>fl</code></td>
+                <td class="name"><code>sl</code></td>
             
             
             <td class="type">
@@ -349,7 +557,7 @@
             
             
             
-            <td class="description last"><p>The facet selection listener to add</p></td>
+            <td class="description last"><p>Selection listener function</p></td>
         </tr>
 	
 	
@@ -380,7 +588,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="widget-cooccurence.js.html">widget-cooccurence.js</a>, <a href="widget-cooccurence.js.html#line74">line 74</a>
+        <a href="widget-search.js.html">widget-search.js</a>, <a href="widget-search.js.html#line731">line 731</a>
     </li></ul></dd>
     
     
@@ -408,7 +616,7 @@
         
             
 <dt>
-    <h4 class="name" id="displayTuple"><span class="type-signature"></span>displayTuple<span class="signature">(tuplename)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="setAllowShowAll"><span class="type-signature"></span>setAllowShowAll<span class="signature">(boolvalue)</span><span class="type-signature"></span></h4>
     
     
 </dt>
@@ -416,7 +624,7 @@
     
     
     <div class="description">
-        <p>Specifies that this widget should only display a named tuple result, not any tuple to come back from an updateValues call</p>
+        <p>Sets whether to allow the user to show all results per facet.</p>
     </div>
     
 
@@ -450,13 +658,13 @@
 	
         <tr>
             
-                <td class="name"><code>tuplename</code></td>
+                <td class="name"><code>boolvalue</code></td>
             
             
             <td class="type">
             
                 
-<span class="param-type">string</span>
+<span class="param-type">boolean</span>
 
 
             
@@ -466,7 +674,7 @@
             
             
             
-            <td class="description last"><p>The name of the tuple to only respond to</p></td>
+            <td class="description last"><p>Whether to enable the 'show all' link after clicking 'show more'.</p></td>
         </tr>
 	
 	
@@ -497,7 +705,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="widget-cooccurence.js.html">widget-cooccurence.js</a>, <a href="widget-cooccurence.js.html#line47">line 47</a>
+        <a href="widget-search.js.html">widget-search.js</a>, <a href="widget-search.js.html#line713">line 713</a>
     </li></ul></dd>
     
     
@@ -525,7 +733,7 @@
         
             
 <dt>
-    <h4 class="name" id="removeErrorListener"><span class="type-signature"></span>removeErrorListener<span class="signature">(fl)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="setConfiguration"><span class="type-signature"></span>setConfiguration<span class="signature">(config)</span><span class="type-signature"></span></h4>
     
     
 </dt>
@@ -533,7 +741,7 @@
     
     
     <div class="description">
-        <p>Removes an error listener</p>
+        <p>Sets the configuration for this instance of a widget in an MLJS Workplace</p>
     </div>
     
 
@@ -567,13 +775,13 @@
 	
         <tr>
             
-                <td class="name"><code>fl</code></td>
+                <td class="name"><code>config</code></td>
             
             
             <td class="type">
             
                 
-<span class="param-type">function</span>
+<span class="param-type">json</span>
 
 
             
@@ -583,7 +791,7 @@
             
             
             
-            <td class="description last"><p>The error listener to remove</p></td>
+            <td class="description last"><p>The JSON Workplace widget configuration to apply</p></td>
         </tr>
 	
 	
@@ -614,7 +822,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="widget-cooccurence.js.html">widget-cooccurence.js</a>, <a href="widget-cooccurence.js.html#line65">line 65</a>
+        <a href="widget-search.js.html">widget-search.js</a>, <a href="widget-search.js.html#line422">line 422</a>
     </li></ul></dd>
     
     
@@ -642,7 +850,7 @@
         
             
 <dt>
-    <h4 class="name" id="removeFacetSelectionListener"><span class="type-signature"></span>removeFacetSelectionListener<span class="signature">(fl)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="setContext"><span class="type-signature"></span>setContext<span class="signature">(ctx)</span><span class="type-signature"></span></h4>
     
     
 </dt>
@@ -650,7 +858,7 @@
     
     
     <div class="description">
-        <p>Removes a facet selection listener</p>
+        <p>Set the search context object to use for operations</p>
     </div>
     
 
@@ -684,13 +892,13 @@
 	
         <tr>
             
-                <td class="name"><code>fl</code></td>
+                <td class="name"><code>ctx</code></td>
             
             
             <td class="type">
             
                 
-<span class="param-type">function</span>
+<span class="param-type">mljs.searchcontext</span>
 
 
             
@@ -700,7 +908,7 @@
             
             
             
-            <td class="description last"><p>The facet selection listener to remove</p></td>
+            <td class="description last"><p>The search context instance to invoke</p></td>
         </tr>
 	
 	
@@ -731,7 +939,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="widget-cooccurence.js.html">widget-cooccurence.js</a>, <a href="widget-cooccurence.js.html#line83">line 83</a>
+        <a href="widget-search.js.html">widget-search.js</a>, <a href="widget-search.js.html#line436">line 436</a>
     </li></ul></dd>
     
     
@@ -759,7 +967,7 @@
         
             
 <dt>
-    <h4 class="name" id="setTupleConstraints"><span class="type-signature"></span>setTupleConstraints<span class="signature">(constraintArray)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="setSizes"><span class="type-signature"></span>setSizes<span class="signature">(listSize, extendedSize)</span><span class="type-signature"></span></h4>
     
     
 </dt>
@@ -767,7 +975,7 @@
     
     
     <div class="description">
-        <p>Sets the names of the constraints in the right order to display and use to restrict queries on upon selection.</p>
+        <p>Sets the initial list size and the extended list size to show. Controls number of results to show per facet.</p>
     </div>
     
 
@@ -801,13 +1009,13 @@
 	
         <tr>
             
-                <td class="name"><code>constraintArray</code></td>
+                <td class="name"><code>listSize</code></td>
             
             
             <td class="type">
             
                 
-<span class="param-type">Array</span>
+<span class="param-type">positiveInteger</span>
 
 
             
@@ -817,7 +1025,30 @@
             
             
             
-            <td class="description last"><p>The ordered names of constraints</p></td>
+            <td class="description last"><p>Number of results to show per facet (listed by descending frequency)</p></td>
+        </tr>
+	
+	
+	
+        <tr>
+            
+                <td class="name"><code>extendedSize</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">positiveInteger</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last"><p>Number of results to show per facet if 'show more' is clicked.</p></td>
         </tr>
 	
 	
@@ -848,7 +1079,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="widget-cooccurence.js.html">widget-cooccurence.js</a>, <a href="widget-cooccurence.js.html#line174">line 174</a>
+        <a href="widget-search.js.html">widget-search.js</a>, <a href="widget-search.js.html#line703">line 703</a>
     </li></ul></dd>
     
     
@@ -876,7 +1107,7 @@
         
             
 <dt>
-    <h4 class="name" id="updateValues"><span class="type-signature"></span>updateValues<span class="signature">(values)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="updateFacets"><span class="type-signature"></span>updateFacets<span class="signature">(results)</span><span class="type-signature"></span></h4>
     
     
 </dt>
@@ -884,8 +1115,7 @@
     
     
     <div class="description">
-        <p>Updates the widget with the specified values JSON object. (top level element is &quot;values-response&quot;). 
-See GET /v1/values</p>
+        <p>Event Target. Link to a search bar (or advanced search)'s addResultListener function (NOT addFacetListener)</p>
     </div>
     
 
@@ -919,7 +1149,7 @@ See GET /v1/values</p>
 	
         <tr>
             
-                <td class="name"><code>values</code></td>
+                <td class="name"><code>results</code></td>
             
             
             <td class="type">
@@ -935,7 +1165,7 @@ See GET /v1/values</p>
             
             
             
-            <td class="description last"><p>the values returned as a values response JSON object.</p></td>
+            <td class="description last"><p>The REST API search results JSON object. See GET /v1/search.</p></td>
         </tr>
 	
 	
@@ -966,7 +1196,124 @@ See GET /v1/values</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="widget-cooccurence.js.html">widget-cooccurence.js</a>, <a href="widget-cooccurence.js.html#line93">line 93</a>
+        <a href="widget-search.js.html">widget-search.js</a>, <a href="widget-search.js.html#line740">line 740</a>
+    </li></ul></dd>
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="updateSelectedFacets"><span class="type-signature"></span>updateSelectedFacets<span class="signature">(facets)</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        <p>Event Target. Used if another widget updates the facets via the search bar. E.g. manually type a facet value.</p>
+    </div>
+    
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+		
+		<th>Type</th>
+		
+		
+		
+		
+		
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+	
+	<tbody>
+	
+	
+        <tr>
+            
+                <td class="name"><code>facets</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">JSON[]</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last"><p>The JSON facet objects that are currently selected.</p></td>
+        </tr>
+	
+	
+	</tbody>
+</table>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="widget-search.js.html">widget-search.js</a>, <a href="widget-search.js.html#line757">line 757</a>
     </li></ul></dd>
     
     
@@ -1013,7 +1360,7 @@ See GET /v1/values</p>
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Fri Dec 20 2013 14:12:26 GMT-0000 (GMT)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Fri Dec 20 2013 14:12:27 GMT-0000 (GMT)
 </footer>
 
 <script> prettyPrint(); </script>
