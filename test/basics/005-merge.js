@@ -1,7 +1,7 @@
 var mljs = require("../../mljs"),
     tests = exports,
     configurator = require('../../testconfig'),
-    assert = require('assert'),
+    assert = require('chai').assert,
     winston = require('winston');
 
 var logger = new (winston.Logger)({
@@ -14,7 +14,7 @@ var logger = new (winston.Logger)({
 });
 
 describe("005-merge",function() {
-  it.skip("Should complete entirely",function(done){
+  it("Should complete entirely",function(done){
   var db = new mljs(); // default options
   configurator.configure(db);
   db.setLogger(logger);

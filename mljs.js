@@ -4564,7 +4564,7 @@ mljs.prototype.options.prototype.sortOrderClear = function() {
 mljs.prototype.options.prototype.sortOrderScore = function() {
   this._includeSearchDefaults();
   // TODO add check to see if we already exist
-  this.options["sort-order"].push({"direction": "descending",score: "", "annotation": ["Relevancy (Descending)"]});
+  this.options["sort-order"].push({"direction": "descending",score: null, "annotation": ["Relevancy (Descending)"]});
   return this;
 };
 mljs.prototype.options.prototype.relevance = mljs.prototype.options.prototype.sortOrderScore; // common alias
@@ -4600,7 +4600,7 @@ mljs.prototype.options.prototype.searchableExpression = function(expression, nam
 mljs.prototype.options.prototype.sortOrder = function(direction_opt,type_opt,keyOrJSON,collation_opt) {
   this._includeSearchDefaults();
   // TODO check for unspecified type, direction, collation (and element + ns instead of key)
-  var so = {direction: direction_opt || this.defaults.sortDirection,type:type_opt || this.defaults.type};
+  var so = {direction: direction_opt || this.defaults.sortDirection,type:type_opt || this.defaults.type/*, score: "score-logtfidf"*/};
   if ("string" === typeof(keyOrJSON)) {
     so["json-key"] = keyOrJSON;
   } else {
@@ -4635,7 +4635,7 @@ mljs.prototype.options.prototype.sortOrder = function(direction_opt,type_opt,key
       }
     }
   }
-  if ("xs:string" == collation_opt) {
+  if ("xs:string" == type_opt) {
     so.collation = collation_opt || this.defaults.collation;
   }
   this.options["sort-order"].push(so);

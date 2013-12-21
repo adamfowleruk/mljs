@@ -28,13 +28,15 @@ describe("001-save-get-merge-delete-graph",function() {
       
       db.saveGraph(ntriples,"mytesttriples",function(result) {
         logger.debug("RESULT: " + JSON.stringify(result));
-        assert.equal(result.inError,false,"saveGraph() should not be in error");
+        logger.debug("RESULT inError?: " + result.inError);
+        assert(!result.inError,"saveGraph() should not be in error");
         
-        db.graph("mytesttriples",function(result) {
-          logger.debug("RESULT: " + JSON.stringify(result));
-          assert.equal(result.inError,false,"graph() should not be in error");
+        db.graph("mytesttriples",function(r2) {
+          logger.debug("RESULT2: " + JSON.stringify(r2));
+          logger.debug("RESULT2 inError?: " + r2.inError);
+          assert(!r2.inError,"graph() should not be in error");
           
-          var triples = result.triples;
+          var triples = r2.triples;
           assert(undefined != triples,"result.triples should not be undefined");
           
           logger.debug("TRIPLES: " + JSON.stringify(triples));

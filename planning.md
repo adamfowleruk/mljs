@@ -5,7 +5,7 @@
 Targets for 1.2 (Dec 2013) - High priority
  - DONE Widgets: searchfacets - allow developer to specify facet value to human name. E.g. VALUE/hello -> Hello (still using "FACET/hello" as the actual value)
   - DONE Core: Change options builder to store text translations for facets
-  - DONE Core: Change searchcontext so that setOptions takes an options builder (as well as legacy options JSON), so as to maintain a reference to these transations
+  - DONE Core: Change searchcontext so that setOptions takes an options builder (as well as legacy options JSON), so as to maintain a reference to these transactions
  - DONE Docs: XML example for custom renderer support, with namespaces in XPath
  - NA Not happening now: Figure out why HTTP 500s result in throwing an exception rather than MLJS error handling (e.g. extension execution errors)
  - DONE Ensure version extension absence errors gracefully
@@ -14,7 +14,7 @@ Targets for 1.2 (Dec 2013) - High priority
  - DONE Try N-way cooccurence (See co-occurence widget test page)
  - TEST Core: Options Builder
   - TEST Added all options support for geoElement, geoElementPair, geoAttributePair and geoPath Constraints
-   - BUG geo-elem-pair constraint seems to ignore fragment-scope=properties option (reported to ENG)
+   - BUG geo-elem-pair constraint seems to ignore fragment-scope=properties option (reported to ENG) - 25342 in 6.0-5
   - TEST Add custom constraint support
   - TEST Add thesaurus support using custom constraint
   - TEST element query constraint
@@ -33,7 +33,7 @@ Targets for 1.2 (Dec 2013) - High priority
    - NA Done when query refreshes anyway: Add addFacetSelection listener etc to highcharts widget
    - IN PROGRESS Support compound search mode in V7 (options + search) (search, searchCollection, structuredSearch, saveSearchOptionsCheck, searchcontext alterations)
     - DONE version rest extension
-    - BUG: V7 ignores URL search parameters if submitting a structuredQuery and options (previously if supplying just query and referring to options, it'd work)
+    - BUG: V7 ignores URL search parameters if submitting a structuredQuery and options (previously if supplying just query and referring to options, it'd work) - 25306 in 7.0-2
      - Fix chart search page
    - DONE Docs: Rework cooccurence example to use search context, and contributeStructureQuery
    - NA Not possible. Close approximation without grammar with term queries though: Check if structured query supports dynamic text query constraints with grammar (i.e. one term with grammar parsing)
@@ -44,14 +44,21 @@ Targets for 1.2 (Dec 2013) - High priority
   - IN PROGRESS Widgets: Navigable charts / co-occurence - clicking sets facet value
    - IN PROGRESS co-occurence
     - DONE Requires values() support in searchcontext
-    - BUG POST /v1/tuples also ignoring query string parameters
+    - BUG POST /v1/tuples also ignoring query string parameters - 25306 in 7.0-2
    - DONE High charts column
    - DONE High charts line
    - DONE Pie segment
    - DONE translated to category from x position: BUG passing 2:"8" - 2 is the x position, not the x value - should be 'pet' on the pie on chartsearch page
  - DONE BUG: OpenLayers polygon/circle selection no longer removing markers when executing more restrictive search
  - DONE BUG: Search sort widget showing [Object: object] instead of name in drop down
- - DONE BUG: Widget: Search results. Plain text parsing error.
+ - DONE BUG: Widgets: Search results. Plain text parsing error.
+ - DONE: Widgets: Data explorer widget shows "Loading..." when attempting to draw a link to an entity that already exists in the visible graph. Should just draw an arrow.
+ - Widgets: Data explorer widget: Need to ensure arrows are drawn behind boxes z-order
+ - Widgets: Data explorer widget: Need to set end points for existing boxes to edge most in line with startpoint to centre of box, but finishing outside the box
+ - DONE BUG: Widgets: Data explorer widget shows extra two boxes when drawing Wendy (Doesn't remove original link boxes when redrawing?)
+ - Widgets: Give the data explorer the same document title heuristics as the search results widget. (E.g. XHTML title element value)
+ - Widgets: Add a view document link to the data explorer when rendering a document node (Links to different app URL)
+ - Core: searchcontext - support qtext for combined query when searchbar is contributing information to a structured query (rather than a term query as now)
  - DONE Widgets: Tag cloud - add hover over text to include frequency of result
  - IN PROGRESS Widgets: Workplace - Removes any code anyone needs to write to use MLJS widgets
   - IN PROGRESS Main edit page framework
@@ -94,8 +101,8 @@ Targets for 1.2 (Dec 2013) - High priority
    - loadApp
    - loadPage
  - IN PROGRESS NodeJS: Node.js tests for all functionality now in core MLJS
-  - Convert all assert usage to  assert = require('chai').assert (better exception handling)
-  - Once assert changed, modify tests to remove skipped tests, retest and bugfix
+  - DONE Convert all assert usage to  assert = require('chai').assert (better exception handling)
+  - DONE Once assert changed, modify tests to remove skipped tests
   - Add 'sunny day' success tests - at least one per function
   - Add tests for each bug previously squashed/reported to ENG
  - DONE Latest REST API returns JSON as object not text: BUG Kratu no longer rendering content since migration to searchcontext
@@ -103,7 +110,7 @@ Targets for 1.2 (Dec 2013) - High priority
   - DONE Docs: searchcontext object
   - DONE Docs: Supported rest extensions tutorial doc
   - DONE Core API jsdoc
-  - Widget API jsdoc
+  - DONE Widget API jsdoc
   - Figure out how to document own JSON formats within jsdoc and link to external references of them. (E.g. REST API)
   - Document return types for all functions
  - DONE Core: Search Options builder
@@ -184,8 +191,6 @@ Floating PoC Targets
   - List norm configurations and denormalisation targets (including XSLT invocation)
 
 Targets for 1.3 Interim Release - Jan 2014  
- - Widgets: HighCharts
-  - Support multiple series, axes and searchcontexts (how?) -> Use work in OpenLayers as a base
  - Docs: Further video tutorials
   10. Combining Document and Semantic search. Extend the semantic page to show 'related documents'. Create a data explorer page to show subject and embedded document information.
   11. Creating an application. Linking existing pages together with actions. Search for content, view document metadata, download the related PDF version.
@@ -205,21 +210,6 @@ Targets for 1.3 Interim Release - Jan 2014
   - REST request re-writer to point to Workplace page (mljs-workplace.html.xqy), pass on other requests to REST API
   - Document preview page (may apply XSLT) on /view?uri= - check the appbuilder URL for this
  - Roxy commands for creating entire MLJS powered pages, controllers, and template JavaScript (E.g. ./ml mljs mycontroller/search searchpage leftchart=pie rightchart=map options=mysearchoptions )
- - Widgets: Circular node diagram, support for size and colour to relate information
- - Widgets: 2 way Co-occurence drawn as x by y grid, with size and colour of points relating to values 
- - Widgets: Sparql: Other sparql improvements (via sparql builder)
-  - Support OPTIONAL?
-  - Support UNION?
-  - Sparql query builder in mljs core?
-  - IN PROGRESS Support FILTER?
-   - DONE Used this for < > <= >= != for integer, double fields
-   - Regex? (used by suggestions only at the moment)
-   - TODO validate string comparison instead of numeric comparison as reported by Ken Tune in SYTYCD demo
-  - Support REDUCED? (Permits duplicates to be eliminated)
-  - Support FROM NAMED (limit results from set of named graphs) - http://www.w3.org/TR/2008/REC-rdf-sparql-query-20080115/#restrictByLabel
-  - NA multiple listeners for this in same context - Multiple modes, one to contribute sparql query to a searchcontext, another to perform sparql query itself (to list entities)
-  - NA Sparql 1.1 required - Allow less than / greater than rather than just equals, depending on property selected
-  - Aggregations of triples for Charts to work alongside facets of documents
  - DONE Other cool things we could do with MarkLogic
   - DONE SYTYCD Combine triple search with content search - limit documents returned from triple store by term (word) query
   - Alerting with triples (+drawbacks - document level, not triple level)
@@ -325,7 +315,76 @@ Targets for 1.3 Interim Release - Jan 2014
    - aggregates (count, sum, avg, etc.)
    - Sparql update
   
-Targets for 1.4 (Feb 2014)
+Targets for 1.4 (Feb 2014) - Theme: Visualisations
+ - Widgets: New Visualisations (in order of priority)
+  - Widgets: Folder browsing widget (Probably easiest to do like Mac child folders, left to right, rather than a tree structure)
+  - Widgets: Hive diagram - http://www.hiveplot.net
+  - Widgets: Interactive data exploration widgets (E.g. pivot chart)
+   - Widgets: Drag & Drop semantic context object browser with support for menu popups 'add as series, add as secondary axis' etc.
+  - NA Widgets: Use highcharts explore instead - Widgets: InfoVis network diagram
+  - Widgets: Node diagram. Show images, other metadata. Force directed using selectable methods. Support for clustering. Navigable (not all drawn at once)
+  - Widgets: XML/JSON document creation-by-example (via HTML form generator) 
+  - Widgets: Alerting client widget (Requires Alerting API, CORS) with popups
+   - Core: Node.js Alerting middleware support
+  - Widgets: 2 way Co-occurence drawn as x by y grid, with size and colour of points relating to values 
+  - Widgets: Setting up system alerts (NOT V7 REST alerts) to send new docs to specified URL (as PUT or POST requests, configurable)
+  - Widgets: Interactive query builder
+   - Document type to retrieve
+   - Geospatial co-ordinate selection
+   - Lookup existing indexes
+   - Specify query option constraints
+   - Create constraint setting interactively
+   - Save this to named options document on server
+  - Widgets: Sparql + content search + values results download
+   - Download CSV file of results
+   - Download generated PNG from current visualisation div
+  - Widgets: Situational Awareness: Ensure OpenLayers map supports features of existing SVG map viewer. If not then create SVG based map based on existing demo
+   - Shows live map tiles feeds. Support for multiple tile layers overlapping
+   - Vector drawing of information
+   - Rotation, translation (lateral movement) of map
+   - Edge of screen flashing alerts for new information of importance just out of view
+   - Command letter shortcuts (scroll, zoom, show/hide features)
+   - Mini map to show activity just out of view (Like the game Z)
+ - Widgets: Existing widget improvements
+  - Widgets: HighCharts: Support multiple series, axes and searchcontexts (how?) -> Use work in OpenLayers as a base
+  - Widgets: HighCharts: Support 'diving down' within a result set in a single chart. E.g. different 'series' settings and queries for different 'zoom' levels
+   - Use Case 1: Time series - zoom to year, zoom to month, zoom to day - wouldn't require a new query or different series configurations
+   - Use Case 2: Deep dive - Clicking on Sales Region vs. Yearly takings shows individuals vs. yearly takings. Clicking again shows an individual's accounts and sales stage. Will require new queries and series at each level (probably a new searchcontext per level)
+   - Back Up button
+   - Reset button
+  - Widgets: HighCharts: Charts widget to support extraction of XML info via XPath
+  - Widgets: HighCharts: Support array children in aggregations for graphs
+  - Widgets: Highcharts
+   - updateSubjectFacts support (extracting series from ?s ?p ?o and ?g in sparql results)
+   - updateSparqlResults support (for any arbitrary named sparql binded variables, not just ?s, ?p, ?o and ?g) (pull back known predicates in semantic config by ?name)
+   - Ensure charts are efficient when rendering facet and in doc values, and triples
+  - Widgets: searchresults: Adding action bar support, with plugins for each button (applicable() and render() functions) - E.g. Download, View, Generate PDF, Delete, Properties
+  - Widgets: searchfacets: Support facet hierarchies
+  - Widgets: searchfacets: Facet support for buckets, sliders
+  - Widgets: searchfacets: Facet hierarchies in browser sidebar
+  - Widgets: searchbar: Add search action button - 'save as alert'
+  - Widgets: sparqlbar: Other sparql improvements (via sparql builder)
+   - Support OPTIONAL?
+   - Support UNION?
+   - Sparql query builder in mljs core?
+   - IN PROGRESS Support FILTER?
+    - DONE Used this for < > <= >= != for integer, double fields
+    - Regex? (used by suggestions only at the moment)
+    - TODO validate string comparison instead of numeric comparison as reported by Ken Tune in SYTYCD demo
+   - Support REDUCED? (Permits duplicates to be eliminated)
+   - Support FROM NAMED (limit results from set of named graphs) - http://www.w3.org/TR/2008/REC-rdf-sparql-query-20080115/#restrictByLabel
+   - NA multiple listeners for this in same context - Multiple modes, one to contribute sparql query to a searchcontext, another to perform sparql query itself (to list entities)
+   - NA Sparql 1.1 required - Allow less than / greater than rather than just equals, depending on property selected
+   - Aggregations of triples for Charts to work alongside facets of documents
+  - Widgets: Kratu: Support array children in Kratu
+  - Widgets: Kratu: Support CSV in Kratu
+  - Widgets: Workplace: W3C CORS: Support for using widgets in non ML 6 REST webapps, and embedding widgets remotely (i.e. secure cross site scripting support)
+  - Widgets: Workplace: Moveable column layout handler
+  - Widgets: Workplace: Style overrides. Hardcoded CSS for this version. Useful for layouts in particular. Also at page level.
+ - Document all new widgets
+ - Tests for new widgets
+ 
+Targets for 1.5 (Mar 2014) Interim Release
  - CSS best practice
   - Use variables where it makes sense (title height, padding, etc.)
   - minimise property name length and collisions with other css by using ``.mljswidget .docproperties {  .title {}  .name {} ... }`` style of CSS declarations
@@ -363,7 +422,6 @@ Targets for 1.4 (Feb 2014)
   - Use more high order functions (callbacks, replacing functionality within otherwise identical loops)
   - DONE Check for 'innerHTML += ' and replace with appendChild and temporary div trick
   - Perform JavaScript profiling in FireBug (again) to check for issues
- - Detect V7 (HEAD to a V7 only endpoint?)
  - Auto install of extensions referenced by MLJS core via PUT /v1/ext endpoint
   - IN PROGRESS rdb2rdf
   - savedsearch
@@ -372,14 +430,9 @@ Targets for 1.4 (Feb 2014)
   - dls
   - whoami
   - Test pages for each of the above too
- - IN PROGRESS Widgets: Document properties and view widget
- - Widgets: Folder browsing widget (Probably easiest to do like Mac child folders, left to right, rather than a tree structure)
  - Core: Query Builder. 
   - Easy geospatial search (Already done?)
   - triples-range-query support
- - Widgets: Support facet hierarchies
- - Widgets: D3.js network/hive diagram - http://www.hiveplot.net
- - NA Use highcharts explore instead - Widgets: InfoVis network diagram
  - Core: Support all search functions not currently provided in query builder
  - IN PROGRESS Core: Extra query builder options (all constraints supported by options, plus sorting)
   - DONE Term query
@@ -395,16 +448,9 @@ Targets for 1.4 (Feb 2014)
   - Core: Alerting
   - Core: Score-function=linear|reciprocal, scale-factor=0|inputFloat
   - Core: Supply pagination values as part of query (as Vis Widgets do) not as part of search options
- - Widget: Add search action button - 'save as alert'
  - Core: Support all client API /v1/ REST endpoints in ML7
  - Node: More Node.js tests for all new functionality
  - Docs: Document new widgets with screen shots and scenario code
- - Widgets: Facet support for buckets, sliders
- - Widgets: Facet hierarchies in browser sidebar
- - Widgets: Charts widget to support extraction of XML info via XPath
- - Widgets: XML/JSON document creation-by-example (via HTML form generator)
- - Widgets: Support array children in aggregations for graphs
- - Widgets: searchresults: Adding action bar support, with plugins for each button (applicable() and render() functions) - E.g. Download, View, Generate PDF, Delete, Properties 
  - NodeJS: Support SSL
  - NodeJS: SSL with Basic
  - NodeJS: SSL with Digest
@@ -412,43 +458,8 @@ Targets for 1.4 (Feb 2014)
  - NodeJS: SSL Basic + Digest
  - NodeJS: SSL no auth (default user)
  - NodeJS: Support 'anyauth' option, much like curl (i.e. auth method auto detection)
- - Widgets: Support for using widgets in non ML 6 REST webapps, and embedding widgets remotely, via W3C CORS support (i.e. secure cross site scripting support)
- - Widgets: Alerting client widget (Requires Alerting API, CORS)
  - Core: Search Options builder
   - hidetriples() function to hide any docs under /triplestore/ (NOT any that define sem:triples)
- - Widgets: Highcharts
-  - updateSubjectFacts support (extracting series from ?s ?p ?o and ?g in sparql results)
-  - updateSparqlResults support (for any arbitrary named sparql binded variables, not just ?s, ?p, ?o and ?g) (pull back known predicates in semantic config by ?name)
-  - Ensure charts are efficient when rendering facet and in doc values, and triples
- - Widgets: Interactive data exploration widgets
-  - Widgets: Drag & Drop semantic context object browser with support for menu popups 'add as series, add as secondary axis' etc.
-  - Widgets: hive diagram (D3.js or InfoVis) widget to show relationship between scalars on three axes, and fourth colour scalar / finite set property
-   - Navigable so as to introduce Sparql Query constraints
-  - Widgets: Sparql outer context wrapper widget
-   - Download CSV file of results
-   - Download generated PNG from current visualisation div
-  
-Targets for Dec 2013 (LOW PRIORITY)
- - Widgets: SVG map viewer
-  - Vector drawing of information
-  - Rotation, translation (lateral movement) of map
-  - Edge of screen flashing alerts for new information of importance
-  - Command letter shortcuts
- - Widgets: Query configuration
-  - Document type to retrieve
-  - Geospatial co-ordinate selection
- - Widgets: Alert receiving (WebSockets)
- - Core: Incoming alerts added to Document Context
- - Widgets: Mini document preview
- - Core: Node.js Alerting middleware support
- - Widgets: Setting up system alerts (NOT V7 REST alerts) to send new docs to specified URL (as PUT or POST requests, configurable)
- - Widgets: Interactive query builder
-  - Lookup existing indexes
-  - Specify query option constraints
-  - Create constraint setting interactively
-  - Save this to named options document on server
- - Widgets: Moveable column layout handler
- - Widgets: Mini map to show activity just out of view
  
 LOW priority
  - MarkLogic reported bugs retesting
