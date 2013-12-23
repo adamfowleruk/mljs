@@ -54,7 +54,7 @@ com.marklogic.widgets.workplace.prototype._init = function() {
   var self = this;
   document.getElementById(this.container + "-link").onclick = function(evt) {
     com.marklogic.widgets.workplaceadmin.renderFullscreen(self._workplaceContext);
-  }
+  };
 };
 
 com.marklogic.widgets.workplace.prototype.editable = function(editme) {
@@ -252,17 +252,27 @@ com.marklogic.widgets.layouts.thinthick.prototype._genZones = function(zone,arr)
   for (var i = 1, max = arr.length, ass;i < max;i++) {
     mljs.defaultconnection.logger.debug("_genZones: zone: " + zone + " index: " + i); 
     ass = arr[i];
-    mljs.defaultconnection.logger.debug("_genZones: zone: " + zone + " has ass: " + JSON.stringify(ass));
-    if (undefined != ass) {
-      var id = this.container + "-" + zone + "-" + this._nextID++;
-      ass.elementid = id;
-      this.assignments[ass.widget] = ass;
-      s += "<div id='" + id + "'></div>";
-    }
+    s += this._ass(zone,ass);
   }
   document.getElementById(this.container + "-" + zone).innerHTML = s;
 };
 
+
+com.marklogic.widgets.layouts.thinthick.prototype._ass = function(zone,ass) {
+    mljs.defaultconnection.logger.debug("thinthink._ass: zone: " + zone + " has ass: " + JSON.stringify(ass));
+    if (undefined != ass) {
+      var id = this.container + "-" + zone + "-" + this._nextID++;
+      ass.elementid = id;
+      this.assignments[ass.widget] = ass;
+      return "<div id='" + id + "'></div>";
+    }
+  return "";
+};
+
+com.marklogic.widgets.layouts.thinthick.prototype.generateId = function(zone,ass) {
+  var s = this._ass(zone,ass);
+  document.getElementById(this.container + "-" + zone).innerHTML += s; // TODO STOP THIS KILLING EVENT HANDLERS
+};
 
 
 
@@ -321,7 +331,8 @@ com.marklogic.widgets.workplacecontext = function() {
       onload: [], onunload: []
     },
     layout: "thinthick",
-    title: "New Workplace"
+    title: "New Workplace",
+    urls: []
   };
   this._lastSaved = this._json;
   this._uri = null;
@@ -458,7 +469,9 @@ com.marklogic.widgets.workplacecontext.prototype.addContextAction = function(con
 
 
 com.marklogic.widgets.workplacecontext.prototype.loadPage = function(jsonOrString) {
+  mljs.defaultconnection.logger.debug("workplacecontext.loadPage: value: " + jsonOrString);
   if (typeof(jsonOrString) == "string") {
+    mljs.defaultconnection.logger.debug("workplacecontext.loadPage: Got server URI workplace page definition");
     // doc uri
     var self = this;
     this.db.findWorkplace(url,function(result) {
@@ -471,6 +484,7 @@ com.marklogic.widgets.workplacecontext.prototype.loadPage = function(jsonOrStrin
       self._fireUpdate();
     });
   } else {
+    mljs.defaultconnection.logger.debug("workplacecontext.loadPage: Got JSON string workplace page definition");
     this._json = jsonOrString;
     this._fireUpdate();
   }
@@ -530,30 +544,41 @@ com.marklogic.widgets.workplaceadmin = function(container) {
 
   this._config = {
     widgetList: [
+      /*
       {title: "Co-occurence", classname: "com.marklogic.widgets.cooccurence", description: "Shows two way co-occurence between elements in a document."},
       {title: "Create Document", classname: "com.marklogic.widgets.create", description: "Form builder used to generate a new document on submission."},
       {title: "Document Properties", classname: "com.marklogic.widgets.docproperties", description: "Shows the MarkLogic Properties of a Document."},
       {title: "XHTML Head Viewer", classname: "com.marklogic.widgets.docheadviewer", description: "Shows the Meta data elements within an XHTML document."},
       {title: "XHTML Content Viewer", classname: "com.marklogic.widgets.docviewer", description: "Displays XHTML content inline within a page."},
       {title: "Data Explorer", classname: "com.marklogic.widgets.explorer", description: "HighCharts powered node diagram to explore semantic subjects and related document facets."},
+      */
       {title: "HighCharts", classname: "com.marklogic.widgets.highcharts", description: "HighCharts powered charting."},
+      /*
       {title: "Google Kratu", classname: "com.marklogic.widgets.kratu", description: "Google Kratu tabular display of content and semantic search results."},
       {title: "Document Markings", classname: "com.marklogic.widgets.markings", description: "Allows an XHTML document to have in-document security set to paragraphs, and supports suggesting semantic triples too."},
       {title: "OpenLayers Map", classname: "com.marklogic.widgets.openlayers", description: "OpenLayers powered map supporting multiple layer types and geospatial search"},
       {title: "RDB2RDF", classname: "com.marklogic.widgets.rdb2rdf", description: "Convert and RDBMS database to a set of triples in MarkLogic."},
+      */
       {title: "Search Bar", classname: "com.marklogic.widgets.searchbar", description: "Content search query box supporting the default grammar."},
       {title: "Search Sorter", classname: "com.marklogic.widgets.searchsort", description: "Sort search results based on existing sorting options."},
       {title: "Search Pager", classname: "com.marklogic.widgets.searchpager", description: "Page through search results."},
       {title: "Search Facets", classname: "com.marklogic.widgets.searchfacets", description: "Show facets returned from a search, and allow their selection."},
-      {title: "Search Results", classname: "com.marklogic.widgets.searchresults", description: "Show search results. Supports built in and custom rendering."},
+      {title: "Search Results", classname: "com.marklogic.widgets.searchresults", description: "Show search results. Supports built in and custom rendering."}
+      /*
       {title: "Structured Search Selection", classname: "com.marklogic.widgets.searchselection", description: "Select a structured search to execute."},
       {title: "Semantic Search Bar", classname: "com.marklogic.widgets.sparqlbar", description: "Visually create a sophisticated SPARQL query."},
       {title: "Semantic Search Results", classname: "com.marklogic.widgets.sparqlresults", description: "Show a summary of Subjects returned from a SPARQL query."},
       {title: "Semantic Subject Facts", classname: "com.marklogic.widgets.entityfacts", description: "Show the list of facts about a specific subject."}
+      */
+    ],
+    layoutList: [
+      {title: "Thin Thick", classname: "com.marklogic.widgets.layouts.thinthick", description: "Sidebar column on left of main column"}
     ]
   };
   
   this.closePublisher = new com.marklogic.events.Publisher();
+  
+  this._currentTab = "page";
   
   this._refresh();
 };
@@ -593,6 +618,7 @@ com.marklogic.widgets.workplaceadmin.prototype.removeCloseListener = function(li
 };
 
 com.marklogic.widgets.workplaceadmin.prototype.setWorkplaceContext = function(ctx) {
+  mljs.defaultconnection.logger.debug("workplaceadmin.setWorkplaceContext: called.");
   this._workplaceContext = ctx;
 };
 
@@ -607,15 +633,24 @@ com.marklogic.widgets.workplaceadmin.prototype._refresh = function() {
   str += "  <div id='" + this.container + "-page-heading' class='workplaceadmin-page-heading subtitle active'>Page Settings</div>";
   str += "  <div id='" + this.container + "-page-content' class='workplaceadmin-page-content'>";
   str += "<table class='mljstable'>";
-  str += "<tr><td>Page Name:</td><td><input type='text' size='25' id='" + this.container + "-page-name' /></td></tr>";
-  str += "<tr><td>URL(s):</td><td><textarea cols='25' rows='4' id='" + this.container + "-page-urls'></textarea></td></tr>";
-  str += "<tr><td>Main Layout:</td><td><input type='text' size='25' id='" + this.container + "-page-layout' /></td></tr>"; // TODO replace with drop down
+  str += "<tr><td>Page Title:</td><td><input type='text' size='25' id='" + this.container + "-page-title' /></td></tr>";
+  str += "<tr><td>URL(s):</td><td><textarea cols='22' rows='4' id='" + this.container + "-page-urls'></textarea></td></tr>";
+  str += "<tr><td>Main Layout:</td><td>";
+  str += " <select id='" + this.container + "-page-layout'>";
+  for (var i = 0, l, max = this._config.layoutList.length;i < max;i++) {
+    l = this._config.layoutList[i];
+    var splits = l.classname.split(".");
+    var shortname = splits[splits.length - 1];
+    str += "  <option value='" + shortname + "' title='" + l.description + "' id='" + this.container + "-layoutselect-" + shortname + "'>" + l.title + "</option>";
+  }
+  str += " </select>";
+  str += "</td></tr>";
   str += "</table>";
   str += "  </div>";
   
   str += "  <div id='" + this.container + "-widgets-heading' class='workplaceadmin-widgets-heading subtitle active'>Widgets</div>";
   str += "  <div id='" + this.container + "-widgets-content' class='workplaceadmin-widgets-content hidden'>";
-  str += "<table class-'mljstable workplaceadmin-widgets-list'>"
+  str += "<table class='mljstable workplaceadmin-widgets-list'>"
   for (var i = 0, col = 0, max = this._config.widgetList.length,w;i < max;i++) {
     w = this._config.widgetList[i];
     
@@ -624,9 +659,9 @@ com.marklogic.widgets.workplaceadmin.prototype._refresh = function() {
       str += "<tr>";
     }
     
-    str += "<td id='" + this.container + "-widgets-" + i + "'>";
-    // TODO replace text with image of widget
-    str += "<img src='' alt='" + w.title + "' />";
+    str += "<td id='" + this.container + "-widgets-" + i + "' title='" + w.title + "'>";
+    // replace text with image of widget
+    str += "<div id='" + this.container + "-widgets-" + i + "-img' style='width: 100px; height:100px; background-image: url(" + (w.icon || "/images/mljs/question-mark.png") + ");' draggable='true'>&nbsp;</div>";
     str += "</td>";
     
     if (2 == col) {
@@ -653,6 +688,13 @@ com.marklogic.widgets.workplaceadmin.prototype._refresh = function() {
   str += "</div>";
   
   document.getElementById(this.container).innerHTML = str;
+  
+  // DND info
+  
+  for (var i = 0, col = 0, max = this._config.widgetList.length,w;i < max;i++) {
+    w = this._config.widgetList[i];
+    com.marklogic.widgets.dnd.onto(this.container + "-widgets-" + i + "-img","widgetclass",["layoutzone"],w.classname);
+  }
   
   // TODO event handlers etc.
   // widget drag/drop/click
@@ -683,11 +725,20 @@ com.marklogic.widgets.workplaceadmin.prototype._refresh = function() {
 
 
 com.marklogic.widgets.workplaceadmin.prototype._showTab = function(tab) {
+  if ("page" == this._currentTab) {
+    // save page settings
+    this._workplaceContext.setSummary(
+      document.getElementById(this.container + "-page-title").value,
+      document.getElementById(this.container + "-page-urls").innerHTML.split(","),
+      document.getElementById(this.container + "-page-layout").value,
+      false); // TODO get shared status from checkbox
+  }
   mljs.defaultconnection.logger.debug("workplaceadmin._showTab: Showing " + tab);
   com.marklogic.widgets.hide(document.getElementById(this.container + "-page-content"),("page" != tab));
   com.marklogic.widgets.hide(document.getElementById(this.container + "-widgets-content"),("widgets" != tab));
   com.marklogic.widgets.hide(document.getElementById(this.container + "-contexts-content"),("contexts" != tab));
   com.marklogic.widgets.hide(document.getElementById(this.container + "-actions-content"),("actions" != tab));
+  this._currentTab = tab;
 };
 
 com.marklogic.widgets.workplaceadmin.prototype.updateWorkplace = function(ctx) {
@@ -698,10 +749,81 @@ com.marklogic.widgets.workplaceadmin.prototype.updateWorkplace = function(ctx) {
   var json = this._workplaceContext.getJson();
   
   // load top level layout for this page (or panel we are managing, at least)
-  mljs.defaultconnection.logger.debug("Creating layout");
+  mljs.defaultconnection.logger.debug("workplaceadmin.updateWorkplace: Creating layout");
+  mljs.defaultconnection.logger.debug("workplaceadmin.updateWorkplace: Got JSON: " + JSON.stringify(json));
   this._layout = new (com.marklogic.widgets.layouts[json.layout])(this.container + "-config");
   
-  // assign element to layout dynamically
-  this._layout.appendToZone("A","<p>Some test HTML</p>");
-  this._layout.appendToZone("B","<p>Some other test HTML</p>");
+  // TODO assign element to layout dynamically
+  //this._layout.appendToZone("A","<p>Some test HTML</p>");
+  //this._layout.appendToZone("B","<p>Some other test HTML</p>");
+  
+  // Add an 'add widget' traget widget to the layout
+  // TODO in future check layout config to determine max number allowed
+  // TODO find a mechanism to enable inserting a new dropped widget (config wrapper of) before this drop zone widget
+  var aAss = {widget: "dropzone-A"};
+  this._layout.generateId("A",aAss);
+  var aDrop = new com.marklogic.widgets.dropzone(aAss.elementid);
+  aDrop.accept("layoutappend",["widgetclass"],function(data) {
+    // we've had a widget class image dropped on us
+    console.log("APPENDING WIDGET CLASS " + data + " ON TO DROP ZONE A OF LAYOUT");
+  });
+  
+  var bAss = {widget: "dropzone-B"};
+  this._layout.generateId("B",bAss);
+  var bDrop = new com.marklogic.widgets.dropzone(bAss.elementid);
+  bDrop.accept("layoutappend",["widgetclass"],function(data) {
+    // we've had a widget class image dropped on us
+    console.log("APPENDING WIDGET CLASS " + data + " ON TO DROP ZONE B OF LAYOUT");
+  });
+  
+  // load information in to summary page
+  document.getElementById(this.container + "-page-title").value = json.title;
+  var str = "";
+  for (var i = 0;i < json.urls.length;i++) {
+    if (i > 0) {
+      str += ",";
+    }
+    str += json.urls[i];
+  }
+  document.getElementById(this.container + "-page-urls").innerHTML = str;
+  //document.getElementById(this.container + "-layoutselect-" + json.layout).selected = "selected"; // TODO check this works when switching pages
+  document.getElementById(this.container + "-page-layout").value = json.layout;
+  
+  // TODO load other state information shown in left bar from JSON (is there any? Actions?)
+  
+  mljs.defaultconnection.logger.debug("workplaceadmin.updateWorkplace: Finished creating layout");
+};
+
+
+
+
+
+
+
+
+
+com.marklogic.widgets.dropzone = function(container) {
+  this.container = container;
+  this._accepted = [];
+  this._callback = null;
+  
+  this._init();
+};
+
+com.marklogic.widgets.dropzone.prototype._init = function() {
+  // draw widget
+  var str = "<div class='mljswidget dropzone'>";
+  str += " <div class='dropzone-target' id='" + this.container + "-target'>";
+  str += "  <img src='/images/mljs/dropzone.png' />";
+  str += "  <p>Drop here</p>";
+  str += " </div>";
+  str += "</div>";
+  
+  document.getElementById(this.container).innerHTML = str;
+};
+
+com.marklogic.widgets.dropzone.prototype.accept = function(dropzoneClass,draggableTypeAcceptArray,callback) {
+  var dz = document.getElementById(this.container + "-target");
+  
+  com.marklogic.widgets.dnd.accept(this.container + "-target",dropzoneClass,draggableTypeAcceptArray,callback);
 };

@@ -925,7 +925,10 @@ div.log {
   margin-top: 5px;
 }
 
-
+.workplaceadmin-widgets-list td {
+  padding: 4px;
+  cursor: pointer;
+}
 
 
 
@@ -945,4 +948,24 @@ div.log {
 .olControlAttribution {
   bottom: 0px;
   text-align: right;
+}
+
+
+/** Drag and drop **/
+.mljswidget .dropzone {
+  width: 100%;
+  height: 150px;
+  position: relative;
+}
+
+.mljswidget .dropzone-target {
+  border: 1px solid lightblue;
+  margin-left: auto;
+  margin-right: auto;
+  width: 200;
+  height: 130px;
+}
+
+.mljswidget .dropzone-target:hover {
+  background-color: #FFCCD9;
 }

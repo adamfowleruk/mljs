@@ -699,11 +699,14 @@ com.marklogic.widgets.dnd = {
   draggables: {} // draggables["elid"] = {classname: "myclass", onto: [class1,...] }
 };
 
+/**
+ * Call this to indicate the specified element should be a drop zone.
+ */
 com.marklogic.widgets.dnd.accept = function(elid,droppableClass,draggableTypeArrayToAccept,actionCallback) {
   // assume caller does html generation (for speed)
   // add droppable configuration
-  var droppable = {classname: droppableClass,accept: draggableTypeArrayToAccept, action: actionCallback};
-  com.marklogic.widgets.dnd.droppables[elid] = droppable;
+  var dropzone = {classname: droppableClass,accept: draggableTypeArrayToAccept, action: actionCallback};
+  com.marklogic.widgets.dnd.droppables[elid] = dropzone;
   // add event handlers
   var el = document.getElementById(elid);
   mljs.defaultconnection.logger.debug("dnd.onto: adding event handlers to: " + elid);
@@ -726,7 +729,7 @@ com.marklogic.widgets.dnd.accept = function(elid,droppableClass,draggableTypeArr
     //if (match) {
       var data = JSON.parse(ev.dataTransfer.getData("application/javascript"));
     mljs.defaultconnection.logger.debug("dnd.accept: ondrop: calling action callback");
-      droppable.action(data);
+      dropzone.action(data);
     //}
     //ev.preventDefault();
     mljs.defaultconnection.logger.debug("dnd.accept: ondrop: returning false");
@@ -735,6 +738,9 @@ com.marklogic.widgets.dnd.accept = function(elid,droppableClass,draggableTypeArr
   mljs.defaultconnection.logger.debug("dnd.onto: completed adding event handlers to: " + elid);
 };
 
+/**
+ * Call this to set an element up as a draggable item.
+ */
 com.marklogic.widgets.dnd.onto = function(elid,draggableClass,droppableTypeArrayToMap,dataOrCallback) {
   // assume caller does html generation (for speed) (For HTML5 this element MUST have attribute draggable="true")
   // add draggable configuration

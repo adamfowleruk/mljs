@@ -23,7 +23,7 @@ Targets for 1.2 (Dec 2013) - High priority
   - TEST Add custom grammar support
   - TEST Top level options properties: search-option, 
   - DEFERRED (default)suggestion-source
- - App builder gap closing
+ - IN PROGRESS App builder gap closing
   - DONE Widgets: HighCharts: Apply chaining pattern to highchart options to make them simpler
   - IN PROGRESS Core: Rework searchcontext
    - DONE Allow contribution of facets/sort etc to alter both text (grammar) queries and structured query (independently, via searchcontext)
@@ -53,22 +53,27 @@ Targets for 1.2 (Dec 2013) - High priority
  - DONE BUG: Search sort widget showing [Object: object] instead of name in drop down
  - DONE BUG: Widgets: Search results. Plain text parsing error.
  - DONE: Widgets: Data explorer widget shows "Loading..." when attempting to draw a link to an entity that already exists in the visible graph. Should just draw an arrow.
- - Widgets: Data explorer widget: Need to ensure arrows are drawn behind boxes z-order
- - Widgets: Data explorer widget: Need to set end points for existing boxes to edge most in line with startpoint to centre of box, but finishing outside the box
+ - ? Widgets: Data explorer widget: Need to ensure arrows are drawn behind boxes z-order
+ - ? Widgets: Data explorer widget: Need to set end points for existing boxes to edge most in line with startpoint to centre of box, but finishing outside the box
  - DONE BUG: Widgets: Data explorer widget shows extra two boxes when drawing Wendy (Doesn't remove original link boxes when redrawing?)
- - Widgets: Give the data explorer the same document title heuristics as the search results widget. (E.g. XHTML title element value)
+ - ? Widgets: Give the data explorer the same document title heuristics as the search results widget. (E.g. XHTML title element value)
  - Widgets: Add a view document link to the data explorer when rendering a document node (Links to different app URL)
  - Core: searchcontext - support qtext for combined query when searchbar is contributing information to a structured query (rather than a term query as now)
  - DONE Widgets: Tag cloud - add hover over text to include frequency of result
  - IN PROGRESS Widgets: Workplace - Removes any code anyone needs to write to use MLJS widgets
   - IN PROGRESS Main edit page framework
-   - DONE Layout rendering in edit mode
-   - saving previous tab settings on switching tabs
-   - IN PROGRESS Page (configuration) settings
+   - IN PROGRESS Layout rendering in edit mode
+    - DONE Render layout
+    - Render widget configs within layout
+   - IN PROGRESS saving previous tab settings on switching tabs
+    - DONE page settings
+    - actions
+   - DONE Page (configuration) settings
     - DONE Get workplace rest extension and wrapper
     - DONE Save workplace rest extension and wrapper
     - DONE Workplace config JSON format - including 'shared' flag, title, description
-    - visuals (drop downs)
+    - DONE visuals (drop downs)
+    - DEFERRED no way to search for shared yet anyway: shared checkbox
    - Widgets settings
     - Widget toolbox
     - Laying out widget positions within page Layout
@@ -79,6 +84,17 @@ Targets for 1.2 (Dec 2013) - High priority
     - on page load
     - on page unload
     - DEFERRED searchcontext on selection
+   - Widgets: Add Workplace Configuration support
+    - co-occurence
+    - OpenLayers
+    - TagCloud
+    - sparqlbar / sparqlresults / entityfacts
+    - graphexplorer
+    - documentproperties / docheadproperties / docviewer
+    - docbuilder (upload)
+    - kratu
+    - rdb2rdf (no configuration params needed)
+    - layouts (embedding) - thinthink / thickthin / single column / double column / triple column / 2 rows / 3 rows 
   - Programmatic access
    - getWidget by name (so you can programmatically add settings after load)
    - getContext (could be done via widget optionally too)
@@ -94,12 +110,12 @@ Targets for 1.2 (Dec 2013) - High priority
    - DEFERRED Embeddable. Assume embedded in external app. Use workplace-share-id as key to find, on remote server via W3C CORS, the 'page' (embed) to draw
    - Fallback. If no Workplace detected, create a generic search page with a Workplace edit button (depending on app wide settings - 'save/edit allowed')
     - Allow fallback to be set programmatically or via app wide settings
-  - IN PROGRESS Create WorkplaceContext object in workplace js file
-   - updatePage event - occurs when a page is loaded. E.g. from current page URL or for current logged in user or as fallback
-   - updateSummary
-   - updateApp event
-   - loadApp
-   - loadPage
+  - DONE Create WorkplaceContext object in workplace js file
+   - DONE updatePage event - occurs when a page is loaded. E.g. from current page URL or for current logged in user or as fallback
+   - NA using updatePage instead - updateSummary
+   - DEFERRED until we support app wide settings - updateApp event
+   - DEFERRED until we support app wide settings - loadApp
+   - DONE loadPage
  - IN PROGRESS NodeJS: Node.js tests for all functionality now in core MLJS
   - DONE Convert all assert usage to  assert = require('chai').assert (better exception handling)
   - DONE Once assert changed, modify tests to remove skipped tests
