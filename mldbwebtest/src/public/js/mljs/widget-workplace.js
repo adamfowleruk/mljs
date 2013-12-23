@@ -481,11 +481,13 @@ com.marklogic.widgets.workplacecontext.prototype.loadPage = function(jsonOrStrin
       if ("string" == typeof (self._json)) {
         self._json = JSON.parse(self._json);
       }
+      self._lastSaved = self._json;
       self._fireUpdate();
     });
   } else {
     mljs.defaultconnection.logger.debug("workplacecontext.loadPage: Got JSON string workplace page definition");
     this._json = jsonOrString;
+    this._lastSaved = this._json;
     this._fireUpdate();
   }
 };
@@ -495,6 +497,7 @@ com.marklogic.widgets.workplacecontext.prototype.loadPageWithUri = function(uri)
   var self = this;
   this.db.getWorkplace(uri,function(result) {
     self._json = result.doc;
+    self._lastSaved = self._json;
     
     // fire updatePage event
     self._fireUpdate();
@@ -630,6 +633,8 @@ com.marklogic.widgets.workplaceadmin.prototype._refresh = function() {
   var str = "<div id='" + this.container + "-workplaceadmin' class='mljswidget workplaceadmin'>";
   str += " <div id='" + this.container + "-panels' class='workplaceadmin-panels'>";
   
+  str += "  <h2 class='title'>Edit Workplace Page</h2>";
+  
   str += "  <div id='" + this.container + "-page-heading' class='workplaceadmin-page-heading subtitle active'>Page Settings</div>";
   str += "  <div id='" + this.container + "-page-content' class='workplaceadmin-page-content'>";
   str += "<table class='mljstable'>";
@@ -661,7 +666,11 @@ com.marklogic.widgets.workplaceadmin.prototype._refresh = function() {
     
     str += "<td id='" + this.container + "-widgets-" + i + "' title='" + w.title + "'>";
     // replace text with image of widget
-    str += "<div id='" + this.container + "-widgets-" + i + "-img' style='width: 100px; height:100px; background-image: url(" + (w.icon || "/images/mljs/question-mark.png") + ");' draggable='true'>&nbsp;</div>";
+    str += "<div class='workplaceadmin-widgets-list-img' id='" + this.container + "-widgets-" + i + "-img'"
+    if (undefined != w.icon && ""!=w.icon) {
+      str += " style='background-image: url(" + w.icon + ");'";
+    }
+    str += " draggable='true'><div class='workplaceadmin-widgets-list-span'>" + w.title + "</div></div>";
     str += "</td>";
     
     if (2 == col) {
