@@ -64,7 +64,14 @@ Targets for 1.2 (Dec 2013) - High priority
   - IN PROGRESS Main edit page framework
    - IN PROGRESS Layout rendering in edit mode
     - DONE Render layout
-    - Render widget configs within layout
+    - IN PROGRESS Render widget configs within layout
+     - Replace encodeuri with encodehtmltag
+     - Figure out json parse bug on loading main page (taking up too much debug time)
+     - Remove Data Series: Data Series in table drawing
+     - Get button images and css sorted for multiples
+     - BUG chart type options - only showing Line
+     - shrink drop zone / make look better (sort out images)
+     - add Data series instance number
    - IN PROGRESS saving previous tab settings on switching tabs
     - DONE page settings
     - actions

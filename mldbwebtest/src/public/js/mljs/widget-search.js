@@ -1848,6 +1848,10 @@ com.marklogic.widgets.selection = function(container) {
   this._refresh();
 };
 
+com.marklogic.widgets.selection.getConfigurationDefinition = function() {
+  return {};
+};
+
 com.marklogic.widgets.selection.prototype._refresh = function() {
   var str = "<div id='" + this.container + "-selection' class='mljswidget selection'>";
   str += "<div class='title selection-title'>Selected Documents</div>";
