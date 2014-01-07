@@ -2175,3 +2175,56 @@ com.marklogic.widgets.searchselection.prototype.setModeContributeStructured = fu
 
 
 
+
+
+
+
+
+
+
+
+
+/**
+ * Creates a search metrics display widget. Shows nothing if search metrics not enabled in your search options.
+ * 
+ * @param {string} container - The HTML element ID of the container to render this widget within.
+ */
+com.marklogic.widgets.searchmetrics = function(container) {
+  this.container = container;
+  this.ctx = mljs.defaultconnection.createSearchContext();
+  
+  this.updateResults(false); // show 'blank' results
+};
+
+/**
+ * Called by a Search Context instance to render search metrics based on the last search operation.
+ * 
+ * @param {json} results - The MarkLogic REST API JSON results wrapper object
+ */
+com.marklogic.widgets.searchmetrics.prototype.updateResults = function(results) {
+  var str = "";
+  
+  // results can be true, false or a JSON REST API results object
+  if ("boolean" == typeof(results)) {
+    if (results) {
+      // refreshing search results, show loading icon
+      str += com.marklogic.widgets.bits.loading(this.container + "-loading");
+    } else {
+      // search failed - show nothing
+      // Alternatively: str += com.marklogic.widgets.bits.failure(this.container + "-failure");
+    }
+  } else {
+    // create html output
+    if (undefined != results.metrics) {
+      str += "Search completed in " + results.metrics.time + " ms"; // TODO VALIDATE THIS LINE
+    } else {
+      // show nothing, rather than useless message
+      mljs.defaultconnection.logger.debug("searchmetrics.updateResults: Results REST API JSON doesn't contain search metrics. Did you set up the search options correctly?");
+    }
+  }
+  
+  // send output to webpage DOM (do not make multiple edits to the DOM - it's slower)
+  document.getElementById(this.container).innerHTML = str;
+};
+
+

@@ -211,16 +211,216 @@ com.marklogic.widgets.layouts.helper.prune = function(assignmentArray) {
   // DO NOT alter assignments in the original array passed in as an argument
 };
 
+com.marklogic.widgets.layouts.helper.extendLayout = function(layoutInstance,container,zones) {
+  // mixin generic parameters and functions
+  var self = layoutInstance;
+  self.container = container;
+  self.assignments = new Array();
+  self.zones = {};
+  self.zoneNames = zones;
+  for (var i = 0, max = zones.length, zone;i < max;i++) {
+    zone = zones[i];
+    self.zones[zone] = new Array();
+  }
+  self._nextID = 1;
+  
+  self.assignments = new Array(); // [widgetname] => assignment json, with elementid for element linked to
+  
+  self.getZoneList = function() {
+    return self.zoneNames;
+  };
+  self.createZones = function(assignments) {
+    mljs.defaultconnection.logger.debug("Creating zones in thinthick layout");
+    // group by zones, order by order
+    
+    if (undefined != assignments) {
+      for (var i = 0, max = assignments.length,ass;i < max;i++) {
+        mljs.defaultconnection.logger.debug("layout<class>.createZones: i: " + i); 
+        ass = assignments[i];
+        mljs.defaultconnection.logger.debug("layout<class>.createZones: i: " + i + " has ass: " + JSON.stringify(ass));
+        self.zones[ass.zone][ass.order] = ass;
+      }
+    }
+    
+    // do zone A then zone B
+    for (var zone in self.zones) {
+      self._genZones(zone, self.zones[zone]);
+    }
+  }; // REQUIRES instance._genZones() function
+  
+  self._getZone = function(zone) {
+    var z = self.zones[zone];
+    if (undefined == z) {
+      z = [];
+      self.zones[zone] = z;
+    }
+    return z;
+  };
+  
+  /**
+   * Returns the widget assignment JSON
+   * @private
+   */
+  self._elementAt = function(zone,index) {
+    return self.zones[zone][index];
+  };
+  self._getWidget = function(widgetName) {
+    for (var zone in self.zones) {
+      var widgets = self.zones[zone];
+      for (var i = 1, max = widgets.length, wgt;i < max;i++) {
+        wgt = widgets[i];
+        if (wgt.widgetName == widgetName) {
+          return wgt;
+        }
+      }
+    }
+    return null;
+  };
+  self.generateAssignments = function() {
+    // export assignments we've been managing
+    // DO NOT prune - this is done by the caller only (E.g. using the prune() helper method)
+  };
+  self.getElementID = function(widgetid) {
+    mljs.defaultconnection.logger.debug("layout<class>: getElementID: for widgetid: " + widgetid);
+    var elid = self.assignments[widgetid].elementid;
+    mljs.defaultconnection.logger.debug("layout<class>: getElementID: widgetid: " + widgetid + " => " + elid);
+    return elid;
+  };
+  self.appendToZone = function(widgetName,zone,html) {
+    var idnum = self._nextID++;
+    var id = self.container + "-" + zone + "-" + idnum;
+    var z = self._getZone(zone);
+    var placeAt = z.length;
+    if (0 == placeAt) {
+      placeAt = 1;
+    }
+    var wgt = {widget: widgetName, zone: zone, order: placeAt, elementid: id};
+    z[placeAt] = wgt;
+    self._appendZone(zone,id,html);
+    return wgt;
+  };
+  self._genZones = function(zone,arr) {
+    mljs.defaultconnection.logger.debug("layout<class>._genZones: " + zone + " with array: " + JSON.stringify(arr));
+    var s = "";
+    for (var i = 1, max = arr.length, ass;i < max;i++) {
+      mljs.defaultconnection.logger.debug("layout<class>._genZones: zone: " + zone + " index: " + i); 
+      ass = arr[i];
+      s += self._ass(zone,ass);
+    }
+    self._replaceZone(zone,s);
+  };
+  self._replaceZone = function(zone,html) {
+    if (undefined != self._replaceZoneOverride) {
+      self._replaceZoneOverride(zone,html);
+    } else {
+      document.getElementById(self.container + "-" + zone).innerHTML = html;
+    }
+  };
+  self._ass = function(zone,ass) {
+    mljs.defaultconnection.logger.debug("layout<class>._ass: zone: " + zone + " has ass: " + JSON.stringify(ass));
+    if (undefined != ass) {
+      var id = self.container + "-" + zone + "-" + self._nextID++;
+      ass.elementid = id;
+      self.assignments[ass.widget] = ass;
+      var z = self._getZone(zone);
+      ass.order = z.length;
+      var placeAt = z.length;
+      if (0 == placeAt) {
+        placeAt = 1;
+      }
+      z[placeAt] = ass;
+      return self._wrapAssignment(zone,ass,id,"<div id='" + id + "'></div>");
+    }
+    return "";
+  };
+  self._wrapAssignment = function(zone,ass,id,html) {
+    if (undefined != self._wrapAssignmentOverride) {
+      self._wrapAssignmentOverride(zone,ass,id,html);
+    } else {
+      // by default just return same html - no special wrapper for layout
+      return html;
+    }
+  };
+  self.generateId = function(zone,ass) {
+    var s = self._ass(zone,ass); // ass = {widget: widgetName, ... } - adds elementid to ass
+    self._appendZone(zone,null,s);
+  };
+  self._appendZone = function(zone,id,html) {
+    if (undefined != self._appendZoneOverride) {
+      self._appendZoneOverride(zone,id,html);
+    } else {
+      //document.getElementById(this.container + "-" + zone).innerHTML += html; // TODO STOP THIS KILLING EVENT HANDLERS
+      
+      var zoneel = document.getElementById(self.container + "-" + zone);
+      var div = document.createElement("div");
+      if (null != id) {
+        div.id = id;
+      }
+      div.innerHTML = html;
+      zoneel.appendChild(div);
+    }
+  };
+  // TODO make this not dependant upon spacers as per workplaceadmin
+  self.moveToPosition = function(widgetName,newZone,newIndexOneBased) {
+    // get element currently at position
+    var wgt = self._elementAt(newZone,newIndexOneBased);
+    var z = self._getZone(newZone);
+    if (null != wgt) {
+      // if not empty, increment order on all widgets at and after position
+      for (var w = z.length, min = newIndexOneBased, moveme;w >= min;w--) {
+        moveme = z[w];
+        moveme.order++;
+        z[w+2] = moveme; // plus 2 because we're moving the spacer too
+      }
+    }
+    var me = self._getWidget(widgetName);
+    var spacer = self._elementAt(me.zone,me.order);
+    var oldZone = me.zone;
+    var oldOrder = me.order;
+    me.order = newIndexOneBased + 1;
+    me.zone = newZone;
+    spacer.order = newIndexOneBased;
+    spacer.zone = newZone;
+    // place widget at required position
+    z[newIndexOneBased] = me; // assumes new index is valid
+    
+    // decrement order's after this element's position - if oldzone, or newzone this is valid
+    //if (newZone != oldZone) {
+    z = self._getZone[oldZone];
+    for (var w = oldOrder + 1, max = z.length, moveme;w < max;w--) {
+      moveme = z[w];
+      moveme.order--;
+      z[w-2] = moveme; // minus 2 because we'll move the spacer too
+    }
+    //}
+    
+    // ACTUALLY MOVE THE DAMNED HTML!!!
+    self._moveElementToPosition(me,spacer,wgt);
+  };
+  self._moveElementToPosition = function(me,spacer,wgt) {
+    if (undefined != self._moveElementToPositionOverride) {
+      self._moveElementToPositionOverride(me,spacer,wgt);
+    } else {
+      var movingel = document.getElementById(me.elementid);
+      var currentel = document.getElementById(wgt.elementid);
+      currentel.parentNode.insertBefore(movingel,currentel);
+      if (null != spacer) { // future proofing
+        var spacerel = document.getElementById(spacer.elementid);
+        currentel.parentNode.insertBefore(spacerel,movingel);
+      }
+    }
+  };
+};
+
+
+
+
+
+
+
+
 com.marklogic.widgets.layouts.thinthick = function(container) {
-  this.container = container;
-  
-  this.assignments = new Array(); // [widgetname] => assignment json, with elementid for element linked to
-  
-  this._nextID = 1;
-  
-  this.zones = {};
-  this.zones.A = new Array();
-  this.zones.B = new Array();
+  com.marklogic.widgets.layouts.helper.extendLayout(this,container,["A","B"]);
   
   this._init();
 };
@@ -233,166 +433,45 @@ com.marklogic.widgets.layouts.thinthick.prototype._init = function() {
   document.getElementById(this.container).innerHTML = s;
 };
 
-/**
- * Instance method to make it easier to call this method in workplaceadmin
- */
-com.marklogic.widgets.layouts.thinthick.prototype.getZoneList = function() {
-  return ["A","B"];
-};
 
-com.marklogic.widgets.layouts.thinthick.prototype.createZones = function(assignments) {
-  mljs.defaultconnection.logger.debug("Creating zones in thinthick layout");
-  // group by zones, order by order
+
+
+
+
+
+com.marklogic.widgets.layouts.thickthin = function(container) {
+  com.marklogic.widgets.layouts.helper.extendLayout(this,container,["A","B"]);
   
-  if (undefined != assignments) {
-    for (var i = 0, max = assignments.length,ass;i < max;i++) {
-      mljs.defaultconnection.logger.debug("createZones: i: " + i); 
-      ass = assignments[i];
-      mljs.defaultconnection.logger.debug("createZones: i: " + i + " has ass: " + JSON.stringify(ass));
-      this.zones[ass.zone][ass.order] = ass;
-    }
-  }
+  this._init();
+};
+
+com.marklogic.widgets.layouts.thickthin.prototype._init = function() {
+  var s = "<div id='" + this.container + "-layout' class='container_12 mljswidget layout thickthin'>";
+  s += "<div id='" + this.container + "-A' class='grid_8 thickthin-thick'></div>";
+  s += "<div id='" + this.container + "-B' class='grid_4 thickthin-thin'></div>";
+  s += "</div>";
+  document.getElementById(this.container).innerHTML = s;
+};
+
+
+
+
+
+
+
+
+
+com.marklogic.widgets.layouts.column = function(container) {
+  com.marklogic.widgets.layouts.helper.extendLayout(this,container,["A"]);
   
-  // do zone A then zone B
-  this._genZones("A",this.zones.A);
-  this._genZones("B",this.zones.B);
-  
+  this._init();
 };
 
-com.marklogic.widgets.layouts.thinthick.prototype.appendToZone = function(widgetName,zone,html) {
-  var zoneel = document.getElementById(this.container + "-" + zone);
-  
-  var idnum = this._nextID++;
-  var id = this.container + "-" + zone + "-" + idnum;
-  var z = this._getZone(zone);
-  var placeAt = z.length;
-  if (0 == placeAt) {
-    placeAt = 1;
-  }
-  var wgt = {widget: widgetName, zone: zone, order: placeAt, elementid: id};
-  z[placeAt] = wgt;
-  var div = document.createElement("div");
-  div.id = id;
-  div.innerHTML = html;
-  zoneel.appendChild(div);
-  return wgt;
-};
-
-com.marklogic.widgets.layouts.thinthick.prototype.getElementID = function(widgetid) {
-  mljs.defaultconnection.logger.debug("thinthick: getElementID: for widgetid: " + widgetid);
-  var elid = this.assignments[widgetid].elementid;
-  mljs.defaultconnection.logger.debug("thinthick: getElementID: widgetid: " + widgetid + " => " + elid);
-  return elid;
-};
-
-com.marklogic.widgets.layouts.thinthick.prototype._genZones = function(zone,arr) {
-  mljs.defaultconnection.logger.debug("thinthick: _genZones: " + zone + " with array: " + JSON.stringify(arr));
-  var s = "";
-  for (var i = 1, max = arr.length, ass;i < max;i++) {
-    mljs.defaultconnection.logger.debug("_genZones: zone: " + zone + " index: " + i); 
-    ass = arr[i];
-    s += this._ass(zone,ass);
-  }
-  document.getElementById(this.container + "-" + zone).innerHTML = s;
-};
-
-com.marklogic.widgets.layouts.thinthick.prototype._getZone = function(zone) {
-  var z = this.zones[zone];
-  if (undefined == z) {
-    z = [];
-    this.zones[zone] = z;
-  }
-  return z;
-};
-
-com.marklogic.widgets.layouts.thinthick.prototype._ass = function(zone,ass) {
-    mljs.defaultconnection.logger.debug("thinthink._ass: zone: " + zone + " has ass: " + JSON.stringify(ass));
-    if (undefined != ass) {
-      var id = this.container + "-" + zone + "-" + this._nextID++;
-      ass.elementid = id;
-      this.assignments[ass.widget] = ass;
-      var z = this._getZone(zone);
-      ass.order = z.length;
-      var placeAt = z.length;
-      if (0 == placeAt) {
-        placeAt = 1;
-      }
-      z[placeAt] = ass;
-      return "<div id='" + id + "'></div>";
-    }
-  return "";
-};
-
-com.marklogic.widgets.layouts.thinthick.prototype.generateId = function(zone,ass) {
-  var s = this._ass(zone,ass); // ass = {widget: widgetName, ... } - adds elementid to ass
-  document.getElementById(this.container + "-" + zone).innerHTML += s; // TODO STOP THIS KILLING EVENT HANDLERS
-};
-
-/**
- * Returns the widget assignment JSON
- * @private
- */
-com.marklogic.widgets.layouts.thinthick.prototype._elementAt = function(zone,index) {
-  return this.zones[zone][index];
-};
-
-com.marklogic.widgets.layouts.thinthick.prototype._getWidget = function(widgetName) {
-  for (var zone in this.zones) {
-    var widgets = this.zones[zone];
-    for (var i = 1, max = widgets.length, wgt;i < max;i++) {
-      wgt = widgets[i];
-      if (wgt.widgetName == widgetName) {
-        return wgt;
-      }
-    }
-  }
-  return null;
-};
-
-com.marklogic.widgets.layouts.thinthick.prototype.moveToPosition = function(widgetName,newZone,newIndexOneBased) {
-  // get element currently at position
-  var wgt = this._elementAt(newZone,newIndexOneBased);
-  var z = this._getZone(newZone);
-  if (null != wgt) {
-    // if not empty, increment order on all widgets at and after position
-    for (var w = z.length, min = newIndexOneBased, moveme;w >= min;w--) {
-      moveme = z[w];
-      moveme.order++;
-      z[w+2] = moveme; // plus 2 because we're moving the spacer too
-    }
-  }
-  var me = this._getWidget(widgetName);
-  var spacer = this._elementAt(me.zone,me.order);
-  var oldZone = me.zone;
-  var oldOrder = me.order;
-  me.order = newIndexOneBased + 1;
-  me.zone = newZone;
-  spacer.order = newIndexOneBased;
-  spacer.zone = newZone;
-  // place widget at required position
-  z[newIndexOneBased] = me; // assumes new index is valid
-  
-  // decrement order's after this element's position
-  if (newZone != oldZone) {
-    z = this._getZone[oldZone];
-    for (var w = oldOrder + 1, max = z.length, moveme;w < max;w--) {
-      moveme = z[w];
-      moveme.order--;
-      z[w-2] = moveme; // minus 2 because we'll move the spacer too
-    }
-  }
-  
-  // ACTUALLY MOVE THE DAMNED HTML!!!
-  var movingel = document.getElementById(me.elementid);
-  var spacerel = document.getElementById(spacer.elementid);
-  var currentel = document.getElementById(wgt.elementid);
-  currentel.parentNode.insertBefore(movingel,currentel);
-  currentel.parentNode.insertBefore(spacerel,movingel);
-};
-
-com.marklogic.widgets.layouts.thinthick.prototype.generateAssignments = function() {
-  // export assignments we've been managing
-  // DO NOT prune - this is done by the caller only (E.g. using the prune() helper method)
+com.marklogic.widgets.layouts.column.prototype._init = function() {
+  var s = "<div id='" + this.container + "-layout' class='container_12 mljswidget layout column'>";
+  s += "<div id='" + this.container + "-A' class='column'></div>";
+  s += "</div>";
+  document.getElementById(this.container).innerHTML = s;
 };
 
 
@@ -745,6 +824,12 @@ com.marklogic.widgets.workplacecontext.prototype.removeWorkplaceUpdatelistener =
 
 
 
+
+
+
+
+
+
 com.marklogic.widgets.workplaceadmin = function(container) {
   this.container = container;
   
@@ -780,7 +865,9 @@ com.marklogic.widgets.workplaceadmin = function(container) {
       */
     ],
     layoutList: [
-      {title: "Thin Thick", classname: "com.marklogic.widgets.layouts.thinthick", description: "Sidebar column on left of main column"}
+      {title: "Thin Thick", classname: "com.marklogic.widgets.layouts.thinthick", description: "Sidebar column on left of main column"},
+      {title: "Thick Thin", classname: "com.marklogic.widgets.layouts.thickthin", description: "Sidebar column on right of main column"},
+      {title: "Column", classname: "com.marklogic.widgets.layouts.column", description: "Single column, content widgets are horizontal panels"}
     ]
   };
   
@@ -793,6 +880,20 @@ com.marklogic.widgets.workplaceadmin = function(container) {
   this._configWrappers = new Array();
   
   this._refresh();
+};
+
+com.marklogic.widgets.workplaceadmin.prototype.addSupportedWidgets = function(widgetDefArray) {
+  for (var i = 0, max = widgetDefArray.length, def;i < max;i++) {
+    def = widgetDefArray[i];
+    this._config.widgetList.push(def);
+  }
+};
+
+com.marklogic.widgets.workplaceadmin.prototype.addSupportedLayouts = function(layoutDefArray) {
+  for (var i = 0, max = layoutDefArray.length, def;i < max;i++) {
+    def = layoutDefArray[i];
+    this._config.layoutList.push(def);
+  }
 };
 
 com.marklogic.widgets.workplaceadmin.prototype.getWidgetSummary = function(widgetclass) {

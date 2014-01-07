@@ -53,13 +53,15 @@ Targets for 1.2 (Dec 2013) - High priority
  - DONE BUG: OpenLayers polygon/circle selection no longer removing markers when executing more restrictive search
  - DONE BUG: Search sort widget showing [Object: object] instead of name in drop down
  - DONE BUG: Widgets: Search results. Plain text parsing error.
- - DONE: Widgets: Data explorer widget shows "Loading..." when attempting to draw a link to an entity that already exists in the visible graph. Should just draw an arrow.
- - ? Widgets: Data explorer widget: Need to ensure arrows are drawn behind boxes z-order
- - ? Widgets: Data explorer widget: Need to set end points for existing boxes to edge most in line with startpoint to centre of box, but finishing outside the box
- - DONE BUG: Widgets: Data explorer widget shows extra two boxes when drawing Wendy (Doesn't remove original link boxes when redrawing?)
- - ? Widgets: Give the data explorer the same document title heuristics as the search results widget. (E.g. XHTML title element value)
- - Widgets: Add a view document link to the data explorer when rendering a document node (Links to different app URL)
+ - IN PROGRESS Widgets: Data Explorer improvements
+  - DONE: Widgets: Data explorer widget shows "Loading..." when attempting to draw a link to an entity that already exists in the visible graph. Should just draw an arrow.
+  - ? Widgets: Data explorer widget: Need to ensure arrows are drawn behind boxes z-order
+  - ? Widgets: Data explorer widget: Need to set end points for existing boxes to edge most in line with startpoint to centre of box, but finishing outside the box
+  - DONE BUG: Widgets: Data explorer widget shows extra two boxes when drawing Wendy (Doesn't remove original link boxes when redrawing?)
+  - ? Widgets: Give the data explorer the same document title heuristics as the search results widget. (E.g. XHTML title element value)
+  - Widgets: Add a view document link to the data explorer when rendering a document node (Links to different app URL)
  - Core: searchcontext - support qtext for combined query when searchbar is contributing information to a structured query (rather than a term query as now)
+  - How to handle this on V6 only systems? - Detect and fall back to term query
  - DONE Widgets: Tag cloud - add hover over text to include frequency of result
  - IN PROGRESS Widgets: Workplace - Removes any code anyone needs to write to use MLJS widgets
   - IN PROGRESS Main edit page framework
@@ -68,7 +70,7 @@ Targets for 1.2 (Dec 2013) - High priority
     - IN PROGRESS Render widget configs within layout
      - DONE Replace encodeuri with encodehtmltag
      - DONE http 500 error handling added to xhr2 library: Figure out json parse bug on loading main page (taking up too much debug time)
-     - Remove Data Series Button: Data Series in table drawing
+     - Remove Data Series (Array of settings) Button: Data Series in table drawing
      - IN PROGRESS Get button images and css sorted for multiples
      - DONE bad widget config: BUG chart type options - only showing Line
      - DONE shrink drop zone / make look better (sort out images)
@@ -91,7 +93,7 @@ Targets for 1.2 (Dec 2013) - High priority
     - TEST Save changes to layout configuration on drop
     - TEST Add html moving code, preserving event handlers
     - TEST Apply equivalent change to workplace context when saving positions (switching away from widgets tab or saving)
-    - Break out thinthick logic in to generic mixin for layouts
+    - TEST Break out thinthick logic in to generic mixin for layouts
    - IN PROGRESS Widget configuration settings (in place)
     - IN PROGRESS visuals
     - Contexts - add new (auto named)
@@ -112,13 +114,14 @@ Targets for 1.2 (Dec 2013) - High priority
     - docbuilder (upload)
     - kratu
     - rdb2rdf (no configuration params needed)
-    - layouts (embedding) - thinthink / thickthin / single column / double column / triple column / 2 rows / 3 rows 
-  - Programmatic access
-   - getWidget by name (so you can programmatically add settings after load)
-   - getContext (could be done via widget optionally too)
-   - addLoadedListener (so you can programmatically add settings after load)
-   - addSupportedWidgets() - so you can add widgets allowed to workplaceadmin after load
-   - 'app level' settings - configured search options
+    - layouts (embedding) - DONE thinthink / TEST thickthin / TEST single column / double column / triple column / 2 rows / 3 rows 
+  - DONE Programmatic access
+   - NA Doesn't make sense - all handled internally by workplacecontext: getWidget by name (so you can programmatically add settings after load)
+   - DONE getWorkplaceContext (could be done via widget optionally too)
+   - NA done in real time (run til complete): addLoadedListener (so you can programmatically add settings after load)
+   - DONE addSupportedWidgets() - so you can add widgets allowed to workplaceadmin after load
+   - DONE addSupportedLayouts() - so you can add layouts allowed to workplaceadmin after load
+   - DEFERRED 'app level' settings - configured search options
   - IN PROGRESS Widgets: Add Drag and Drop support to widgets.js
    - DONE DND pure Test page in mldbwebtest roxy project
    - DONE ensure basic drag and drop works
@@ -141,13 +144,11 @@ Targets for 1.2 (Dec 2013) - High priority
   - Add 'sunny day' success tests - at least one per function
   - Add tests for each bug previously squashed/reported to ENG
  - DONE Latest REST API returns JSON as object not text: BUG Kratu no longer rendering content since migration to searchcontext
- - IN PROGRESS Docs: Document all core concepts currently part of MLJS
+ - DONE Docs: Document all core concepts currently part of MLJS
   - DONE Docs: searchcontext object
   - DONE Docs: Supported rest extensions tutorial doc
   - DONE Core API jsdoc
   - DONE Widget API jsdoc
-  - Figure out how to document own JSON formats within jsdoc and link to external references of them. (E.g. REST API)
-  - Document return types for all functions
  - DONE Core: Search Options builder
   - DEFERRED hide sem:triple elements from snippet highlighting
   - DEFERRED Don't return sem:triples documents at all by default (Top level only)
@@ -163,11 +164,14 @@ Targets for 1.2 (Dec 2013) - Medium Priority
   - (Emil Zegers) OpenLayers quick start tutorial
  - IN PROGRESS Docs: Further MLJS docs
   - Docs: Search results - parsing REST JSON for results
-  - Widgets: Page template js file - for those wanting to create a new MLJS powered page
-  - Widgets: Search Speed - As a tutorial for those wishing to contribute to MLJS by creating new widgets of their own
+  - DONE 006-widget-page.js in Samples: Widgets: Page template js file - for those wanting to create a new MLJS powered page
+  - IN PROGRESS Widgets: Search Speed - As a tutorial for those wishing to contribute to MLJS by creating new widgets of their own
   - Docs: documentcontext object
   - Docs: tripleconfig
   - Docs: semanticcontext
+  - Figure out how to document own JSON formats within jsdoc and link to external references of them. (E.g. REST API)
+  - Core: Document return types for all functions
+  - Widgets: Document return types for all functions
   - Docs: Internal JSON formats used, and links to REST API ones exposed to end users (E.g. search results)
    - search formats
    - search options
