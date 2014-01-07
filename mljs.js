@@ -5268,8 +5268,9 @@ mljs.prototype.searchcontext = function() {
   this._query = {};
   this.simplequery = "";
   
-  this._lastSearchFunction = "simple"; // either simple or structured
-  this._searchEndpoint = "search"; // either search or values
+  this._lastSearchFunction = "simple"; // either simple or structured or custom
+  this._searchEndpoint = "search"; // either search or values or custom
+  this._customEndpointFunction = null; // has a value of type function is lastSearchFunction = custom
   this._tuples = new Array(); // for values mode
   
   this.defaultSort = [];
@@ -5356,6 +5357,21 @@ mljs.prototype.searchcontext.prototype.valuesEndpoint = function() {
   for (var i = 0;i < arguments.length;i++) {
     this._tuples.push(arguments[i]);
   }
+};
+
+/**
+ * Instructs this search context to use your own custom search handler. Useful if you have created your own REST endpoint to handle searching on the server.
+ * Use the mljs.do method in your searchHandler function to invoke your extension.
+ * 
+ * Note your function must have the signature: function(searchcontext,textQuery,structuredQueryJson,optionsName,startIndex,additionalSearchPropertiesJson) 
+ * See the tutorials on Github for one with a custom search context search function.
+ * 
+ * @param {function} searchHandler - Your custom search handler function. Your function MUST invoke context.resultsPublisher, context.facetsPublisher and/or context.valuesPublisher.
+ */
+mljs.prototype.searchcontext.prototype.customEndpoint = function(searchHandler) {
+  this._searchEndpoint = "custom";
+  this._lastSearchFunction = "custom";
+  this._customEndpointFunction = searchHandler;
 };
 
 /**
@@ -5646,7 +5662,7 @@ mljs.prototype.searchcontext.prototype.doStructuredQuery = function(q,start) {
           self.facetsPublisher.publish(result.doc.facets);
         }
       });
-    } else { // values()
+    } else if ("values" == self._searchEndpoint) { // values()
       self.valuesPublisher.publish(true);
       for (var i = 0;i < self._tuples.length;i++) {
         self.db.values(q,self._tuples[i],self.optionsName,null,function(result) {
@@ -5659,6 +5675,9 @@ mljs.prototype.searchcontext.prototype.doStructuredQuery = function(q,start) {
           }
         });
       }
+    } else {
+      // custom endpoint - must perform all valuesPublisher and resultsPublisher calls itself!!!
+      self._customEndpointFunction(self,null, q, self.optionsName, 1, null);
     }
   };
   
@@ -5839,7 +5858,7 @@ mljs.prototype.searchcontext.prototype.doSimpleQuery = function(q,start) {
           self.facetsPublisher.publish(result.doc.facets);
         }
       });
-    } else { // values
+    } else if ("values" == self._searchEndpoint) { // values
       self.valuesPublisher.publish(true);
       for (var i = 0;i < self._tuples.length;i++) {
         self.db.values(q,self._tuples[i],self.optionsName,null,function(result) {
@@ -5852,6 +5871,9 @@ mljs.prototype.searchcontext.prototype.doSimpleQuery = function(q,start) {
           }
         });
       }
+    } else {
+      // custom endpoint - must perform all valuesPublisher and resultsPublisher calls itself!!!
+      self._customEndpointFunction(self,q, null, self.optionsName, ourstart || 1, sprops);
     }
   };
   

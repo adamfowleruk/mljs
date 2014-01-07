@@ -162,20 +162,21 @@ com.marklogic.widgets.workplace._getWidgetClass = function(type) {
   for (var i = 1, max = splits.length,split;i < max;i++) {
     split = splits[i];
     wobj = wobj[split];
-    mljs.defaultconnection.logger.debug("split: " + split + " has type: " + (typeof wobj) + " and value: " + JSON.stringify(wobj));
+    //mljs.defaultconnection.logger.debug("workplace._getWidgetClass: split: " + split + " has type: " + (typeof wobj) + " and value: " + JSON.stringify(wobj));
   }
+  //mljs.defaultconnection.logger.debug("workplace._getWidgetClass: returning: " + wobj);
   return wobj;
 };
 
 com.marklogic.widgets.workplace.prototype._createWidget = function(type,elementid,config) {
-  mljs.defaultconnection.logger.debug("Creating widget: " + type + " in " + elementid + " with config: " + JSON.stringify(config));
+  mljs.defaultconnection.logger.debug("workplace._createWidget: Creating widget: " + type + " in " + elementid + " with config: " + JSON.stringify(config));
   
   var wobj = com.marklogic.widgets.workplace._getWidgetClass(type);
   
-  mljs.defaultconnection.logger.debug("instantiating widget: " + JSON.stringify(wobj));
+  mljs.defaultconnection.logger.debug("workplace._createWidget: instantiating widget: " + JSON.stringify(wobj));
   var wgt = new wobj(elementid);
   
-  mljs.defaultconnection.logger.debug("has widget instance been created? type is object?: " + (typeof wgt));
+  mljs.defaultconnection.logger.debug("workplace._createWidget: has widget instance been created? type is object?: " + (typeof wgt));
   
   
   // apply config to object
@@ -196,12 +197,30 @@ com.marklogic.widgets.workplace.prototype._createWidget = function(type,elementi
 
 // thinthick layout
 com.marklogic.widgets.layouts = {};
+com.marklogic.widgets.layouts.helper = {};
+/**
+ * Helper function to prune admin widgets out of a layout. Used to generate saveable position data for workplace pages
+ */
+com.marklogic.widgets.layouts.helper.prune = function(assignmentArray) {
+  // assume if widget name has a leading underscore, it's an admin widget. E.g. _dropzone1234
+  // keep track of lastValidPosition 1 based
+  // loop through assignments
+  // if widget is valid, give it lastValidPosition as order, and add to new array, increment lastValidOrder
+  // otherwise, do nothing
+  // return new valid array
+  // DO NOT alter assignments in the original array passed in as an argument
+};
+
 com.marklogic.widgets.layouts.thinthick = function(container) {
   this.container = container;
   
-  this.assignments = new Array(); // [widgetid] => assignment json, with elementid for element linked to
+  this.assignments = new Array(); // [widgetname] => assignment json, with elementid for element linked to
   
   this._nextID = 1;
+  
+  this.zones = {};
+  this.zones.A = new Array();
+  this.zones.B = new Array();
   
   this._init();
 };
@@ -224,33 +243,39 @@ com.marklogic.widgets.layouts.thinthick.prototype.getZoneList = function() {
 com.marklogic.widgets.layouts.thinthick.prototype.createZones = function(assignments) {
   mljs.defaultconnection.logger.debug("Creating zones in thinthick layout");
   // group by zones, order by order
-  var zones = new Array();
-  zones["A"] = new Array();
-  zones["B"] = new Array();
   
   if (undefined != assignments) {
     for (var i = 0, max = assignments.length,ass;i < max;i++) {
       mljs.defaultconnection.logger.debug("createZones: i: " + i); 
       ass = assignments[i];
       mljs.defaultconnection.logger.debug("createZones: i: " + i + " has ass: " + JSON.stringify(ass));
-      zones[ass.zone][ass.order] = ass;
+      this.zones[ass.zone][ass.order] = ass;
     }
   }
   
   // do zone A then zone B
-  this._genZones("A",zones["A"]);
-  this._genZones("B",zones["B"]);
+  this._genZones("A",this.zones.A);
+  this._genZones("B",this.zones.B);
   
 };
-com.marklogic.widgets.layouts.thinthick.prototype.appendToZone = function(zone,html) {
+
+com.marklogic.widgets.layouts.thinthick.prototype.appendToZone = function(widgetName,zone,html) {
   var zoneel = document.getElementById(this.container + "-" + zone);
   
-  var id = this.container + "-" + zone + "-" + this._nextID++;
+  var idnum = this._nextID++;
+  var id = this.container + "-" + zone + "-" + idnum;
+  var z = this._getZone(zone);
+  var placeAt = z.length;
+  if (0 == placeAt) {
+    placeAt = 1;
+  }
+  var wgt = {widget: widgetName, zone: zone, order: placeAt, elementid: id};
+  z[placeAt] = wgt;
   var div = document.createElement("div");
   div.id = id;
   div.innerHTML = html;
   zoneel.appendChild(div);
-  return id;
+  return wgt;
 };
 
 com.marklogic.widgets.layouts.thinthick.prototype.getElementID = function(widgetid) {
@@ -271,6 +296,14 @@ com.marklogic.widgets.layouts.thinthick.prototype._genZones = function(zone,arr)
   document.getElementById(this.container + "-" + zone).innerHTML = s;
 };
 
+com.marklogic.widgets.layouts.thinthick.prototype._getZone = function(zone) {
+  var z = this.zones[zone];
+  if (undefined == z) {
+    z = [];
+    this.zones[zone] = z;
+  }
+  return z;
+};
 
 com.marklogic.widgets.layouts.thinthick.prototype._ass = function(zone,ass) {
     mljs.defaultconnection.logger.debug("thinthink._ass: zone: " + zone + " has ass: " + JSON.stringify(ass));
@@ -278,14 +311,88 @@ com.marklogic.widgets.layouts.thinthick.prototype._ass = function(zone,ass) {
       var id = this.container + "-" + zone + "-" + this._nextID++;
       ass.elementid = id;
       this.assignments[ass.widget] = ass;
+      var z = this._getZone(zone);
+      ass.order = z.length;
+      var placeAt = z.length;
+      if (0 == placeAt) {
+        placeAt = 1;
+      }
+      z[placeAt] = ass;
       return "<div id='" + id + "'></div>";
     }
   return "";
 };
 
 com.marklogic.widgets.layouts.thinthick.prototype.generateId = function(zone,ass) {
-  var s = this._ass(zone,ass);
+  var s = this._ass(zone,ass); // ass = {widget: widgetName, ... } - adds elementid to ass
   document.getElementById(this.container + "-" + zone).innerHTML += s; // TODO STOP THIS KILLING EVENT HANDLERS
+};
+
+/**
+ * Returns the widget assignment JSON
+ * @private
+ */
+com.marklogic.widgets.layouts.thinthick.prototype._elementAt = function(zone,index) {
+  return this.zones[zone][index];
+};
+
+com.marklogic.widgets.layouts.thinthick.prototype._getWidget = function(widgetName) {
+  for (var zone in this.zones) {
+    var widgets = this.zones[zone];
+    for (var i = 1, max = widgets.length, wgt;i < max;i++) {
+      wgt = widgets[i];
+      if (wgt.widgetName == widgetName) {
+        return wgt;
+      }
+    }
+  }
+  return null;
+};
+
+com.marklogic.widgets.layouts.thinthick.prototype.moveToPosition = function(widgetName,newZone,newIndexOneBased) {
+  // get element currently at position
+  var wgt = this._elementAt(newZone,newIndexOneBased);
+  var z = this._getZone(newZone);
+  if (null != wgt) {
+    // if not empty, increment order on all widgets at and after position
+    for (var w = z.length, min = newIndexOneBased, moveme;w >= min;w--) {
+      moveme = z[w];
+      moveme.order++;
+      z[w+2] = moveme; // plus 2 because we're moving the spacer too
+    }
+  }
+  var me = this._getWidget(widgetName);
+  var spacer = this._elementAt(me.zone,me.order);
+  var oldZone = me.zone;
+  var oldOrder = me.order;
+  me.order = newIndexOneBased + 1;
+  me.zone = newZone;
+  spacer.order = newIndexOneBased;
+  spacer.zone = newZone;
+  // place widget at required position
+  z[newIndexOneBased] = me; // assumes new index is valid
+  
+  // decrement order's after this element's position
+  if (newZone != oldZone) {
+    z = this._getZone[oldZone];
+    for (var w = oldOrder + 1, max = z.length, moveme;w < max;w--) {
+      moveme = z[w];
+      moveme.order--;
+      z[w-2] = moveme; // minus 2 because we'll move the spacer too
+    }
+  }
+  
+  // ACTUALLY MOVE THE DAMNED HTML!!!
+  var movingel = document.getElementById(me.elementid);
+  var spacerel = document.getElementById(spacer.elementid);
+  var currentel = document.getElementById(wgt.elementid);
+  currentel.parentNode.insertBefore(movingel,currentel);
+  currentel.parentNode.insertBefore(spacerel,movingel);
+};
+
+com.marklogic.widgets.layouts.thinthick.prototype.generateAssignments = function() {
+  // export assignments we've been managing
+  // DO NOT prune - this is done by the caller only (E.g. using the prune() helper method)
 };
 
 
@@ -333,6 +440,9 @@ com.marklogic.widgets.actions.javascript.prototype.execute = function(executionC
 
 
 
+
+
+
 /**
  * Acts as a co-ordinating context for a single MLJS Workplace Page configuration
  * 
@@ -353,8 +463,55 @@ com.marklogic.widgets.workplacecontext = function() {
   
   this.db = mljs.defaultconnection;
   
+  this._instanceNames = {}; // [shortname] -> next available instance id or null
+  
   this.updatePublisher = new com.marklogic.events.Publisher(); // page loaded from server
 };
+
+/**
+ * Resets the list of widgets, their configuration, and their assignments. Used by the Workplace Admin widget.
+ */
+com.marklogic.widgets.workplacecontext.prototype.resetWidgetConfig = function() {
+  this._json.widgets = [];
+  this._json.assignments = [];
+};
+
+/**
+ * Returns the next instance name for a class. E.g. com.marklogic.widgets.searchbar may return searchbar2
+ */
+com.marklogic.widgets.workplacecontext.prototype.nextWidgetName = function(classname) {
+  // get last . character
+  var classString = classname.split(".").pop(); // TODO check this works on all browsers
+  
+  var next = this._instanceNames[classString];
+  if (undefined == next) {
+    next = 1;
+    this._instanceNames[classString] = 2;
+  }
+  return classString + next;
+};
+
+com.marklogic.widgets.workplacecontext.prototype._addWidgetName = function(shortname) {
+  // extract numeric from end
+  var matches = shortname.match(/\d+$/);
+  if (matches) {
+    // correct
+    var number = matches[0];
+    var endPos = shortname.indexOf(number);
+    var classString = shortname.substring(0,endPos);
+    number = parseInt(number, 10);
+    
+    var next = this._instanceNames[classString];
+    if (undefined == next) {
+      next = 0;
+    }
+    if (next < number) {
+      this._instanceNames[classString] = number + 1;
+    }
+  } else {
+    throw new TypeError("shortname: " + shortname + " not a valid widget short name - no number at end of name.");
+  }
+}
 
 com.marklogic.widgets.workplacecontext.prototype.revert = function() {
   this._json = this._lastSaved;
@@ -384,7 +541,9 @@ com.marklogic.widgets.workplacecontext.prototype.getWidgets = function() {
 
 com.marklogic.widgets.workplacecontext.prototype.addWidget = function(name,type,config) {
   var wgt = {widget: name, type: type, config: config};
+  this._addWidgetName(name);
   this._json.widgets.push(wgt);
+  return wgt;
 };
 
 com.marklogic.widgets.workplacecontext.prototype.removeWidget = function(name) {
@@ -401,6 +560,10 @@ com.marklogic.widgets.workplacecontext.prototype.removeWidget = function(name) {
 
 com.marklogic.widgets.workplacecontext.prototype.getAssignments = function() {
   return this._json.assignments;
+};
+
+com.marklogic.widgets.workplacecontext.prototype.setAssignments = function(assignments) {
+  this._json.assignments = assignments;
 };
 
 com.marklogic.widgets.workplacecontext.prototype.placeWidget = function(name,zone,order) {
@@ -495,6 +658,16 @@ com.marklogic.widgets.workplacecontext.prototype.addContextAction = function(con
   // TODO
 };
 
+/**
+ * Do any preprocessing required on the widget json config
+ * @private
+ */
+com.marklogic.widgets.workplacecontext.prototype._processConfig = function() {
+  for (var i = 0, max = this._json.widgets.length,wgt;i < max;i++) {
+    wgt = this._json.widgets[i];
+    this._addWidgetName(wgt.widget);
+  }
+};
 
 com.marklogic.widgets.workplacecontext.prototype.loadPage = function(jsonOrString) {
   mljs.defaultconnection.logger.debug("workplacecontext.loadPage: value: " + jsonOrString);
@@ -510,12 +683,14 @@ com.marklogic.widgets.workplacecontext.prototype.loadPage = function(jsonOrStrin
         self._json = JSON.parse(self._json);
       }
       self._lastSaved = self._json;
+      self._processConfig();
       self._fireUpdate();
     });
   } else {
     mljs.defaultconnection.logger.debug("workplacecontext.loadPage: Got JSON string workplace page definition");
     this._json = jsonOrString;
     this._lastSaved = this._json;
+    this._processConfig();
     this._fireUpdate();
   }
 };
@@ -526,6 +701,8 @@ com.marklogic.widgets.workplacecontext.prototype.loadPageWithUri = function(uri)
   this.db.getWorkplace(uri,function(result) {
     self._json = result.doc;
     self._lastSaved = self._json;
+    
+    self._processConfig();
     
     // fire updatePage event
     self._fireUpdate();
@@ -611,7 +788,21 @@ com.marklogic.widgets.workplaceadmin = function(container) {
   
   this._currentTab = "page";
   
+  this._nextID = 1;
+  
+  this._configWrappers = new Array();
+  
   this._refresh();
+};
+
+com.marklogic.widgets.workplaceadmin.prototype.getWidgetSummary = function(widgetclass) {
+  for (var i = 0, max = this._config.widgetList.length, wc;i < max;i++) {
+    wc = this._config.widgetList[i];
+    if (wc.classname == widgetclass) {
+      return wc;
+    }
+  }
+  return null;
 };
 
 
@@ -730,7 +921,7 @@ com.marklogic.widgets.workplaceadmin.prototype._refresh = function() {
   
   for (var i = 0, col = 0, max = this._config.widgetList.length,w;i < max;i++) {
     w = this._config.widgetList[i];
-    com.marklogic.widgets.dnd.onto(this.container + "-widgets-" + i + "-img","widgetclass",["layoutzone"],w.classname);
+    com.marklogic.widgets.dnd.onto(this.container + "-widgets-" + i + "-img","widgetclass",["layoutzone"],{type: "widgetclass", data: w.classname});
   }
   
   // TODO event handlers etc.
@@ -769,6 +960,9 @@ com.marklogic.widgets.workplaceadmin.prototype._showTab = function(tab) {
       document.getElementById(this.container + "-page-urls").innerHTML.split(","),
       document.getElementById(this.container + "-page-layout").value,
       false); // TODO get shared status from checkbox
+  } else if ("widgets" == this._currentTab) {
+    // save layout
+    this._saveLayout();
   }
   mljs.defaultconnection.logger.debug("workplaceadmin._showTab: Showing " + tab);
   com.marklogic.widgets.hide(document.getElementById(this.container + "-page-content"),("page" != tab));
@@ -776,6 +970,81 @@ com.marklogic.widgets.workplaceadmin.prototype._showTab = function(tab) {
   com.marklogic.widgets.hide(document.getElementById(this.container + "-contexts-content"),("contexts" != tab));
   com.marklogic.widgets.hide(document.getElementById(this.container + "-actions-content"),("actions" != tab));
   this._currentTab = tab;
+};
+
+com.marklogic.widgets.workplaceadmin.prototype._saveLayout = function() {
+  // clear context of widget configurations and assignments
+  this._workplaceContext.resetWidgetConfig();
+  
+  // save each widget's config to the context
+  for (var i = 0, max = this._configWrappers.length, wrapper;i < max;i++) {
+    wrapper = this._configWrappers[i];
+    this._workplaceContext.addWidget(wrapper.getWidgetName(),wrapper.getWidgetType(),wrapper.getWidgetConfig());
+  }
+  
+  // generate assignments from layout
+  var assignments = this._layout.generateAssignments();
+  // save assignments to workplacecontext
+  this._workplaceContext.setAssignments(assignments);
+};
+
+// Adds a new widget instance to the specified zone
+com.marklogic.widgets.workplaceadmin.prototype._addClassToZone = function(widgetclass,zone) {
+  var self = this;
+  
+  // create new layout dropzone
+  var iAss = {widget: self.container + "-dropzone-" + zone + "-" + self._nextID++};
+  this._layout.generateId(zone,iAss);
+  var insert = new com.marklogic.widgets.dropzone(iAss.elementid);
+  this._addDzAccept(insert, zone, iAss.order, iAss.elementid);
+  
+  // create new widget instance name
+  var instanceName = self._workplaceContext.nextWidgetName(widgetclass); // data.data = widgetclassname
+  var widget = self._workplaceContext.addWidget(instanceName,widgetclass,{});
+  // add to layout
+  var wid = self._layout.appendToZone(widget,zone,"");
+  
+  // create new config wrapper
+  var wgt = new com.marklogic.widgets.configwrapper(wid.elementid);
+  this._configWrappers.push(wgt);
+  wgt.setWorkplaceContext(this._workplaceContext);
+  wgt.onto("widgetconfig",["layoutposition"],{type: "widgetconfig", data: widget}); // SHOULD THIS BE wid INSTEAD??? wid is a JSON assignment object
+  // get json config for this widget
+  var cfg = self._workplaceContext.getWidgetInfo(widget.widget);
+  // get class of widget, and it's config description
+  var cls = com.marklogic.widgets.workplace._getWidgetClass(cfg.type);
+  if (undefined != cls.getConfigurationDefinition) {
+    cls = cls.getConfigurationDefinition();
+  } else {
+    cls = {};
+  }
+  wgt.wrap(widget.widget,cls,cfg.config);
+  
+  return widget;
+};
+
+// Adds drop action handlers and performs those actions
+com.marklogic.widgets.workplaceadmin.prototype._addDzAccept = function(aDrop, zone, position,layoutelementid) {
+  mljs.defaultconnection.logger.debug("addDzAccept called for: zone: " + zone + ", order: " + aDrop.order + ", layoutelementid: " + layoutelementid);
+  // accept new widget classes being dropped
+  aDrop.accept("layoutposition",["widgetclass"],function(data) {
+    if ("widgetclass" == data.type) {
+      // we've had a widget class image dropped on us
+      mljs.defaultconnection.logger.debug("APPENDING INSERT WIDGET CLASS " + data + " ON TO DROP ZONE " + zone + " OF LAYOUT AT POSITION: " + position);
+      
+      var widget = self._addClassToZone(data.data,zone);
+      
+      // add to widgetconfig at this position
+      self._layout.moveToPosition(widget.widget,zone,position);
+    } else {
+      // widget config wrapper
+      mljs.defaultconnection.logger.debug("layout position widgetconfig drop handler called for: " + JSON.stringify(data));
+      // data = { widget: widgetName, elementid: layoutHtmlId, ... } in layout
+      // instruct layout to reposition html
+      self._layout.moveToPosition(data.data.widget,zone,position); // data.data.widget = widget instance name
+      // reconfigure widgetcontext appropriately
+    }
+  });
 };
 
 com.marklogic.widgets.workplaceadmin.prototype.updateWorkplace = function(ctx) {
@@ -786,35 +1055,12 @@ com.marklogic.widgets.workplaceadmin.prototype.updateWorkplace = function(ctx) {
   // draw layout inside this container
   
   var json = this._workplaceContext.getJson();
+  var self = this;
   
   // load top level layout for this page (or panel we are managing, at least)
   mljs.defaultconnection.logger.debug("workplaceadmin.updateWorkplace: Creating layout");
   mljs.defaultconnection.logger.debug("workplaceadmin.updateWorkplace: Got JSON: " + JSON.stringify(json));
   this._layout = new (com.marklogic.widgets.layouts[json.layout])(this.container + "-config");
-  
-  // TODO assign element to layout dynamically
-  //this._layout.appendToZone("A","<p>Some test HTML</p>");
-  //this._layout.appendToZone("B","<p>Some other test HTML</p>");
-  
-  // Add an 'add widget' traget widget to the layout
-  // TODO in future check layout config to determine max number allowed
-  // TODO find a mechanism to enable inserting a new dropped widget (config wrapper of) before this drop zone widget
-  /*
-  var aAss = {widget: "dropzone-A"};
-  this._layout.generateId("A",aAss);
-  var aDrop = new com.marklogic.widgets.dropzone(aAss.elementid);
-  aDrop.accept("layoutappend",["widgetclass"],function(data) {
-    // we've had a widget class image dropped on us
-    console.log("APPENDING WIDGET CLASS " + data + " ON TO DROP ZONE A OF LAYOUT");
-  });
-  
-  var bAss = {widget: "dropzone-B"};
-  this._layout.generateId("B",bAss);
-  var bDrop = new com.marklogic.widgets.dropzone(bAss.elementid);
-  bDrop.accept("layoutappend",["widgetclass"],function(data) {
-    // we've had a widget class image dropped on us
-    console.log("APPENDING WIDGET CLASS " + data + " ON TO DROP ZONE B OF LAYOUT");
-  });*/
   
   // Go through assignments, generate IDs for each widget in each area
   var zones = this._layout.getZoneList();
@@ -837,19 +1083,40 @@ com.marklogic.widgets.workplaceadmin.prototype.updateWorkplace = function(ctx) {
     // order each
     bubbleSort(zarray,"order",true); // reverse order means ascending (normally used for facet ordering, descending)
   }
+  
+  var addBottomDz = function(zone) {
+    var bAss = {widget: "dropzone-" + zone};
+    self._layout.generateId(zone,bAss);
+    var bDrop = new com.marklogic.widgets.dropzone(bAss.elementid);
+    bDrop.accept("layoutposition",["widgetclass"],function(data) {
+      // we've had a widget class image dropped on us
+      console.log("APPENDING WIDGET CLASS " + data + " ON TO DROP ZONE " + zone + " OF LAYOUT");
+      
+      self._addClassToZone(data.data,zone);
+    });
+  };
+  
   // Create wrapper config widget for each widget in it's area
   for (var z = 0, maxz = zones.length, zone;z < maxz;z++) {
     zone = zones[z];
     
-    // TODO add 'insert' drop zone widget before each widget wrapper
-    
     // create wrapper for each widget
     for (var w = 0, maxw = zoneWidgets[zone].length, widget;w < maxw;w++) {
       widget = zoneWidgets[zone][w];
+      
+      // create insert zone before each widget
+      
+      var aAss = {widget: "dropzone-" + zone + "-" + self._nextID++};
+      this._layout.generateId(zone,aAss);
+      var aDrop = new com.marklogic.widgets.dropzone(aAss.elementid);
+      this._addDzAccept(aDrop, zone, w, aAss.elementid); // w ok to use at this point
+      
       // create widget
-      var wid = this._layout.appendToZone(zone,"");
-      var wgt = new com.marklogic.widgets.configwrapper(wid);
+      var wid = this._layout.appendToZone(widget.widget,zone,"");
+      var wgt = new com.marklogic.widgets.configwrapper(wid.elementid);
+      this._configWrappers.push(wgt);
       wgt.setWorkplaceContext(this._workplaceContext);
+      wgt.onto("widgetconfig",["layoutposition"],{type: "widgetconfig", data: widget}); // SHOULD THIS BE wid INSTEAD??? wid is a JSON assignment object
       // get json config for this widget
       var cfg = this._workplaceContext.getWidgetInfo(widget.widget);
       // get class of widget, and it's config description
@@ -863,15 +1130,8 @@ com.marklogic.widgets.workplaceadmin.prototype.updateWorkplace = function(ctx) {
     }
     
     // now add 'add to zone' widget
-    var bAss = {widget: "dropzone-" + zone};
-    this._layout.generateId(zone,bAss);
-    var bDrop = new com.marklogic.widgets.dropzone(bAss.elementid);
-    bDrop.accept("layoutappend",["widgetclass"],function(data) {
-      // we've had a widget class image dropped on us
-      console.log("APPENDING WIDGET CLASS " + data + " ON TO DROP ZONE " + zone + " OF LAYOUT");
-    });
+    addBottomDz(zone);
   }
-  
   
   // load information in to summary page
   document.getElementById(this.container + "-page-title").value = json.title;
@@ -913,8 +1173,8 @@ com.marklogic.widgets.dropzone.prototype._init = function() {
   // draw widget
   var str = "<div class='mljswidget dropzone'>";
   str += " <div class='dropzone-target' id='" + this.container + "-target'>";
-  str += "  <img src='/images/mljs/dropzone.png' />";
-  str += "  <p>Drop here</p>";
+  //str += "  <img src='/images/mljs/dropzone.png' />";
+  str += "  <p class='dropzone-text'>Drop here</p>";
   str += " </div>";
   str += "</div>";
   
@@ -922,8 +1182,6 @@ com.marklogic.widgets.dropzone.prototype._init = function() {
 };
 
 com.marklogic.widgets.dropzone.prototype.accept = function(dropzoneClass,draggableTypeAcceptArray,callback) {
-  var dz = document.getElementById(this.container + "-target");
-  
   com.marklogic.widgets.dnd.accept(this.container + "-target",dropzoneClass,draggableTypeAcceptArray,callback);
 };
 
@@ -939,13 +1197,27 @@ com.marklogic.widgets.dropzone.prototype.accept = function(dropzoneClass,draggab
 
 com.marklogic.widgets.configwrapper = function(container) {
   this.container = container;
+  mljs.defaultconnection.logger.debug("configwrapper: Constructor: Creating configwrapper within element with id: " + container);
   this._widgetName = "";
   this._configDescription = null;
   this._config = null;
   
   this._workplaceContext = null;
+  this.__nextID = 1;
   
   this._init();
+};
+
+com.marklogic.widgets.configwrapper.prototype.getWidgetName = function() {
+  return this._widgetName;
+};
+
+com.marklogic.widgets.configwrapper.prototype.getWidgetType = function() {
+  return this._configDescription.type;
+};
+
+com.marklogic.widgets.configwrapper.prototype.getWidgetConfig = function() {
+  return this._config;
 };
 
 com.marklogic.widgets.configwrapper.prototype.setWorkplaceContext = function(wpc) {
@@ -956,6 +1228,11 @@ com.marklogic.widgets.configwrapper.prototype.getWorkplaceContext = function() {
   return this._workplaceContext;
 };
 
+com.marklogic.widgets.configwrapper.prototype.onto = function(draggableClass,droppableTypeAcceptArray,dataOrCallback) {
+  mljs.defaultconnection.logger.debug("configwrapper.onto: Adding drag handler for " + this.container + "-name");
+  com.marklogic.widgets.dnd.onto(this.container + "-name",draggableClass,droppableTypeAcceptArray,dataOrCallback);
+};
+  
 com.marklogic.widgets.configwrapper.prototype.wrap = function(widgetName,configDescription,currentConfig) {
   this._widgetName = widgetName;
   this._configDescription = configDescription;
@@ -972,7 +1249,7 @@ com.marklogic.widgets.configwrapper.prototype._updateWidgetConfig = function() {
 
 com.marklogic.widgets.configwrapper.prototype._genConfigHTML = function(json,def,level) {
   var gotConfig = false;
-  var str = "<table style='border:none;>";
+  var str = "<table class='configwrapper-table'>";
   for (var name in json) {
     gotConfig = true;
     
@@ -981,40 +1258,53 @@ com.marklogic.widgets.configwrapper.prototype._genConfigHTML = function(json,def
     // get config descriptor for this element - get type from there, not introspection (more exacting)
     var d = def[name];
     
-    str += "<tr><td title='" + d.description + "'>" + d.title + "</td><td>";
+    str += "<tr>";
+    var addtitle = function() {
+      str += "<td title='" + d.description + "'>" + d.title + "</td><td>";
+    };
     
     var conf = {id: this.__nextID++, json: c, def: d};
     var self = this;
     
     if ("string" == d.type) {
-      str += "<input type='text' id='" + conf.id + "' value='" + encodeURI(c || d.default) + "' />";
+      addtitle();
+      var val = c || d.default;
+      str += "<input type='text' id='" + this.container + "-" + conf.id + "' value='" + val.htmlEscape() + "' />";
       conf.addhandler = function() {
-        var el = document.getElementById(conf.id);
+        var el = document.getElementById(this.container + "-" + conf.id);
         el.onchange = function() {
           json[name] = el.value;
         };
       };
     } else if ("enum" == d.type) {
-      str += "<select id='" + conf.id + "' value='" + encodeURI(c || d.default) + "'>"; // TODO check setting value here works
+      addtitle();
+      var val = c || d.default;
+      str += "<select id='" + this.container + "-" + conf.id + "' value='" + val.htmlEscape() + "'>"; // TODO check setting value here works
       for (var i = 0,opt,max=d.options.length; i < max;i++) {
         opt = d.options[i];
-        str += "<option value='" + opt.value + "' title='" + opt.description + "'>" + opt.title + "</option>"; // TODO selected=selected if select.value doesn't work
+        str += "<option value='" + opt.value + "' title='" + opt.description + "' ";
+        if (opt.value == val) {
+          str += "selected='selected' ";
+        }
+        str += ">" + opt.title + "</option>"; // TODO selected=selected if select.value doesn't work
       }
       str += "</select>";
       conf.addhandler = function() {
-        var el = document.getElementById(conf.id);
+        var el = document.getElementById(this.container + "-" + conf.id);
         el.onchange = function() {
           json[name] = el.value;
         };
       };
     } else if ("positiveInteger" == d.type) {
+      addtitle();
+      var val = "" + (c || d.default);
       // handle min/max - via event handlers on +/- and manual changing
       // handle invalid (E.g. text) values - try { 1* val} catch (oopsie) and ""+floor(val) == ""+val (integer not float)
-      str += "<input type='text' id='" + conf.id + "' value='" + encodeURI(c || d.default) + "' />";
-      str += "<span class='workplaceadmin-increment' id='" + conf.id + "-increment'>&nbsp;</span>";
-      str += "<span class='workplaceadmin-decrement' id='" + conf.id + "-decrement'>&nbsp;</span>";
+      str += "<input type='text' id='" + conf.id + "' value='" + val.htmlEscape() + "' />";
+      str += "<span class='configwrapper-increment' id='" + this.container + "-" + conf.id + "-increment'>&nbsp;</span>";
+      str += "<span class='configwrapper-decrement' id='" + this.container + "-" + conf.id + "-decrement'>&nbsp;</span>";
       conf.addhandler = function() {
-        var el = document.getElementById(conf.id);
+        var el = document.getElementById(this.container + "-" + conf.id);
         el.onchange = function() {
           // validate value. If crap, use current value
           var val = el.value;
@@ -1034,24 +1324,31 @@ com.marklogic.widgets.configwrapper.prototype._genConfigHTML = function(json,def
         };
       };
     } else if ("boolean" == d.type) {
-      str += "<input type='checkbox' name='" + conf.id + "' id='" + conf.id + "' value='true'>" + (c || d.default) + "</input>"; // TODO verify true and false work as expected
+      addtitle();
+      var val =  c || d.default;
+      str += "<input type='checkbox' name='" + this.container + "-" + conf.id + "' id='" + this.container + "-" + conf.id + "' ";
+      if (true === val) {
+        str += "checked='checked' ";
+      }
+      str += ">" + "</input>"; // TODO verify true and false work as expected
       conf.addhandler = function() {
-        var el = document.getElementById(conf.id);
+        var el = document.getElementById(this.container + "-" + conf.id);
         el.onchange = function() {
           json[name] = el.checked;
         };
       };
     } else if ("multiple" == d.type) {
+      str += "<td colspan='2'><div class='configwrapper-multiple-firstrow'>";
       // TODO handle min/max - via event handlers
-      str += "<b>" + d.title + "</b>&nbsp;&nbsp;&nbsp;&nbsp;";
-      str += "<span class='workplaceadmin-addmultiple' id='" + conf.id + "-add'>&nbsp;</span>";
-      str += "<div class='workplaceadmin-multiple-indent'>";
-      str += "<table style='border:none;' id='" + conf.id + "-table'>";
+      str += "<span>" + d.title + ":-</span>&nbsp;&nbsp;&nbsp;&nbsp;";
+      str += "<span class='configwrapper-addmultiple' id='" + this.container + "-" + conf.id + "-add'>&nbsp;</span></div>";
+      str += "<div class='configwrapper-multiple-indent'>";
+      str += "<table class='configwrapper-multiple-table' id='" + this.container + "-" + conf.id + "-table'>";
       if (Array.isArray(c)) {
         var gotrows = false;
         for (var i = 0; i < c.length;i++) {
           gotrows = true;
-          str += "<tr><td><span class='workplaceadmin-delmultiple' id='" + conf.id + "-del'>&nbsp;</span></td><td>";
+          str += "<tr><td>" + (i + 1) + ":&nbsp;<br/><span class='configwrapper-delmultiple' id='" + this.container + "-" + conf.id + "-del'>&nbsp;</span></td><td>";
           str += this._genConfigHTML(c[i],d.childDefinitions,level + 1);
           str += "</td></tr>";
         }
@@ -1077,7 +1374,7 @@ com.marklogic.widgets.configwrapper.prototype._genConfigHTML = function(json,def
 com.marklogic.widgets.configwrapper.prototype._init = function() {
   var str = "<div class='mljswidget configwrapper'>";
   
-  str += " <h3 class='subtitle' id='" + this.container + "-name'>" + this._widgetName + "</h3>";
+  str += " <h3 class='subtitle' draggable='true' id='" + this.container + "-name'>" + this._widgetName + "</h3>"; // TODO show widget type title here too
   // show config elements on page
   str += "<div id='" + this.container + "-cfg'>";
   str += this._genConfigHTML(this._config,this._configDescription,0);

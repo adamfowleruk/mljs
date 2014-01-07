@@ -880,7 +880,7 @@ div.log {
 .workplaceadmin-config {
   top: 0px;
   left: 348px;
-  background-color: #D6E8E4;
+  background-color: #FFFFFF;
   position: absolute;
 }
 
@@ -943,7 +943,60 @@ div.log {
   font-weight: bold;
 }
 
+/** Config wrapper widget - used by workplace admin **/
+.mljswidget .configwrapper {
+  border: 1px solid grey;
+  padding: 2px;
+  margin-bottom: 5px;
+}
 
+.mljswidget .configwrapper .configwrapper-table {
+  border:none;
+  width: 100%;
+}
+
+.mljswidget .configwrapper .configwrapper-table td {
+  width: 50%;
+}
+
+.mljswidget .configwrapper .configwrapper-multiple-table {
+  border:none; 
+  width: 100%;
+}
+
+.mljswidget .configwrapper .configwrapper-multiple-table td {
+  width: auto;
+}
+
+.mljswidget .configwrapper .configwrapper-multiple-firstrow {
+  height: 32px;
+}
+
+.mljswidget .configwrapper .configwrapper-multiple-firstrow span {
+  float:left;
+}
+
+.mljswidget .configwrapper .configwrapper-addmultiple {
+  display:block;
+  width: 20px;
+  height: 20px;
+  background-image: url(/images/mljs/add-vsmall.png);
+  background-repeat:no-repeat;
+  background-position:center center; 
+}
+
+.mljswidget .configwrapper .configwrapper-delmultiple {
+  display:block;
+  width: 32px;
+  height: 32px;
+  background-image: url(/images/mljs/delete-vsmall.png);
+  background-repeat:no-repeat;
+  background-position:center center; 
+}
+
+.mljswidget .configwrapper .subtitle {
+  cursor: pointer;
+}
 
 /** OpenLayers modifications **/
 .openlayers {
@@ -966,18 +1019,35 @@ div.log {
 /** Drag and drop **/
 .mljswidget .dropzone {
   width: 100%;
-  height: 150px;
+  height: 34px;
   position: relative;
+  margin-top: 5px;
+  margin-bottom: 5px;
 }
 
 .mljswidget .dropzone-target {
   border: 1px solid lightblue;
-  margin-left: auto;
-  margin-right: auto;
-  width: 200;
-  height: 130px;
+  text-align:center;
+  position: relative;
 }
 
 .mljswidget .dropzone-target:hover {
   background-color: #FFCCD9;
+}
+
+.mljswidget .dropzone-target .dropzone-text {
+  font-size: 12pt;
+  display: block;
+  font-weight: bold;
+  position:relative;
+  margin-left: auto;
+  margin-right: auto;
+  height: 32px;
+  width: 120px;
+  vertical-align: middle;
+  line-height: 32px;
+  text-align: right;
+  background-image: url(/images/mljs/add-small.png);
+  background-repeat:no-repeat;
+  background-position:left center; 
 }

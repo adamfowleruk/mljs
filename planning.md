@@ -28,6 +28,7 @@ Targets for 1.2 (Dec 2013) - High priority
   - IN PROGRESS Core: Rework searchcontext
    - DONE Allow contribution of facets/sort etc to alter both text (grammar) queries and structured query (independently, via searchcontext)
    - DONE Add "values" as a searchcontext endpoint option (either /v1/search (default) or /v1/values/{tuplesname})
+   - DONE Added custom REST endpoint support to Search Context, and a tutorial on this to GitHub. See searchcontext.customEndpoint()
    - DONE Add V7 combined options + values support to mljs.values()
    - DONE Ensure searchcontext supports updateFacets
    - NA Done when query refreshes anyway: Add addFacetSelection listener etc to highcharts widget
@@ -65,13 +66,13 @@ Targets for 1.2 (Dec 2013) - High priority
    - IN PROGRESS Layout rendering in edit mode
     - DONE Render layout
     - IN PROGRESS Render widget configs within layout
-     - Replace encodeuri with encodehtmltag
-     - Figure out json parse bug on loading main page (taking up too much debug time)
-     - Remove Data Series: Data Series in table drawing
-     - Get button images and css sorted for multiples
-     - BUG chart type options - only showing Line
-     - shrink drop zone / make look better (sort out images)
-     - add Data series instance number
+     - DONE Replace encodeuri with encodehtmltag
+     - DONE http 500 error handling added to xhr2 library: Figure out json parse bug on loading main page (taking up too much debug time)
+     - Remove Data Series Button: Data Series in table drawing
+     - IN PROGRESS Get button images and css sorted for multiples
+     - DONE bad widget config: BUG chart type options - only showing Line
+     - DONE shrink drop zone / make look better (sort out images)
+     - DONE add Data series instance number
    - IN PROGRESS saving previous tab settings on switching tabs
     - DONE page settings
     - actions
@@ -81,12 +82,20 @@ Targets for 1.2 (Dec 2013) - High priority
     - DONE Workplace config JSON format - including 'shared' flag, title, description
     - DONE visuals (drop downs)
     - DEFERRED no way to search for shared yet anyway: shared checkbox
-   - Widgets settings
-    - Widget toolbox
-    - Laying out widget positions within page Layout
-   - Widget configuration settings (popup box)
-    - visuals
+   - IN PROGRESS Widgets settings
+    - DONE Widget toolbox
+    - DONE Laying out widget positions within page Layout
+    - Add new widgets and place correctly when dropped
+    - DONE Add 'Insert here' before each widget too
+    - TEST Make existing widget titles drag/droppable too 
+    - TEST Save changes to layout configuration on drop
+    - TEST Add html moving code, preserving event handlers
+    - TEST Apply equivalent change to workplace context when saving positions (switching away from widgets tab or saving)
+    - Break out thinthick logic in to generic mixin for layouts
+   - IN PROGRESS Widget configuration settings (in place)
+    - IN PROGRESS visuals
     - Contexts - add new (auto named)
+     - Thinking of doing this on the left hand side still
    - Action settings
     - on page load
     - on page unload
@@ -95,6 +104,8 @@ Targets for 1.2 (Dec 2013) - High priority
     - co-occurence
     - OpenLayers
     - TagCloud
+    - document (result) selection, search selection
+    - searchbar
     - sparqlbar / sparqlresults / entityfacts
     - graphexplorer
     - documentproperties / docheadproperties / docviewer
@@ -106,6 +117,7 @@ Targets for 1.2 (Dec 2013) - High priority
    - getWidget by name (so you can programmatically add settings after load)
    - getContext (could be done via widget optionally too)
    - addLoadedListener (so you can programmatically add settings after load)
+   - addSupportedWidgets() - so you can add widgets allowed to workplaceadmin after load
    - 'app level' settings - configured search options
   - IN PROGRESS Widgets: Add Drag and Drop support to widgets.js
    - DONE DND pure Test page in mldbwebtest roxy project

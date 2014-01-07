@@ -145,8 +145,10 @@ b.xhr2.prototype.request = function(reqname,options,content,callback) {
       if (undefined == res.doc) {
         res.doc = xhr.responseText;
         res.format = "text"; // TODO handle binary content
-        if (xhr.status == 404) {
-          // 404 error, return text, error remains true
+        if (xhr.status == 404 || xhr.status == 500) {
+          // 404 error, return text, error remains true. Assume error is XML or XHTML as per HTTP standard
+          res.error = textToXML(res.doc);
+          res.format = "xml";
         } else {
           try {
             self.logger.debug("XHR2: parsing xhr.responseText");

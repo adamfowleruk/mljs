@@ -273,6 +273,15 @@ if (undefined == String.prototype.startsWith) {
   };
 }
 
+if (undefined == String.prototype.replaceAll) {
+  String.prototype.replaceAll = function(str1, str2, ignoreCase) {
+	  return this.replace(new RegExp(str1.replace(/([\/\,\!\\\^\$\{\}\[\]\(\)\.\*\+\?\|\<\>\-\&])/g,"\\$&"),(ignoreCase?"gi":"g")),(typeof(str2)=="string")?str2.replace(/\$/g,"$$$$"):str2);
+  };
+}
+
+String.prototype.htmlEscape = function() {
+  return String(this).replaceAll("&", '&amp;').replaceAll("\"", '&quot;').replaceAll("'", '&#39;').replaceAll("<", '&lt;').replaceAll(">", '&gt;');
+};
 
 
 
@@ -749,6 +758,7 @@ com.marklogic.widgets.dnd.onto = function(elid,draggableClass,droppableTypeArray
   // add event handlers
   var el = document.getElementById(elid);
   //el.ondragstart = function(ev) {
+  mljs.defaultconnection.logger.debug("dnd.onto: adding ondragstart to: " + elid + " with el value: " + el);
   el.addEventListener("dragstart", function(ev) {
     mljs.defaultconnection.logger.debug("dnd.onto: ondragstart: " + elid);
     //var match = com.marklogic.widgets.dnd._draggableCompatible(el,elid,draggable); // TODO get elid of droppable and pass that too
