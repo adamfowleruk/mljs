@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Tutorial: all</title>
+    <title>JSDoc: Tutorial: 051-core-custom-searchcontext-endpoint</title>
     
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,68 +17,52 @@
 
 <div id="main">
     
-    <h1 class="page-title">Tutorial: all</h1>
+    <h1 class="page-title">Tutorial: 051-core-custom-searchcontext-endpoint</h1>
     
     <section>
     
 <header>
     
 
-    <h2>all</h2>
+    <h2>051-core-custom-searchcontext-endpoint</h2>
 </header>  
 
 <article>
-    <h1>All tutorials available for mljs</h1>
-<h2>Initial learning</h2>
-<p><ul>
-  <li><a href=tutorial-001-intro.html>MLJS Intro</a></li>
-  <li><a href=tutorial-002-intro-firstpage.html>Your first MLJS Search Page</a></li>
-  <li><a href=tutorial-014-browser-workplace.html>Beyond a page - creating an application</a></li>
-  <li>An MLJS application without coding</li>
-</ul>
+    <p><a href="tutorial-all.html">Back to All Tutorials list</a></p>
+<h1>Custom SearchContext endpoints</h1>
+<p>A custom search context endpoint allows you to invoke your own REST API extension rather than the default /v1/search or /v1/values endpoints.</p>
+<p>Your handler function will need to look like the below:-</p>
+<pre><code class="lang-javascript">var myfunc = function(searchcontext,textQuery,structuredQuery,optionsName,startIndex,additionalSearchProperties) {
+  // The below shows the ‘loading’ images on your widgets, letting them know new results / facets are pending
+  searchcontext.resultsPublisher.publish(true);
+  searchcontext.facetsPublisher.publish(true);
 
-</p>
-<h2>mljs Core tutorials</h2>
-<p><ul>
-  <li><a href=tutorial-050-core-contexts.html>All about Context objects</a></li>
-  <li><a href=tutorial-060-rest-ext.html>REST Extensions supported by MLJS</a></li>
-  <li><a href=tutorial-051-core-custom-searchcontext-endpoint.html>Custom search REST endpoints with SearchContexts</a></li>
-  <li><a href=tutorial-999-samples.html>Old Code Snippets</a></li>
-</ul>
-
-</p>
-<h2>mljs Browser tutorials</h2>
-<p><ul>
-  <li><a href=tutorial-001-widgets-list.html>What Widgets are available?</a></li>
-  <li><a href=tutorial-011-browser-create-app.html>Creating a new application</a></li>
-  <li><a href=tutorial-012-browser-install-app.html>Installing MLJS in to an existing application</a></li>
-  <li><a href=tutorial-013-browser-samples-app.html>Installing the MLJS samples app</a></li>
-  <li><a href=tutorial-002-widgets-search.html>How Search Widgets Work</a></li>
-  <li><a href=tutorial-003-widgets-search-render.html>About Search Result rendering</a></li>
-  <li><a href=tutorial-004-widgets-highcharts.html>Using HighCharts widgets</a></li>
-  <li><a href=tutorial-014-browser-workplace.html>The MLJS Workplace Widget</a></li>
-</ul>
-
-</p>
-<h2>mljs Semantics</h2>
-<p><ul>
-  <li>Semantic widgets in MLJS</li>
-  <li><a href=tutorial-901-ontology.html>A MarkLogic Ontology</a></li>
-</ul>
-
-</p>
-<h2>mljs Node.js tutorials</h2>
-<p><ul>
-  <li>TODO</li>
-</ul>
-
-</p>
-<h2>Extending MLJS</h2>
-<p><ul>
-  <li>Writing your own Search Widget</li>
-  <li>The core do() function</li>
-  <li>Integrating to AngularJS or another framework</li>
-</ul></p>
+  var options = {
+    path: “/my/custom/endpoint/url”,
+    method: “PUT”,
+    contentType: “application/json&quot;
+  };
+  mljs.defaultconnection.do(options,CONTENT,function(result) {
+    if (result.inError) {
+      // oh dear - do something in addition to the below
+      searchcontext.resultsPublisher.publish(false);
+      searchcontext.facetsPublisher.publish(false);
+    } else {
+      // do anything here with the results you need to
+      searchcontext.resultsPublisher.publish(result.doc.sourceResults);
+      searchcontext.facetsPublisher.publish(result.doc.sourceResults.facets);
+    }
+  });
+};</code></pre>
+<p>Note that CONTENT is null if the HTTP method is GET, but a value otherwise. MLJS handles conversion, so if you want to pass the structuredQuery JSON in the PUT, then replace CONTENT above with structuredQuery. If you’re just using the searchbar widget though you’ll probably get away with GET and null for method and CONTENT, respectively.</p>
+<p>I’ve assumed that your JSON response has a ’sourceResults’ element that wraps the search response object. Hopefully you get the idea.</p>
+<p>Now register your function:-</p>
+<pre><code class="lang-javascript">var db = new mljs();
+var ctx = db.createSearchContext();
+ctx.customEndpoint(myfunc);</code></pre>
+<p>You can now link your context to widgets as normal.</p>
+<hr>
+<p><a href="tutorial-all.html">Back to All Tutorials list</a></p>
 </article>
 
 </section>  
