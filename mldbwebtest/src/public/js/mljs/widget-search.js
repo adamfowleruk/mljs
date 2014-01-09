@@ -307,9 +307,7 @@ com.marklogic.widgets.searchbar.prototype._dosearch = function(self) {
   if (this._mode == "fullquery") {
     self.ctx.dosimplequery(q);
   } else if (this._mode == "contributestructured") {
-    var qb = new this.ctx.db.query();
-    qb.query(qb.term(q));
-    self.ctx.contributeStructuredQuery(this.container,qb.toJson().query);
+    self.ctx.contributeStructuredQuery(this.container,q); // requires searchcontext from MLJS V 1.2+ - Detects this as text not JSON to perform combinedQuery when V7, term query on V6
   }
 };
 
@@ -2216,7 +2214,9 @@ com.marklogic.widgets.searchmetrics.prototype.updateResults = function(results) 
   } else {
     // create html output
     if (undefined != results.metrics) {
-      str += "Search completed in " + results.metrics.time + " ms"; // TODO VALIDATE THIS LINE
+      var time = results.metrics["total-time"]; // Value like: PT1.064535S - it's marklogic, so assumes it's never in minutes (because MarkLogic rocks!)
+      var time = time.substring(2,time.length - 1);
+      str += "Search completed in " + time + " seconds"; // TODO VALIDATE THIS LINE
     } else {
       // show nothing, rather than useless message
       mljs.defaultconnection.logger.debug("searchmetrics.updateResults: Results REST API JSON doesn't contain search metrics. Did you set up the search options correctly?");

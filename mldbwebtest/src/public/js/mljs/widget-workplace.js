@@ -1490,3 +1490,65 @@ com.marklogic.widgets.configwrapper.prototype.updateWorkplace = function(json) {
   // extract this widget's config from json, set in the wrapper, and refresh
   this._updateWidgetConfig();
 };
+
+
+
+
+
+
+
+/**
+ * Manages an ordered set of JavaScript action objects, and their configuration.
+ */
+com.marklogic.widgets.actionorderer = function(container) {
+  this.container = container;
+  this._actions = null;
+  this._wrappers = {}; // HTML ID => actionconfigwrapper instance
+  this._init();
+};
+
+com.marklogic.widgets.actionorderer.prototype._init = function() {
+  var s = "<div class='mljswidget actionorderer' id='" + this.container + "-outer'>";
+  s += "  <div class='actionorderer-actions' id='" + this.container + "-actions'></div>";
+  s += "  <div class='actionorderer-drop' id='" + this.container + "-drop'></div>";
+  s += "</div>";
+  document.getElementById(this.container).innerHTML = s;
+  
+  // TODO Drop zone action handler
+};
+
+com.marklogic.widgets.actionorderer.prototype.wrap = function(actions) {
+  this._actions = actions;
+  
+  // render in same order in display
+};
+
+com.marklogic.widgets.actionorderer.prototype.getActions = function() {
+  // TODO return options in their current order as a config
+  // TODO also update out internal config, just incase
+  return this._actions;
+};
+
+
+
+// REPLACE THE BELOW WITH A REFACTORED CONFIG WRAPPER???
+com.marklogic.widgets.actionconfig = function(container) {
+  this.container = container;
+  this._config = null;
+  this._init();
+};
+
+com.marklogic.widgets.actionconfig.prototype._init = function() {
+  
+};
+
+com.marklogic.widgets.actionconfig.prototype.wrap = function(config) {
+  this._config = config;
+  
+  // TODO render config
+};
+
+com.marklogic.widgets.actionconfig.prototype.getConfig = function() {
+  // TODO return updated config
+  return this._config;
+};

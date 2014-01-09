@@ -1626,7 +1626,10 @@ mljs.prototype._applySearchProperties = function(url,sprops_opt) {
       format = "&format=" + sprops_opt.format;
     }
     if (undefined != sprops_opt.start_opt) {
-      url += "&start=" + sprops_opt.start_opt;
+      url += "&start=" + sprops_opt.start_opt; // SHOULD THIS BE REMOVED? IT HAS _opt. IS A BIT RANDOM
+    }
+    if (undefined != sprops_opt.start) {
+      url += "&start=" + sprops_opt.start;
     }
   }
   url += format;
@@ -1683,35 +1686,58 @@ mljs.prototype.structuredSearch = function(query_opt,options_opt,sprops_opt,call
     self.__doreq("STRUCTUREDSEARCHV6",options,null,callback);
   };
   this.v7check(v6func,function() {
-    // V7 combined query
     var optionsdoc = self._optionsCache[options_opt || "all"];
     if (undefined == optionsdoc) {
       // hopefully it'll be on the server
       v6func();
     } else {
-      var q = query_opt || {query: {}};
-      // V7, and we have local options
-      var query = {"search":{
-        "query": q.query,
-        "options": optionsdoc.options}
-      }; 
-      var url = "/v1/search";
-      url = self._applySearchProperties(url,sprops_opt);
-      
-      // make transaction aware
-      if (undefined != self.__transaction_id) {
-        url += "&txid=" + encodeURI(self.__transaction_id);
-      }
-      var options = {
-        path: url,
-        method: "POST"
-      };
-      //console.log("OPTIONS: " + JSON.stringify(options));
-      self.__doreq("STRUCTUREDSEARCHV7",options,query,callback);
+      self.combinedQuery(query_opt,null,optionsdoc,sprops_opt,callback);
     }
   });
 };
 mljs.prototype.structuredQuery = mljs.prototype.structuredSearch;
+
+/**
+ * Performs a MarkLogic Server V7+ Combined query. This submits options along with the query term. It can also include both structured and plain text query terms in one call.
+ * 
+ * {@link http://docs.marklogic.com/REST/GET/v1/search}
+ * 
+ * Uses structured search instead of cts:query style searches. See {@link http://docs.marklogic.com/guide/search-dev/search-api#id_53458}
+ * 
+ * Use this method in conjunction with the Query Builder {@see mljs.prototype.query}
+ * 
+ * @param {JSON} structuredQuery_opt - The optional structured query JSON to restrict the results by
+ * @param {string} textQuery_opt - The query string. Optional. (Returns all documents if not supplied, or whatever returns from the additional-query in the json options used)
+ * @param {string} optionsdoc - The optional query options object to use (NOT the name of query options already saved)
+ * @param {JSON} sprops_opt - Additional optional search properties
+ * @param {function} callback - The callback to invoke after the method completes
+ */
+mljs.prototype.combined = function(structuredQuery_opt,textQuery_opt,optionsdoc,sprops_opt,callback) {
+  var self = this;
+  // V7 combined query
+  var q = structuredQuery_opt || {query: {}};
+  // V7, and we have local options
+  var query = {"search":{
+    "query": q.query,
+    "qtext": textQuery_opt,
+    "options": optionsdoc.options}
+  }; 
+  var url = "/v1/search";
+  url = self._applySearchProperties(url,sprops_opt);
+  
+  // make transaction aware
+  if (undefined != self.__transaction_id) {
+    url += "&txid=" + encodeURI(self.__transaction_id);
+  }
+  var options = {
+    path: url,
+    method: "POST"
+  };
+  //console.log("OPTIONS: " + JSON.stringify(options));
+  self.__doreq("COMBINEDQUERY",options,query,callback);
+};
+mljs.prototype.combinedQuery = mljs.prototype.combined;
+mljs.prototype.combinedSearch = mljs.prototype.combined;
 
 /**
  * Uses the version rest extension to verify if we're on V7+ or less than V7. First func is called if less than V7, second func called if V7 or above.
@@ -5564,13 +5590,14 @@ mljs.prototype.searchcontext.prototype._parseQuery = function(q) {
     var colonQuote = parts[i].indexOf(":\"");
     var finalQuote = parts[i].indexOf("\"",colonQuote + 2);
     this.__d("searchcontext._parseQuery: colonQuote: " + colonQuote + ", finalQuote: " + finalQuote);
+    // We have found a start quote
     if (-1 != colonQuote && -1 == finalQuote) { // found first quote without end quote
       do {
         newIdx++;
         if (undefined != parts[newIdx]) {
           parts[i] = parts[i] + " " + parts[newIdx];
         }
-      } while (newIdx < parts.length && parts[newIdx].indexOf("\"") != parts[newIdx].length - 1);
+      } while (newIdx < parts.length && parts[newIdx].indexOf("\"") != parts[newIdx].length - 1); // find the end quote before continuing
       this.__d("searchcontext._parseQuery: parts[" + i + "] now: " + parts[i]);
     }
       if (0 == parts[i].indexOf(this.sortWord + ":")) {
@@ -5640,18 +5667,29 @@ mljs.prototype.searchcontext.prototype.doStructuredQuery = function(q,start) {
   
   this._lastSearchFunction = "structured";
   
+  this._doQuery(q,null,null,start,null);
+};
+mljs.prototype.searchcontext.prototype.dostructuredquery = mljs.prototype.searchcontext.prototype.doStructuredQuery; // backwards compatibility
+
+mljs.prototype.searchcontext.prototype.doCombinedQuery = function(structured,text,optionsdoc,start_opt) {
+  this._lastSearchFunction = "combined";
+  this._doQuery(structured,text,optionsdoc,start_opt,"combined");
+};
+
+mljs.prototype.searchcontext.prototype._doQuery = function(structured_opt,text_opt,optionsdoc_opt,start_opt,endpoint_override_opt) {
+  var self = this;
+  
   var ourstart = 1;
   if (0 != start && undefined != start) {
     ourstart = start;
   }
-  this.__d("searchcontext.dostructuredquery: " + JSON.stringify(q) + ", ourstart: " + ourstart);
+  this.__d("searchcontext._doQuery: " + JSON.stringify(structured_opt) + ", ourstart: " + ourstart);
   
-  var dos = function() {
-    if ("search" == self._searchEndpoint) {
+  var structuredF = function() {
       self.resultsPublisher.publish(true); // forces refresh glyph to show
       self.facetsPublisher.publish(true);
   
-      self.db.structuredSearch(q,self.optionsName,function(result) { 
+      self.db.structuredSearch(structured_opt,self.optionsName,function(result) { 
         if (result.inError) {
           // report error on screen somewhere sensible (e.g. under search bar)
           self.__d(result.error);
@@ -5662,10 +5700,11 @@ mljs.prototype.searchcontext.prototype.doStructuredQuery = function(q,start) {
           self.facetsPublisher.publish(result.doc.facets);
         }
       });
-    } else if ("values" == self._searchEndpoint) { // values()
+  };
+  var valuesF = function() {
       self.valuesPublisher.publish(true);
       for (var i = 0;i < self._tuples.length;i++) {
-        self.db.values(q,self._tuples[i],self.optionsName,null,function(result) {
+        self.db.values(structured_opt,self._tuples[i],self.optionsName,null,function(result) {
           if (result.inError) {
             // report error on screen somewhere sensible (e.g. under search bar)
             self.__d(result.error);
@@ -5675,15 +5714,58 @@ mljs.prototype.searchcontext.prototype.doStructuredQuery = function(q,start) {
           }
         });
       }
-    } else {
+    
+  };
+  var combinedF = function() {
+      self.resultsPublisher.publish(true); // forces refresh glyph to show
+      self.facetsPublisher.publish(true);
+      self.db.combined(structured_opt,text_opt,self._options,{start: start},function(result) { 
+        if (result.inError) {
+          // report error on screen somewhere sensible (e.g. under search bar)
+          self.__d(result.error);
+          self.resultsPublisher.publish(false); // hides refresh glyth on error
+          self.facetsPublisher.publish(false); // hides refresh glyth on error
+        } else {
+          self.resultsPublisher.publish(result.doc);
+          self.facetsPublisher.publish(result.doc.facets);
+        }
+      });
+  };
+  var customF = function() {
       // custom endpoint - must perform all valuesPublisher and resultsPublisher calls itself!!!
       self._customEndpointFunction(self,null, q, self.optionsName, 1, null);
+  };
+  
+  var dos = function() {
+    // check override first
+    if (undefined != endpoint_override_opt) {
+      if ("search" == endpoint_override_opt) {
+        structuredF();
+      } else if ("values" == endpoint_override_opt) { // values()
+        valuesF();
+      } else if ("combined" == endpoint_override_opt) {
+        combinedF();
+      } else if ("custom" == endpoint_override_opt) {
+        customF();
+      } else {
+        throw new TypeError("searchcontext._doQuery: endpoint_override_opt must be 'values', 'combined' or 'custom'");
+      }
+    } else {
+      // now check endpoint
+      if ("search" == self._searchEndpoint) {
+        structuredF();
+      } else if ("values" == self._searchEndpoint) { // values()
+        valuesF();
+      } else if ("combined" == self._searchEndpoint) {
+        combinedF();
+      } else {
+        customF();
+      }
     }
   };
   
   this._persistAndDo(dos);
 };
-mljs.prototype.searchcontext.prototype.dostructuredquery = mljs.prototype.searchcontext.prototype.doStructuredQuery; // backwards compatibility
 
 /**
  * For situations where many objects are contributing top level structured query terms that need AND-ing together.
@@ -5691,31 +5773,57 @@ mljs.prototype.searchcontext.prototype.dostructuredquery = mljs.prototype.search
  * NOTE: queryTerm needs to be the result of queryBuilder.toJson().query[0] and not the top level query JSON itself - i.e. we need a term, not a full query object.
  * 
  * @param {string} contributor - Unique name of the contributor (to prevent clashes)
- * @param {json} queryTerm - The query JSON for the REST API (E.g. an and-query instance)
+ * @param {json|text} queryTerm - The query JSON for the REST API (E.g. an and-query instance). If text this function will do a combined query (V7) or add as a term query (V6)
  * @param {integer} start_opt - The optional first result to show (defaults to 1)
  */
 mljs.prototype.searchcontext.prototype.contributeStructuredQuery = function(contributor,queryTerm,start_opt) {
+  var qb = this.db.createQuery();
+  
+  var self = this;
+  var calcTerms = function() {
+    // build structure query from all terms
+    var terms = new Array();
+    for (var cont in self.structuredContrib) {
+      self.__d("searchcontext.contributeStructuredQuery: Adding contribution from: " + cont);
+      //if ("object" == typeof this.structuredContrib[cont]) {
+      if (null != self.structuredContrib[cont]) {
+        terms.push(self.structuredContrib[cont]);
+      }
+      //}
+    }
+    // execute structured query
+    qb.query(qb.and(terms));
+    
+    return qb.toJson();
+  };
+  var doit = function() {
+    var terms = calcTerms();
+    //var allqueries = { query: {"and-query": terms}}; // TODO replace with query builder
+    self.doStructuredQuery(terms); 
+  };
+  
   if (null == queryTerm || undefined == queryTerm) {
     this.structuredContrib[contributor] = undefined; // removes contribution to the query
+    doit();
   } else {
-    this.structuredContrib[contributor] = queryTerm;
-  }
-  
-  // build structure query from all terms
-  var terms = new Array();
-  for (var cont in this.structuredContrib) {
-    this.__d("searchcontext.contributeStructuredQuery: Adding contribution from: " + cont);
-    //if ("object" == typeof this.structuredContrib[cont]) {
-    if (null != this.structuredContrib[cont]) {
-      terms.push(this.structuredContrib[cont]);
+    if ("string" == typeof(queryTerm)) {
+      this.db.v7check(function() {
+        // v6 func
+        self.structuredContrib[contributor] = qb.term(queryTerm);
+        doit();
+      },
+      function() {
+        // v7 func
+        var terms = calcTerms();
+        // force combined query
+        self.doCombinedQuery(terms,queryTerm,self._options,start_opt);
+      });
+      // determine whether V6 or V7
+    } else {
+      this.structuredContrib[contributor] = queryTerm;
+      doit();
     }
-    //}
   }
-  // execute structured query
-  var qb = this.db.createQuery();
-  qb.query(qb.and(terms));
-  //var allqueries = { query: {"and-query": terms}}; // TODO replace with query builder
-  this.doStructuredQuery(qb.toJson());
 };
 
 /**
@@ -6214,11 +6322,167 @@ mljs.prototype.searchcontext.prototype.reset = function() {
 
 
 
+/**
+ * Class that wraps default text to query part parsing. Used by search context to extract facet and sort information from text query, and to fix bad text queries.
+ * @constructor
+ */
+mljs.prototype.searchcontext.defaultparser = function(config) {
+  this._config = config; // E.g. sort word
+  this._root = new this.container("AND",[]);
+};
+
+/**
+ * Use default grammar to parse this query string
+ */
+mljs.prototype.searchcontext.defaultparser.prototype.parse = function(q) {
+  // go from L to R, checking for quotes and parenthesese as we go
+  // if mid string, check for colon
+  // check for end of value
+  // TODO handle (A AND B AND C AND D) as single and, not multiple - i.e. not as (((A AND B) AND C) AND D) - same for OR and NOT
+  // check if sort word encountered, otherwise is facet word
+  // return set of top level clause wrappers
+};
+
+
+
+
+// OR, AND, NOT, (
+mljs.prototype.searchcontext.defaultparser.prototype.container = function(type,children) {
+  this._type = type;
+  this._clauses = children;
+};
+
+mljs.prototype.searchcontext.defaultparser.prototype.container.prototype.toString = function() {
+  // return string representation - NOTE Containers manage 1 parenthesis pair themselves
+  var s = "";
+  //if ("(" == this._type) {
+    s += "(";
+  //}
+  
+  // now for AND and OR and NOT
+  for (var i = 0, max = this._clauses.length,clause;i < max;i++) {
+    clause = this._clauses[i];
+    if (i > 0) {
+      s += " ";
+    }
+    s += clause.toString();
+    if ("(" != this._type && i < (max - 1)) {
+      s += " " + this._type;
+    }
+  }
+  
+  //if ("(" == this._type) {
+    s += ")";
+  //}
+  return s;
+};
+
+mljs.prototype.searchcontext.defaultparser.prototype.container.prototype.append = function(clause) {
+  this._clauses.push(clause);
+};
+
+mljs.prototype.searchcontext.defaultparser.prototype.container.prototype.getChildren = function() {
+  return this._clauses;
+};
+
+mljs.prototype.searchcontext.defaultparser.prototype.container.prototype.getType = function() {
+  return this._type;
+};
+
+
+
+mljs.prototype.searchcontext.defaultparser.prototype.near = function(distance,lhs,rhs) {
+  this._left = lhs;
+  this._right = rhs;
+  this._distance = distance;
+};
+
+mljs.prototype.searchcontext.defaultparser.prototype.near.prototype.toString = function() {
+  // return string representation
+  return "(" + this._left + " NEAR/" + this._distance + " " + this._right + ")";
+};
+
+mljs.prototype.searchcontext.defaultparser.prototype.near.prototype.getLeft = function() {
+  return this._left;
+};
+
+mljs.prototype.searchcontext.defaultparser.prototype.near.prototype.getRight = function() {
+  return this._right;
+};
+
+mljs.prototype.searchcontext.defaultparser.prototype.near.prototype.getDistance = function() {
+  return this._distance;
+};
+
+
+
+
+mljs.prototype.searchcontext.defaultparser.prototype.phrase = function(text) {
+  this._text = text; // note: assumes text doesn't have "around it"
+};
+
+mljs.prototype.searchcontext.defaultparser.prototype.phrase.prototype.toString = function() {
+  // return string representation
+  return "\"" + this._text + "\"";
+};
+
+mljs.prototype.searchcontext.defaultparser.prototype.phrase.prototype.getText = function() {
+  return this._text;
+};
+
+
+
+/**
+ * Matches a fixed constraint value
+ */
+mljs.prototype.searchcontext.defaultparser.prototype.value = function(constraint_name,value) {
+  this._constraint = constraint_name;
+  this._value = value; // assumes no quotes
+};
+
+mljs.prototype.searchcontext.defaultparser.prototype.value.prototype.toString = function() {
+  return this._constraint + ":\"" + this._value + "\"";
+};
+
+mljs.prototype.searchcontext.defaultparser.prototype.value.prototype.getConstraint = function() {
+  return this._constraint;
+};
+
+mljs.prototype.searchcontext.defaultparser.prototype.value.prototype.getValue = function() {
+  return this._value;
+};
 
 
 
 
 
+mljs.prototype.searchcontext.defaultparser.prototype.range = function(constraint_name,lowerBound,lowerBoundType,upperBound,upperBoundType) {
+  this._constraint = constraint_name;
+  this._lowerBound = lowerBound;
+  this._lowerBoundType = lowerBoundType;
+  this._upperBound = upperBound;
+  this._upperBoundType = upperBoundType;
+};
+
+mljs.prototype.searchcontext.defaultparser.prototype.range.prototype.getConstraint = function() {
+  return this._constraint;
+};
+
+mljs.prototype.searchcontext.defaultparser.prototype.range.prototype.getLowerBound = function() {
+  return this._lowerBound;
+};
+
+mljs.prototype.searchcontext.defaultparser.prototype.range.prototype.getLowerBoundType = function() {
+  return this._lowerBoundType;
+};
+
+mljs.prototype.searchcontext.defaultparser.prototype.range.prototype.getUpperBound = function() {
+  return this._upperBound;
+};
+
+mljs.prototype.searchcontext.defaultparser.prototype.range.prototype.getUpperBoundType = function() {
+  return this._upperBoundType;
+};
 
 
 
