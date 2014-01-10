@@ -144,6 +144,9 @@ Targets for 1.2 (Dec 2013) - High priority
   - DONE BUG WAS AN ISSUE IN MLJS CONSTRAINT SETTINGS: Investigate why REST insists upon some elements having indexes in the JSON namespace as well as the one required (E.g. xhtml and h1)
  - DONE Test: Create MLJS Rest only (not Roxy hybrid) deployment project
  - DONE Docs: Publish mljsrest and mldbwebtest to internal demo server
+ - Bug scanning/regression testing check
+  - BUG Widgets: Default Search Renderer does not check for format="xml"!!! Assumes JSON even when format is specified
+  - Widgets: searchresults add default renderer for documents containing triples (sem-triples parser)
 
 Floating PoC Targets
  - CSV Import improvements / testing
@@ -349,7 +352,6 @@ Targets for 1.4 (Feb 2014) - Theme: Visualisations
    - ? Widgets: Give the data explorer the same document title heuristics as the search results widget. (E.g. XHTML title element value)
    - Widgets: Add a view document link to the data explorer when rendering a document node (Links to different app URL)
  - Missed 1.2 (Dec 2013) - Medium Priority - targets
-  - Widgets: searchresults add default renderer for documents containing triples (sem-triples parser?)
   - IN PROGRESS Widget: RDB2RDF in test app
    - Remove jQuery specific code
    - DONE Check Roxy installation of REST extension works automatically

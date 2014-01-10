@@ -269,7 +269,7 @@ com.marklogic.widgets.layouts.helper.extendLayout = function(layoutInstance,cont
       var widgets = self.zones[zone];
       for (var i = 1, max = widgets.length, wgt;i < max;i++) {
         wgt = widgets[i];
-        if (wgt.widgetName == widgetName) {
+        if (wgt.widget == widgetName) {
           return wgt;
         }
       }
@@ -343,7 +343,7 @@ com.marklogic.widgets.layouts.helper.extendLayout = function(layoutInstance,cont
   };
   self.generateId = function(zone,ass) {
     var s = self._ass(zone,ass); // ass = {widget: widgetName, ... } - adds elementid to ass
-    self._appendZone(zone,null,s);
+    self._appendZone(zone,null,s); // null as _ass generates a parent div with the elementid specified anyway
   };
   self._appendZone = function(zone,id,html) {
     if (undefined != self._appendZoneOverride) {
@@ -363,16 +363,20 @@ com.marklogic.widgets.layouts.helper.extendLayout = function(layoutInstance,cont
   // TODO make this not dependant upon spacers as per workplaceadmin
   self.moveToPosition = function(widgetName,newZone,newIndexOneBased) {
     // get element currently at position
+    mljs.defaultconnection.logger.debug("layout<subclass>.moveToPosition: Entered");
     var wgt = self._elementAt(newZone,newIndexOneBased);
+    
+    mljs.defaultconnection.logger.debug("layout<subclass>.moveToPosition: Got Widget at target position. Moving those afterwards");
     var z = self._getZone(newZone);
     if (null != wgt) {
       // if not empty, increment order on all widgets at and after position
-      for (var w = z.length, min = newIndexOneBased, moveme;w >= min;w--) {
+      for (var w = z.length - 1, min = newIndexOneBased, moveme;w >= min;w--) {
         moveme = z[w];
         moveme.order++;
         z[w+2] = moveme; // plus 2 because we're moving the spacer too
       }
     }
+    mljs.defaultconnection.logger.debug("layout<subclass>.moveToPosition: Getting widget to move");
     var me = self._getWidget(widgetName);
     var spacer = self._elementAt(me.zone,me.order);
     var oldZone = me.zone;
@@ -384,31 +388,41 @@ com.marklogic.widgets.layouts.helper.extendLayout = function(layoutInstance,cont
     // place widget at required position
     z[newIndexOneBased] = me; // assumes new index is valid
     
+    mljs.defaultconnection.logger.debug("layout<subclass>.moveToPosition: Moving (decrementing order) widgets passed original position");
     // decrement order's after this element's position - if oldzone, or newzone this is valid
     //if (newZone != oldZone) {
-    z = self._getZone[oldZone];
-    for (var w = oldOrder + 1, max = z.length, moveme;w < max;w--) {
+    z = self._getZone(oldZone);
+    for (var w = oldOrder + 1, max = z.length, moveme;w < max;w++) {
       moveme = z[w];
       moveme.order--;
       z[w-2] = moveme; // minus 2 because we'll move the spacer too
     }
     //}
     
+    mljs.defaultconnection.logger.debug("layout<subclass>.moveToPosition: Moving HTML element");
     // ACTUALLY MOVE THE DAMNED HTML!!!
     self._moveElementToPosition(me,spacer,wgt);
+    
+    mljs.defaultconnection.logger.debug("layout<subclass>.moveToPosition: Ended");
   };
   self._moveElementToPosition = function(me,spacer,wgt) {
+    mljs.defaultconnection.logger.debug("layout<subclass>._moveElementToPosition: Entered");
     if (undefined != self._moveElementToPositionOverride) {
+      mljs.defaultconnection.logger.debug("layout<subclass>._moveElementToPosition: Caling override");
       self._moveElementToPositionOverride(me,spacer,wgt);
     } else {
+      mljs.defaultconnection.logger.debug("layout<subclass>._moveElementToPosition: Moving element position");
       var movingel = document.getElementById(me.elementid);
       var currentel = document.getElementById(wgt.elementid);
+      mljs.defaultconnection.logger.debug("layout<subclass>._moveElementToPosition: movingelid: " + me.elementid + ", currentelid: " + wgt.elementid);
       currentel.parentNode.insertBefore(movingel,currentel);
       if (null != spacer) { // future proofing
+        mljs.defaultconnection.logger.debug("layout<subclass>._moveElementToPosition: Moving spacer with html elid: " + spacer.elementid);
         var spacerel = document.getElementById(spacer.elementid);
         currentel.parentNode.insertBefore(spacerel,movingel);
       }
     }
+    mljs.defaultconnection.logger.debug("layout<subclass>._moveElementToPosition: Ended");
   };
 };
 
@@ -1103,7 +1117,7 @@ com.marklogic.widgets.workplaceadmin.prototype._addClassToZone = function(widget
   var instanceName = self._workplaceContext.nextWidgetName(widgetclass); // data.data = widgetclassname
   var widget = self._workplaceContext.addWidget(instanceName,widgetclass,{});
   // add to layout
-  var wid = self._layout.appendToZone(widget,zone,"");
+  var wid = self._layout.appendToZone(widget.widget,zone,"");
   
   // create new config wrapper
   var wgt = new com.marklogic.widgets.configwrapper(wid.elementid);
@@ -1121,12 +1135,16 @@ com.marklogic.widgets.workplaceadmin.prototype._addClassToZone = function(widget
   }
   wgt.wrap(widget.widget,cls,cfg.config);
   
+  // now move new widget up one (so it's before the drop zone it was dropped on to)
+  this._layout.moveToPosition(widget.widget,zone,iAss.order - 1); // should move it's spacer too
+  
   return widget;
 };
 
 // Adds drop action handlers and performs those actions
 com.marklogic.widgets.workplaceadmin.prototype._addDzAccept = function(aDrop, zone, position,layoutelementid) {
-  mljs.defaultconnection.logger.debug("addDzAccept called for: zone: " + zone + ", order: " + aDrop.order + ", layoutelementid: " + layoutelementid);
+  mljs.defaultconnection.logger.debug("addDzAccept called for: zone: " + zone + ", order: " + position + ", layoutelementid: " + layoutelementid);
+  var self = this;
   // accept new widget classes being dropped
   aDrop.accept("layoutposition",["widgetclass"],function(data) {
     if ("widgetclass" == data.type) {

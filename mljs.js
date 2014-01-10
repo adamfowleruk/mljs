@@ -5680,8 +5680,8 @@ mljs.prototype.searchcontext.prototype._doQuery = function(structured_opt,text_o
   var self = this;
   
   var ourstart = 1;
-  if (0 != start && undefined != start) {
-    ourstart = start;
+  if (0 != start_opt && undefined != start_opt) {
+    ourstart = start_opt;
   }
   this.__d("searchcontext._doQuery: " + JSON.stringify(structured_opt) + ", ourstart: " + ourstart);
   
