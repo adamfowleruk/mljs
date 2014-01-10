@@ -173,6 +173,10 @@ Floating PoC Targets
     - Clause types: Basic: Word or Phrase, Constraint Value (drop down constraint, lookup or type value), Thesaurus (Custom) value
     - Clause types: Advanced: Range Constraint (min, max, lt, lte, gt, gte), Range fixed buckets (from options), range dynamic (time) buckets (last 2 days)
     - Low: Clause types: Structured: geo box/radius/polygon
+     - Drop down for 'areas' (polygons pre-defined)
+     - Widgets: List saved search areas, new/edit/delete links
+     - Widgets: OpenLayers map used to define polygon - 'save polygon' link with name
+      - Saves data as a search query in JSON to a document with a wrapper, including area display name and type display name (constituency, country, state, AoR etc)
    - Widgets: Save last executed search
    - Widgets: Load saved search drop down (Last 10 saved, link to full list)
    - Widgets: OpenLayers - show detail on hover, perform full action on click (E.g. preview appears mid page)
