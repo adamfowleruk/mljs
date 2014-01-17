@@ -236,6 +236,44 @@ Floating Targets
    - Refactor: Move widgets' use of 960.css out in to a Layout instance, as config options on the assignment itself (not widget or layout)
 
 Targets for 1.4 (Feb 2014) - Theme: Visualisations
+ - Widgets: Search Results
+  - Add support for pluggable rendering for areas of result pane:-
+   - all (as now)
+   - title
+   - result summary (short, snippeting or non snippeting)
+   - expanded result summary (controlled by action or global show detailed results setting)
+   - thumbnail(s) on right hand side with navigation if multiple
+   - thumbnail caption
+   - similar documents (text or thumbnail) under actions bar, hidden by default
+   - related documents (text or thumbnail) under actions bar, hidden by default
+   - facts (semantic triples)
+   - extracted metadata
+   - selection tickbox
+   - latest comments (similar to related documents)
+    - add comment support
+   - actions (pluggable)
+    - view more (expanded result summary)
+    - view less (default short result summary)
+    - edit (goto page - edit)
+    - view (goto page - view)
+    - similar (text or thumbnail)
+    - linked documents (text or thumbnail)
+    - preview (popup pain)
+    - delete
+    - explore (goto page - semantic data explorer)
+   - Ability to globally show/hide named sections
+  - Core: Add metadata extraction support to search options and search context - extract() method on context?
+  - Allow rendering with other layouts rather than just a simple column
+   - Widgets: 2 column across-first cell rendering layout
+   - Widgets: 3 column across-first cell rendering layout
+   - Widgets: zoomable n row rendering layout (like on springer images website)
+  - Add support for result drag and drop to other areas
+ - Widgets: Document Collector dropbox (also supports the searchresults document title, result summary plugins)
+ - Widgets: search bar: Suppress facets, sorting shown within text query bar
+ - Widgets: save search
+ - Widgets: searchsorter: OOTB support for newest first/oldest first based on MarkLogic created and last modified dates
+ - Widgets: searchperpage: Number of results to show per page 25 | 50 | 100 for example
+ - Widgets: layouts to support collapsable zones (like springer images search modification left hand column)
  - Missed 1.2 (Dec 2013) - High Priority - targets
   - IN PROGRESS Widgets: Data Explorer improvements
    - DONE: Widgets: Data explorer widget shows "Loading..." when attempting to draw a link to an entity that already exists in the visible graph. Should just draw an arrow.
