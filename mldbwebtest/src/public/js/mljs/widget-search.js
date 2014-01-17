@@ -340,7 +340,7 @@ com.marklogic.widgets.searchbar.prototype.updateResults = function(results) {
  * 
  * @param {mljs.searchcontext} ctx - The search context instance to invoke
  */
-com.marklogic.widgets.searchbar.prototype.setContext = function(context) {
+com.marklogic.widgets.searchbar.prototype.setSearchContext = function(context) {
   this.ctx = context;
 };
 
@@ -431,7 +431,7 @@ com.marklogic.widgets.searchfacets.prototype.setConfiguration = function(config)
  * 
  * @param {mljs.searchcontext} ctx - The search context instance to invoke
  */
-com.marklogic.widgets.searchfacets.prototype.setContext = function(context) {
+com.marklogic.widgets.searchfacets.prototype.setSearchContext = function(context) {
   this.ctx = context;
 };
 
@@ -1143,7 +1143,7 @@ com.marklogic.widgets.searchresults.prototype.setConfiguration = function(config
  * 
  * @param {mljs.searchcontext} ctx - The search context instance to invoke
  */
-com.marklogic.widgets.searchresults.prototype.setContext = function(context) {
+com.marklogic.widgets.searchresults.prototype.setSearchContext = function(context) {
   this.ctx = context;
 };
 
@@ -1485,7 +1485,7 @@ com.marklogic.widgets.searchpager = function(container) {
  * 
  * @param {mljs.searchcontext} ctx - The search context instance to invoke
  */
-com.marklogic.widgets.searchpager.prototype.setContext = function(context) {
+com.marklogic.widgets.searchpager.prototype.setSearchContext = function(context) {
   this.ctx = context;
 };
 
@@ -1666,7 +1666,7 @@ com.marklogic.widgets.searchsort = function(container) {
  * 
  * @param {mljs.searchcontext} ctx - The search context instance to invoke
  */
-com.marklogic.widgets.searchsort.prototype.setContext = function(context) {
+com.marklogic.widgets.searchsort.prototype.setSearchContext = function(context) {
   this.ctx = context;
 };
 
@@ -2056,7 +2056,7 @@ com.marklogic.widgets.searchselection = function(container) {
  * 
  * @param {mljs.searchcontext} ctx - The search context instance to invoke
  */
-com.marklogic.widgets.searchselection.prototype.setContext = function(ctx) {
+com.marklogic.widgets.searchselection.prototype.setSearchContext = function(ctx) {
   this.ctx = ctx;
 };
 

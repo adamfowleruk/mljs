@@ -199,7 +199,7 @@ function xmlExtractValue(xmldoc,namePath) {
     // TODO support namespaces globally somehow - global context? page context?
   };
   
-  var evalResult = xmldoc.evaluate(xpath,xmlDoc,myfunc,2,null); // 2=string
+  var evalResult = xmldoc.evaluate(xpath,xmldoc,myfunc,2,null); // 2=string
   
   return evalResult;
 };

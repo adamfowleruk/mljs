@@ -67,7 +67,7 @@ com.marklogic.widgets.highcharts = function(container) {
  * 
  * @param {searchcontext} c - The searchcontext to link to
  */
-com.marklogic.widgets.highcharts.prototype.setContext = function(c) {
+com.marklogic.widgets.highcharts.prototype.setSearchContext = function(c) {
   this.ctx = c;
 };
 
@@ -85,12 +85,12 @@ com.marklogic.widgets.highcharts.getConfigurationDefinition = function() {
     yTitle: {type: "string", default: "Values", title: "Y Axis Title", description: "Value Y Axis Title."},
     type: {type: "enum", default: "line",title: "Chart Type", description: "Which HighCharts chart to display",
       options: [
-        {value: "line", title: "Line", decsription: "Line Chart"},
-        {value: "spline", title: "Line", decsription: "Spline Chart"},
-        {value: "bar", title: "Line", decsription: "Bar Chart"},
-        {value: "area", title: "Line", decsription: "Area Chart"},
-        {value: "column", title: "Line", decsription: "Column Chart"},
-        {value: "pie", title: "Line", decsription: "Pie Chart"}
+        {value: "line", title: "Line", description: "Line Chart"},
+        {value: "spline", title: "Spline", description: "Spline Chart"},
+        {value: "bar", title: "Bar", description: "Bar Chart"},
+        {value: "area", title: "Area", description: "Area Chart"},
+        {value: "column", title: "Column", description: "Column Chart"},
+        {value: "pie", title: "Pie", description: "Pie Chart"}
         // TODO support stacking too
         // TODO support Hybrid charts
       ]},

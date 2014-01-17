@@ -67,7 +67,7 @@ com.marklogic.widgets.highcharts = function(container) {
  * 
  * @param {searchcontext} c - The searchcontext to link to
  */
-com.marklogic.widgets.highcharts.prototype.setContext = function(c) {
+com.marklogic.widgets.highcharts.prototype.setSearchContext = function(c) {
   this.ctx = c;
 };
 

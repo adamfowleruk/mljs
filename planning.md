@@ -6,6 +6,19 @@ Targets for 1.2 (Dec 2013) - High priority
  - DONE Widgets: searchfacets - allow developer to specify facet value to human name. E.g. VALUE/hello -> Hello (still using "FACET/hello" as the actual value)
   - DONE Core: Change options builder to store text translations for facets
   - DONE Core: Change searchcontext so that setOptions takes an options builder (as well as legacy options JSON), so as to maintain a reference to these transactions
+ - DONE Widgets: Address to Lon Lat - Perform address lookup for top matching point, feed as constraint in to structured query
+  - DONE Google address lookup
+   - NOT A BUG wasn't using same searchcontext - need to change setContext to setSearchContext globally - contributing multiple terms only processes last term in search
+  - DONE BUG heatmap doesn't clear when zero results returned from next search
+  - DONE Accept radius as a property
+ - DONE Core: Add GeoContext to support concept of Area(s) of interest (E.g. total area that should be visible on a map, or within an area for analysis)
+  - DONE Widgets: Update addressbar to support geocontext
+  - DONE Docs: Update address lookup search page to use this
+  - DONE Widgets: Update OpenLayers to zoom to the location mentioned
+  - DONE Docs: Update openlayers map page to use this
+  - DONE BUG Widgets: OpenLayers heatmaps appear offset and are not refreshed when map's center position is changed
+  - DEFERRED Widgets: Update OpenLayers to zoom to the bounds mentioned (not just the center point at the current zoom level)
+   - DEFERRED Core: Calculate max bounds from areas specified and pass that in the updateLocale event
  - DONE Docs: XML example for custom renderer support, with namespaces in XPath
  - NA Not happening now: Figure out why HTTP 500s result in throwing an exception rather than MLJS error handling (e.g. extension execution errors)
  - DONE Ensure version extension absence errors gracefully
@@ -80,7 +93,10 @@ Targets for 1.2 (Dec 2013) - High priority
    - IN PROGRESS Widgets settings
     - DONE Widget toolbox
     - DONE Laying out widget positions within page Layout
-    - Add new widgets and place correctly when dropped
+    - IN PROGRESS Add new widgets and place correctly when dropped
+     - DONE Drag/drop class on bottom drop zone places new widget correctly
+     - BUG drag/drop new or existing widget on other drop zones makes them initially appear at top, then split from their spacer
+     - Rework layout code so there's only a single method to add a wrapping element - createWrapper() ??? what about layout.wrap(widget)? layout.register(widget)?
     - DONE Add 'Insert here' before each widget too
     - TEST Make existing widget titles drag/droppable too 
     - TEST Save changes to layout configuration on drop
@@ -154,16 +170,16 @@ Floating PoC Targets
   - Test PAF file format
  - Nice to have: Widgets: Browse related Subjects in node diagram
  - TEST Core: Add support for save/get/delete/list transforms
- - Widgets: Transforms administration
-  - Upload (New) transform / Edit / View
-  - List transforms
-  - Add test document + run XSLT
-  - Advanced Edit - syntax highlighting for XQuery/XSLT
- - Widgets: Information flow administration
-  - List pre/post commit triggers, action module name, whether acting on collection or URI base
-  - List alerts, match criteria, actions list
-  - List CPF pipeline information and flow
-  - List norm configurations and denormalisation targets (including XSLT invocation)
+ - LOW Widgets: Transforms administration
+  - LOW Upload (New) transform / Edit / View
+  - LOW List transforms
+  - LOW Add test document + run XSLT
+  - LOW Advanced Edit - syntax highlighting for XQuery/XSLT
+ - LOW Widgets: Information flow administration
+  - LOW List pre/post commit triggers, action module name, whether acting on collection or URI base
+  - LOW List alerts, match criteria, actions list
+  - LOW List CPF pipeline information and flow
+  - LOW List norm configurations and denormalisation targets (including XSLT invocation)
  - SMA
   - High:-
    - Widgets: Advanced search editing - Support for boolean logic, word and phrase matches, NEAR searches, constraint drop downs
@@ -368,9 +384,6 @@ Targets for 1.4 (Feb 2014) - Theme: Visualisations
    - DEFERRED Shadow queries (MLJS' alternative mechanism)
    - DEFERRED Simple/complex view of results (AppBuilder achieves this via state configuration in search options)
   - Widgets: OpenLayers - Use MarkLogic as a tile cache rather than the browser (and do "cache first")
-  - Widgets: Address to Lon Lat - Perform address lookup for top matching point, feed as constraint in to structured query
-   - MS VirtualEarth address lookup?
-   - Accept radius as a property
   - NOT A BUG searchfacets or searchbar widgets using facet title, not constraint name, to indicate constraint added to searchbar (also for lookup/matching)
    - NA Actually, there is no 'facet title' just that constraint name and field name are generally the same. Need to add Title support somehow (DONE via annotation[0])
  - New 1.4 (Feb 2014) targets:-

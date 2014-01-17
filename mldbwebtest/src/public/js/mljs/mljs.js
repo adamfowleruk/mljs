@@ -3071,6 +3071,16 @@ mljs.prototype.createSearchContext = function() {
 
 
 /**
+ * Factory pattern. Creates a geo (locale) context object referring back to the current database connection. Useful to link to the correct logger, and db settings.
+ */
+mljs.prototype.createGeoContext = function() {
+  var obj = new this.geocontext();
+  obj.db = this;
+  return obj;
+};
+
+
+/**
  * Factory pattern. Creates a content search context object referring back to the current database connection. Useful to link to the correct logger, and db settings.
  */
 mljs.prototype.createDocumentContext = function() {
@@ -4886,21 +4896,29 @@ mljs.prototype.query.prototype.collection = function(uri_opt,depth_opt) {
  * @param {integer} lat - WGS84 latitude
  * @param {integer} lon - WGS84 Longitude
  * @param {positiveInteger} radius - The radius from the circle centre to use. Defaults to statute (not nautical) miles. Supports "miles", "m" (metres), "km", "nm" (nautical miles), "degrees" (degrees longitude at the equator, or latitude)
- * @param {string} radiusmeasure_opt - The units used. Default is statute miles. m=metres, km=kilometres, nm=nautical miles, degrees=degrees of rotation of the Earth
+ * @param {string} radiusmeasure_opt - The units used. Default is mi=statute miles. Also m=metres, km=kilometres, nm=nautical miles, degrees=degrees of rotation of the Earth
  */
 mljs.prototype.query.prototype.geoRadius = function(constraint_name,lat,lon,radius,radiusmeasure_opt) {
-  var radiusactual = this._convertRadius(radius,radiusmeasure_opt);
+  var self = this;
+  var circ = this.circleDef(lat,lon,radius,radiusmeasure_opt);
   return {
     "geospatial-constraint-query" : {
       "constraint-name": constraint_name,
-      "circle": {
-        "radius": radiusactual,
-        point: [{"latitude": lat,"longitude": lon}]
-      }
+      "circle": circ.circle
     }
   }
 };
 mljs.prototype.query.prototype.georadius = mljs.prototype.query.prototype.geoRadius;
+
+mljs.prototype.query.prototype.circleDef = function(lat,lon,radius,radiusmeasure_opt) {
+  var radiusactual = this._convertRadius(radius,radiusmeasure_opt);
+  return {
+    "circle": {
+      "radius": radiusactual,
+      point: [{"latitude": lat,"longitude": lon}]
+    }
+  };
+};
 
 mljs.prototype.query.prototype._convertRadius = function(radius,radiusmeasure_opt) {
   var radiusactual = radius;
@@ -5304,7 +5322,7 @@ mljs.prototype.searchcontext = function() {
   this.optionsExist = false;
   //this.optionssavemode = "persist"; // persist or dynamic (v7 only)
   
-  this.structuredContrib = new Array();
+  this.structuredContrib = {};
   
   this._selectedResults = new Array(); // Array of document URIs
   this._highlightedResults = new Array(); // Array of document URIs
@@ -5523,8 +5541,8 @@ mljs.prototype.searchcontext.prototype.setConnection = function(connection) {
  */
 mljs.prototype.searchcontext.prototype.register = function(searchWidget) {
   // introspect widget for update functions
-  if ('function' === typeof(searchWidget.setContext)) {
-    searchWidget.setContext(this);
+  if ('function' === typeof(searchWidget.setSearchContext)) {
+    searchWidget.setSearchContext(this);
   }
   if ('function' === typeof(searchWidget.updatePage)) {
     this.resultsPublisher.subscribe(function (results) {searchWidget.updatePage(results);});
@@ -5803,6 +5821,7 @@ mljs.prototype.searchcontext.prototype.contributeStructuredQuery = function(cont
   };
   
   if (null == queryTerm || undefined == queryTerm) {
+    self.__d("searchcontext.contributeStructuredQuery: Removing query term from contributor: " + contributor);
     this.structuredContrib[contributor] = undefined; // removes contribution to the query
     doit();
   } else {
@@ -5820,6 +5839,7 @@ mljs.prototype.searchcontext.prototype.contributeStructuredQuery = function(cont
       });
       // determine whether V6 or V7
     } else {
+    self.__d("searchcontext.contributeStructuredQuery: Setting query term from contributor: " + contributor + " to " + JSON.stringify(queryTerm));
       this.structuredContrib[contributor] = queryTerm;
       doit();
     }
@@ -7863,6 +7883,190 @@ mljs.prototype.sparqlbuilder.prototype.with = function(childTerm) {
 
 
 
+/**
+ * Handles widgets that respond to a change in the area or interest, or locale.
+ * This could be a specific point on the Earth (lat,lon), town, county, area, or combination of these areas within an overall set of bounds.
+ * E.g. think of an interactive system where several points or areas are selected to define the maximum bounded context, rather than a specific
+ * part of the overall interface.
+ * 
+ * From cambridge english dictionary:-
+ * Locale Noun(c): an area or place, especially one where something special happens, such as the action in a book or a film:
+ *  "The book's locale is a seaside town in the summer of 1958."
+ * 
+ * @constructor 
+ * @deprecated use var db = new mljs(); var ctx = db.createGeoContext(); instead
+ */
+mljs.prototype.geocontext = function() {
+  this._localePublisher = new com.marklogic.events.Publisher();
+  
+  this._areas = {}; // contribution_name => Array of ML point+radius/rect/polygons
+  this._home = new Array(); // Array of ML point+radius/rect/polygons
+  this._alwaysFallback = true; // by default always fall back to this location (probably normally a rect bounds of the entire earth/country)
+  
+  // info for updating related search context(s)
+  this._searchContexts = new Array(); // array of {context: context, constraintName: null|value}
+  this._defaultConstraintName = "location";
+};
+
+// initialisation methods
+
+/**
+ * Registers a widget or class with this context. Introspects the parameter passed for methods and relevant event listeners
+ * 
+ * @param {JSON} widget - The widget or javascript instance to register
+ */
+mljs.prototype.geocontext.prototype.register = function(widget) {
+  if (undefined != widget.setGeoContext) {
+    widget.setGeoContext(this);
+  }
+  // check event handlers
+  if (undefined != widget.updateLocale) {
+    this._localePublisher.subscribe(function(locale) {widget.updateLocale(locale);});
+  }
+};
+
+// settings methods (chainable)
+/**
+ * Instructs this geocontext to contribute a structured query (and query of geo constraint queries) to a search context.
+ * 
+ * @param {searchcontext} searchContext - The search context to call contributeStructuredQuery on
+ * @param {string} name - The contributor name to use
+ * @param {string} constraint_opt - The optional constraint name to use. Will default to this context's defaultConstraintName (see constraint() ) if not specified
+ */
+mljs.prototype.geocontext.prototype.inform = function(searchContext,name,constraint_opt) {
+  this._searchContexts.push({context: searchContext, name:name, constraint: constraint_opt});
+  return this;
+};
+
+/**
+ * Clears the array of search contexts to be updated with queries for. Chainable.
+ */ 
+mljs.prototype.geocontext.prototype.clear = function() {
+  this._searchContexts = new Array();
+  return this;
+};
+
+/**
+ * Chainable function that sets the default constraint for all search contexts, if they don't specify one themselves
+ * 
+ * @param {string} defaultConstraintName - The name of the constraint to alter in the linked search context objects, if they do not specify their own constraint name
+ */
+mljs.prototype.geocontext.prototype.constraint = function(defaultConstraintName) {
+  this._defaultConstraintName = defaultConstraintName;
+  return this;
+};
+
+/**
+ * Where this context should initially use as a location. Fires an update. Chainable.
+ * 
+ * @param {JSON|Array} areaOrArray - area, or array of areas, to include as a base location
+ * @param {boolean} alwaysFallback - Whether this should be used just as a start position (false), or always used as a default location when no areas have been contributed (true).
+ */
+mljs.prototype.geocontext.prototype.home = function(areaOrArray,alwaysFallback) {
+  this._home = areaOrArray;
+  if (undefined != alwaysFallback) {
+    this._alwaysFallback = alwaysFallback;
+  }
+  return this;
+};
+
+// public invocation methods
+
+/**
+ * Contributes an area definition. Areas can be a point, circle, box or polygon JSON, or an array of a mix of those.
+ * 
+ * @param {string} contributor - The contributor of this area
+ * @param {JSON|Array} areaOrArray - The area JSON, or array of them, to add
+ */
+mljs.prototype.geocontext.prototype.contributeArea = function(contributor,areaOrArray) {
+  if (null == areaOrArray || false === areaOrArray) {
+    this._areas[contributor] = [];
+  } else {
+    // ensure it is an array for later internal logic
+    if (!Array.isArray(areaOrArray)) {
+      areaOrArray = [areaOrArray];
+    }
+    this._areas[contributor] = areaOrArray;
+  }
+  
+  this._refresh();
+};
+
+// internal methods
+
+mljs.prototype.geocontext.prototype._refresh = function() {
+  // if we have an associated search context, subject this all as an and-query to that context
+  for (var i = 0, max = this._searchContexts.length, ctx;i < max;i++) {
+    ctx = this._searchContexts[i];
+    
+    // must create this for each context as constraint names will differ
+    var terms = new Array();
+    var areas = this._areas;
+    var addTerm = function(def) {
+      var t = {"geospatial-constraint-query": { "constraint-name": ctx.constraint || this._defaultConstraintName}}; 
+      for (var item in def) {
+        t["geospatial-constraint-query"][item] = def[item]; // copies 'point' etc from definition to query
+      }
+      terms.push(t);
+    };
+    for (var areaName in areas) {
+      var area = this._areas[areaName];
+      for (var j = 0, max = area.length, def;j < max;j++) {
+        def = area[j];
+        addTerm(def);
+      }
+    }
+    if (0 == terms.length && this._alwaysFallback) {
+      addTerm(this._home);
+    }
+    var query = {"and-query": terms};
+    ctx.context.contributeStructuredQuery(ctx.name,query);
+  }
+  
+  // fire internal update events next (make the search look quicker if we do this whilst the search is processing)
+  this._fireLocaleUpdate();
+};
+
+// event firing methods
+
+mljs.prototype.geocontext.prototype._fireLocaleUpdate = function() {
+  var update = {
+    center: {latitude: 0, longitude: 0}, // required, defaults to NaN, NaN
+    bounds: {north: 0, east: 0, south: 0, west: 0}, // required defaults to NaN, NaN, NaN, NaN
+    areas: [] // required, but may be an empty array
+  };
+  // TODO copy over areas
+  var areas = new Array();
+  for (var areaName in this._areas) {
+    var area = this._areas[areaName];
+    for (var i = 0, max = area.length, def;i < max;i++) {
+      def = area[i];
+      areas.push(def);
+    }
+  }
+  if (0 == areas.length && this._alwaysFallback) {
+    areas.push(this._home);
+  }
+  update.areas = areas;
+  // TODO calculate bounds, then center
+  // for now, take first circle point encountered
+  var found = false;
+  for (var i = 0, max = areas.length, area;i < max && !found;i++) {
+    area = areas[i];
+    if (undefined != area.circle) {
+      found = true;
+      update.center = area.circle.point[0]; // always an array in ML JSON
+    }
+  }
+  // fire event
+  this._localePublisher.publish(update);
+};
+
+
+
+
+
+
 
 
 
@@ -7903,6 +8107,7 @@ mljs.prototype.sparqlbuilder.prototype.with = function(childTerm) {
   asLogSink.call(mljs.prototype.options.prototype);
   asLogSink.call(mljs.prototype.query.prototype);
   asLogSink.call(mljs.prototype.searchcontext.prototype);
+  asLogSink.call(mljs.prototype.geocontext.prototype);
   asLogSink.call(mljs.prototype.documentcontext.prototype);
   asLogSink.call(com.marklogic.semantic.tripleconfig.prototype);
   asLogSink.call(mljs.prototype.semanticcontext.prototype);

@@ -95,7 +95,11 @@ com.marklogic.widgets.workplace.prototype.updateWorkplace = function(context) {
   for (var w = 0, max = json.widgets.length,widget;w < max;w++) {
     widget = json.widgets[w];
     mljs.defaultconnection.logger.debug("Creating widget: " + w + " with: " + JSON.stringify(widget));
-    var wgt = this._createWidget(widget.type,layout.getElementID(widget.widget),widget.config);
+    
+    var item = layout.getAssignmentByWidgetName(widget.widget).item;
+    var elementid = item.elementid;
+    
+    var wgt = this._createWidget(widget.type,elementid,widget.config);
     mljs.defaultconnection.logger.debug("Create widget has returned");
     widgets[widget.widget] = wgt;
   }
@@ -215,8 +219,8 @@ com.marklogic.widgets.layouts.helper.extendLayout = function(layoutInstance,cont
   // mixin generic parameters and functions
   var self = layoutInstance;
   self.container = container;
-  self.assignments = new Array();
-  self.zones = {};
+  
+  self.zones = {}; // "A" => [null, {elementid: ""},{widget: "searchbar1",...}, ... ] // ordered, also order: parameter holds the order (1 based)
   self.zoneNames = zones;
   for (var i = 0, max = zones.length, zone;i < max;i++) {
     zone = zones[i];
@@ -224,11 +228,59 @@ com.marklogic.widgets.layouts.helper.extendLayout = function(layoutInstance,cont
   }
   self._nextID = 1;
   
-  self.assignments = new Array(); // [widgetname] => assignment json, with elementid for element linked to
+  //self.assignments = new Array(); // [widgetname] => assignment json, with elementid for element linked to - WHY???
   
+  // new
+  self.getAssignmentByWidgetName = function(widgetname) {
+    return self._overZones(function(item) {
+          if (undefined != item && "object" == typeof(item)) {
+            // json assignment, not string placeholder
+            if (item.widget == widgetname) {
+              return true;
+            }
+          }
+          return false;
+    });
+  };
+  // new
+  self._overZones = function(matcher) {
+    for (var z in self.zones) {
+      var zone = self.zones[z];
+      if (undefined != zone) {
+        for (var i = 1, max = zone.length, item;i < max;i++) {
+          item = zone[i];
+          if (matcher(item)) {
+            return {item: item, zone: z, order: i};
+          }
+        }
+      }
+    }
+    return null;
+  };
+  // new
+  self.getAssignmentByPlaceholder = function(elid) {
+    return self._overZones(function(item) {
+      if (undefined != item) {
+        if ("string" == typeof(item)) {
+          if (item == elid) {
+            return true;
+          }
+        }
+      } else {
+        // json assignment
+        if (item.elementid == elid) {
+          return true;
+        }
+      }
+      return false;
+    })
+  };
+  // ok (less code than not caching)
   self.getZoneList = function() {
     return self.zoneNames;
   };
+  
+  // assigns assignments to this layout, then generates those assignments
   self.createZones = function(assignments) {
     mljs.defaultconnection.logger.debug("Creating zones in thinthick layout");
     // group by zones, order by order
@@ -248,6 +300,7 @@ com.marklogic.widgets.layouts.helper.extendLayout = function(layoutInstance,cont
     }
   }; // REQUIRES instance._genZones() function
   
+  // WHY? When will it ever not exist?
   self._getZone = function(zone) {
     var z = self.zones[zone];
     if (undefined == z) {
@@ -256,36 +309,88 @@ com.marklogic.widgets.layouts.helper.extendLayout = function(layoutInstance,cont
     }
     return z;
   };
+  // ok
+  self.printZoneInfo = function() {
+    var l = mljs.defaultconnection.logger.debug;
+    for (var z in self.zones) {
+      var zone = self.zones[z];
+      for (var i = 0, max = zone.length,element;i < max;i++) {
+        element = zone[i];
+        if (undefined != element) {
+          if ("string" == typeof(element)) {
+            l("layout.printZoneInfo: Zone: " + z + ", index: " + i + ", contains: Placeholder: " + element);
+          } else {
+            l("layout.printZoneInfo: Zone: " + z + ", index: " + i + ", contains: Widget: " + element.widget);
+          }
+        }
+      }
+    }
+  };
   
   /**
    * Returns the widget assignment JSON
    * @private
    */
+  // ok
   self._elementAt = function(zone,index) {
-    return self.zones[zone][index];
-  };
-  self._getWidget = function(widgetName) {
-    for (var zone in self.zones) {
-      var widgets = self.zones[zone];
-      for (var i = 1, max = widgets.length, wgt;i < max;i++) {
-        wgt = widgets[i];
-        if (wgt.widget == widgetName) {
-          return wgt;
-        }
-      }
+    var z = self.zones[zone];
+    if (undefined == z) { // how?
+      return null;
     }
-    return null;
+    return z[index];
   };
+  
+  // TODO
   self.generateAssignments = function() {
     // export assignments we've been managing
     // DO NOT prune - this is done by the caller only (E.g. using the prune() helper method)
   };
-  self.getElementID = function(widgetid) {
+  // ok
+  self.createPlaceholder = function(zone) {
+    var lastOrder = self.zones[zone].length;
+    if (0 == lastOrder) {
+      lastOrder = 1;
+    }
+    var elid = self.container + "-" + zone + "-" + self._nextID++;
+    self.zones[zone][lastOrder] = elid; // gen new id
+    
+    // generate HTML
+    if (undefined != self._createPlaceholderHTMLOverride) {
+      self._createPlaceholderHTMLOverride(zone,elid);
+    } else {
+      var zoneel = document.getElementById(self.container + "-" + zone);
+      var div = document.createElement("div");
+      div.setAttribute("id",elid);
+      //var toappend = div.firstChild; // assume one child only. Could use div.childNodes for all children
+      zoneel.appendChild(div); 
+    }
+    
+    return elid;
+  };
+  // MUST call createPlaceholder first
+  // ok
+  self.registerAssignment = function(placeholderelid,assignmentJsonOrWidgetName) {
+    var info = self.getAssignmentByPlaceholder(placeholderelid);
+    if ("string" == typeof(assignmentJsonOrWidgetName)) {
+      assignmentJsonOrWidgetName = {widget: assignmentJsonOrWidgetName};
+    }
+    self.zones[info.zone][info.order] = assignmentJsonOrWidgetName;
+    assignmentJsonOrWidgetName.elementid = placeholderelid;
+    assignmentJsonOrWidgetName.order = info.order;
+    assignmentJsonOrWidgetName.zone = info.zone;
+    return assignmentJsonOrWidgetName;
+  };
+  // deprecated - use _getAssignmentByWidgetName instead
+  /*
+  self.getElementID = function(widgetname) { // refactoring done
     mljs.defaultconnection.logger.debug("layout<class>: getElementID: for widgetid: " + widgetid);
     var elid = self.assignments[widgetid].elementid;
     mljs.defaultconnection.logger.debug("layout<class>: getElementID: widgetid: " + widgetid + " => " + elid);
     return elid;
   };
+  */
+  // deprecated - use createPlaceholder, widget constructor, and registerAssignment instead
+  /*
   self.appendToZone = function(widgetName,zone,html) {
     var idnum = self._nextID++;
     var id = self.container + "-" + zone + "-" + idnum;
@@ -299,16 +404,23 @@ com.marklogic.widgets.layouts.helper.extendLayout = function(layoutInstance,cont
     self._appendZone(zone,id,html);
     return wgt;
   };
+  */
+  // Generates assignments from the assignment array
   self._genZones = function(zone,arr) {
     mljs.defaultconnection.logger.debug("layout<class>._genZones: " + zone + " with array: " + JSON.stringify(arr));
-    var s = "";
     for (var i = 1, max = arr.length, ass;i < max;i++) {
       mljs.defaultconnection.logger.debug("layout<class>._genZones: zone: " + zone + " index: " + i); 
       ass = arr[i];
-      s += self._ass(zone,ass);
+      // create PlaceHolder HTML
+      var elid = self.createPlaceholder(zone);
+      // draw widget now? - NO (can be done afterwards safely as part of full page load)
+      var newAss = self.registerAssignment(elid,ass);
+      
+      //s += self._ass(zone,ass);
     }
-    self._replaceZone(zone,s);
+    //self._replaceZone(zone,s);
   };
+  /*
   self._replaceZone = function(zone,html) {
     if (undefined != self._replaceZoneOverride) {
       self._replaceZoneOverride(zone,html);
@@ -316,6 +428,26 @@ com.marklogic.widgets.layouts.helper.extendLayout = function(layoutInstance,cont
       document.getElementById(self.container + "-" + zone).innerHTML = html;
     }
   };
+  self.getCurrentElementPosition = function(elementid) {
+    // fetch zone and order
+    // find child element id
+    var el = document.getElementById(elementid);
+    var parentel = el.parentNode;
+    // work up to find parent zone
+    var zone = parentel.getAttribute("id").substring(self.container.length + 1);
+    var info = { order: null, zone: zone};
+    var found = false
+    for (var i = 0, max = parentel.childNodes.length, child;i < max && !found;i++) {
+      child = parentel.childNodes[i];
+      if (child.getAttribute("id") == elementid) {
+        found = true;
+        info.order = i;
+      }
+    }
+    return info;
+  };
+  */
+  /*
   self._ass = function(zone,ass) {
     mljs.defaultconnection.logger.debug("layout<class>._ass: zone: " + zone + " has ass: " + JSON.stringify(ass));
     if (undefined != ass) {
@@ -333,6 +465,8 @@ com.marklogic.widgets.layouts.helper.extendLayout = function(layoutInstance,cont
     }
     return "";
   };
+  */
+  /*
   self._wrapAssignment = function(zone,ass,id,html) {
     if (undefined != self._wrapAssignmentOverride) {
       self._wrapAssignmentOverride(zone,ass,id,html);
@@ -345,21 +479,39 @@ com.marklogic.widgets.layouts.helper.extendLayout = function(layoutInstance,cont
     var s = self._ass(zone,ass); // ass = {widget: widgetName, ... } - adds elementid to ass
     self._appendZone(zone,null,s); // null as _ass generates a parent div with the elementid specified anyway
   };
+  */
+
+  /*
   self._appendZone = function(zone,id,html) {
+    // NB HTML could be blank! Perfectly legal (chicken and egg for element ids otherwise)
     if (undefined != self._appendZoneOverride) {
       self._appendZoneOverride(zone,id,html);
     } else {
+    */
       //document.getElementById(this.container + "-" + zone).innerHTML += html; // TODO STOP THIS KILLING EVENT HANDLERS
+      /*
+      if (null != html && ""!=html) {
+        var zoneel = document.getElementById(self.container + "-" + zone);
+        var div = document.createElement("div");
+        //if (null != id) {
+        //  div.id = id;
+        //}
+        div.innerHTML = html;
+        var toappend = div.firstChild; // assume one child only. Could use div.childNodes for all children
+        zoneel.appendChild(toappend);
+      }*/
+      /*
+        var zoneel = document.getElementById(self.container + "-" + zone);
+        var div = document.createElement("div");
+        //if (null != id) {
+          div.setAttribute("id",id);
+        //}
+        div.innerHTML = html;
+        //var toappend = div.firstChild; // assume one child only. Could use div.childNodes for all children
+        zoneel.appendChild(div);
       
-      var zoneel = document.getElementById(self.container + "-" + zone);
-      var div = document.createElement("div");
-      if (null != id) {
-        div.id = id;
-      }
-      div.innerHTML = html;
-      zoneel.appendChild(div);
     }
-  };
+  };*/
   // TODO make this not dependant upon spacers as per workplaceadmin
   self.moveToPosition = function(widgetName,newZone,newIndexOneBased) {
     // get element currently at position
@@ -367,37 +519,41 @@ com.marklogic.widgets.layouts.helper.extendLayout = function(layoutInstance,cont
     var wgt = self._elementAt(newZone,newIndexOneBased);
     
     mljs.defaultconnection.logger.debug("layout<subclass>.moveToPosition: Got Widget at target position. Moving those afterwards");
-    var z = self._getZone(newZone);
-    if (null != wgt) {
+    //var z = self._getZone(newZone);
+    var z = self.zones[newZone];
+    if (null != wgt) { // null if we're placing at the end
       // if not empty, increment order on all widgets at and after position
       for (var w = z.length - 1, min = newIndexOneBased, moveme;w >= min;w--) {
         moveme = z[w];
         moveme.order++;
-        z[w+2] = moveme; // plus 2 because we're moving the spacer too
+        z[w+2] = moveme; // plus 2 because we're moving the spacer too // TODO validate this IS a spacer before moving
       }
     }
     mljs.defaultconnection.logger.debug("layout<subclass>.moveToPosition: Getting widget to move");
-    var me = self._getWidget(widgetName);
-    var spacer = self._elementAt(me.zone,me.order);
+    var me = self.getAssignmentByWidgetName(widgetName).item;
+    var spacer = self._elementAt(me.zone,me.order); // TODO detect spacer
     var oldZone = me.zone;
     var oldOrder = me.order;
-    me.order = newIndexOneBased + 1;
+    me.order = newIndexOneBased + 1; // +1 is so spacer is before this widget
     me.zone = newZone;
     spacer.order = newIndexOneBased;
     spacer.zone = newZone;
     // place widget at required position
     z[newIndexOneBased] = me; // assumes new index is valid
+    z[newIndexOneBased + 1] = spacer;
     
     mljs.defaultconnection.logger.debug("layout<subclass>.moveToPosition: Moving (decrementing order) widgets passed original position");
-    // decrement order's after this element's position - if oldzone, or newzone this is valid
-    //if (newZone != oldZone) {
-    z = self._getZone(oldZone);
-    for (var w = oldOrder + 1, max = z.length, moveme;w < max;w++) {
-      moveme = z[w];
-      moveme.order--;
-      z[w-2] = moveme; // minus 2 because we'll move the spacer too
+    // decrement order's after this element's position - if oldzone differen from newzone this is valid
+    if (newZone != oldZone) {
+      //z = self._getZone(oldZone);
+      z = self.zones[oldZone];
+      for (var w = oldOrder + 2, max = z.length, moveme;w < max;w++) { // TODO handle +1 when no spacer present
+        moveme = z[w];
+        moveme.order = moveme.order - 2;
+        z[w-2] = moveme; // minus 2 because we'll move the spacer too
+        z[w] = undefined; // so we don't get duplicates at the end of the array
+      }
     }
-    //}
     
     mljs.defaultconnection.logger.debug("layout<subclass>.moveToPosition: Moving HTML element");
     // ACTUALLY MOVE THE DAMNED HTML!!!
@@ -405,6 +561,7 @@ com.marklogic.widgets.layouts.helper.extendLayout = function(layoutInstance,cont
     
     mljs.defaultconnection.logger.debug("layout<subclass>.moveToPosition: Ended");
   };
+  // ok (test)
   self._moveElementToPosition = function(me,spacer,wgt) {
     mljs.defaultconnection.logger.debug("layout<subclass>._moveElementToPosition: Entered");
     if (undefined != self._moveElementToPositionOverride) {
@@ -1108,22 +1265,28 @@ com.marklogic.widgets.workplaceadmin.prototype._addClassToZone = function(widget
   var self = this;
   
   // create new layout dropzone
-  var iAss = {widget: self.container + "-dropzone-" + zone + "-" + self._nextID++};
-  this._layout.generateId(zone,iAss);
-  var insert = new com.marklogic.widgets.dropzone(iAss.elementid);
-  this._addDzAccept(insert, zone, iAss.order, iAss.elementid);
+  var dzElid = this._layout.createPlaceholder(zone);
+  var insert = new com.marklogic.widgets.dropzone(dzElid);
+  var iAss = this._layout.registerAssignment(dzElid,dzElid); // no 'widgetname' so re-use elid as widgetname
+  this._addDzAccept(insert, iAss.zone, iAss.order, iAss.elementid);
   
-  // create new widget instance name
+  
+  // create widget instance
+  var wgtElid = this._layout.createPlaceholder(zone);
   var instanceName = self._workplaceContext.nextWidgetName(widgetclass); // data.data = widgetclassname
   var widget = self._workplaceContext.addWidget(instanceName,widgetclass,{});
   // add to layout
-  var wid = self._layout.appendToZone(widget.widget,zone,"");
+  //var wid = self._layout.appendToZone(widget.widget,zone,"");
   
   // create new config wrapper
-  var wgt = new com.marklogic.widgets.configwrapper(wid.elementid);
+  var wgt = new com.marklogic.widgets.configwrapper(wgtElid);
+  var wAss = this._layout.registerAssignment(wgtElid,instanceName);
   this._configWrappers.push(wgt);
+  
+  // update workplace config and register event handlers
+  
   wgt.setWorkplaceContext(this._workplaceContext);
-  wgt.onto("widgetconfig",["layoutposition"],{type: "widgetconfig", data: widget}); // SHOULD THIS BE wid INSTEAD??? wid is a JSON assignment object
+  wgt.onto("widgetconfig",["layoutposition"],{type: "widgetconfig", data: widget});
   // get json config for this widget
   var cfg = self._workplaceContext.getWidgetInfo(widget.widget);
   // get class of widget, and it's config description
@@ -1137,6 +1300,7 @@ com.marklogic.widgets.workplaceadmin.prototype._addClassToZone = function(widget
   
   // now move new widget up one (so it's before the drop zone it was dropped on to)
   this._layout.moveToPosition(widget.widget,zone,iAss.order - 1); // should move it's spacer too
+  // TODO move spacer and config wrapper widget independantly (don't rely on layout doing this for us - creates logical dependency)
   
   return widget;
 };
@@ -1147,20 +1311,25 @@ com.marklogic.widgets.workplaceadmin.prototype._addDzAccept = function(aDrop, zo
   var self = this;
   // accept new widget classes being dropped
   aDrop.accept("layoutposition",["widgetclass"],function(data) {
-    if ("widgetclass" == data.type) {
-      // we've had a widget class image dropped on us
-      mljs.defaultconnection.logger.debug("APPENDING INSERT WIDGET CLASS " + data + " ON TO DROP ZONE " + zone + " OF LAYOUT AT POSITION: " + position);
+    // determine current (not initial) position of drop zone
+    var curPos = self._layout.getAssignmentByPlaceholder(layoutelementid).item; // fetch CURRENT order based on layout's stored ID value
       
-      var widget = self._addClassToZone(data.data,zone);
+    if ("widgetclass" == data.type) {
+      
+      // we've had a widget class image dropped on us
+      mljs.defaultconnection.logger.debug("APPENDING INSERT WIDGET CLASS " + data + " ON TO DROP ZONE " + zone + 
+        " OF LAYOUT AT POSITION: " + position + ", WITH CURRENT ZONE: " + curPos.zone + " AND ORDER: " + curPos.order);
+      
+      var widget = self._addClassToZone(data.data,curPos.zone);
       
       // add to widgetconfig at this position
-      self._layout.moveToPosition(widget.widget,zone,position);
+      self._layout.moveToPosition(widget.widget,curPos.zone,curPos.order);
     } else {
       // widget config wrapper
       mljs.defaultconnection.logger.debug("layout position widgetconfig drop handler called for: " + JSON.stringify(data));
       // data = { widget: widgetName, elementid: layoutHtmlId, ... } in layout
       // instruct layout to reposition html
-      self._layout.moveToPosition(data.data.widget,zone,position); // data.data.widget = widget instance name
+      self._layout.moveToPosition(data.data.widget,curPos.zone,curPos.order); // data.data.widget = widget instance name
       // reconfigure widgetcontext appropriately
     }
   });
@@ -1204,9 +1373,9 @@ com.marklogic.widgets.workplaceadmin.prototype.updateWorkplace = function(ctx) {
   }
   
   var addBottomDz = function(zone) {
-    var bAss = {widget: "dropzone-" + zone};
-    self._layout.generateId(zone,bAss);
-    var bDrop = new com.marklogic.widgets.dropzone(bAss.elementid);
+    var dzElid = self._layout.createPlaceholder(zone);
+    var bDrop = new com.marklogic.widgets.dropzone(dzElid);
+    self._layout.registerAssignment(dzElid,dzElid); // no widget name so re-use drop zone elid
     bDrop.accept("layoutposition",["widgetclass"],function(data) {
       // we've had a widget class image dropped on us
       console.log("APPENDING WIDGET CLASS " + data + " ON TO DROP ZONE " + zone + " OF LAYOUT");
@@ -1225,14 +1394,22 @@ com.marklogic.widgets.workplaceadmin.prototype.updateWorkplace = function(ctx) {
       
       // create insert zone before each widget
       
-      var aAss = {widget: "dropzone-" + zone + "-" + self._nextID++};
-      this._layout.generateId(zone,aAss);
-      var aDrop = new com.marklogic.widgets.dropzone(aAss.elementid);
-      this._addDzAccept(aDrop, zone, w, aAss.elementid); // w ok to use at this point
+      //var aAss = {widget: "dropzone-" + zone + "-" + self._nextID++};
+      //this._layout.generateId(zone,aAss);
+      var dzElid = this._layout.createPlaceholder(zone);
+      var aDrop = new com.marklogic.widgets.dropzone(dzElid);
+      var dzAss = this._layout.registerAssignment(dzElid,dzElid); // no widgetname for drop zones, so re-use element id
       
       // create widget
-      var wid = this._layout.appendToZone(widget.widget,zone,"");
-      var wgt = new com.marklogic.widgets.configwrapper(wid.elementid);
+      var wgtElid = this._layout.createPlaceholder(zone);
+      var wgt = new com.marklogic.widgets.configwrapper(wgtElid);
+      var wgtAss = this._layout.registerAssignment(wgtElid,widget.widget);
+      
+      // now reposition (not required - appending in order)
+      
+      
+      this._addDzAccept(aDrop, zone, dzAss.order, dzElid); // w ok to use at this point
+      
       this._configWrappers.push(wgt);
       wgt.setWorkplaceContext(this._workplaceContext);
       wgt.onto("widgetconfig",["layoutposition"],{type: "widgetconfig", data: widget}); // SHOULD THIS BE wid INSTEAD??? wid is a JSON assignment object
@@ -1266,6 +1443,8 @@ com.marklogic.widgets.workplaceadmin.prototype.updateWorkplace = function(ctx) {
   document.getElementById(this.container + "-page-layout").value = json.layout;
   
   // TODO load other state information shown in left bar from JSON (is there any? Actions?)
+  
+  this._layout.printZoneInfo();
   
   mljs.defaultconnection.logger.debug("workplaceadmin.updateWorkplace: Finished creating layout");
 };

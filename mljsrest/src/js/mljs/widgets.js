@@ -199,7 +199,7 @@ function xmlExtractValue(xmldoc,namePath) {
     // TODO support namespaces globally somehow - global context? page context?
   };
   
-  var evalResult = xmldoc.evaluate(xpath,xmlDoc,myfunc,2,null); // 2=string
+  var evalResult = xmldoc.evaluate(xpath,xmldoc,myfunc,2,null); // 2=string
   
   return evalResult;
 };
@@ -273,6 +273,15 @@ if (undefined == String.prototype.startsWith) {
   };
 }
 
+if (undefined == String.prototype.replaceAll) {
+  String.prototype.replaceAll = function(str1, str2, ignoreCase) {
+	  return this.replace(new RegExp(str1.replace(/([\/\,\!\\\^\$\{\}\[\]\(\)\.\*\+\?\|\<\>\-\&])/g,"\\$&"),(ignoreCase?"gi":"g")),(typeof(str2)=="string")?str2.replace(/\$/g,"$$$$"):str2);
+  };
+}
+
+String.prototype.htmlEscape = function() {
+  return String(this).replaceAll("&", '&amp;').replaceAll("\"", '&quot;').replaceAll("'", '&#39;').replaceAll("<", '&lt;').replaceAll(">", '&gt;');
+};
 
 
 
@@ -699,11 +708,14 @@ com.marklogic.widgets.dnd = {
   draggables: {} // draggables["elid"] = {classname: "myclass", onto: [class1,...] }
 };
 
+/**
+ * Call this to indicate the specified element should be a drop zone.
+ */
 com.marklogic.widgets.dnd.accept = function(elid,droppableClass,draggableTypeArrayToAccept,actionCallback) {
   // assume caller does html generation (for speed)
   // add droppable configuration
-  var droppable = {classname: droppableClass,accept: draggableTypeArrayToAccept, action: actionCallback};
-  com.marklogic.widgets.dnd.droppables[elid] = droppable;
+  var dropzone = {classname: droppableClass,accept: draggableTypeArrayToAccept, action: actionCallback};
+  com.marklogic.widgets.dnd.droppables[elid] = dropzone;
   // add event handlers
   var el = document.getElementById(elid);
   mljs.defaultconnection.logger.debug("dnd.onto: adding event handlers to: " + elid);
@@ -726,7 +738,7 @@ com.marklogic.widgets.dnd.accept = function(elid,droppableClass,draggableTypeArr
     //if (match) {
       var data = JSON.parse(ev.dataTransfer.getData("application/javascript"));
     mljs.defaultconnection.logger.debug("dnd.accept: ondrop: calling action callback");
-      droppable.action(data);
+      dropzone.action(data);
     //}
     //ev.preventDefault();
     mljs.defaultconnection.logger.debug("dnd.accept: ondrop: returning false");
@@ -735,6 +747,9 @@ com.marklogic.widgets.dnd.accept = function(elid,droppableClass,draggableTypeArr
   mljs.defaultconnection.logger.debug("dnd.onto: completed adding event handlers to: " + elid);
 };
 
+/**
+ * Call this to set an element up as a draggable item.
+ */
 com.marklogic.widgets.dnd.onto = function(elid,draggableClass,droppableTypeArrayToMap,dataOrCallback) {
   // assume caller does html generation (for speed) (For HTML5 this element MUST have attribute draggable="true")
   // add draggable configuration
@@ -743,6 +758,7 @@ com.marklogic.widgets.dnd.onto = function(elid,draggableClass,droppableTypeArray
   // add event handlers
   var el = document.getElementById(elid);
   //el.ondragstart = function(ev) {
+  mljs.defaultconnection.logger.debug("dnd.onto: adding ondragstart to: " + elid + " with el value: " + el);
   el.addEventListener("dragstart", function(ev) {
     mljs.defaultconnection.logger.debug("dnd.onto: ondragstart: " + elid);
     //var match = com.marklogic.widgets.dnd._draggableCompatible(el,elid,draggable); // TODO get elid of droppable and pass that too

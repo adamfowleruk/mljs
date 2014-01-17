@@ -204,3 +204,21 @@ declare function c:dnd() as item()*
   ch:use-view((), "xml"),
   ch:use-layout("mljs-one-column-test","html"))
 };
+
+declare function c:angular() as item()*
+{
+  (
+  ch:add-value("message", "This is a test message."),
+  ch:add-value("title", "Angular JS Example"),
+  ch:use-view((), "xml"),
+  ch:use-layout("mljs-one-column-test","html"))
+};
+
+declare function c:address() as item()*
+{
+  (
+  ch:add-value("message", "This is a test message."),
+  ch:add-value("title", "Address Lookup"),
+  ch:use-view((), "xml"),
+  ch:use-layout("mljs-one-column-test","html"))
+};

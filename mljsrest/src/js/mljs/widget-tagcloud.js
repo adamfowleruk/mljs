@@ -96,7 +96,7 @@ com.marklogic.widgets.tagcloud.prototype._refresh = function() {
  * 
  * @param {mljs.searchcontext} ctx - The search context instance to invoke
  */
-com.marklogic.widgets.tagcloud.prototype.setContext = function(context) {
+com.marklogic.widgets.tagcloud.prototype.setSearchContext = function(context) {
   this.ctx = context;
 };
 

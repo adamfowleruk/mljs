@@ -55,6 +55,8 @@ com.marklogic.widgets.graphexplorer = function(container) {
   
   this.columnWidths = new Array(); // colnumber -> pixel width maximum in column
   this.rowHeights = new Array(); // crownumber -> pixel height maximum in row
+  
+  this._existingPaths = {}; // this._existingPaths[parentiri][childiri] = path
 
   this._init();
 };
@@ -385,10 +387,12 @@ com.marklogic.widgets.graphexplorer.prototype.drawSubject = function(subjectIri,
     }).add().shadow(true);
     
     // save our config in a JS object
-    var ent = {parentiri: parentIri, subjectiri: subjectIri, docuri: null , subjectsfacts:new Array(), column:column , row: row, jswrapper: box};
+    var ent = {parentiri: parentIri, subjectiri: subjectIri, docuri: null , subjectsfacts:new Array(), column:column , row: row, jswrapper: box, jslinkboxes: []};
     this.entities.push(ent);
     // load properties of subject
     this.semanticContext.getFacts(subjectIri,false);
+    
+    return ent;
     
     /*
   if (null == this.propertyCache[subjectIri]) {
@@ -406,6 +410,11 @@ com.marklogic.widgets.graphexplorer.prototype._drawSubjectDetail = function(subj
   }
   if (null != ent.jswrapper) {
     ent.jswrapper.destroy();
+    var boxes = ent.jslinkboxes;
+    for (var i = 0,b,max = boxes.length;i < max;i++) {
+      boxes[i].destroy();
+    }
+    ent.jslinkboxes = [];
   }
   
   var ren = this.renderer;
@@ -546,21 +555,37 @@ com.marklogic.widgets.graphexplorer.prototype._drawSubjectDetail = function(subj
     }).on("click",function() {
       // TODO load related object
       mljs.defaultconnection.logger.debug("RELATION CLICKED: piri: " + piri + ", riri: " + riri);
-      var newcol = ent.column + 1;
-      var newrow = self._incrementColumnCount(newcol);
-      self.drawSubject(riri,piri,newcol,newrow);
+      
+      // Check if subject has already been drawn. If so, just draw arrow to the subject's box.
+      var existingent = self._entityFromIRI(riri);
+      var targetrow = 1;
+      var targetcol = 1;
+      if (undefined == existingent) {
+        var newcol = ent.column + 1;
+        var newrow = self._incrementColumnCount(newcol);
+        self.drawSubject(riri,piri,newcol,newrow);
+        targetrow = newrow;
+        targetcol = newcol;
+      } else {
+        targetrow = existingent.row;
+        targetcol = existingent.column;
+        
+        if (undefined != self._existingPaths[piri][riri]) {
+          return;
+        }
+      }
       
       // now draw a connector from mini box to top left of box
       var starttop = top + 5;
       var startleft = left + 5;
       //var endtop = 27 + 5 + (200 * (newrow - 1));
-      var endtop = 27 + 5 + (20 * (newrow - 1)) + self.heightBefore(newrow);
+      var endtop = 27 + 5 + (20 * (targetrow - 1)) + self.heightBefore(targetrow);
       if (endtop < 52) {
         endtop = 52;
       }
       endtop += 25;
       //var endleft = 13 + (200 * (newcol - 1));
-      var endleft = 13 + (100 * (newcol - 1)) + self.widthBefore(newcol);
+      var endleft = 13 + (100 * (targetcol - 1)) + self.widthBefore(targetcol);
       var dy = 1.0*(endtop - starttop);
       var dx = 1.0*(endleft - startleft);
       var theta = 1.0 * Math.atan(dy / dx); // Tan Theta = Opposite (height) / Adjacent (width)
@@ -579,6 +604,10 @@ com.marklogic.widgets.graphexplorer.prototype._drawSubjectDetail = function(subj
       var aRightLeft = (1.0*endleft) - (length * Math.sin(beta));
       var pth = ren.path(['M', startleft, starttop, 'L', endleft, endtop, 'L',aLeftLeft,aLeftTop,'M',aRightLeft,aRightTop,'L',endleft,endtop]).attr({
         'stroke-width': 2,stroke: colors[0] }).add();
+        
+      // add to existing to ensure duplicate paths are not drawn
+      self._existingPaths[piri] = self._existingPaths[piri] || {};
+      self._existingPaths[piri][riri] = pth;
     });
     
   };
@@ -617,6 +646,7 @@ com.marklogic.widgets.graphexplorer.prototype._drawSubjectDetail = function(subj
     var relbox = ren.rect(left, top,10,10,2).attr({
       'stroke-width': 4, stroke: colors[0], fill: colors[0]
     }).add();
+    ent.jslinkboxes.push(relbox);
     addshow(relbox,info.relname,left,top,info.propname,info.propvalue);
     
   };

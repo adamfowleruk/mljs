@@ -1626,7 +1626,10 @@ mljs.prototype._applySearchProperties = function(url,sprops_opt) {
       format = "&format=" + sprops_opt.format;
     }
     if (undefined != sprops_opt.start_opt) {
-      url += "&start=" + sprops_opt.start_opt;
+      url += "&start=" + sprops_opt.start_opt; // SHOULD THIS BE REMOVED? IT HAS _opt. IS A BIT RANDOM
+    }
+    if (undefined != sprops_opt.start) {
+      url += "&start=" + sprops_opt.start;
     }
   }
   url += format;
@@ -1683,35 +1686,58 @@ mljs.prototype.structuredSearch = function(query_opt,options_opt,sprops_opt,call
     self.__doreq("STRUCTUREDSEARCHV6",options,null,callback);
   };
   this.v7check(v6func,function() {
-    // V7 combined query
     var optionsdoc = self._optionsCache[options_opt || "all"];
     if (undefined == optionsdoc) {
       // hopefully it'll be on the server
       v6func();
     } else {
-      var q = query_opt || {query: {}};
-      // V7, and we have local options
-      var query = {"search":{
-        "query": q.query,
-        "options": optionsdoc.options}
-      }; 
-      var url = "/v1/search";
-      url = self._applySearchProperties(url,sprops_opt);
-      
-      // make transaction aware
-      if (undefined != self.__transaction_id) {
-        url += "&txid=" + encodeURI(self.__transaction_id);
-      }
-      var options = {
-        path: url,
-        method: "POST"
-      };
-      //console.log("OPTIONS: " + JSON.stringify(options));
-      self.__doreq("STRUCTUREDSEARCHV7",options,query,callback);
+      self.combinedQuery(query_opt,null,optionsdoc,sprops_opt,callback);
     }
   });
 };
 mljs.prototype.structuredQuery = mljs.prototype.structuredSearch;
+
+/**
+ * Performs a MarkLogic Server V7+ Combined query. This submits options along with the query term. It can also include both structured and plain text query terms in one call.
+ * 
+ * {@link http://docs.marklogic.com/REST/GET/v1/search}
+ * 
+ * Uses structured search instead of cts:query style searches. See {@link http://docs.marklogic.com/guide/search-dev/search-api#id_53458}
+ * 
+ * Use this method in conjunction with the Query Builder {@see mljs.prototype.query}
+ * 
+ * @param {JSON} structuredQuery_opt - The optional structured query JSON to restrict the results by
+ * @param {string} textQuery_opt - The query string. Optional. (Returns all documents if not supplied, or whatever returns from the additional-query in the json options used)
+ * @param {string} optionsdoc - The optional query options object to use (NOT the name of query options already saved)
+ * @param {JSON} sprops_opt - Additional optional search properties
+ * @param {function} callback - The callback to invoke after the method completes
+ */
+mljs.prototype.combined = function(structuredQuery_opt,textQuery_opt,optionsdoc,sprops_opt,callback) {
+  var self = this;
+  // V7 combined query
+  var q = structuredQuery_opt || {query: {}};
+  // V7, and we have local options
+  var query = {"search":{
+    "query": q.query,
+    "qtext": textQuery_opt,
+    "options": optionsdoc.options}
+  }; 
+  var url = "/v1/search";
+  url = self._applySearchProperties(url,sprops_opt);
+  
+  // make transaction aware
+  if (undefined != self.__transaction_id) {
+    url += "&txid=" + encodeURI(self.__transaction_id);
+  }
+  var options = {
+    path: url,
+    method: "POST"
+  };
+  //console.log("OPTIONS: " + JSON.stringify(options));
+  self.__doreq("COMBINEDQUERY",options,query,callback);
+};
+mljs.prototype.combinedQuery = mljs.prototype.combined;
+mljs.prototype.combinedSearch = mljs.prototype.combined;
 
 /**
  * Uses the version rest extension to verify if we're on V7+ or less than V7. First func is called if less than V7, second func called if V7 or above.
@@ -3039,6 +3065,16 @@ mljs.prototype.createQuery = function() {
  */
 mljs.prototype.createSearchContext = function() {
   var obj = new this.searchcontext();
+  obj.db = this;
+  return obj;
+};
+
+
+/**
+ * Factory pattern. Creates a geo (locale) context object referring back to the current database connection. Useful to link to the correct logger, and db settings.
+ */
+mljs.prototype.createGeoContext = function() {
+  var obj = new this.geocontext();
   obj.db = this;
   return obj;
 };
@@ -4564,7 +4600,7 @@ mljs.prototype.options.prototype.sortOrderClear = function() {
 mljs.prototype.options.prototype.sortOrderScore = function() {
   this._includeSearchDefaults();
   // TODO add check to see if we already exist
-  this.options["sort-order"].push({"direction": "descending",score: "", "annotation": ["Relevancy (Descending)"]});
+  this.options["sort-order"].push({"direction": "descending",score: null, "annotation": ["Relevancy (Descending)"]});
   return this;
 };
 mljs.prototype.options.prototype.relevance = mljs.prototype.options.prototype.sortOrderScore; // common alias
@@ -4600,7 +4636,7 @@ mljs.prototype.options.prototype.searchableExpression = function(expression, nam
 mljs.prototype.options.prototype.sortOrder = function(direction_opt,type_opt,keyOrJSON,collation_opt) {
   this._includeSearchDefaults();
   // TODO check for unspecified type, direction, collation (and element + ns instead of key)
-  var so = {direction: direction_opt || this.defaults.sortDirection,type:type_opt || this.defaults.type};
+  var so = {direction: direction_opt || this.defaults.sortDirection,type:type_opt || this.defaults.type/*, score: "score-logtfidf"*/};
   if ("string" === typeof(keyOrJSON)) {
     so["json-key"] = keyOrJSON;
   } else {
@@ -4635,7 +4671,7 @@ mljs.prototype.options.prototype.sortOrder = function(direction_opt,type_opt,key
       }
     }
   }
-  if ("xs:string" == collation_opt) {
+  if ("xs:string" == type_opt) {
     so.collation = collation_opt || this.defaults.collation;
   }
   this.options["sort-order"].push(so);
@@ -4860,21 +4896,29 @@ mljs.prototype.query.prototype.collection = function(uri_opt,depth_opt) {
  * @param {integer} lat - WGS84 latitude
  * @param {integer} lon - WGS84 Longitude
  * @param {positiveInteger} radius - The radius from the circle centre to use. Defaults to statute (not nautical) miles. Supports "miles", "m" (metres), "km", "nm" (nautical miles), "degrees" (degrees longitude at the equator, or latitude)
- * @param {string} radiusmeasure_opt - The units used. Default is statute miles. m=metres, km=kilometres, nm=nautical miles, degrees=degrees of rotation of the Earth
+ * @param {string} radiusmeasure_opt - The units used. Default is mi=statute miles. Also m=metres, km=kilometres, nm=nautical miles, degrees=degrees of rotation of the Earth
  */
 mljs.prototype.query.prototype.geoRadius = function(constraint_name,lat,lon,radius,radiusmeasure_opt) {
-  var radiusactual = this._convertRadius(radius,radiusmeasure_opt);
+  var self = this;
+  var circ = this.circleDef(lat,lon,radius,radiusmeasure_opt);
   return {
     "geospatial-constraint-query" : {
       "constraint-name": constraint_name,
-      "circle": {
-        "radius": radiusactual,
-        point: [{"latitude": lat,"longitude": lon}]
-      }
+      "circle": circ.circle
     }
   }
 };
 mljs.prototype.query.prototype.georadius = mljs.prototype.query.prototype.geoRadius;
+
+mljs.prototype.query.prototype.circleDef = function(lat,lon,radius,radiusmeasure_opt) {
+  var radiusactual = this._convertRadius(radius,radiusmeasure_opt);
+  return {
+    "circle": {
+      "radius": radiusactual,
+      point: [{"latitude": lat,"longitude": lon}]
+    }
+  };
+};
 
 mljs.prototype.query.prototype._convertRadius = function(radius,radiusmeasure_opt) {
   var radiusactual = radius;
@@ -5268,8 +5312,9 @@ mljs.prototype.searchcontext = function() {
   this._query = {};
   this.simplequery = "";
   
-  this._lastSearchFunction = "simple"; // either simple or structured
-  this._searchEndpoint = "search"; // either search or values
+  this._lastSearchFunction = "simple"; // either simple or structured or custom
+  this._searchEndpoint = "search"; // either search or values or custom
+  this._customEndpointFunction = null; // has a value of type function is lastSearchFunction = custom
   this._tuples = new Array(); // for values mode
   
   this.defaultSort = [];
@@ -5277,7 +5322,7 @@ mljs.prototype.searchcontext = function() {
   this.optionsExist = false;
   //this.optionssavemode = "persist"; // persist or dynamic (v7 only)
   
-  this.structuredContrib = new Array();
+  this.structuredContrib = {};
   
   this._selectedResults = new Array(); // Array of document URIs
   this._highlightedResults = new Array(); // Array of document URIs
@@ -5356,6 +5401,21 @@ mljs.prototype.searchcontext.prototype.valuesEndpoint = function() {
   for (var i = 0;i < arguments.length;i++) {
     this._tuples.push(arguments[i]);
   }
+};
+
+/**
+ * Instructs this search context to use your own custom search handler. Useful if you have created your own REST endpoint to handle searching on the server.
+ * Use the mljs.do method in your searchHandler function to invoke your extension.
+ * 
+ * Note your function must have the signature: function(searchcontext,textQuery,structuredQueryJson,optionsName,startIndex,additionalSearchPropertiesJson) 
+ * See the tutorials on Github for one with a custom search context search function.
+ * 
+ * @param {function} searchHandler - Your custom search handler function. Your function MUST invoke context.resultsPublisher, context.facetsPublisher and/or context.valuesPublisher.
+ */
+mljs.prototype.searchcontext.prototype.customEndpoint = function(searchHandler) {
+  this._searchEndpoint = "custom";
+  this._lastSearchFunction = "custom";
+  this._customEndpointFunction = searchHandler;
 };
 
 /**
@@ -5481,8 +5541,8 @@ mljs.prototype.searchcontext.prototype.setConnection = function(connection) {
  */
 mljs.prototype.searchcontext.prototype.register = function(searchWidget) {
   // introspect widget for update functions
-  if ('function' === typeof(searchWidget.setContext)) {
-    searchWidget.setContext(this);
+  if ('function' === typeof(searchWidget.setSearchContext)) {
+    searchWidget.setSearchContext(this);
   }
   if ('function' === typeof(searchWidget.updatePage)) {
     this.resultsPublisher.subscribe(function (results) {searchWidget.updatePage(results);});
@@ -5548,13 +5608,14 @@ mljs.prototype.searchcontext.prototype._parseQuery = function(q) {
     var colonQuote = parts[i].indexOf(":\"");
     var finalQuote = parts[i].indexOf("\"",colonQuote + 2);
     this.__d("searchcontext._parseQuery: colonQuote: " + colonQuote + ", finalQuote: " + finalQuote);
+    // We have found a start quote
     if (-1 != colonQuote && -1 == finalQuote) { // found first quote without end quote
       do {
         newIdx++;
         if (undefined != parts[newIdx]) {
           parts[i] = parts[i] + " " + parts[newIdx];
         }
-      } while (newIdx < parts.length && parts[newIdx].indexOf("\"") != parts[newIdx].length - 1);
+      } while (newIdx < parts.length && parts[newIdx].indexOf("\"") != parts[newIdx].length - 1); // find the end quote before continuing
       this.__d("searchcontext._parseQuery: parts[" + i + "] now: " + parts[i]);
     }
       if (0 == parts[i].indexOf(this.sortWord + ":")) {
@@ -5624,18 +5685,29 @@ mljs.prototype.searchcontext.prototype.doStructuredQuery = function(q,start) {
   
   this._lastSearchFunction = "structured";
   
-  var ourstart = 1;
-  if (0 != start && undefined != start) {
-    ourstart = start;
-  }
-  this.__d("searchcontext.dostructuredquery: " + JSON.stringify(q) + ", ourstart: " + ourstart);
+  this._doQuery(q,null,null,start,null);
+};
+mljs.prototype.searchcontext.prototype.dostructuredquery = mljs.prototype.searchcontext.prototype.doStructuredQuery; // backwards compatibility
+
+mljs.prototype.searchcontext.prototype.doCombinedQuery = function(structured,text,optionsdoc,start_opt) {
+  this._lastSearchFunction = "combined";
+  this._doQuery(structured,text,optionsdoc,start_opt,"combined");
+};
+
+mljs.prototype.searchcontext.prototype._doQuery = function(structured_opt,text_opt,optionsdoc_opt,start_opt,endpoint_override_opt) {
+  var self = this;
   
-  var dos = function() {
-    if ("search" == self._searchEndpoint) {
+  var ourstart = 1;
+  if (0 != start_opt && undefined != start_opt) {
+    ourstart = start_opt;
+  }
+  this.__d("searchcontext._doQuery: " + JSON.stringify(structured_opt) + ", ourstart: " + ourstart);
+  
+  var structuredF = function() {
       self.resultsPublisher.publish(true); // forces refresh glyph to show
       self.facetsPublisher.publish(true);
   
-      self.db.structuredSearch(q,self.optionsName,function(result) { 
+      self.db.structuredSearch(structured_opt,self.optionsName,function(result) { 
         if (result.inError) {
           // report error on screen somewhere sensible (e.g. under search bar)
           self.__d(result.error);
@@ -5646,10 +5718,11 @@ mljs.prototype.searchcontext.prototype.doStructuredQuery = function(q,start) {
           self.facetsPublisher.publish(result.doc.facets);
         }
       });
-    } else { // values()
+  };
+  var valuesF = function() {
       self.valuesPublisher.publish(true);
       for (var i = 0;i < self._tuples.length;i++) {
-        self.db.values(q,self._tuples[i],self.optionsName,null,function(result) {
+        self.db.values(structured_opt,self._tuples[i],self.optionsName,null,function(result) {
           if (result.inError) {
             // report error on screen somewhere sensible (e.g. under search bar)
             self.__d(result.error);
@@ -5659,12 +5732,58 @@ mljs.prototype.searchcontext.prototype.doStructuredQuery = function(q,start) {
           }
         });
       }
+    
+  };
+  var combinedF = function() {
+      self.resultsPublisher.publish(true); // forces refresh glyph to show
+      self.facetsPublisher.publish(true);
+      self.db.combined(structured_opt,text_opt,self._options,{start: start},function(result) { 
+        if (result.inError) {
+          // report error on screen somewhere sensible (e.g. under search bar)
+          self.__d(result.error);
+          self.resultsPublisher.publish(false); // hides refresh glyth on error
+          self.facetsPublisher.publish(false); // hides refresh glyth on error
+        } else {
+          self.resultsPublisher.publish(result.doc);
+          self.facetsPublisher.publish(result.doc.facets);
+        }
+      });
+  };
+  var customF = function() {
+      // custom endpoint - must perform all valuesPublisher and resultsPublisher calls itself!!!
+      self._customEndpointFunction(self,null, q, self.optionsName, 1, null);
+  };
+  
+  var dos = function() {
+    // check override first
+    if (undefined != endpoint_override_opt) {
+      if ("search" == endpoint_override_opt) {
+        structuredF();
+      } else if ("values" == endpoint_override_opt) { // values()
+        valuesF();
+      } else if ("combined" == endpoint_override_opt) {
+        combinedF();
+      } else if ("custom" == endpoint_override_opt) {
+        customF();
+      } else {
+        throw new TypeError("searchcontext._doQuery: endpoint_override_opt must be 'values', 'combined' or 'custom'");
+      }
+    } else {
+      // now check endpoint
+      if ("search" == self._searchEndpoint) {
+        structuredF();
+      } else if ("values" == self._searchEndpoint) { // values()
+        valuesF();
+      } else if ("combined" == self._searchEndpoint) {
+        combinedF();
+      } else {
+        customF();
+      }
     }
   };
   
   this._persistAndDo(dos);
 };
-mljs.prototype.searchcontext.prototype.dostructuredquery = mljs.prototype.searchcontext.prototype.doStructuredQuery; // backwards compatibility
 
 /**
  * For situations where many objects are contributing top level structured query terms that need AND-ing together.
@@ -5672,31 +5791,59 @@ mljs.prototype.searchcontext.prototype.dostructuredquery = mljs.prototype.search
  * NOTE: queryTerm needs to be the result of queryBuilder.toJson().query[0] and not the top level query JSON itself - i.e. we need a term, not a full query object.
  * 
  * @param {string} contributor - Unique name of the contributor (to prevent clashes)
- * @param {json} queryTerm - The query JSON for the REST API (E.g. an and-query instance)
+ * @param {json|text} queryTerm - The query JSON for the REST API (E.g. an and-query instance). If text this function will do a combined query (V7) or add as a term query (V6)
  * @param {integer} start_opt - The optional first result to show (defaults to 1)
  */
 mljs.prototype.searchcontext.prototype.contributeStructuredQuery = function(contributor,queryTerm,start_opt) {
-  if (null == queryTerm || undefined == queryTerm) {
-    this.structuredContrib[contributor] = undefined; // removes contribution to the query
-  } else {
-    this.structuredContrib[contributor] = queryTerm;
-  }
-  
-  // build structure query from all terms
-  var terms = new Array();
-  for (var cont in this.structuredContrib) {
-    this.__d("searchcontext.contributeStructuredQuery: Adding contribution from: " + cont);
-    //if ("object" == typeof this.structuredContrib[cont]) {
-    if (null != this.structuredContrib[cont]) {
-      terms.push(this.structuredContrib[cont]);
-    }
-    //}
-  }
-  // execute structured query
   var qb = this.db.createQuery();
-  qb.query(qb.and(terms));
-  //var allqueries = { query: {"and-query": terms}}; // TODO replace with query builder
-  this.doStructuredQuery(qb.toJson());
+  
+  var self = this;
+  var calcTerms = function() {
+    // build structure query from all terms
+    var terms = new Array();
+    for (var cont in self.structuredContrib) {
+      self.__d("searchcontext.contributeStructuredQuery: Adding contribution from: " + cont);
+      //if ("object" == typeof this.structuredContrib[cont]) {
+      if (null != self.structuredContrib[cont]) {
+        terms.push(self.structuredContrib[cont]);
+      }
+      //}
+    }
+    // execute structured query
+    qb.query(qb.and(terms));
+    
+    return qb.toJson();
+  };
+  var doit = function() {
+    var terms = calcTerms();
+    //var allqueries = { query: {"and-query": terms}}; // TODO replace with query builder
+    self.doStructuredQuery(terms); 
+  };
+  
+  if (null == queryTerm || undefined == queryTerm) {
+    self.__d("searchcontext.contributeStructuredQuery: Removing query term from contributor: " + contributor);
+    this.structuredContrib[contributor] = undefined; // removes contribution to the query
+    doit();
+  } else {
+    if ("string" == typeof(queryTerm)) {
+      this.db.v7check(function() {
+        // v6 func
+        self.structuredContrib[contributor] = qb.term(queryTerm);
+        doit();
+      },
+      function() {
+        // v7 func
+        var terms = calcTerms();
+        // force combined query
+        self.doCombinedQuery(terms,queryTerm,self._options,start_opt);
+      });
+      // determine whether V6 or V7
+    } else {
+    self.__d("searchcontext.contributeStructuredQuery: Setting query term from contributor: " + contributor + " to " + JSON.stringify(queryTerm));
+      this.structuredContrib[contributor] = queryTerm;
+      doit();
+    }
+  }
 };
 
 /**
@@ -5839,7 +5986,7 @@ mljs.prototype.searchcontext.prototype.doSimpleQuery = function(q,start) {
           self.facetsPublisher.publish(result.doc.facets);
         }
       });
-    } else { // values
+    } else if ("values" == self._searchEndpoint) { // values
       self.valuesPublisher.publish(true);
       for (var i = 0;i < self._tuples.length;i++) {
         self.db.values(q,self._tuples[i],self.optionsName,null,function(result) {
@@ -5852,6 +5999,9 @@ mljs.prototype.searchcontext.prototype.doSimpleQuery = function(q,start) {
           }
         });
       }
+    } else {
+      // custom endpoint - must perform all valuesPublisher and resultsPublisher calls itself!!!
+      self._customEndpointFunction(self,q, null, self.optionsName, ourstart || 1, sprops);
     }
   };
   
@@ -6192,11 +6342,167 @@ mljs.prototype.searchcontext.prototype.reset = function() {
 
 
 
+/**
+ * Class that wraps default text to query part parsing. Used by search context to extract facet and sort information from text query, and to fix bad text queries.
+ * @constructor
+ */
+mljs.prototype.searchcontext.defaultparser = function(config) {
+  this._config = config; // E.g. sort word
+  this._root = new this.container("AND",[]);
+};
+
+/**
+ * Use default grammar to parse this query string
+ */
+mljs.prototype.searchcontext.defaultparser.prototype.parse = function(q) {
+  // go from L to R, checking for quotes and parenthesese as we go
+  // if mid string, check for colon
+  // check for end of value
+  // TODO handle (A AND B AND C AND D) as single and, not multiple - i.e. not as (((A AND B) AND C) AND D) - same for OR and NOT
+  // check if sort word encountered, otherwise is facet word
+  // return set of top level clause wrappers
+};
+
+
+
+
+// OR, AND, NOT, (
+mljs.prototype.searchcontext.defaultparser.prototype.container = function(type,children) {
+  this._type = type;
+  this._clauses = children;
+};
+
+mljs.prototype.searchcontext.defaultparser.prototype.container.prototype.toString = function() {
+  // return string representation - NOTE Containers manage 1 parenthesis pair themselves
+  var s = "";
+  //if ("(" == this._type) {
+    s += "(";
+  //}
+  
+  // now for AND and OR and NOT
+  for (var i = 0, max = this._clauses.length,clause;i < max;i++) {
+    clause = this._clauses[i];
+    if (i > 0) {
+      s += " ";
+    }
+    s += clause.toString();
+    if ("(" != this._type && i < (max - 1)) {
+      s += " " + this._type;
+    }
+  }
+  
+  //if ("(" == this._type) {
+    s += ")";
+  //}
+  return s;
+};
+
+mljs.prototype.searchcontext.defaultparser.prototype.container.prototype.append = function(clause) {
+  this._clauses.push(clause);
+};
+
+mljs.prototype.searchcontext.defaultparser.prototype.container.prototype.getChildren = function() {
+  return this._clauses;
+};
+
+mljs.prototype.searchcontext.defaultparser.prototype.container.prototype.getType = function() {
+  return this._type;
+};
+
+
+
+mljs.prototype.searchcontext.defaultparser.prototype.near = function(distance,lhs,rhs) {
+  this._left = lhs;
+  this._right = rhs;
+  this._distance = distance;
+};
+
+mljs.prototype.searchcontext.defaultparser.prototype.near.prototype.toString = function() {
+  // return string representation
+  return "(" + this._left + " NEAR/" + this._distance + " " + this._right + ")";
+};
+
+mljs.prototype.searchcontext.defaultparser.prototype.near.prototype.getLeft = function() {
+  return this._left;
+};
+
+mljs.prototype.searchcontext.defaultparser.prototype.near.prototype.getRight = function() {
+  return this._right;
+};
+
+mljs.prototype.searchcontext.defaultparser.prototype.near.prototype.getDistance = function() {
+  return this._distance;
+};
+
+
+
+
+mljs.prototype.searchcontext.defaultparser.prototype.phrase = function(text) {
+  this._text = text; // note: assumes text doesn't have "around it"
+};
+
+mljs.prototype.searchcontext.defaultparser.prototype.phrase.prototype.toString = function() {
+  // return string representation
+  return "\"" + this._text + "\"";
+};
+
+mljs.prototype.searchcontext.defaultparser.prototype.phrase.prototype.getText = function() {
+  return this._text;
+};
+
+
+
+/**
+ * Matches a fixed constraint value
+ */
+mljs.prototype.searchcontext.defaultparser.prototype.value = function(constraint_name,value) {
+  this._constraint = constraint_name;
+  this._value = value; // assumes no quotes
+};
+
+mljs.prototype.searchcontext.defaultparser.prototype.value.prototype.toString = function() {
+  return this._constraint + ":\"" + this._value + "\"";
+};
+
+mljs.prototype.searchcontext.defaultparser.prototype.value.prototype.getConstraint = function() {
+  return this._constraint;
+};
+
+mljs.prototype.searchcontext.defaultparser.prototype.value.prototype.getValue = function() {
+  return this._value;
+};
 
 
 
 
 
+mljs.prototype.searchcontext.defaultparser.prototype.range = function(constraint_name,lowerBound,lowerBoundType,upperBound,upperBoundType) {
+  this._constraint = constraint_name;
+  this._lowerBound = lowerBound;
+  this._lowerBoundType = lowerBoundType;
+  this._upperBound = upperBound;
+  this._upperBoundType = upperBoundType;
+};
+
+mljs.prototype.searchcontext.defaultparser.prototype.range.prototype.getConstraint = function() {
+  return this._constraint;
+};
+
+mljs.prototype.searchcontext.defaultparser.prototype.range.prototype.getLowerBound = function() {
+  return this._lowerBound;
+};
+
+mljs.prototype.searchcontext.defaultparser.prototype.range.prototype.getLowerBoundType = function() {
+  return this._lowerBoundType;
+};
+
+mljs.prototype.searchcontext.defaultparser.prototype.range.prototype.getUpperBound = function() {
+  return this._upperBound;
+};
+
+mljs.prototype.searchcontext.defaultparser.prototype.range.prototype.getUpperBoundType = function() {
+  return this._upperBoundType;
+};
 
 
 
@@ -7577,6 +7883,190 @@ mljs.prototype.sparqlbuilder.prototype.with = function(childTerm) {
 
 
 
+/**
+ * Handles widgets that respond to a change in the area or interest, or locale.
+ * This could be a specific point on the Earth (lat,lon), town, county, area, or combination of these areas within an overall set of bounds.
+ * E.g. think of an interactive system where several points or areas are selected to define the maximum bounded context, rather than a specific
+ * part of the overall interface.
+ * 
+ * From cambridge english dictionary:-
+ * Locale Noun(c): an area or place, especially one where something special happens, such as the action in a book or a film:
+ *  "The book's locale is a seaside town in the summer of 1958."
+ * 
+ * @constructor 
+ * @deprecated use var db = new mljs(); var ctx = db.createGeoContext(); instead
+ */
+mljs.prototype.geocontext = function() {
+  this._localePublisher = new com.marklogic.events.Publisher();
+  
+  this._areas = {}; // contribution_name => Array of ML point+radius/rect/polygons
+  this._home = new Array(); // Array of ML point+radius/rect/polygons
+  this._alwaysFallback = true; // by default always fall back to this location (probably normally a rect bounds of the entire earth/country)
+  
+  // info for updating related search context(s)
+  this._searchContexts = new Array(); // array of {context: context, constraintName: null|value}
+  this._defaultConstraintName = "location";
+};
+
+// initialisation methods
+
+/**
+ * Registers a widget or class with this context. Introspects the parameter passed for methods and relevant event listeners
+ * 
+ * @param {JSON} widget - The widget or javascript instance to register
+ */
+mljs.prototype.geocontext.prototype.register = function(widget) {
+  if (undefined != widget.setGeoContext) {
+    widget.setGeoContext(this);
+  }
+  // check event handlers
+  if (undefined != widget.updateLocale) {
+    this._localePublisher.subscribe(function(locale) {widget.updateLocale(locale);});
+  }
+};
+
+// settings methods (chainable)
+/**
+ * Instructs this geocontext to contribute a structured query (and query of geo constraint queries) to a search context.
+ * 
+ * @param {searchcontext} searchContext - The search context to call contributeStructuredQuery on
+ * @param {string} name - The contributor name to use
+ * @param {string} constraint_opt - The optional constraint name to use. Will default to this context's defaultConstraintName (see constraint() ) if not specified
+ */
+mljs.prototype.geocontext.prototype.inform = function(searchContext,name,constraint_opt) {
+  this._searchContexts.push({context: searchContext, name:name, constraint: constraint_opt});
+  return this;
+};
+
+/**
+ * Clears the array of search contexts to be updated with queries for. Chainable.
+ */ 
+mljs.prototype.geocontext.prototype.clear = function() {
+  this._searchContexts = new Array();
+  return this;
+};
+
+/**
+ * Chainable function that sets the default constraint for all search contexts, if they don't specify one themselves
+ * 
+ * @param {string} defaultConstraintName - The name of the constraint to alter in the linked search context objects, if they do not specify their own constraint name
+ */
+mljs.prototype.geocontext.prototype.constraint = function(defaultConstraintName) {
+  this._defaultConstraintName = defaultConstraintName;
+  return this;
+};
+
+/**
+ * Where this context should initially use as a location. Fires an update. Chainable.
+ * 
+ * @param {JSON|Array} areaOrArray - area, or array of areas, to include as a base location
+ * @param {boolean} alwaysFallback - Whether this should be used just as a start position (false), or always used as a default location when no areas have been contributed (true).
+ */
+mljs.prototype.geocontext.prototype.home = function(areaOrArray,alwaysFallback) {
+  this._home = areaOrArray;
+  if (undefined != alwaysFallback) {
+    this._alwaysFallback = alwaysFallback;
+  }
+  return this;
+};
+
+// public invocation methods
+
+/**
+ * Contributes an area definition. Areas can be a point, circle, box or polygon JSON, or an array of a mix of those.
+ * 
+ * @param {string} contributor - The contributor of this area
+ * @param {JSON|Array} areaOrArray - The area JSON, or array of them, to add
+ */
+mljs.prototype.geocontext.prototype.contributeArea = function(contributor,areaOrArray) {
+  if (null == areaOrArray || false === areaOrArray) {
+    this._areas[contributor] = [];
+  } else {
+    // ensure it is an array for later internal logic
+    if (!Array.isArray(areaOrArray)) {
+      areaOrArray = [areaOrArray];
+    }
+    this._areas[contributor] = areaOrArray;
+  }
+  
+  this._refresh();
+};
+
+// internal methods
+
+mljs.prototype.geocontext.prototype._refresh = function() {
+  // if we have an associated search context, subject this all as an and-query to that context
+  for (var i = 0, max = this._searchContexts.length, ctx;i < max;i++) {
+    ctx = this._searchContexts[i];
+    
+    // must create this for each context as constraint names will differ
+    var terms = new Array();
+    var areas = this._areas;
+    var addTerm = function(def) {
+      var t = {"geospatial-constraint-query": { "constraint-name": ctx.constraint || this._defaultConstraintName}}; 
+      for (var item in def) {
+        t["geospatial-constraint-query"][item] = def[item]; // copies 'point' etc from definition to query
+      }
+      terms.push(t);
+    };
+    for (var areaName in areas) {
+      var area = this._areas[areaName];
+      for (var j = 0, max = area.length, def;j < max;j++) {
+        def = area[j];
+        addTerm(def);
+      }
+    }
+    if (0 == terms.length && this._alwaysFallback) {
+      addTerm(this._home);
+    }
+    var query = {"and-query": terms};
+    ctx.context.contributeStructuredQuery(ctx.name,query);
+  }
+  
+  // fire internal update events next (make the search look quicker if we do this whilst the search is processing)
+  this._fireLocaleUpdate();
+};
+
+// event firing methods
+
+mljs.prototype.geocontext.prototype._fireLocaleUpdate = function() {
+  var update = {
+    center: {latitude: 0, longitude: 0}, // required, defaults to NaN, NaN
+    bounds: {north: 0, east: 0, south: 0, west: 0}, // required defaults to NaN, NaN, NaN, NaN
+    areas: [] // required, but may be an empty array
+  };
+  // TODO copy over areas
+  var areas = new Array();
+  for (var areaName in this._areas) {
+    var area = this._areas[areaName];
+    for (var i = 0, max = area.length, def;i < max;i++) {
+      def = area[i];
+      areas.push(def);
+    }
+  }
+  if (0 == areas.length && this._alwaysFallback) {
+    areas.push(this._home);
+  }
+  update.areas = areas;
+  // TODO calculate bounds, then center
+  // for now, take first circle point encountered
+  var found = false;
+  for (var i = 0, max = areas.length, area;i < max && !found;i++) {
+    area = areas[i];
+    if (undefined != area.circle) {
+      found = true;
+      update.center = area.circle.point[0]; // always an array in ML JSON
+    }
+  }
+  // fire event
+  this._localePublisher.publish(update);
+};
+
+
+
+
+
+
 
 
 
@@ -7617,6 +8107,7 @@ mljs.prototype.sparqlbuilder.prototype.with = function(childTerm) {
   asLogSink.call(mljs.prototype.options.prototype);
   asLogSink.call(mljs.prototype.query.prototype);
   asLogSink.call(mljs.prototype.searchcontext.prototype);
+  asLogSink.call(mljs.prototype.geocontext.prototype);
   asLogSink.call(mljs.prototype.documentcontext.prototype);
   asLogSink.call(com.marklogic.semantic.tripleconfig.prototype);
   asLogSink.call(mljs.prototype.semanticcontext.prototype);

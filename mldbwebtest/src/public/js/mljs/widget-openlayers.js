@@ -842,7 +842,19 @@ com.marklogic.widgets.openlayers.prototype.eightDecPlaces = function(val) {
  * @param {integer} zoom - Zoom level (OpenLayers zoom level, not necessarily the mapping layer's own internal level)
  */
 com.marklogic.widgets.openlayers.prototype.go = function(lat,lon,zoom) {
-  this.map.setCenter( new OpenLayers.LonLat(lon,lat).transform(this.transformWgs84, this.map.projection), zoom);
+  this.map.setCenter( new OpenLayers.LonLat(lon,lat).transform(this.transformWgs84, this.map.projection), zoom,true,true);
+};
+
+/**
+ * Response to a geo context's locale being updated. Currently only supports center, but in future will supports bounds, zooming to the right level to
+ * show the entire area required
+ * 
+ * @param {JSON} locale - The geo context local definition. Has center(longitude,latitude), bounds (n,e,s,w) and area(Array of points/circle/box/polygon) properties
+ */
+com.marklogic.widgets.openlayers.prototype.updateLocale = function(locale) {
+  mljs.defaultconnection.logger.debug("openlayers.updateLocale: Called with: " + JSON.stringify(locale));
+  // use center position to set map center
+  this.map.setCenter(new OpenLayers.LonLat(locale.center.longitude, locale.center.latitude).transform(this.transformWgs84,this.map.projection),this.map.getZoom(),true,true);
 };
 
 /**
@@ -918,6 +930,8 @@ com.marklogic.widgets.openlayers.prototype.addSeries = function(title,searchcont
     if (null == results || "boolean"==typeof(results)) {
       if (false === results) {
       }
+      // clear heatmap
+      self.heatmap.setDataSet({data: [], max: 0});
       return;
     }
     
