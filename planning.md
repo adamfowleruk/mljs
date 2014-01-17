@@ -2,7 +2,7 @@
 
 ## Upcoming releases
 
-Targets for 1.2 (Dec 2013) - High priority
+Targets for 1.2 (Dec 2013)
  - DONE Widgets: searchfacets - allow developer to specify facet value to human name. E.g. VALUE/hello -> Hello (still using "FACET/hello" as the actual value)
   - DONE Core: Change options builder to store text translations for facets
   - DONE Core: Change searchcontext so that setOptions takes an options builder (as well as legacy options JSON), so as to maintain a reference to these transactions
@@ -66,7 +66,8 @@ Targets for 1.2 (Dec 2013) - High priority
  - DONE BUG: OpenLayers polygon/circle selection no longer removing markers when executing more restrictive search
  - DONE BUG: Search sort widget showing [Object: object] instead of name in drop down
  - DONE BUG: Widgets: Search results. Plain text parsing error.
- - TEST mljs.combined and mljs.doCombinedQuery. Auto on contributeStructuredQuery already (if term is text). Core: searchcontext - support qtext for combined query when searchbar is contributing information to a structured query (rather than a term query as now)
+ - TEST mljs.combined and mljs.doCombinedQuery. Auto on contributeStructuredQuery already (if term is text). 
+  - TEST Core: searchcontext - support qtext for combined query when searchbar is contributing information to a structured query (rather than a term query as now)
   - TEST How to handle this on V6 only systems? - Detect and fall back to term query
  - DONE Widgets: Tag cloud - add hover over text to include frequency of result
  - IN PROGRESS Widgets: Workplace - Removes any code anyone needs to write to use MLJS widgets
@@ -114,10 +115,12 @@ Targets for 1.2 (Dec 2013) - High priority
    - Widgets: Add Workplace Configuration support
     - co-occurence
     - OpenLayers
+    - Address lookup
     - TagCloud
     - document (result) selection, search selection
     - searchbar
     - sparqlbar / sparqlresults / entityfacts
+    - searchmetrics
     - graphexplorer
     - documentproperties / docheadproperties / docviewer
     - docbuilder (upload)
@@ -164,7 +167,7 @@ Targets for 1.2 (Dec 2013) - High priority
   - BUG Widgets: Default Search Renderer does not check for format="xml"!!! Assumes JSON even when format is specified
   - Widgets: searchresults add default renderer for documents containing triples (sem-triples parser)
 
-Floating PoC Targets
+Floating Targets
  - CSV Import improvements / testing
   - Checkout XSLT upload and transform method
   - Test PAF file format
@@ -232,136 +235,6 @@ Floating PoC Targets
     - Default REST Server search options set up (constraints)
    - Refactor: Move widgets' use of 960.css out in to a Layout instance, as config options on the assignment itself (not widget or layout)
 
-Targets for 1.3 Interim Release - Jan 2014  
- - IN PROGRESS NodeJS: Node.js tests for all functionality now in core MLJS
-  - DONE Convert all assert usage to  assert = require('chai').assert (better exception handling)
-  - DONE Once assert changed, modify tests to remove skipped tests
-  - Add 'sunny day' success tests - at least one per function
-  - Add tests for each bug previously squashed/reported to ENG
- - Docs: Further video tutorials
-  10. Combining Document and Semantic search. Extend the semantic page to show 'related documents'. Create a data explorer page to show subject and embedded document information.
-  11. Creating an application. Linking existing pages together with actions. Search for content, view document metadata, download the related PDF version.
-  12. Customising the Chrome of your application. How to customise an entire MLJS based Roxy hybrid app for a particular client's web theme.
-  13. Using MLJS with your favourite widget library. Using an AngularJS page controller and widgets integrated with MLJS powered widgets
-  14. Writing your own widget I. Create a search metrics widget with a refresh button to re-execute the search.
-  15. Writing your own widget II. Create a multiple document upload widget, with progress bar, named collection, and link to a search page to show those just uploaded. 
- - App Builder to MLJS+Roxy automated conversion
-  - Point at Roxy generated App Builder download / local file system copy of appbuilder folder
-  - Copy over rest extensions as required
-  - Support pure REST and hybrid modes for app generation
-  - Generate standard "/" page and register as Workplace page JSON editable by admin account
-   - Layout thinthick | thinthick1chart | thinthick2chart
-   - Widget assignment and default config
-  - Copy over search options (and thus facet info) - from the db?
-  - Facet display names from JSON config file
-  - REST request re-writer to point to Workplace page (mljs-workplace.html.xqy), pass on other requests to REST API
-  - Document preview page (may apply XSLT) on /view?uri= - check the appbuilder URL for this
- - Roxy commands for creating entire MLJS powered pages, controllers, and template JavaScript (E.g. ./ml mljs mycontroller/search searchpage leftchart=pie rightchart=map options=mysearchoptions )
- - DONE Other cool things we could do with MarkLogic
-  - DONE SYTYCD Combine triple search with content search - limit documents returned from triple store by term (word) query
-  - Alerting with triples (+drawbacks - document level, not triple level)
-  - Widgets: InfoBox based on common name of search via updateResults (or updateQuery?) - Matt W
-  - Widgets: Potentially of interest. Spelling correction and/or thesaurus lookup of search query word(s), then use those for subject lookup - Matt W
- - PROV-O ontology support
-  - hide by default, show provenance button to view provenance and interrelationship of entities
-  - requires node diagram for viewing effectively (use PROV-O diagram shapes/colours? Over-Time view?)
-  - may be easiest to import OWL2 ontology in to triple config
- - (Emil Zegers) Tools: Windows batch file versions of developer required (non build related) bash scripts, including mljsme
-  - mljsme
-  - TEST ml.bat roxy deploy
-  - create-mldbtest
-  - delete-mldbtest
-  - upgraderoxy
- - Beyond App Builder
-  - Action bar to do things with search results
-  - DONE Multi page results selection
-  - More HighCharts chart types in search results page
-  - Multi axes in HighCharts
-  - Multi series in HighCharts (not just split by category)
-  - Multiple facets in HighCharts
-  - HighCharts to support SPARQL facts results (aggregation workarounds?)
-  - Save search for later use
-  - Test of standalone REST app via Roxy in V7
-  - Hover over search results fires searchcontext highlight action
-  - Document context highlighting configurable to fire get semantic info on MarkLogic document
-  - MarkLogic document ontology
-  - Workplace context improvements
-   - updatePreferences - used by widgets to globally (or in just this workplace page/sub layout) save and load preferences about this widget. E.g. last displayed place
-   - loadPreferences
-   - DEFERRED updateShareable - when executed as embedded shareable page, load all workplace page settings, and widget 'preferences' to use (as wont be 'current' user) - handle widget preferences transparently in this case - no special widget settings
-  - DEFERRED Widgets: Share Workplace widget - button, and configuration to share (assume security is default app security for now)
-  - IN PROGRESS Defines what pages are available, the layout of those pages, and what is shown on each
-  - Alter mljsme.sh to copy in a Roxy controller and view using default configured layout - equiv of ml create mljs/main html followed by copying scripts over
-   - Alternatively, build Roxy command extension to do this. Use mljsme.sh to integrate these in to a Roxy app
-  - Load application wide Workplace configuration settings (Not just content DB wide - use domain name somehow)
-  - IN PROGRESS Widget initialisation for each page done dynamically
-   - NA (For first version require all to be on import path) Requires dynamic loading of scripts, or importing of all scripts (do latter for now)
-  - Ability to link widgets together. E.g. dropping a searchbar creates a searchcontext - list which have endpoints to link to which contexts' functions - like Yahoo Pipes
-   - By default, every page has a searchcontext and a semanticcontext, and all widgets by default linked to both, where applicable
-  - DONE How to manage this linking dynamically in code?
-   - DONE List contexts and map them to widgets
-  - IN PROGRESS Handle widget configuration, and actions
-   - DONE On page load actions (execute search - context methods)
-   - IN PROGRESS Instance widget configuration settings (Easier than using 'call javascript' action) (hard coded in config as opposed to personalisations)
-    - DONE search widgets
-    - DONE high charts widgets
-    - DONE searchcontext
-    - semanticcontext
-    - tripleconfig
-    - documentcontext
-    - cooccurence
-    - kratu
-    - upload
-    - viewdoc properties
-    - triples widgets
-  - Workplace configuration widgets required
-   - Separate panel for linking
-   - Edit mode shows this panel (powered by widget configuration object)
-   - Show chosen layout with which widgets assigned to which place
-   - Show widget palette and support drag and drop on to layout zones (in main page?)
-   - Save configuration after every edit
-   - Reset to defaults option
-   - Copy existing Workplace Page
-   - Allow users to switch their Workplace on the fly
-    - Widget: Workplace selection widget (drawn manually at top of each page, or as an option in Workplace widget)
-   - Support Duplicating existing Workplace
-  - OOTB Workplace examples
-   - DONE MLDBWebTest Animal Watch Workplace
-   - Semantic Workplace
-   - Editable blank workplace sandbox page
-  - Support pre-made templates
-   - Some built in (Search page aka AppBuilder, semantic search page, data exploration page, document details page)
-   - Custom made templates
-    - Page 'save as template' mode in edit screen
-    - allow users to 'save' their own templates against their account only
-    - allow sharing of templates to specified roles in ML (just read permission setting)
- - Docs: Video tutorials for all new functionality - Create a Semantic Application Series
-  - Intro to semantics in MarkLogic
-   - Manually load in some triple in N-triples format, and query this in QConsole and rest to show the ideas behind what we're doing
-    - Include a sprinkling of 'why do this with triples?' / 'why triples are cool!' type slides
-   - Do a query that you can't do in relational / document search alone -> Idea of context, defining the 'relationship' not just the presence of data
-  - Manually define a new triple (mention we'll suggest triples in the future) for a XHTML document
-   - Includes setting up your own ontology in the semanticcontext object
-   - Include 'automatically link root entity back to document' via documentcontext object (to be created)
-  - Add sparql query widget using same ontology
-   - Add entity facts and content linking search widget
-   - Add relationship visualisation widget
-  - Implying triples from document content 
-   - define a trigger to highlight key XML with known terms
-   - link these xml elements to the ontology via the suggestions widget
-  - Inferencing
-   - Start with a query for which you have the data, but which creating a sparql query is non trivial
-   - Use inferencing as a way to suggest triples that would make the query simpler
-   - Show the new query, and that the same answers are produced
-  - Avoiding sparql/xquery inferencing
-   - Is there a navigation process possible via existing widgets that would allow you to discover all related subjects and information you need, and produce a report off of the back of it?
-   - Embed BI type summaries too? (E.g. facet graphs from document query results)
-  - Sparql 1.1 in MarkLogic 7
-   - Show what parts of the spec are there, and which ones we're missing, but which ones *can* be provided with a little work
-   - Inferencing - we've shown, but should mention here
-   - aggregates (count, sum, avg, etc.)
-   - Sparql update
-  
 Targets for 1.4 (Feb 2014) - Theme: Visualisations
  - Missed 1.2 (Dec 2013) - High Priority - targets
   - IN PROGRESS Widgets: Data Explorer improvements
@@ -567,25 +440,24 @@ Targets for 1.5 (Mar 2014) Interim Release
   - NodeJS: Support 'anyauth' option, much like curl (i.e. auth method auto detection)
   - Core: Search Options builder
    - hidetriples() function to hide any docs under /triplestore/ (NOT any that define sem:triples)
+ - LOW priority
+  - MarkLogic reported bugs retesting
+   - BUG (Product 6.0-2): plain text documents - text content not escaped properly
+  - Own demo apps
+   - Update Situational Awareness Node.JS app for 0.8+ MLJS
+   - Update alerting instant messaging Jabber Node.JS app for 0.8+ MLJS
+  - IN PROGRESS REST extensions
+   - DONE Core: DLS declare document as a record
+   - Core: DLS list all documents in a record collection
+   - DONE Core: DLS list all DLS collections
+   - Core: DLS list all retention rules
+   - Core: DLS get document history
+   - Core: DLS get document version
+   - Core: DLS add retention rule
+   - Widgets: DLS add retention rule widget
+   - DONE Widgets: DLS declare search results as record widget
  
-LOW priority
- - MarkLogic reported bugs retesting
-  - BUG (Product 6.0-2): plain text documents - text content not escaped properly
- - Own demo apps
-  - Update Situational Awareness Node.JS app for 0.8+ MLJS
-  - Update alerting instant messaging Jabber Node.JS app for 0.8+ MLJS
- - IN PROGRESS REST extensions
-  - DONE Core: DLS declare document as a record
-  - Core: DLS list all documents in a record collection
-  - DONE Core: DLS list all DLS collections
-  - Core: DLS list all retention rules
-  - Core: DLS get document history
-  - Core: DLS get document version
-  - Core: DLS add retention rule
-  - Widgets: DLS add retention rule widget
-  - DONE Widgets: DLS declare search results as record widget
- 
-Targets for 1.6 (Apr 2014)
+Targets for 1.6 (Apr 2014) - Lifecycle
  - Widgets: HTML content editing widget (new doc, and existing document with specified element (E.g. body, comments) and configuration for what is permissable as content)
  - Widgets: Situational awareness and search renderer app (from BF sim)
  - Widgets: Table - allow binding of JSON search results to jQuery table (for example)
@@ -597,7 +469,137 @@ Targets for 1.6 (Apr 2014)
  - Widgets: (multi) Upload progress bar
  - Test: prototype.js browser AJAX binding
  
-Targets for 1.8 (Jun 2014)
+Targets for 1.7 (May 2014) - Interim Release
+ - IN PROGRESS NodeJS: Node.js tests for all functionality now in core MLJS
+  - DONE Convert all assert usage to  assert = require('chai').assert (better exception handling)
+  - DONE Once assert changed, modify tests to remove skipped tests
+  - Add 'sunny day' success tests - at least one per function
+  - Add tests for each bug previously squashed/reported to ENG
+ - Docs: Further video tutorials
+  10. Combining Document and Semantic search. Extend the semantic page to show 'related documents'. Create a data explorer page to show subject and embedded document information.
+  11. Creating an application. Linking existing pages together with actions. Search for content, view document metadata, download the related PDF version.
+  12. Customising the Chrome of your application. How to customise an entire MLJS based Roxy hybrid app for a particular client's web theme.
+  13. Using MLJS with your favourite widget library. Using an AngularJS page controller and widgets integrated with MLJS powered widgets
+  14. Writing your own widget I. Create a search metrics widget with a refresh button to re-execute the search.
+  15. Writing your own widget II. Create a multiple document upload widget, with progress bar, named collection, and link to a search page to show those just uploaded. 
+ - App Builder to MLJS+Roxy automated conversion
+  - Point at Roxy generated App Builder download / local file system copy of appbuilder folder
+  - Copy over rest extensions as required
+  - Support pure REST and hybrid modes for app generation
+  - Generate standard "/" page and register as Workplace page JSON editable by admin account
+   - Layout thinthick | thinthick1chart | thinthick2chart
+   - Widget assignment and default config
+  - Copy over search options (and thus facet info) - from the db?
+  - Facet display names from JSON config file
+  - REST request re-writer to point to Workplace page (mljs-workplace.html.xqy), pass on other requests to REST API
+  - Document preview page (may apply XSLT) on /view?uri= - check the appbuilder URL for this
+ - Roxy commands for creating entire MLJS powered pages, controllers, and template JavaScript (E.g. ./ml mljs mycontroller/search searchpage leftchart=pie rightchart=map options=mysearchoptions )
+ - DONE Other cool things we could do with MarkLogic
+  - DONE SYTYCD Combine triple search with content search - limit documents returned from triple store by term (word) query
+  - Alerting with triples (+drawbacks - document level, not triple level)
+  - Widgets: InfoBox based on common name of search via updateResults (or updateQuery?) - Matt W
+  - Widgets: Potentially of interest. Spelling correction and/or thesaurus lookup of search query word(s), then use those for subject lookup - Matt W
+ - PROV-O ontology support
+  - hide by default, show provenance button to view provenance and interrelationship of entities
+  - requires node diagram for viewing effectively (use PROV-O diagram shapes/colours? Over-Time view?)
+  - may be easiest to import OWL2 ontology in to triple config
+ - (Emil Zegers) Tools: Windows batch file versions of developer required (non build related) bash scripts, including mljsme
+  - mljsme
+  - TEST ml.bat roxy deploy
+  - create-mldbtest
+  - delete-mldbtest
+  - upgraderoxy
+ - Beyond App Builder
+  - Action bar to do things with search results
+  - DONE Multi page results selection
+  - More HighCharts chart types in search results page
+  - Multi axes in HighCharts
+  - Multi series in HighCharts (not just split by category)
+  - Multiple facets in HighCharts
+  - HighCharts to support SPARQL facts results (aggregation workarounds?)
+  - Save search for later use
+  - Test of standalone REST app via Roxy in V7
+  - Hover over search results fires searchcontext highlight action
+  - Document context highlighting configurable to fire get semantic info on MarkLogic document
+  - MarkLogic document ontology
+  - Workplace context improvements
+   - updatePreferences - used by widgets to globally (or in just this workplace page/sub layout) save and load preferences about this widget. E.g. last displayed place
+   - loadPreferences
+   - DEFERRED updateShareable - when executed as embedded shareable page, load all workplace page settings, and widget 'preferences' to use (as wont be 'current' user) - handle widget preferences transparently in this case - no special widget settings
+  - DEFERRED Widgets: Share Workplace widget - button, and configuration to share (assume security is default app security for now)
+  - IN PROGRESS Defines what pages are available, the layout of those pages, and what is shown on each
+  - Alter mljsme.sh to copy in a Roxy controller and view using default configured layout - equiv of ml create mljs/main html followed by copying scripts over
+   - Alternatively, build Roxy command extension to do this. Use mljsme.sh to integrate these in to a Roxy app
+  - Load application wide Workplace configuration settings (Not just content DB wide - use domain name somehow)
+  - IN PROGRESS Widget initialisation for each page done dynamically
+   - NA (For first version require all to be on import path) Requires dynamic loading of scripts, or importing of all scripts (do latter for now)
+  - Ability to link widgets together. E.g. dropping a searchbar creates a searchcontext - list which have endpoints to link to which contexts' functions - like Yahoo Pipes
+   - By default, every page has a searchcontext and a semanticcontext, and all widgets by default linked to both, where applicable
+  - DONE How to manage this linking dynamically in code?
+   - DONE List contexts and map them to widgets
+  - IN PROGRESS Handle widget configuration, and actions
+   - DONE On page load actions (execute search - context methods)
+   - IN PROGRESS Instance widget configuration settings (Easier than using 'call javascript' action) (hard coded in config as opposed to personalisations)
+    - DONE search widgets
+    - DONE high charts widgets
+    - DONE searchcontext
+    - semanticcontext
+    - tripleconfig
+    - documentcontext
+    - cooccurence
+    - kratu
+    - upload
+    - viewdoc properties
+    - triples widgets
+  - Workplace configuration widgets required
+   - Separate panel for linking
+   - Edit mode shows this panel (powered by widget configuration object)
+   - Show chosen layout with which widgets assigned to which place
+   - Show widget palette and support drag and drop on to layout zones (in main page?)
+   - Save configuration after every edit
+   - Reset to defaults option
+   - Copy existing Workplace Page
+   - Allow users to switch their Workplace on the fly
+    - Widget: Workplace selection widget (drawn manually at top of each page, or as an option in Workplace widget)
+   - Support Duplicating existing Workplace
+  - OOTB Workplace examples
+   - DONE MLDBWebTest Animal Watch Workplace
+   - Semantic Workplace
+   - Editable blank workplace sandbox page
+  - Support pre-made templates
+   - Some built in (Search page aka AppBuilder, semantic search page, data exploration page, document details page)
+   - Custom made templates
+    - Page 'save as template' mode in edit screen
+    - allow users to 'save' their own templates against their account only
+    - allow sharing of templates to specified roles in ML (just read permission setting)
+ - Docs: Video tutorials for all new functionality - Create a Semantic Application Series
+  - Intro to semantics in MarkLogic
+   - Manually load in some triple in N-triples format, and query this in QConsole and rest to show the ideas behind what we're doing
+    - Include a sprinkling of 'why do this with triples?' / 'why triples are cool!' type slides
+   - Do a query that you can't do in relational / document search alone -> Idea of context, defining the 'relationship' not just the presence of data
+  - Manually define a new triple (mention we'll suggest triples in the future) for a XHTML document
+   - Includes setting up your own ontology in the semanticcontext object
+   - Include 'automatically link root entity back to document' via documentcontext object (to be created)
+  - Add sparql query widget using same ontology
+   - Add entity facts and content linking search widget
+   - Add relationship visualisation widget
+  - Implying triples from document content 
+   - define a trigger to highlight key XML with known terms
+   - link these xml elements to the ontology via the suggestions widget
+  - Inferencing
+   - Start with a query for which you have the data, but which creating a sparql query is non trivial
+   - Use inferencing as a way to suggest triples that would make the query simpler
+   - Show the new query, and that the same answers are produced
+  - Avoiding sparql/xquery inferencing
+   - Is there a navigation process possible via existing widgets that would allow you to discover all related subjects and information you need, and produce a report off of the back of it?
+   - Embed BI type summaries too? (E.g. facet graphs from document query results)
+  - Sparql 1.1 in MarkLogic 7
+   - Show what parts of the spec are there, and which ones we're missing, but which ones *can* be provided with a little work
+   - Inferencing - we've shown, but should mention here
+   - aggregates (count, sum, avg, etc.)
+   - Sparql update
+   
+Unscheduled
  - Core: More support for server management (namespaces, indexes, service extensions, update REST instance configuration, XSLT transform management)
  - Widgets: Administration widgets (mainly aimed at pre-sales developers, not sysadmins)
  - Core: CSV and TSV utilities
