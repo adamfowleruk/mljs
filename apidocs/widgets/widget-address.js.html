@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: widget-address.js</title>
+    
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+    
+    <h1 class="page-title">Source: widget-address.js</h1>
+    
+    
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source"><code>/*
+Copyright 2012 MarkLogic Corporation
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+// global variable definitions
+com = window.com || {};
+com.marklogic = window.com.marklogic || {};
+com.marklogic.widgets = window.com.marklogic.widgets || {};
+
+
+/*
+ * This file contains widgets that enable address lookups and other anciliary, non MarkLogic specific functionality.
+ */
+ 
+// TODO determine if we need a geocontext to handle point locations and associated operations
+ 
+// Requires this script:&lt;script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false">&lt;/script>
+/**
+ * Looks up a lon/lat pair based on an entered address. Uses google maps v3 geocoder code (thus requires google maps JS to be loaded)
+ * 
+ * @constructor
+ */
+com.marklogic.widgets.addressbar = function(container) {
+  this.container = container;
+  this._geo = mljs.defaultconnection.createGeoContext();
+  this._qb = mljs.defaultconnection.createQuery();
+  this._geocoder = new google.maps.Geocoder();
+  
+  this._radius = 5;
+  this._radiusMeasure = "mi";
+  
+  this._init();
+};
+
+/**
+ * Sets the geocontext to update when a new location is submitted
+ * 
+ * @param {geocontext} ctx - The GeoContext to update
+ */
+com.marklogic.widgets.addressbar.prototype.setGeoContext = function(ctx) {
+  this._geo = ctx;
+};
+
+com.marklogic.widgets.addressbar.prototype._init = function() {
+  // draw initial html
+  var s = "Address: &lt;input id='" + this.container + "-address' class='addressbar-address' type='text' size='20' />";
+  s += "&lt;input class='btn btn-primary addressbar-submit' type='submit' id='" + this.container + "-submit' value='Search' />";
+  document.getElementById(this.container).innerHTML = s;
+  
+  var button = document.getElementById(this.container + "-submit");
+  var self = this;
+  button.onclick = function(evt) {
+    self._dosearch();
+    evt.stopPropagation();
+    return false;
+  };
+  
+  // now do enter click handler
+  var searchKeyPress = function(e) {
+    // look for window.event in case event isn't passed in
+    if (typeof e == 'undefined' && window.event) { 
+      e = window.event; 
+    }
+    if (e.keyCode == 13) {
+      button.click();
+    }
+  };
+  document.getElementById(this.container + "-address").onkeypress = searchKeyPress;
+};
+
+/**
+ * The radius to pass to the geocontext for a new location.
+ * 
+ * TODO when not specified, default to a point instead of a circle being contributed to the geocontext
+ * 
+ * @param {double} radius - The radius
+ * @param {string} radiusMeasure - The unit of the radius. "miles", "m", "km", "nm" or "degrees"
+ */
+com.marklogic.widgets.addressbar.prototype.radius = function(radius,radiusMeasure) {
+  this._radius = radius;
+  this._radiusMeasure = radiusMeasure;
+  return this;
+};
+
+com.marklogic.widgets.addressbar.prototype._dosearch = function() {
+  // perform lookup
+  var self = this;
+  var address = document.getElementById(this.container + "-address").value;
+  if (null == address || "" == address) {
+    //self._ctx.contributeStructuredQuery(self.container, null); // clears contribution
+    self._geo.contributeArea(self.container,null);
+    return;
+  }
+  this._geocoder.geocode({ 'address': address}, function(results, status) {
+    console.log("Results: " + JSON.stringify(results));
+    if (status == google.maps.GeocoderStatus.OK) {
+      var pos = results[0].geometry.location;
+      console.log("Results: pos: " + JSON.stringify(pos) + " := lat: " + pos.d + ", lon: " + pos.e);
+      
+      // contribute ourselves to the search context
+      // TODO CONVERT FROM EPSG900913 LatLng to EPSG4326/WGS84
+      var circle = self._qb.circleDef(pos.d,pos.e,self._radius,self._radiusMeasure);
+      //self._ctx.contributeStructuredQuery(self.container, term);
+      self._geo.contributeArea(self.container,circle);
+    } else {
+      alert("Could not look up address for the following reason: " + status);
+    }
+  });
+};</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Index</a></h2><h3>Classes</h3><ul><li><a href="com.marklogic.widgets.addressbar.html">addressbar</a></li><li><a href="com.marklogic.widgets.collectionuris.html">collectionuris</a></li><li><a href="com.marklogic.widgets.cooccurence.html">cooccurence</a></li><li><a href="com.marklogic.widgets.create.html">create</a></li><li><a href="com.marklogic.widgets.docheadviewer.html">docheadviewer</a></li><li><a href="com.marklogic.widgets.docproperties.html">docproperties</a></li><li><a href="com.marklogic.widgets.docviewer.html">docviewer</a></li><li><a href="com.marklogic.widgets.entityfacts.html">entityfacts</a></li><li><a href="com.marklogic.widgets.error.html">error</a></li><li><a href="com.marklogic.widgets.graphexplorer.html">graphexplorer</a></li><li><a href="com.marklogic.widgets.highcharts.html">highcharts</a></li><li><a href="com.marklogic.widgets.kratu.html">kratu</a></li><li><a href="com.marklogic.widgets.markings.html">markings</a></li><li><a href="com.marklogic.widgets.openlayers.html">openlayers</a></li><li><a href="com.marklogic.widgets.profile.html">profile</a></li><li><a href="com.marklogic.widgets.rdb2rdf.html">rdb2rdf</a></li><li><a href="com.marklogic.widgets.searchbar.html">searchbar</a></li><li><a href="com.marklogic.widgets.searchfacets.html">searchfacets</a></li><li><a href="com.marklogic.widgets.searchpage.html">searchpage</a></li><li><a href="com.marklogic.widgets.searchpager.html">searchpager</a></li><li><a href="com.marklogic.widgets.searchresults.html">searchresults</a></li><li><a href="com.marklogic.widgets.searchselection.html">searchselection</a></li><li><a href="com.marklogic.widgets.searchsort.html">searchsort</a></li><li><a href="com.marklogic.widgets.selection.html">selection</a></li><li><a href="com.marklogic.widgets.sparqlbar.html">sparqlbar</a></li><li><a href="com.marklogic.widgets.sparqlresults.html">sparqlresults</a></li><li><a href="com.marklogic.widgets.workplace.html">workplace</a></li><li><a href="com.marklogic.widgets.workplacecontext.html">workplacecontext</a></li></ul><h3>Namespaces</h3><ul><li><a href="com.marklogic.widgets.bits.html">bits</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-001-intro.html">001-intro</a></li><li><a href="tutorial-001-widgets-list.html">001-widgets-list</a></li><li><a href="tutorial-002-intro-firstpage.html">002-intro-firstpage</a></li><li><a href="tutorial-002-widgets-search.html">002-widgets-search</a></li><li><a href="tutorial-003-widgets-search-render.html">003-widgets-search-render</a></li><li><a href="tutorial-004-widgets-highcharts.html">004-widgets-highcharts</a></li><li><a href="tutorial-011-browser-create-app.html">011-browser-create-app</a></li><li><a href="tutorial-012-browser-install-app.html">012-browser-install-app</a></li><li><a href="tutorial-013-browser-samples-app.html">013-browser-samples-app</a></li><li><a href="tutorial-014-browser-workplace.html">014-browser-workplace</a></li><li><a href="tutorial-050-core-contexts.html">050-core-contexts</a></li><li><a href="tutorial-051-core-custom-searchcontext-endpoint.html">051-core-custom-searchcontext-endpoint</a></li><li><a href="tutorial-060-rest-ext.html">060-rest-ext</a></li><li><a href="tutorial-901-ontology.html">901-ontology</a></li><li><a href="tutorial-999-samples.html">999-samples</a></li><li><a href="tutorial-all.html">all</a></li></ul><h3>Global</h3><ul><li><a href="global.html#com">com</a></li></ul>
+</nav>
+
+<br clear="both">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Fri Jan 17 2014 22:49:59 GMT-0000 (GMT)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
