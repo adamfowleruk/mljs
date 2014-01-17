@@ -440,7 +440,7 @@ Targets for 1.5 (Mar 2014) Interim Release
   - NodeJS: Support 'anyauth' option, much like curl (i.e. auth method auto detection)
   - Core: Search Options builder
    - hidetriples() function to hide any docs under /triplestore/ (NOT any that define sem:triples)
- - LOW priority
+ - Missed 1.2 (Dec 2013) LOW priority targets
   - MarkLogic reported bugs retesting
    - BUG (Product 6.0-2): plain text documents - text content not escaped properly
   - Own demo apps
