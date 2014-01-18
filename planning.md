@@ -163,9 +163,9 @@ Targets for 1.2 (Dec 2013)
   - DONE BUG WAS AN ISSUE IN MLJS CONSTRAINT SETTINGS: Investigate why REST insists upon some elements having indexes in the JSON namespace as well as the one required (E.g. xhtml and h1)
  - DONE Test: Create MLJS Rest only (not Roxy hybrid) deployment project
  - DONE Docs: Publish mljsrest and mldbwebtest to internal demo server
- - Bug scanning/regression testing check
-  - BUG Widgets: Default Search Renderer does not check for format="xml"!!! Assumes JSON even when format is specified
-  - Widgets: searchresults add default renderer for documents containing triples (sem-triples parser)
+ - DONE Bug scanning/regression testing check
+  - DONE BUG Widgets: Default Search Renderer does not check for format="xml"!!! Assumes JSON even when format is specified
+  - DONE Widgets: searchresults add default renderer for documents containing triples (sem-triples parser)
 
 Floating Targets
  - CSV Import improvements / testing
@@ -237,8 +237,8 @@ Floating Targets
 
 Targets for 1.4 (Feb 2014) - Theme: Visualisations
  - Widgets: Search Results
-  - Add support for pluggable rendering for areas of result pane:-
-   - all (as now)
+  - IN PROGRESS Add support for pluggable rendering for areas of result pane:-
+   - DONE all (as now)
    - title
    - result summary (short, snippeting or non snippeting)
    - expanded result summary (controlled by action or global show detailed results setting)
@@ -262,18 +262,27 @@ Targets for 1.4 (Feb 2014) - Theme: Visualisations
     - delete
     - explore (goto page - semantic data explorer)
    - Ability to globally show/hide named sections
+  - Docs: Create mock sample search pages
+   - wordpress like demo summary view for documents
+   - google like summary, with similar stories indented
+   - tabular view - http://www.webdesignerdepot.com/2010/02/showcase-of-great-web-app-interfaces/
+   - google images like summary view, and detail on click
   - Core: Add metadata extraction support to search options and search context - extract() method on context?
   - Allow rendering with other layouts rather than just a simple column
    - Widgets: 2 column across-first cell rendering layout
    - Widgets: 3 column across-first cell rendering layout
    - Widgets: zoomable n row rendering layout (like on springer images website)
   - Add support for result drag and drop to other areas
+  - Default Rendering improvements
+   - hierarchical XML viewing (down three levels?)
+   - IN PROGRESS triple support (with summary?)
  - Widgets: Document Collector dropbox (also supports the searchresults document title, result summary plugins)
  - Widgets: search bar: Suppress facets, sorting shown within text query bar
  - Widgets: save search
  - Widgets: searchsorter: OOTB support for newest first/oldest first based on MarkLogic created and last modified dates
  - Widgets: searchperpage: Number of results to show per page 25 | 50 | 100 for example
  - Widgets: layouts to support collapsable zones (like springer images search modification left hand column)
+ - Docs: Update sample apps to make best use of search presentation features
  - Missed 1.2 (Dec 2013) - High Priority - targets
   - IN PROGRESS Widgets: Data Explorer improvements
    - DONE: Widgets: Data explorer widget shows "Loading..." when attempting to draw a link to an entity that already exists in the visible graph. Should just draw an arrow.
