@@ -190,10 +190,18 @@ function jsonExtractValue(json,namePath) {
 
 function xmlExtractValue(xmldoc,namePath) {
   // construct and apply XPath from namePath
-  var xpath = "/" + namePath.replaceAll(".","/");
+  var xpath = "/" + namePath.replace(/\./g,"/");
+  xpath = xpath.replace(/\/.*:/g,"/*:"); // replace all namespaces with global namespace - temporary hack
   
   // TODO apply xpath to extract document value
-  return 0;
+  var myfunc = function(prefix) {
+    return null; // assume always default namespace
+    // TODO support namespaces globally somehow - global context? page context?
+  };
+  
+  var evalResult = xmldoc.evaluate(xpath,xmldoc,myfunc,2,null); // 2=string
+  
+  return evalResult;
 };
 
 function extractValue(jsonOrXml,namePath) {
@@ -265,6 +273,15 @@ if (undefined == String.prototype.startsWith) {
   };
 }
 
+if (undefined == String.prototype.replaceAll) {
+  String.prototype.replaceAll = function(str1, str2, ignoreCase) {
+	  return this.replace(new RegExp(str1.replace(/([\/\,\!\\\^\$\{\}\[\]\(\)\.\*\+\?\|\<\>\-\&])/g,"\\$&"),(ignoreCase?"gi":"g")),(typeof(str2)=="string")?str2.replace(/\$/g,"$$$$"):str2);
+  };
+}
+
+String.prototype.htmlEscape = function() {
+  return String(this).replaceAll("&", '&amp;').replaceAll("\"", '&quot;').replaceAll("'", '&#39;').replaceAll("<", '&lt;').replaceAll(">", '&gt;');
+};
 
 
 
@@ -629,7 +646,7 @@ com.marklogic.widgets.bits.base = function(newbase) {
  * @param {string} elid - The element for this widget's top level container
  */
 com.marklogic.widgets.bits.loading = function(elid) {
-  var s = "<img id='" + elid + "' class='bits-loading' src='" + com.marklogic.widgets.bits._base + "/loading.gif' style='width: 30px; height: 30px;' alt='Loading...' title='Loading...' />";
+  var s = "<img id='" + elid + "' class='bits-loading' src='" + com.marklogic.widgets.bits._base + "/mljs/loading.gif' style='width: 30px; height: 30px;' alt='Loading...' title='Loading...' />";
   
   return s;
 };
@@ -691,15 +708,19 @@ com.marklogic.widgets.dnd = {
   draggables: {} // draggables["elid"] = {classname: "myclass", onto: [class1,...] }
 };
 
+/**
+ * Call this to indicate the specified element should be a drop zone.
+ */
 com.marklogic.widgets.dnd.accept = function(elid,droppableClass,draggableTypeArrayToAccept,actionCallback) {
   // assume caller does html generation (for speed)
   // add droppable configuration
-  var droppable = {classname: droppableClass,accept: draggableTypeArrayToAccept, action: actionCallback};
-  com.marklogic.widgets.dnd.droppables[elid] = droppable;
+  var dropzone = {classname: droppableClass,accept: draggableTypeArrayToAccept, action: actionCallback};
+  com.marklogic.widgets.dnd.droppables[elid] = dropzone;
   // add event handlers
   var el = document.getElementById(elid);
   mljs.defaultconnection.logger.debug("dnd.onto: adding event handlers to: " + elid);
   el.addEventListener("dragover",function(ev) {
+  //el.ondragover = function(ev) {
     mljs.defaultconnection.logger.debug("dnd.onto: ondragover: " + elid);
     //var match = com.marklogic.widgets.dnd._compatible(el,elid,droppable); // TODO find and pass draggable elid
     //if (match) {
@@ -708,23 +729,27 @@ com.marklogic.widgets.dnd.accept = function(elid,droppableClass,draggableTypeArr
     ev.preventDefault();
     mljs.defaultconnection.logger.debug("dnd.accept: ondragover: returning false");
     return false;
-  });
+  },false); // )
   // TODO on drag out?
   el.addEventListener("drop",function(ev) {
+  //el.ondrop = function(ev) {
     mljs.defaultconnection.logger.debug("dnd.onto: ondrop: " + elid);
     //var match = com.marklogic.widgets.dnd._compatible(el,elid,droppable); // TODO find and pass draggable elid
     //if (match) {
-      var data = JDON.parse(ev.dataTransfer.getData("application/javascript"));
+      var data = JSON.parse(ev.dataTransfer.getData("application/javascript"));
     mljs.defaultconnection.logger.debug("dnd.accept: ondrop: calling action callback");
-      droppable.action(data);
+      dropzone.action(data);
     //}
-    ev.preventDefault();
+    //ev.preventDefault();
     mljs.defaultconnection.logger.debug("dnd.accept: ondrop: returning false");
-    return false;
-  });
+    //return false;
+  },false); // )
   mljs.defaultconnection.logger.debug("dnd.onto: completed adding event handlers to: " + elid);
 };
 
+/**
+ * Call this to set an element up as a draggable item.
+ */
 com.marklogic.widgets.dnd.onto = function(elid,draggableClass,droppableTypeArrayToMap,dataOrCallback) {
   // assume caller does html generation (for speed) (For HTML5 this element MUST have attribute draggable="true")
   // add draggable configuration
@@ -732,7 +757,9 @@ com.marklogic.widgets.dnd.onto = function(elid,draggableClass,droppableTypeArray
   com.marklogic.widgets.dnd.draggables[elid] = draggable;
   // add event handlers
   var el = document.getElementById(elid);
-  el.ondragstart = function(ev) {
+  //el.ondragstart = function(ev) {
+  mljs.defaultconnection.logger.debug("dnd.onto: adding ondragstart to: " + elid + " with el value: " + el);
+  el.addEventListener("dragstart", function(ev) {
     mljs.defaultconnection.logger.debug("dnd.onto: ondragstart: " + elid);
     //var match = com.marklogic.widgets.dnd._draggableCompatible(el,elid,draggable); // TODO get elid of droppable and pass that too
     //if (match) {
@@ -748,10 +775,10 @@ com.marklogic.widgets.dnd.onto = function(elid,draggableClass,droppableTypeArray
       ev.dataTransfer.setData("application/javascript",sd);
       mljs.defaultconnection.logger.debug("dnd.onto: ondragstart: sent data: " + sd);
     //}
-    ev.preventDefault();
+    //ev.preventDefault();
     mljs.defaultconnection.logger.debug("dnd.onto: ondragstart: returning false");
-    return false;
-  };
+    //return false;
+  },false);
 };
 
 com.marklogic.widgets.dnd._compatible = function(el,elid,droppable,draggableElid) {

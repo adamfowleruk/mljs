@@ -11,8 +11,8 @@ window.onload = function() {
   var ob = db.createOptions();
   ob.defaultCollation("http://marklogic.com/collation/en")
     .collectionConstraint() // default constraint name of 'collection' 
-    .rangeConstraint("animal",["item-order"]) // constraint name defaults to that of the range element name 
-    .rangeConstraint("family",["item-frequency"]); // constraint name defaults to that of the range element name 
+    .jsonRangeConstraint("animal",["item-order"]) // constraint name defaults to that of the range element name 
+    .jsonRangeConstraint("family",["item-frequency"]); // constraint name defaults to that of the range element name 
     
   var options = ob.toJson();
   
@@ -59,6 +59,7 @@ window.onload = function() {
     
     var workplace = new com.marklogic.widgets.workplace("workplace");
     workplace.editable();
+    //workplace.saveable(false); // don't persist changes
     workplace.loadPage(page); // could instead use loadPage() to determine automatically via window.location, or loadPage("/my/path") to load via search in content database
  /* 
   } catch (err) {

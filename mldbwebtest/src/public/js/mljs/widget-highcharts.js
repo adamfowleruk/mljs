@@ -21,6 +21,9 @@ com.marklogic.widgets = window.com.marklogic.widgets || {};
 /**
  * Creates a HighCharts wrapper widget. HighCharts is a commercial JavaScript graphing widget distributed with MarkLogic. 
  * If you are using this widget against a MarkLogic application, you are licensed to use HighCharts
+ * 
+ * This widget is MLJS Workplace enabled.
+ * 
  * @constructor
  * @param {string} container - HTML ID of the element to place this widget's content within.
  */
@@ -34,11 +37,15 @@ com.marklogic.widgets.highcharts = function(container) {
   this.categorySource = "category"; // E.g. month
   this.autoCategories = false;
   
-  this.title = "Title";
-  this.subtitle = "Subtitle";
-  this.xTitle = "Categories";
-  this.yTitle = "Values";
-  this.type = "line";
+  this._title = "Title";
+  this._subtitle = "Subtitle";
+  this._xTitle = "Categories";
+  this._yTitle = "Values";
+  this._type = "line";
+  
+  this._seriesNameToFacetName = {};
+  
+  this.ctx = mljs.defaultconnection.createSearchContext();
   
   
   // TODO expose the below as configuration
@@ -55,6 +62,20 @@ com.marklogic.widgets.highcharts = function(container) {
   this._refresh();
 };
 
+/**
+ * Sets the search context for this widget
+ * 
+ * @param {searchcontext} c - The searchcontext to link to
+ */
+com.marklogic.widgets.highcharts.prototype.setSearchContext = function(c) {
+  this.ctx = c;
+};
+
+/**
+ * Returns the MLJS Workplace configuration definition listing config properties supported by this widget
+ * 
+ * @static
+ */
 com.marklogic.widgets.highcharts.getConfigurationDefinition = function() {
   return {
     
@@ -64,12 +85,12 @@ com.marklogic.widgets.highcharts.getConfigurationDefinition = function() {
     yTitle: {type: "string", default: "Values", title: "Y Axis Title", description: "Value Y Axis Title."},
     type: {type: "enum", default: "line",title: "Chart Type", description: "Which HighCharts chart to display",
       options: [
-        {value: "line", title: "Line", decsription: "Line Chart"},
-        {value: "spline", title: "Line", decsription: "Spline Chart"},
-        {value: "bar", title: "Line", decsription: "Bar Chart"},
-        {value: "area", title: "Line", decsription: "Area Chart"},
-        {value: "column", title: "Line", decsription: "Column Chart"},
-        {value: "pie", title: "Line", decsription: "Pie Chart"}
+        {value: "line", title: "Line", description: "Line Chart"},
+        {value: "spline", title: "Spline", description: "Spline Chart"},
+        {value: "bar", title: "Bar", description: "Bar Chart"},
+        {value: "area", title: "Area", description: "Area Chart"},
+        {value: "column", title: "Column", description: "Column Chart"},
+        {value: "pie", title: "Pie", description: "Pie Chart"}
         // TODO support stacking too
         // TODO support Hybrid charts
       ]},
@@ -126,7 +147,11 @@ com.marklogic.widgets.highcharts.getConfigurationDefinition = function() {
   // TODO other internal HighCharts settings
 };
 
-
+/**
+ * Sets the configuration for this instance of a widget in an MLJS Workplace
+ * 
+ * @param {json} config - The JSON Workplace widget configuration to apply
+ */
 com.marklogic.widgets.highcharts.prototype.setConfiguration = function(config) {
   for (var prop in config) {
     if (prop == "title" || prop == "subtitle" || prop == "xTitle" || prop == "yTitle" || prop == "type") {
@@ -213,20 +238,20 @@ com.marklogic.widgets.highcharts.prototype._updateOptions = function() {
 				renderTo : hc.container
             },
             title: {
-                text: hc.title
+                text: hc._title
             },
             subtitle: {
-                text: hc.subtitle
+                text: hc._subtitle
             },
             xAxis: {
               categories: hc.categories,
               title: {
-                text: hc.xTitle
+                text: hc._xTitle
               }
             },
             yAxis: {
                 title: {
-                    text: hc.yTitle
+                    text: hc._yTitle
                 }
             },
             tooltip: {
@@ -234,17 +259,20 @@ com.marklogic.widgets.highcharts.prototype._updateOptions = function() {
             },
             plotOptions: {
                 line: {
+
                     dataLabels: {
-                        enabled: true
-                    },
-                    enableMouseTracking: false
+                        enabled: false
+                    }/*,
+                    enableMouseTracking: false*/
                 }
             },
     series: this.series
   };
-  
+  this.line();
+  /*
   if ("pie" == hc.options.chart.type) {
     this.options.tooltip.pointFormat = '<b>{point.y}</b>';
+    console.log("I bet you any money this never gets invoked - always a 'line' chart at this point!!!");
   } else {
     mljs.defaultconnection.logger.debug("Chart using custom tooltip formatter");
     this.options.tooltip.formatter = function() {
@@ -256,9 +284,14 @@ com.marklogic.widgets.highcharts.prototype._updateOptions = function() {
       str += this.y; 
       return str;
     };
-  }
+  }*/
   
   mljs.defaultconnection.logger.debug("highcharts.prototype._updateOptions(): Options now: " + JSON.stringify(this.options));
+};
+
+com.marklogic.widgets.highcharts.prototype._selectCategory = function(facetName,facetValue) {
+  //this.ctx.updateFacets([{name: facetName, value: facetValue}]);
+  this.ctx.contributeFacet(facetName, facetValue);
 };
 
 /**
@@ -307,6 +340,7 @@ com.marklogic.widgets.highcharts.prototype.setSeriesSources = function(nameSourc
  * Event handler. Intended as a parameter for an addSubjectFactsListener.
  * Takes triple facts and extracts in to chart
  * 
+ * @param {object} facts - The MLJS result wrapper. result.doc.facts contains the sparql result returned in a JSON expression.
  */
 com.marklogic.widgets.highcharts.prototype.updateSubjectFacts = function(facts) {
   if (false == facts || true == facts ) {
@@ -441,6 +475,14 @@ com.marklogic.widgets.highcharts.prototype.updateResults = function(results) {
     var value = extractValue(resdoc,this.valueSource);
     //mljs.defaultconnection.logger.debug(" -  -  - value: " + value);
     
+    // series name (highcharts) to facet name (categorySource) mapping
+    if (this.categorySource.startsWith("!")) {
+      this._seriesNameToFacetName[name] = this.categorySource.substring(1); // assume facet
+    } else {
+      // assume from a value, and facet name is same as property name (json)
+      this._seriesNameToFacetName[name] = this.categorySource; 
+    }
+    
     var category = extractValue(resdoc,this.categorySource);
     //mljs.defaultconnection.logger.debug(" -  -  - category: " + category);
     if (!allCategories.contains(category)) {
@@ -571,4 +613,278 @@ com.marklogic.widgets.highcharts.prototype._displayResults = function(seriesName
   this.options.xAxis.categories = this.categories;
   
   this._refresh();
-}
+};
+
+/**
+ * Removes click handler from the points on a highchart. Only works before chart is refreshed with data.
+ */
+com.marklogic.widgets.highcharts.prototype.noclick = function() {
+  this.options.plotOptions[this.options.chart.type].point.events.click = function() {};
+  return this;
+};
+
+com.marklogic.widgets.highcharts.prototype._addPointClickHandler = function(charttype) {
+  var self = this;
+  this.options.plotOptions[charttype].point = {
+    events: {
+      click: function() {
+        // this = data object
+        var data = this.series.data[this.x].name;
+        console.log("Point clicked: x:" + this.x + ", series name:'" + this.series.name + "', y:" + this.y, " data: " + data);
+        if (undefined == data) {
+          // non pie chart
+          data = this.category; // category axis => x value
+          /*if (!self.autoCategories) {
+            // translate to hard coded month category value
+            var myd = null;
+            for (var i = 0;i > self.categories.length;i++) {
+              myd = self.categories[i];
+              if (myd == data) {
+                data = i;
+              }
+            }
+          }*/
+          self._selectCategory(self._seriesNameToFacetName[this.series.name],data);
+          
+        } else {
+          // likely a pie chart
+          self._selectCategory(this.series.name,data);
+        }
+      }
+    }
+  };
+};
+
+
+
+
+
+// CHAINING METHODS FOR HIGHCHARTS CONFIGURATION
+
+// chart types
+
+/**
+ * Creates a line chart
+ *
+ * @param {json} extra_params_opt - Optional extra configuration parameters for plotOptions.charttype
+ */
+com.marklogic.widgets.highcharts.prototype.line = function(extra_params_opt) {
+  this.options.chart.type = 'line';
+  this._type = "line";
+  
+  this.options.plotOptions.line = {
+    dataLabels: {
+      enabled: false
+    }/*,
+    enableMouseTracking: false*/
+  };
+  /*
+  this.options.tooltip.enabled = true;
+  //this.options.tooltip.shared = true;
+  
+  this.options.tooltip.formatter = function() {
+    return Highcharts.numberFormat(this.y,1);
+  };
+  */
+  for (var n in extra_params_opt) {
+    this.options.plotOptions.line[n] = extra_params_opt[n];
+  }
+  this._addPointClickHandler(this.options.chart.type);
+  return this;
+};
+
+/**
+ * Creates a spline chart
+ *
+ * @param {json} extra_params_opt - Optional extra configuration parameters for plotOptions.charttype
+ */
+com.marklogic.widgets.highcharts.prototype.spline = function(extra_params_opt) {
+  this.options.chart.type = 'spline';
+  this._type = "spline";
+  this.options.plotOptions.line = undefined;
+  this.options.plotOptions.spline = { dataLabels: { enabled: false }};
+  for (var n in extra_params_opt) {
+    this.options.plotOptions.spline[n] = extra_params_opt[n];
+  }
+  /*
+  this.options.plotOptions.tooltip = {
+    formatter: function() {
+      return Highcharts.numberFormat(this.y,1);
+    }
+  };
+  */
+  this._addPointClickHandler(this.options.chart.type);
+  return this;
+};
+
+/**
+ * Creates a column chart
+ *
+ * @param {json} extra_params_opt - Optional extra configuration parameters for plotOptions.charttype
+ */
+com.marklogic.widgets.highcharts.prototype.column = function(extra_params_opt) {
+  this.options.chart.type = "column";
+  this._type = "column";
+  this.options.plotOptions.line = undefined;
+  this.options.plotOptions.column = {pointPadding: 0.2,borderWidth: 0, dataLabels: { enabled: true, style: { fontWeight: 'bold' } } };
+  for (var n in extra_params_opt) {
+    this.options.plotOptions.column[n] = extra_params_opt[n];
+  }
+  this._addPointClickHandler(this.options.chart.type);
+  return this;
+};
+
+/**
+ * Creates a pie chart
+ *
+ * @param {json} extra_params_opt - Optional extra configuration parameters for plotOptions.charttype
+ */
+com.marklogic.widgets.highcharts.prototype.pie = function(extra_params_opt) {
+  this.options.chart.type = "pie";
+  this.options.plotOptions.line = undefined;
+  this.options.plotOptions.pie = {};
+  for (var n in extra_params_opt) {
+    this.options.plotOptions.pie[n] = extra_params_opt[n];
+  }
+  this._type = "pie";
+  this._addPointClickHandler(this.options.chart.type);
+  return this;
+};
+
+/**
+ * Creates a bar chart
+ *
+ * @param {json} extra_params_opt - Optional extra configuration parameters for plotOptions.charttype
+ */
+com.marklogic.widgets.highcharts.prototype.bar = function(extra_params_opt) {
+  this.options.chart.type = "bar";
+  this.options.plotOptions.line = undefined;
+  this.options.plotOptions.bar = {};
+  for (var n in extra_params_opt) {
+    this.options.plotOptions.bar[n] = extra_params_opt[n];
+  }
+  this._type = "bar";
+  this._addPointClickHandler(this.options.chart.type);
+  return this;
+};
+
+/**
+ * Creates an area chart
+ *
+ * @param {json} extra_params_opt - Optional extra configuration parameters for plotOptions.charttype
+ */
+com.marklogic.widgets.highcharts.prototype.area = function(extra_params_opt) {
+  this.options.chart.type = "area";
+  this._type = "area";
+  this.options.plotOptions.line = undefined;
+  this.options.plotOptions.area = {};
+  for (var n in extra_params_opt) {
+    this.options.plotOptions.area[n] = extra_params_opt[n];
+  }
+  this._addPointClickHandler(this.options.chart.type);
+  return this;
+};
+
+// chart parameters
+
+/**
+ * Enables crosshairs on the x and y axes
+ */
+com.marklogic.widgets.highcharts.prototype.crosshairs = function() {
+  this.options.tooltip.crosshairs = [true,true]; //xaxis,yaxis
+  return this;
+};
+
+/**
+ * Disables the chart legend
+ */
+com.marklogic.widgets.highcharts.prototype.nolegend = function() {
+  this.legend(false);
+};
+
+/**
+ * Whether to enable or disable a legednd. Enabled by default below the chart
+ * 
+ * @param {boolean} enabled - Enable the legend?
+ */
+com.marklogic.widgets.highcharts.prototype.legend = function(enabled) {
+  if (undefined == enabled) {
+    enabled = true;
+  }
+  if (enabled) {
+    this.options.legend.enabled = true;
+  } else {
+    this.options.legend.enabled = false;
+  }
+};
+
+/**
+ * Inverts the X and Y axes
+ */
+com.marklogic.widgets.highcharts.prototype.inverted = function() {
+  this.options.chart.inverted = true;
+  return this;
+};
+
+/**
+ * Produces a stacked chart
+ */
+com.marklogic.widgets.highcharts.prototype.stacked = function() {
+  this.options.plotOptions.series = {stacking: 'normal'};
+  return this;
+};
+
+/**
+ * Sets highcharts stack label configuration
+ * 
+ * @param {json} stackLabels - High charts stack label json configuration
+ */
+com.marklogic.widgets.highcharts.prototype.stackLabels = function(stackLabels) {
+  this.options.yAxis.stackLabels = stackLabels;
+  return this;
+};
+
+
+/**
+ * Sets the chart title
+ *
+ * @param {string} title - The chart title
+ */
+com.marklogic.widgets.highcharts.prototype.title = function(title) {
+  this.options.title.text = title;
+  this._title = title;
+  return this;
+};
+
+/**
+ * Sets the chart subtitle
+ *
+ * @param {string} subtitle - The chart subtitle
+ */
+com.marklogic.widgets.highcharts.prototype.subtitle = function(subtitle) {
+  this.options.subtitle.text = subtitle;
+  this._subtitle = subtitle;
+  return this;
+};
+
+/**
+ * Sets the chart's y Axis title
+ *
+ * @param {string} yTitle - The chart y axis title
+ */
+com.marklogic.widgets.highcharts.prototype.yTitle = function(yTitle) {
+  this.options.yAxis.title.text = yTitle;
+  this._yTitle = yTitle;
+  return this;
+};
+
+/**
+ * Sets the chart's x Axis title
+ *
+ * @param {string} xTitle - The chart x axis title
+ */
+com.marklogic.widgets.highcharts.prototype.xTitle = function(xTitle) {
+  this.options.xAxis.title.text = xTitle;
+  this._xTitle = xTitle;
+  return this;
+};

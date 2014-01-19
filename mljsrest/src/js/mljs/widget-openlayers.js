@@ -63,42 +63,95 @@ com.marklogic.widgets.openlayers = function(container) {
   this._refresh();
 };
 
+/**
+ * The minimum grid to generate heatmap results in
+ * 
+ * @param {double} val - The grid size. E.g. 5x5 grid = 25 as a value. Widget guarantees heatmap will be at least this granular.
+ */
 com.marklogic.widgets.openlayers.prototype.setHeatmapGranularity = function(val) {
   this.heatmapGranularity = val;
 };
 
+/**
+ * Called by a searchcontext to listen for area selection events
+ * 
+ * @param {function} lis - The listener
+ */
 com.marklogic.widgets.openlayers.prototype.addGeoSelectionListener = function(lis) {
   this._geoSelectionPublisher.subscribe(lis);
 };
 
+/**
+ * Called by a searchcontext to remove a listener for area selection events
+ * 
+ * @param {function} lis - The listener
+ */
 com.marklogic.widgets.openlayers.prototype.removeGeoSelectionListener = function(lis) {
   this._geoSelectionPublisher.unsubscribe(lis);
 };
 
+/**
+ * Called by a searchcontext to listen for result search selection events
+ * 
+ * @param {function} lis - The listener
+ */
 com.marklogic.widgets.openlayers.prototype.addResultSelectionListener = function(lis) {
   this._resultSelectionPublisher.subscribe(lis);
 };
 
+/**
+ * Called by a searchcontext to remove a listener for search result selection events
+ * 
+ * @param {function} lis - The listener
+ */
 com.marklogic.widgets.openlayers.prototype.removeResultSelectionListener = function(lis) {
   this._resultSelectionPublisher.unsubscribe(lis);
 };
 
+/**
+ * Called by a searchcontext to listen for result highlighting (usually hovering over a marker)
+ * 
+ * @param {function} lis - The listener
+ */
 com.marklogic.widgets.openlayers.prototype.addResultHighlightListener = function(lis) {
   this._resultHighlightPublisher.subscribe(lis);
 };
 
+
+/**
+ * Called by a searchcontext to remove a listener for result highlighting (usually hovering over a marker)
+ * 
+ * @param {function} lis - The listener
+ */
 com.marklogic.widgets.openlayers.prototype.removeResultHighlightListener = function(lis) {
   this._resultHighlightPublisher.unsubscribe(lis);
 };
 
+/**
+ * Called by a searchcontext to instruct the map that a result has been selection.
+ * NOT IMPLEMENTED
+ * 
+ * @param {Array} newsel - The new selection
+ */
 com.marklogic.widgets.openlayers.prototype.updateResultSelection = function(newsel) {
   // TODO respond to other widgets' selection events too
 };
 
+/**
+ * Called by a searchcontext to instruct the map that a result has been highlighted.
+ * NOT IMPLEMENTED
+ * 
+ * @param {Array} newsel - The newly highlighted selection
+ */
 com.marklogic.widgets.openlayers.prototype.updateResultHighlight = function(newsel) {
   // TODO respond to other widgets' highlight events too
 };
 
+/**
+ * Sets the constraint name this widget should use when raising a selection change event and passing a structured query term.
+ * 
+ * @param {string} name - Constraint name to use (the constraint should point to a geospatial index of points that should be within this selection)
+ */
 com.marklogic.widgets.openlayers.prototype.setGeoSelectionConstraint = function(name) {
   this._config["constraint-name"] = name;
 };
@@ -324,7 +377,11 @@ com.marklogic.widgets.openlayers.prototype.addAllBing = function() {
   return layers;
 };
 
-
+/**
+ * Ensures that this OpenLayers map has a heatmap layer. (It doesn't always by default, but will if it detects you want one).
+ * 
+ * NB This may no longer be true. I believe the heatmap acts as a layer that always exists in the map.
+ */
 com.marklogic.widgets.openlayers.prototype.ensureHeatmap = function() {
   if (null == this.heatmap) {
     this.heatmap = new OpenLayers.Layer.Heatmap("Heatmap", this.map, this.baseLayer, {visible: true, radius:40}, {isBaseLayer: false, opacity: 0.3, projection: new OpenLayers.Projection("EPSG:4326")});
@@ -785,7 +842,19 @@ com.marklogic.widgets.openlayers.prototype.eightDecPlaces = function(val) {
  * @param {integer} zoom - Zoom level (OpenLayers zoom level, not necessarily the mapping layer's own internal level)
  */
 com.marklogic.widgets.openlayers.prototype.go = function(lat,lon,zoom) {
-  this.map.setCenter( new OpenLayers.LonLat(lon,lat).transform(this.transformWgs84, this.map.projection), zoom);
+  this.map.setCenter( new OpenLayers.LonLat(lon,lat).transform(this.transformWgs84, this.map.projection), zoom,true,true);
+};
+
+/**
+ * Response to a geo context's locale being updated. Currently only supports center, but in future will supports bounds, zooming to the right level to
+ * show the entire area required
+ * 
+ * @param {JSON} locale - The geo context local definition. Has center(longitude,latitude), bounds (n,e,s,w) and area(Array of points/circle/box/polygon) properties
+ */
+com.marklogic.widgets.openlayers.prototype.updateLocale = function(locale) {
+  mljs.defaultconnection.logger.debug("openlayers.updateLocale: Called with: " + JSON.stringify(locale));
+  // use center position to set map center
+  this.map.setCenter(new OpenLayers.LonLat(locale.center.longitude, locale.center.latitude).transform(this.transformWgs84,this.map.projection),this.map.getZoom(),true,true);
 };
 
 /**
@@ -861,9 +930,11 @@ com.marklogic.widgets.openlayers.prototype.addSeries = function(title,searchcont
     if (null == results || "boolean"==typeof(results)) {
       if (false === results) {
       }
+      // clear heatmap
+      self.heatmap.setDataSet({data: [], max: 0});
       return;
     }
-    /*
+    
         mljs.defaultconnection.logger.debug("openlayers.addSeries.listfunc: Deleting results markers in layer: " + title);
         // remove all markers
         var oldm = layer.markers;
@@ -873,7 +944,7 @@ com.marklogic.widgets.openlayers.prototype.addSeries = function(title,searchcont
           layer.removeMarker(mark); 
           mark.destroy();
         }
-        layer.clearMarkers();*/
+        layer.clearMarkers();
     
     mljs.defaultconnection.logger.debug("openlayers.addSeries.listfunc: Processing results");
     // add each marker in new result set

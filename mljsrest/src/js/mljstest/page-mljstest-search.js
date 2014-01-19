@@ -2,6 +2,14 @@
 window.onload = function() {
   var db = new mljs(); 
   
+  /**
+   * WARNING: This page uses the convenience searchpage() widget. If you need changes to the position or number of widgets shown
+   *          then DO NOT edit that widget, but instead use the same HTML as in the widget-search.js' searchpage() constructor directly
+   *          in your page. You are then free to edit, in your page, whatever you like. searchpage is purely for convenience when
+   *          you do not want to create this HTML manually.
+   */
+  
+  
   var wgt = new com.marklogic.widgets.searchpage("search-page");
   // README NOW!!! If you don't know what addProcessor does, comment out the lines! MLJS provides default processors that may well work if using JSON, XHTML or some XML
   wgt.results.addProcessor("animals", function(result) {
@@ -36,9 +44,14 @@ window.onload = function() {
   dateBuckets.bucket("2013-01-01","2013-01-31","jan2013","Jan 2013")
              .bucket("2013-02-01","2013-02-28","feb2013","Feb 2013")
              .bucket("2013-03-01","2013-03-31","mar2013","Mar 2013");
-  var options = ob.toJson();
+             
+  // add facet value names for cities - just an example. Better example SOME/weirdValue -> "Nice Display Name"
+  ob.setFacetValueStrings("City",{
+    Derby: "City of Derby", London: "City of London"
+  });
+  //var options = ob.toJson();
   
-  wgt.setOptions("mljstest-page-search-options",options);
-  wgt.execute();
+  wgt.setOptions("mljstest-page-search-options",ob);
+  wgt.execute(); // uses search context
   
 };

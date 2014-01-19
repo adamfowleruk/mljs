@@ -121,8 +121,8 @@ window.onload = function() {
     ob1.defaultCollation("http://marklogic.com/collation/en")
       .pageLength(100)
       .collectionConstraint() // default constraint name of 'collection' 
-      .rangeConstraint("animal",["item-order"]) // constraint name defaults to that of the range element name 
-      .rangeConstraint("family",["item-frequency"]); // constraint name defaults to that of the range element name 
+      .jsonRangeConstraint("animal",["item-order"]) // constraint name defaults to that of the range element name 
+      .jsonRangeConstraint("family",["item-frequency"]); // constraint name defaults to that of the range element name 
     
     var ob2 = db.createOptions();
     ob2.tuples("actor-year","actor","year"); // first is tuple name. defaults to string, json namespace
@@ -131,15 +131,15 @@ window.onload = function() {
     var ob4 = db.createOptions();
     ob4.defaultCollation("http://marklogic.com/collation/en")
       .collectionConstraint() // default constraint name of 'collection' 
-      .rangeConstraint("animal",["item-order"]) // constraint name defaults to that of the range element name 
-      .rangeConstraint("family",["item-frequency"]) // constraint name defaults to that of the range element name 
-      .rangeConstraint("actor",["item-frequency"],"http://marklogic.com/collation/")
-      .rangeConstraint("year",["item-order"],"http://marklogic.com/collation/")
-      .rangeConstraint("city",["item-order"],"http://marklogic.com/collation/")
-      .rangeConstraint("month",["item-order"],"http://marklogic.com/collation/")
+      .jsonRangeConstraint("animal",["item-order"]) // constraint name defaults to that of the range element name 
+      .jsonRangeConstraint("family",["item-frequency"]) // constraint name defaults to that of the range element name 
+      .jsonRangeConstraint("actor","xs:string","http://marklogic.com/collation/",["item-frequency"])
+      .jsonRangeConstraint("year","xs:string","http://marklogic.com/collation/",["item-order"])
+      .jsonRangeConstraint("city","xs:string","http://marklogic.com/collation/",["item-order"])
+      .jsonRangeConstraint("month","xs:string","http://marklogic.com/collation/",["item-order"])
       .rangeConstraint("Title","title","http://www.w3.org/1999/xhtml","xs:string","http://marklogic.com/collation/",true)
       .rangeConstraint("Heading","h1","http://www.w3.org/1999/xhtml","xs:string","http://marklogic.com/collation/",true)
-      .rangeConstraint("stars","stars",null,"xs:int",null)
+      .jsonRangeConstraint("stars","xs:int")
       .rangeConstraint("DateReceived","datereceived","http://marklogic.com/ns/dt","xs:date",null,true)
       .annotate("DateReceived","Received On")
       .geoElementPairConstraint("location","location","http://marklogic.com/xdmp/json/basic",

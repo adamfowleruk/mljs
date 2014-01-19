@@ -74,6 +74,7 @@ declare variable $q as xs:string? := vh:get("q");
         <a href="/mljstest/upload">Upload</a> |
         <a href="/mljstest/docview">View Doc</a> |
         <a href="/mljstest/openlayers">Maps</a> |
+        <a href="/mljstest/address">Address</a> |
         <a href="/mljstest/tagcloud">Tag Cloud</a>
         <br/>
       V7+:
@@ -87,7 +88,8 @@ declare variable $q as xs:string? := vh:get("q");
         <a href="/mljstest/docbuilder">Document Builder</a> | 
         <a href="/mljstest/workplace">Workplace</a> | 
         <a href="/mljstest/collectionuris">Collection URIs</a> | 
-        <a href="/mljstest/dnd">Drag &amp; Drop</a>
+        <a href="/mljstest/dnd">Drag &amp; Drop</a> | 
+        <a href="/mljstest/angular">Angular.js</a>
       </div>
       
       <div class="content">

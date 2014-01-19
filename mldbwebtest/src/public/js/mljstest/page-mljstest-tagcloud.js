@@ -9,18 +9,17 @@ window.onload = function() {
   try {
   
     var ob = db.createOptions();
-    ob.rangeConstraint("actor",["item-frequency"],"http://marklogic.com/collation/")
-      .rangeConstraint("genre",["item-frequency"],"http://marklogic.com/collation/")
-      .rangeConstraint("year",["item-frequency"],"http://marklogic.com/collation/")
+    ob.jsonRangeConstraint("actor",["item-frequency"])
+      .jsonRangeConstraint("genre",["item-frequency"])
+      .jsonRangeConstraint("year",["item-frequency"])
       .returnResults(false); // only want facets
-    var options = ob.toJson();
       
     var qb = db.createQuery();
     qb.query(qb.collection("movies"));
     var query = qb.toJson();
     
     var ctx = db.createSearchContext();
-    ctx.setOptions("mljs-testpage-tagcloud-options",options);
+    ctx.setOptions("mljs-testpage-tagcloud-options",ob);
     
     var actor = new com.marklogic.widgets.tagcloud("actor");
     actor.setFacet("actor");

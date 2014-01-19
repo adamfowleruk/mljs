@@ -78,7 +78,7 @@ com.marklogic.widgets.tagcloud.prototype._refresh = function() {
             var valuesCount = values.length;
             for (var v = 0;v < valuesCount;v++) {
               var fv = values[v];
-              str += "<span class='tagcloud-value' style='font-size: " + (startSize + ((fv.count - minCount) * factor)) + "px;'>" + fv.name + "</span>";
+              str += "<span class='tagcloud-value' title='" + fv.name.replace(/'/g,"&#39;") + " (" + fv.count + ")' style='font-size: " + (startSize + ((fv.count - minCount) * factor)) + "px;'>" + fv.name + "</span>";
           
             } // end for v
           } // end if name matches
@@ -96,7 +96,7 @@ com.marklogic.widgets.tagcloud.prototype._refresh = function() {
  * 
  * @param {mljs.searchcontext} ctx - The search context instance to invoke
  */
-com.marklogic.widgets.tagcloud.prototype.setContext = function(context) {
+com.marklogic.widgets.tagcloud.prototype.setSearchContext = function(context) {
   this.ctx = context;
 };
 

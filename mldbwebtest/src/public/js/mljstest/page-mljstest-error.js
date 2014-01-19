@@ -35,6 +35,23 @@ window.onload = function() {
     }
   });
   
+  var errorExt = new com.marklogic.widgets.error("error-extension");
+  errorExt.showFirstCodefile = true;
+  errorExt.allowDetails = true;
+  try {
+    db.version(function(result) {
+      if (result.inError) {
+        document.getElementById("error").innerHTML = "version() call in handleable error: extension installed? (This is a good thing)";
+        console.log("version() call in handleable error: extension installed? (This is a good thing)");
+      } else {
+        document.getElementById("error").innerHTML = "version() call succeeded: extension must be installed. (This is a good thing too)";
+        console.log("version() call succeeded: extension must be installed. (This is a good thing too)");
+      }
+    });
+  } catch (err) {
+    console.log("CAUGHT VERSION CALL ERROR");
+    errorExt.show(err);
+  }
   
   
   var errorJS = new com.marklogic.widgets.error("error-js");

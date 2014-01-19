@@ -24,14 +24,14 @@ declare option xdmp:mapping "false";
 <script type="text/javascript" src="/js/mljs/mljs.js"></script>
 <script type="text/javascript" src="/js/mljs/mljs-xhr2.js"></script>
 <script type="text/javascript" src="/js/OpenLayers-2.13.1/OpenLayers.debug.js"></script> <!-- debug deployment only - remove '.debug' for production use -->
-<!--
+
 <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?sensor=false"></script> 
--->
 <!-- need to be online for this -->
 
 <script type="text/javascript" src="/js/mljs/widgets.js"></script>
 <script type="text/javascript" src="/js/mljs/widget-search.js"></script>
 <script type="text/javascript" src="/js/mljs/widget-openlayers.js"></script>
+<script type="text/javascript" src="/js/mljs/widget-address.js"></script>
 <script type="text/javascript" src="/js/heatmap/heatmap.js"></script>
 <script type="text/javascript" src="/js/heatmap/heatmap-openlayers.js"></script>
     <script>OpenLayers.Console = window.console || OpenLayers.Console;</script> <!-- debug deployment only -->
@@ -39,7 +39,13 @@ declare option xdmp:mapping "false";
 <script type="text/javascript" src="/js/mljstest/page-mljstest-openlayers.js"></script>
 
  <div class="container_12"> 
+   <div id="hint" class="grid_12"><i>Hint: Type in 'Westminster, London, UK' to recenter map</i></div>
+ </div>
+ <div class="container_12"> 
    <div id="errors" class="grid_12"></div>
+ </div>
+ <div class="container_12"> 
+   <div id="addressbar" class="grid_12">address</div>
  </div>
  <div class="container_12"> 
    <div id="map" class="grid_12" style="height: 300px;">Map</div>

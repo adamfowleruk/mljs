@@ -4,153 +4,83 @@ window.onload = function() {
   var db = new mljs(); // calls default configure
   db.logger.setLogLevel("debug");
   
+  db.forceVersion("6.0.2"); // disabled combined query
+  
   var error = new com.marklogic.widgets.error("errors");
   
   try {
   
-  var agName = "actor-genre";
-  var ayName = "actor-year";
+  var optsName = "actor-genre-year";
 
   var ob = db.createOptions();
-  ob.tuples(agName,"actor","genre"); // first is tuple name. defaults to string, json namespace
-  ob.rangeConstraint("actor",["item-frequency"],"http://marklogic.com/collation/")
-    .rangeConstraint("year",["item-order"],"http://marklogic.com/collation/")
-    .rangeConstraint("genre",["item-order"],"http://marklogic.com/collation/");
-  var ag = ob.toJson();
-  var ob2 = db.createOptions();
-  ob2.rangeConstraint("actor",["item-frequency"],"http://marklogic.com/collation/")
-    .rangeConstraint("year",["item-order"],"http://marklogic.com/collation/")
-    .rangeConstraint("genre",["item-order"],"http://marklogic.com/collation/");
-  ob2.tuples(ayName,"actor","year"); // first is tuple name. defaults to string, json namespace
-  var ay = ob2.toJson();
-  /*
-  var ag = {
-    "options": {
-      "tuples": [
-        {
-          "name": agName,
-          "range": [
-            {
-              "type": "xs:string",
-              "element": {
-                "ns": "http://marklogic.com/xdmp/json/basic",
-                "name": "actor"
-              }
-            },
-            {
-              "type": "xs:string",
-              "element": {
-                "ns": "http://marklogic.com/xdmp/json/basic",
-                "name": "genre"
-              }
-            }
-          ]
-        }
-      ]
-    }
-  };
-*/
+  ob.tuples("actor-genre","actor","genre"); // first is tuple name. defaults to string, json namespace
+  //ob.jsonRangeConstraint("actor",["item-frequency"])
+  //  .jsonRangeConstraint("year",["item-order"])
+  //  .jsonRangeConstraint("genre",["item-order"]);
+  ob.tuples("actor-year","actor","year"); // first is tuple name. defaults to string, json namespace
+  ob.tuples("actor-genre-year","actor","genre","year");
+  
+  // FOLLOWING MUST BE HERE TO RECEIVE ANY CO-OCCURENCE RESULTS! Disabled by default
+  ob.returnValues(true).returnResults(false).returnFacets(false);
+  
+  var opts = ob.toJson();
+  
   var coag = new com.marklogic.widgets.cooccurence("coag");
   coag.addErrorListener(error.updateError);
   coag.title = "Actor vs. Movie Genre";
+  coag.displayTuple("actor-genre");
   coag.setTupleConstraints(["actor","genre"]);
-  //coag.setOptions(ag);
-/*
-  var ay = {
-    "options": {
-      "tuples": [
-        {
-          "name": ayName,
-          "range": [
-            {
-              "type": "xs:string",
-              "element": {
-                "ns": "http://marklogic.com/xdmp/json/basic",
-                "name": "actor"
-              }
-            },
-            {
-              "type": "xs:string",
-              "element": {
-                "ns": "http://marklogic.com/xdmp/json/basic",
-                "name": "year"
-              }
-            }
-          ]
-        }
-      ]
-    }
-  };*/
-
+  
   var coay = new com.marklogic.widgets.cooccurence("coay");
   coay.addErrorListener(error.updateError);
   coay.title = "Actor vs. Movie Year";
+  coay.displayTuple("actor-year");
   coay.setTupleConstraints(["actor","year"]);
-  //coay.setOptions(ag);
   
-  /*
-  var query = {
-    query: {
-      "collection-query": {
-        "uri": ["movies"]
-      }
-    }
-  };*/
+  var coagy = new com.marklogic.widgets.cooccurence("coagy");
+  coagy.addErrorListener(error.updateError);
+  coagy.title = "Actor vs. Genre vs. Year";
+  coagy.displayTuple("actor-genre-year");
+  coagy.setTupleConstraints(["actor","genre","year"]);
+  
   var qb = db.createQuery();
-  qb.query(qb.collection("movies"));
-  var query = qb.toJson();
+  var colQuery = qb.collection("movies");
   
-  var updateCoag = function() {
-    db.values(query,agName,agName,function(result) {
-      if (result.inError) {
-        error.show(result.details);
-      } else {
-        var values = result.doc;
-        coag.updateValues(values);
-      }
-    });
-  };
+  // SEARCH CONTEXT METHOD
   
-  var updateCoay = function() {
-    db.values(query,ayName,ayName,function(result) {
-      if (result.inError) {
-        error.show(result.details);
-      } else {
-        var values = result.doc;
-        coay.updateValues(values);
-      }
-    });
-  };
+  var sc1 = db.createSearchContext();
+  sc1.valuesEndpoint("actor-genre","actor-year","actor-genre-year");
+  sc1.register(coag);
+  sc1.setOptions(optsName,opts);
   
-  var lis = function(newsel) {
-    qb = db.createQuery();
-    qb.query(qb.and([
-      qb.collection("movies"),
-      qb.range(newsel[0].name,newsel[0].value)
-    ]));
-    query = qb.toJson();
-    
-    updateCoag();
-    updateCoay();
-  };
-  coag.addFacetSelectionListener(lis);
-  coay.addFacetSelectionListener(lis);
-
-  db.saveSearchOptions(agName,ag,function(result) {
-    if (result.inError) {
-      error.show(result.details);
-    } else {
-    db.saveSearchOptions(ayName,ay,function(result) {
-    if (result.inError) {
-      error.show(result.details);
-    } else {
-      updateCoag();
-      
-      updateCoay();
-    }
+  //var sc2 = db.createSearchContext();
+  //sc2.valuesEndpoint("actor-year");
+  sc1.register(coay);
+  //sc2.setOptions(optsName,opts);
+  //sc2.contributeStructuredQuery("base",colQuery);
+  
+  //var sc3 = db.createSearchContext();
+  //sc3.valuesEndpoint("actor-genre-year");
+  sc1.register(coagy);
+  //sc3.setOptions(optsName,opts);
+  //sc3.contributeStructuredQuery("base",colQuery);
+  
+  sc1.contributeStructuredQuery("base",colQuery);
+  
+  // VALUES METHODS
+  /*
+  db.saveSearchOptions(optsName,opts, function(result) {
+    db.values(qb.toJson(),"actor-genre",optsName,null,function(result) {
+      coag.updateValues(result.doc);
     });
-  }
+    db.values(qb.toJson(),"actor-year",optsName,null,function(result) {
+      coay.updateValues(result.doc);
+    });
+    db.values(qb.toJson(),"actor-genre-year",optsName,null,function(result) {
+      coagy.updateValues(result.doc);
+    });
   });
+  */
   
   } catch (err) {
     error.show(err.message);

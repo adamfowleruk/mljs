@@ -41,12 +41,27 @@ com.marklogic.widgets = window.com.marklogic.widgets || {};
 
 // SEARCH HELPER STATIC OBJECT FUNCTIONS
 
+/**
+ * Helper functions used by search widgets primarily
+ * @static
+ */
 com.marklogic.widgets.searchhelper = {};
 
+/**
+ * Converts a value in to separate words, splitting the words by dash, underscore, and CamelCase
+ * 
+ * @param {string} str - The value to process
+ */
 com.marklogic.widgets.searchhelper.processValueAll = function(str) {
   return com.marklogic.widgets.searchhelper.processValue(str,"all");
 };
 
+/**
+ * Converts a value in to separate words, using the specified mode
+ * 
+ * @param {string} str - The value to process
+ * @param {string} mode - The mode ("all|splitdash|splitunderscore|camelcase")
+ */
 com.marklogic.widgets.searchhelper.processValue = function(str,mode) {
   var name = str;
   name = com.marklogic.widgets.searchhelper.splitdash(name,mode);
@@ -55,6 +70,11 @@ com.marklogic.widgets.searchhelper.processValue = function(str,mode) {
   return name;
 };
 
+/**
+ * Generate a standard set of snippet HTML. Useful for integrating to custom search results renderers
+ * 
+ * @param {result} result - REST result JSON. Should contain result.matches[{"match-text": ["", ... ]}, ... ]
+ */
 com.marklogic.widgets.searchhelper.snippet = function(result) {
   var resStr = "";
   
@@ -73,6 +93,12 @@ com.marklogic.widgets.searchhelper.snippet = function(result) {
   return resStr;
 };
 
+/**
+ * Splits a string in to words when it encounters a dash. Returns a string with spaces instead of dashes.
+ * 
+ * @param {string} value - The original value
+ * @param {string} mode - The mode. Function only operates is mode is "all" or "splitdash"
+ */
 com.marklogic.widgets.searchhelper.splitdash = function(value,mode) {
   if (value == undefined || value == null) {
     mljs.defaultconnection.logger.warn("WARNING: splitdash(): value is " + value);
@@ -95,6 +121,12 @@ com.marklogic.widgets.searchhelper.splitdash = function(value,mode) {
   return name;
 };
 
+/**
+ * Splits a string in to words when it encounters an underscore. Returns a string with spaces instead of underscores.
+ * 
+ * @param {string} value - The original value
+ * @param {string} mode - The mode. Function only operates is mode is "all" or "splitdunderscore"
+ */
 com.marklogic.widgets.searchhelper.splitunderscore = function(value,mode) {
   var name = value;
   if ("all" == mode || "splitunderscore" == mode) {
@@ -109,6 +141,12 @@ com.marklogic.widgets.searchhelper.splitunderscore = function(value,mode) {
   return name;
 };
 
+/**
+ * Splits a string in to words when it encounters a capital letter. Returns a string with spaces before a capital letter.
+ * 
+ * @param {string} value - The original value
+ * @param {string} mode - The mode. Function only operates is mode is "all" or "camelcase"
+ */
 com.marklogic.widgets.searchhelper.camelcase = function(value,mode) {
   var name = value;
   if ("all" == mode || "camelcase" == mode) {
@@ -123,6 +161,11 @@ com.marklogic.widgets.searchhelper.camelcase = function(value,mode) {
   return name;
 };
 
+/**
+ * Converts any JSON object to a nested HTML representation. Do NOT pass this function circular JSON objects.
+ * 
+ * @param {json} json - The JSON to display
+ */
 com.marklogic.widgets.searchhelper.jsontohtml = function(json) {
   var str = "<div class='jsonhtml'>";
   for (var tag in json) {
@@ -142,11 +185,71 @@ com.marklogic.widgets.searchhelper.jsontohtml = function(json) {
   return str;
 };
 
+/**
+ * NOT IMPLEMENTED
+ */
 com.marklogic.widgets.searchhelper.xmltohtml = function(xml) {
   // Take first text element as title, second as snippet
   // TODO if needed - see search results logic itself for xmlDoc.evaluate
 };
-
+/*
+com.marklogic.widgets.searchhelper.htmlRec = function(content) {
+    var resStr = "";
+    console.log("type of content: " + (typeof content));
+    if ("string" == typeof content) {
+      return content;
+    } else {
+      for (var tag in content) {
+        console.log("processing tag: " + tag);
+        resStr += "<" + tag;
+        if (undefined != content[tag].class) {
+          resStr += " class='" + content[tag].class + "'";
+          content[tag].class = undefined;
+        }
+        if (undefined != content[tag].id) {
+          resStr += " id='" + content[tag].id + "'";
+          content[tag].id = undefined;
+        }
+        resStr += ">";
+        console.log("calling htmlRec for tag: " + tag);
+        resStr += com.marklogic.widgets.searchhelper.htmlRec(content[tag]);
+        resStr += "</" + tag + ">";
+      }
+      return resStr;
+    }
+  }; // UNUSED ANYWHERE ELSE */
+com.marklogic.widgets.searchhelper.handleJson = function(result,json) {
+    
+        var resStr = "";
+        // parse each results and snippet / raw content
+        var title = result.uri;
+        if (undefined != json && undefined != json.title ) {
+          title = json.title;
+        }
+        var snippet = null;
+        // TODO show all content if snippeting mode is snippet
+        if (undefined != json && undefined != json.summary) {
+          snippet = json.summary;
+        } else if (undefined != json) {
+          //snippet = JSON.stringify(result.content); 
+          snippet = com.marklogic.widgets.searchhelper.jsontohtml(json);
+          // TODO check for XML (string not object) content in results.results[i].content
+        } else {
+          // no snippet available
+        }
+        
+        if (null == snippet) {
+          // TODO show JSON tree structure as HTML
+          mljs.defaultconnection.logger.debug("defaultProcessor: No JSON summary, building JSON tree HTML output");
+        }
+        
+        resStr += "<div class='searchresults-result'><h3>" + result.index + ". " + title + "</h3>";
+        if (null != snippet) {
+          resStr += "<div class='searchresults-snippet'>" + snippet + "</div>";
+        }
+        resStr += "</div>";
+        return resStr;
+  };
 
 
 
@@ -162,7 +265,9 @@ com.marklogic.widgets.searchhelper.xmltohtml = function(xml) {
 
 /**
  * Creates a search bar widget
+ * 
  * @constructor
+ * @param {string} container - The ID of the HTML element to render this widget within
  */
 com.marklogic.widgets.searchbar = function(container) {
   if (undefined == com.marklogic.widgets.searchbar.list) {
@@ -233,10 +338,20 @@ com.marklogic.widgets.searchbar.prototype.execute = function() {
   this.ctx.dosimplequery(q);
 };
 
+/**
+ * Sets the search mode. (Defaults to 'full query')
+ * 
+ * NOTE: If in contribute mode then a term query will be generated. This does seem to use the default grammar, so you can provide things like "animal:dog family:pet".
+ * 
+ * @param {string} mode - The mode. Either "fullquery" (default) or "contributestructured"
+ */
 com.marklogic.widgets.searchbar.prototype.setMode = function(mode) {
   this._mode = mode;
 };
 
+/**
+ * Convenience method to set the mode to contributed from the default of "fullquery"
+ */
 com.marklogic.widgets.searchbar.prototype.setModeContributeStructured = function() {
   this._mode = "contributestructured";
 };
@@ -249,12 +364,15 @@ com.marklogic.widgets.searchbar.prototype._dosearch = function(self) {
   if (this._mode == "fullquery") {
     self.ctx.dosimplequery(q);
   } else if (this._mode == "contributestructured") {
-    var qb = new this.ctx.db.query();
-    qb.query(qb.term(q));
-    self.ctx.contributeStructuredQuery(this.container,qb.toJson().query);
+    self.ctx.contributeStructuredQuery(this.container,q); // requires searchcontext from MLJS V 1.2+ - Detects this as text not JSON to perform combinedQuery when V7, term query on V6
   }
 };
 
+/**
+ * Called by a search context when the query string is updated by another widget. Does not result in a search being executed by this widget.
+ * 
+ * @param {string} q - The new query
+ */
 com.marklogic.widgets.searchbar.prototype.updateSimpleQuery = function(q) {
   if (null != q && undefined != q && "" != q) {
     mljs.defaultconnection.logger.debug(" - updateSimpleQuery: Setting query string to: " + q);
@@ -262,6 +380,11 @@ com.marklogic.widgets.searchbar.prototype.updateSimpleQuery = function(q) {
   }
 };
 
+/**
+ * Called by a search context when new search results are received.
+ * 
+ * @param {results} results - The JSON results object from the REST server
+ */
 com.marklogic.widgets.searchbar.prototype.updateResults = function(results) {
   if (typeof (results) != "boolean" && undefined != results && null != results && undefined != results.qtext) {
     mljs.defaultconnection.logger.debug(" - updateResults: Setting query string to: " + results.qtext);
@@ -274,7 +397,7 @@ com.marklogic.widgets.searchbar.prototype.updateResults = function(results) {
  * 
  * @param {mljs.searchcontext} ctx - The search context instance to invoke
  */
-com.marklogic.widgets.searchbar.prototype.setContext = function(context) {
+com.marklogic.widgets.searchbar.prototype.setSearchContext = function(context) {
   this.ctx = context;
 };
 
@@ -297,6 +420,9 @@ com.marklogic.widgets.searchbar.prototype.getContext = function() {
 /**
  * Creates a search facets interactive widget in the specified container.
  * 
+ * This widget is MLJS Workplace enabled.
+ * 
+ * @constructor
  * @param {string} container - The HTML ID of the element this widget should place its content in to.
  */
 com.marklogic.widgets.searchfacets = function(container) {
@@ -327,6 +453,11 @@ com.marklogic.widgets.searchfacets = function(container) {
   this._refresh();
 };
 
+/**
+ * Returns the MLJS Workplace configuration definition listing config properties supported by this widget
+ * 
+ * @static
+ */
 com.marklogic.widgets.searchfacets.getConfigurationDefinition = function() {
   return {
     listSize: {type: "positiveInteger", minimum: 1, default: 5, title: "List Size", description: "How many facet values to show at first."},
@@ -338,7 +469,11 @@ com.marklogic.widgets.searchfacets.getConfigurationDefinition = function() {
   // TODO include facet settings (if applicable?)
 };
 
-
+/**
+ * Sets the configuration for this instance of a widget in an MLJS Workplace
+ * 
+ * @param {json} config - The JSON Workplace widget configuration to apply
+ */
 com.marklogic.widgets.searchfacets.prototype.setConfiguration = function(config) {
   for (var prop in config) {
     this[prop] = config[prop];
@@ -353,7 +488,7 @@ com.marklogic.widgets.searchfacets.prototype.setConfiguration = function(config)
  * 
  * @param {mljs.searchcontext} ctx - The search context instance to invoke
  */
-com.marklogic.widgets.searchfacets.prototype.setContext = function(context) {
+com.marklogic.widgets.searchfacets.prototype.setSearchContext = function(context) {
   this.ctx = context;
 };
 
@@ -423,7 +558,7 @@ com.marklogic.widgets.searchfacets.prototype._refresh = function() {
       var s = this.selected[i];
       str += "<div class='searchfacets-selection'>" + 
         "<a href='#" + this.container + "-desel-" + s.name + "-" + s.value + "' class='searchfacets-deselect' id='" + this.container + "-desel-" + s.name + "-" + s.value + "'>X</a> " +
-        fname(s.name) + ": " + this._transformFacetValue(s.value) + "</div>";
+        fname(s.name) + ": " + this._transformFacetValue(s.name,s.value) + "</div>";
       // add deselection X link
       deselectionTodo.push(s);
     }
@@ -455,7 +590,7 @@ com.marklogic.widgets.searchfacets.prototype._refresh = function() {
           // limit number of values shown
           if (v < this.listSize || (v < this.extendedSize && settings.extended) || settings.showAll) {
             var fv = values[v];
-            facetStr += "<div class='searchfacets-facet-value' id='" + this.container + "-fv-" + name + "-" + fv.name + "'>" + this._transformFacetValue(fv.name) + " (" + fv.count + ")" + "</div>";
+            facetStr += "<div class='searchfacets-facet-value' id='" + this.container + "-fv-" + name + "-" + fv.name + "'>" + this._transformFacetValue(name,fv.name) + " (" + fv.count + ")" + "</div>";
             facetHandlersTodo.push({name: name, value: fv.name});
           }
         }
@@ -586,13 +721,19 @@ com.marklogic.widgets.searchfacets.prototype._transformFacetName = function(face
   return com.marklogic.widgets.searchhelper.processValue(facetName,this.facetNameTransform);
 };
 
-com.marklogic.widgets.searchfacets.prototype._transformFacetValue = function(facetValue) {
+com.marklogic.widgets.searchfacets.prototype._transformFacetValue = function(facetName,facetValue) {
   /*var name = facetValue;
   name = com.marklogic.widgets.searchhelper.splitdash(name,this.facetValueTransform);
   name = com.marklogic.widgets.searchhelper.splitunderscore(name,this.facetValueTransform);
   name = com.marklogic.widgets.searchhelper.camelcase(name,this.facetValueTransform);
   return name;*/
-  return com.marklogic.widgets.searchhelper.processValue(facetValue,this.facetValueTransform);
+  // try options cache first
+  var fv = this.ctx.getOptionsBuilder().getFacetValueString(facetName,facetValue);
+  if (null == fv) {
+    return com.marklogic.widgets.searchhelper.processValue(facetValue,this.facetValueTransform);
+  } else {
+    return fv;
+  }
 };
 
 
@@ -695,6 +836,8 @@ com.marklogic.widgets.searchfacets.prototype.updateSelectedFacets = function(fac
  * Supports both JSON and XML (likely XHTML) content display by default.
  * Also allows making the entire result clickable, to navigate to another application page, supporting dynamic URL creation.
  * 
+ * This widget is partially MLJS Workplace enabled.
+ * 
  * @constructor
  * @param {string} container - HTML ID of the element in which to draw this widget's content
  */
@@ -719,294 +862,6 @@ com.marklogic.widgets.searchresults = function(container) {
   
   var self = this;
   
-  var htmlRec = function(content) {
-    var resStr = "";
-    console.log("type of content: " + (typeof content));
-    if ("string" == typeof content) {
-      return content;
-    } else {
-      for (var tag in content) {
-        console.log("processing tag: " + tag);
-        resStr += "<" + tag;
-        if (undefined != content[tag].class) {
-          resStr += " class='" + content[tag].class + "'";
-          content[tag].class = undefined;
-        }
-        if (undefined != content[tag].id) {
-          resStr += " id='" + content[tag].id + "'";
-          content[tag].id = undefined;
-        }
-        resStr += ">";
-        console.log("calling htmlRec for tag: " + tag);
-        resStr += htmlRec(content[tag]);
-        resStr += "</" + tag + ">";
-      }
-      return resStr;
-    }
-  };
-  var handleJson = function(result,json) {
-    
-        var resStr = "";
-        // parse each results and snippet / raw content
-        var title = result.uri;
-        if (undefined != json && undefined != json.title ) {
-          title = json.title;
-        }
-        var snippet = null;
-        // TODO show all content if snippeting mode is snippet
-        if (undefined != json && undefined != json.summary) {
-          snippet = json.summary;
-        } else if (undefined != json) {
-          //snippet = JSON.stringify(result.content); 
-          snippet = com.marklogic.widgets.searchhelper.jsontohtml(json);
-          // TODO check for XML (string not object) content in results.results[i].content
-        } else {
-          // no snippet available
-        }
-        
-        if (null == snippet) {
-          // TODO show JSON tree structure as HTML
-          self.ctx.db.logger.debug("defaultProcessor: No JSON summary, building JSON tree HTML output");
-        }
-        
-        resStr += "<div class='searchresults-result'><h3>" + result.index + ". " + title + "</h3>";
-        if (null != snippet) {
-          resStr += "<div class='searchresults-snippet'>" + snippet + "</div>";
-        }
-        resStr += "</div>";
-        return resStr;
-  };
-  this.defaultProcessor = {
-    matcher: function(result) {
-      return true; // handles all results
-    }, 
-    processor: function(result) {
-      // check if 1 root json element that is called 'html'
-      /*
-      console.log("TYPEOF: " + (typeof result.content));
-      console.log("length: " + ( result.content.length));
-      console.log("html: " + ( result.content.html)); */
-      self.ctx.db.logger.debug("matches: " + result.matches);
-      if (undefined != result.matches) {
-        self.ctx.db.logger.debug("first match: " + result.matches[0]);
-        self.ctx.db.logger.debug("match text: " + result.matches[0]["match-text"]);
-        self.ctx.db.logger.debug("match text 0: " + result.matches[0]["match-text"][0]);
-      }
-      if ("string" == typeof result.content && result.content.substring(0,1) == "{") {
-        self.ctx.db.logger.debug("Found JSON string object");
-        var json = JSON.parse(result.content);
-        self.ctx.db.logger.debug("defaultProcessor:  - JSON parse successful...");
-        
-        // we hit this line if we succeed
-        return handleJson(result,json);
-      } else if ("string" == typeof result.content && -1 != result.content.substring(0,100).indexOf("<html")) { // TODO replace with XPath as this is very wide ranging - http://www.w3.org/1999/xhtml (escape dots?)
-          // Get title from /html/head/title or /html/body/h1[1] or /html/body/h2[1] or /html/body/p[1]
-          // don't rely on xml.evaluate() though
-          self.ctx.db.logger.debug("searchresults: defaultProcesor: Got HTML content");
-          var titleStart = result.content.indexOf("title>"); // NB can't do <title because there may be a random namespace name. Replace this with XPATH if supported
-          var titleEnd = result.content.indexOf("title>",titleStart + 6);
-          var bodyStart = result.content.indexOf("body");
-          var bodyEnd = result.content.indexOf(">",bodyStart + 4);
-          var endBodyStart = result.content.indexOf("body",bodyEnd + 1);
-          self.ctx.db.logger.debug("titleStart: " + titleStart);
-          self.ctx.db.logger.debug("titleEnd: " + titleEnd);
-          self.ctx.db.logger.debug("bodyStart: " + bodyStart);
-          self.ctx.db.logger.debug("bodyEnd: " + bodyEnd);
-          self.ctx.db.logger.debug("endBodyStart: " + endBodyStart);
-          
-          //var endBodyEnd = result.content.indexOf(">",endBodyStart + 6);
-          
-          var bodyContent = result.content.substring(bodyEnd + 1,endBodyStart);
-          self.ctx.db.logger.debug("bodyContent: " + bodyContent);
-          var title = result.uri;
-          if (-1 != titleStart && -1 != titleEnd) {
-            title = result.content.substring(titleStart + 6,titleEnd);
-          } else {
-            var firstElStart = bodyContent.indexOf("<");
-            var firstElEnd = bodyContent.indexOf(">",firstElStart + 1);
-            var endFirstElStart = bodyContent.indexOf("</",firstElEnd);
-            if (-1 != firstElStart && -1 != firstElEnd && -1 != endFirstElStart) {
-              title = bodyContent.substring(firstElEnd + 1,endFirstElStart);
-            } 
-          }
-          self.ctx.db.logger.debug("title: " + title);
-          // render first 4 elements from /html/body/element()[1 to 4]
-          // render all content for now
-          
-          var resStr = "<div class='searchresults-result'><h3>" + result.index + ". " + title + "</h3>";
-          resStr += "<div class='searchresults-snippet'>" + bodyContent + "</div>";
-          resStr += "</div>";
-          return resStr;
-          
-        //} else {
-          
-          /*
-          self.ctx.db.logger.debug("defaultProcessor: Got JSON Object rendering of an HTML document");
-          // is a xhtml document rendered as json
-          var content = result.content.html.body;
-          var resStr = htmlRec(content);
-          */
-        } 
-       else if (undefined != result.matches && undefined != result.matches[0] && undefined != result.matches[0]["match-text"] && undefined != result.matches[0]["match-text"][0] /*&& result.matches[0]["match-text"][0].indexOf("<html") == 0*/) {
-        self.ctx.db.logger.debug("defaultProcessor: Got a snippet match with a html element");
-        
-        //var xml = textToXML(result.matches[0]["match-text"][0]);
-        //var txt = result.matches[0]["match-text"][0];
-        //self.ctx.db.logger.debug("RAW HTML TEXT: " + txt);
-        //var strip = txt.substring(txt.indexOf(">",txt.indexOf("<body") + 5) + 1,txt.indexOf("</body>"));
-        //self.ctx.db.logger.debug("STRIP TEXT: " + strip);
-        var title = null;
-        //var titleEl = xml.getElementsByTagName("title")[0];
-        self.ctx.db.logger.debug("PATH: " + result.path);
-        //if (undefined != titleEl && null != titleEl && null != titleEl.nodeValue) {
-        //  title = titleEl.nodeValue;
-        //} else {
-          title = result.path.substring(8,result.path.length - 2);
-        //}
-        var resStr = "<div class='searchresults-result'><h3>" + result.index + ". " + title + "</h3>";
-        //resStr += "<div class='searchresults-snippet'>" + (new XMLSerializer()).serializeToString(xml.getElementsByTagName("body")[0]) + "</div>";
-        
-        
-        resStr += com.marklogic.widgets.searchhelper.snippet(result);
-        
-        //resStr += "<div class='searchresults-snippet'>" + /*strip*/ txt + "</div>";
-        //resStr += "<div class='searchresults-snippet'><iframe scrolling='no'>" + result.matches[0]["match-text"][0] + "</iframe></div>";
-        
-        resStr += "</div>";
-        return resStr;
-      } else if ("object" == typeof(result.content)) {
-        // TRY TO GUESS JSON CONTENT - V6 and older V7 builds - now (29 Oct 2013) even JSON is escaped as a string!!!
-        self.ctx.db.logger.debug("defaultProcessor: Got JSON Object content");
-        
-        return handleJson(result,result.content);
-      } else {
-        // ATTEMPT TO PARSE AS XML
-        self.ctx.db.logger.debug("defaultProcessor: Got escaped string - Could be XML or JSON ...");
-        
-        // try to parse as JSON first
-        try {
-          var json = JSON.parse(result.content);
-          self.ctx.db.logger.debug("defaultProcessor:  - JSON parse successful...");
-          
-          // we hit this line if we succeed
-          return handleJson(result,json);
-        } catch (err) {
-          // try XML now        
-          try {
-            var xmlDoc = textToXML(result.content);
-            self.ctx.db.logger.debug("defaultProcessor:  - XML parse successful...");
-            
-            var resStr = "";
-            // parse each results and snippet / raw content
-            var title = result.uri;
-            var snippet = null;
-            
-            if (undefined != xmlDoc.evaluate) {
-              // check for common title names - title, name, id, h1
-              var evalResult = xmlDoc.evaluate("//title[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
-              if (undefined == evalResult || "" == evalResult.stringValue) {
-                self.ctx.db.logger.debug("defaultProcessor: //title[1]/text() undefined");
-                evalResult = xmlDoc.evaluate("//name[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
-                
-                if (undefined == evalResult || "" == evalResult.stringValue) {
-                  self.ctx.db.logger.debug("defaultProcessor: //name[1]/text() undefined");
-                  evalResult = xmlDoc.evaluate("//id[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
-                
-                  if (undefined == evalResult || "" == evalResult.stringValue) {
-                self.ctx.db.logger.debug("defaultProcessor: //id[1]/text() undefined");
-                    evalResult = xmlDoc.evaluate("//h1[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
-                
-                    if (undefined == evalResult || "" == evalResult.stringValue) {
-                      self.ctx.db.logger.debug("defaultProcessor: //h1[1]/text() undefined");
-                      self.ctx.db.logger.debug("defaultProcessor: trying (//text())[1]");
-                      evalResult = xmlDoc.evaluate("(//text())[1]",xmlDoc,null,XPathResult.STRING_TYPE,null);
-                      self.ctx.db.logger.debug("defaultProcessor: output: " + evalResult.stringValue);
-                    }
-                  }
-                }
-              }
-              if (undefined != evalResult && null != evalResult && "" != evalResult.stringValue) {
-                title = evalResult.stringValue;
-              }
-              // check for common snippet names - summary, synopsis, description, details
-              evalResult = xmlDoc.evaluate("//summary[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
-              if (undefined == evalResult || "" == evalResult.stringValue) {
-                self.ctx.db.logger.debug("defaultProcessor: //summary[1]/text() undefined");
-                evalResult = xmlDoc.evaluate("//synopsis[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
-                if (undefined == evalResult || "" == evalResult.stringValue) {
-                  self.ctx.db.logger.debug("defaultProcessor: //synopsis[1]/text() undefined");
-                  evalResult = xmlDoc.evaluate("//description[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
-                  if (undefined == evalResult || "" == evalResult.stringValue) {
-                    self.ctx.db.logger.debug("defaultProcessor: //description[1]/text() undefined");
-                    evalResult = xmlDoc.evaluate("//details[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
-                    
-                    if (undefined == evalResult || "" == evalResult.stringValue) {
-                      self.ctx.db.logger.debug("defaultProcessor: //details[1]/text() undefined");
-                      self.ctx.db.logger.debug("defaultProcessor: trying (//text())[2]");
-                      evalResult = xmlDoc.evaluate("(//text())[2]",xmlDoc,null,XPathResult.STRING_TYPE,null);
-                      self.ctx.db.logger.debug("defaultProcessor: output: " + evalResult.stringValue);
-                    }
-                  }
-                }
-              }
-              if (undefined != evalResult && null != evalResult && "" != evalResult.stringValue) {
-                snippet = evalResult.stringValue;
-              }
-            }
-          
-            if (null == snippet) {
-              // show XML tree structure as HTML
-              self.ctx.db.logger.debug("defaultProcessor: No XML summary, building XML tree HTML output");
-              
-              // display tree of XML
-              snippet = com.marklogic.widgets.searchhelper.xmltohtml(xmlDoc); // TODO
-            }
-            
-            if (null == snippet) {
-              snippet = result.content;
-            }
-          
-            resStr += "<div class='searchresults-result'><h3>" + result.index + ". " + title + "</h3>";
-            if (null != snippet) {
-              resStr += "<div class='searchresults-snippet'>" + snippet + "</div>";
-            }
-            resStr += "</div>";
-            return resStr;
-          } catch (err) {
-            self.ctx.db.logger.debug("defaultProcessor: XML mode: Failed to create XML document from text: " + result.content);
-          }
-          
-          
-          // end try XML noe
-        }
-      }
-    }
-  };
-  
-  this.builtinProcessors = [];
-  this.builtinProcessors["svg"] = {
-   matcher: function(result) {
-    var xml = null;
-    if ("string" == typeof result.content) {
-      xml = textToXML(result.content);
-    } else if ("object" == typeof result.content && undefined != result.content.nodeType) {
-      xml = result.content; // should never happen - always returned as string
-    }
-    if (null != xml) {
-      // check namespace and root element
-      if (xml.childNodes[0].nodeName == "svg") {
-        mljs.defaultconnection.logger.debug("Potential SVG nodeName: " + xml.childNodes[0].nodeName);
-        mljs.defaultconnection.logger.debug("Potential SVG nodeType: " + xml.childNodes[0].nodeType);
-        return true;
-      } else {
-        return false;
-      }
-    }
-    return false;
-  }, processor: function (result) {
-    return "<div class='searchresults-result'><h3>" + result.index + ". " + result.uri + "</h3>" +
-      "<div style='height: 200px;position:relative;'>" + result.content + "</div></div>"; // returns the full xml to be applied within the document as SVG
-  } };
   
   this._refresh();
   
@@ -1015,6 +870,11 @@ com.marklogic.widgets.searchresults = function(container) {
   this.highlightPublisher = new com.marklogic.events.Publisher();
 };
 
+/**
+ * Returns the MLJS Workplace configuration definition listing config properties supported by this widget
+ * 
+ * @static
+ */
 com.marklogic.widgets.searchresults.getConfigurationDefinition = function() {
   return {
     selectionMode: {type: "enum", default: "append", title: "Selection Mode", description: "If no action happens on click, which selection mode to use.",
@@ -1025,6 +885,11 @@ com.marklogic.widgets.searchresults.getConfigurationDefinition = function() {
   }
 };
 
+/**
+ * Sets the configuration for this instance of a widget in an MLJS Workplace
+ * 
+ * @param {json} config - The JSON Workplace widget configuration to apply
+ */
 com.marklogic.widgets.searchresults.prototype.setConfiguration = function(config) {
   for (var p in config) {
     this[p] = config[p];
@@ -1036,7 +901,7 @@ com.marklogic.widgets.searchresults.prototype.setConfiguration = function(config
  * 
  * @param {mljs.searchcontext} ctx - The search context instance to invoke
  */
-com.marklogic.widgets.searchresults.prototype.setContext = function(context) {
+com.marklogic.widgets.searchresults.prototype.setSearchContext = function(context) {
   this.ctx = context;
 };
 
@@ -1137,6 +1002,10 @@ com.marklogic.widgets.searchresults.prototype._refresh = function() {
           }
         }
       }
+      
+      /*
+      // use templated layout and replace relevant sections (or with blank), also a wrapper too
+      // make all built ins advanced processors
       if (!found) {
         mljs.defaultconnection.logger.debug("No processor found, checkin builtins");
         for (var pname in this.builtinProcessors) {
@@ -1153,12 +1022,37 @@ com.marklogic.widgets.searchresults.prototype._refresh = function() {
             }
           }
         }
-        
+        // refactor the default to several built ins
         if (!found) {
           mljs.defaultconnection.logger.debug("No processor found, using default");
           resStr += this.defaultProcessor.processor(result);
         }
-      }
+        
+        
+        */
+        
+        
+        // NEW START
+        if (!found) {
+          for (var pname in com.marklogic.widgets.searchresults.defaultrenderers) {
+            if (!found) {
+              found = com.marklogic.widgets.searchresults.defaultrenderers[pname].matcher(result,this,{});
+              if (found) {
+                mljs.defaultconnection.logger.debug("found builtin processor: " + pname);
+                var returned = com.marklogic.widgets.searchresults.defaultrenderers[pname].processor(result,this,{});
+                if (undefined != returned.nodeType) {
+                  var id = (uureplace++);
+                  resStr = "<div id='" + this.container + "-searchresults-xml-" + id + "'></div>";
+                  replacements[id] = returned;
+                } else {
+                  resStr += returned;
+                }
+              }
+            }
+          }
+        }
+        // NEW END
+      //}
       
       resStr += "</div>";
     }
@@ -1203,6 +1097,351 @@ com.marklogic.widgets.searchresults.prototype._refresh = function() {
   }
 };
 
+com.marklogic.widgets.searchresults.defaultrenderers = {
+  json: {
+    matcher: function(result,manager,settings) {
+      return ("json" == result.format);
+      /* {
+        return true;
+      }
+      // do we need the rest? Yes, if format reported wrong by server (stored with wrong mime type)
+      if ("string" == typeof result.content && result.content.substring(0,1) == "{") {
+        return true;
+      }
+      */
+      /*
+      if ("object" == typeof(result.content)) {
+        return true;
+      }
+      */
+      /*
+      try {
+        var json = JSON.parse(result.content);
+        return true;
+      } catch (err) {
+        // fail
+      }
+      */
+      //return false;
+    }, 
+    processor: function(result,manager,settings) {
+        try {
+          var json = result.content;
+          if ("string" == typeof(json)) {
+            json = JSON.parse(json);
+          }
+          //manager.ctx.db.logger.debug("defaultProcessor:  - JSON parse successful...");
+          
+          // we hit this line if we succeed
+          return com.marklogic.widgets.searchhelper.handleJson(result,json);
+        } catch (err) {
+          // failure
+        }
+        return "";
+    }
+  },
+  snippet: {
+    matcher: function(result,manager,settings) {
+      return (undefined != result.matches && undefined != result.matches[0] && undefined != result.matches[0]["match-text"] && 
+              undefined != result.matches[0]["match-text"][0] /*&& result.matches[0]["match-text"][0].indexOf("<html") == 0*/);
+      
+    },
+    processor: function(result,manager,settings) {
+        //manager.ctx.db.logger.debug("defaultProcessor: Got a snippet match with a html element");
+        
+        //var xml = textToXML(result.matches[0]["match-text"][0]);
+        //var txt = result.matches[0]["match-text"][0];
+        //manager.ctx.db.logger.debug("RAW HTML TEXT: " + txt);
+        //var strip = txt.substring(txt.indexOf(">",txt.indexOf("<body") + 5) + 1,txt.indexOf("</body>"));
+        //manager.ctx.db.logger.debug("STRIP TEXT: " + strip);
+        var title = null;
+        //var titleEl = xml.getElementsByTagName("title")[0];
+        //manager.ctx.db.logger.debug("PATH: " + result.path);
+        //if (undefined != titleEl && null != titleEl && null != titleEl.nodeValue) {
+        //  title = titleEl.nodeValue;
+        //} else {
+          title = result.path.substring(8,result.path.length - 2);
+        //}
+        var resStr = "<div class='searchresults-result'><h3>" + result.index + ". " + title + "</h3>";
+        //resStr += "<div class='searchresults-snippet'>" + (new XMLSerializer()).serializeToString(xml.getElementsByTagName("body")[0]) + "</div>";
+        
+        
+        resStr += com.marklogic.widgets.searchhelper.snippet(result);
+        
+        //resStr += "<div class='searchresults-snippet'>" + /*strip*/ txt + "</div>";
+        //resStr += "<div class='searchresults-snippet'><iframe scrolling='no'>" + result.matches[0]["match-text"][0] + "</iframe></div>";
+        
+        resStr += "</div>";
+        return resStr;
+    }
+  },
+  svg: {
+    matcher: function(result) {
+      var xml = null;
+      if ("string" == typeof result.content) {
+        xml = textToXML(result.content);
+      } else if ("object" == typeof result.content && undefined != result.content.nodeType) {
+        xml = result.content; // should never happen - always returned as string
+      }
+      if (null != xml) {
+        // check namespace and root element
+        if (xml.childNodes[0].nodeName == "svg") {
+          mljs.defaultconnection.logger.debug("Potential SVG nodeName: " + xml.childNodes[0].nodeName);
+          mljs.defaultconnection.logger.debug("Potential SVG nodeType: " + xml.childNodes[0].nodeType);
+          return true;
+        } else {
+          return false;
+        }
+      }
+      return false;
+    },
+    // backwards compatibility
+    processor: function (result,manager,settings) {
+      return "<div class='searchresults-result'><h3>" + result.index + ". " + result.uri + "</h3>" +
+        "<div style='height: 200px;position:relative;'>" + result.content + "</div></div>"; // returns the full xml to be applied within the document as SVG
+    },
+    title: function(result, manager, settings) {
+      return "<div class='searchresults-result'><h3>" + result.index + ". " + result.uri + "</h3>";
+    },
+    summary: function(result, manager, settings) {
+      return "<div style='height: 200px;position:relative;'>" + result.content + "</div></div>";
+    }
+    // TODO snippet, etc. etc.
+  },
+  html: {
+    matcher: function(result,manager,settings) {
+      return ("string" == typeof result.content && -1 != result.content.substring(0,100).indexOf("<html")); 
+      // TODO replace with XPath as this is very wide ranging - http://www.w3.org/1999/xhtml (escape dots?)
+    },
+    processor: function(result,manager,settings) {
+          // Get title from /html/head/title or /html/body/h1[1] or /html/body/h2[1] or /html/body/p[1]
+          // don't rely on xml.evaluate() though
+          //manager.ctx.db.logger.debug("searchresults: defaultProcesor: Got HTML content");
+          var titleStart = result.content.indexOf("title>"); // NB can't do <title because there may be a random namespace name. Replace this with XPATH if supported
+          var titleEnd = result.content.indexOf("title>",titleStart + 6);
+          var bodyStart = result.content.indexOf("body");
+          var bodyEnd = result.content.indexOf(">",bodyStart + 4);
+          var endBodyStart = result.content.indexOf("body",bodyEnd + 1);
+          //manager.ctx.db.logger.debug("titleStart: " + titleStart);
+          //manager.ctx.db.logger.debug("titleEnd: " + titleEnd);
+          //manager.ctx.db.logger.debug("bodyStart: " + bodyStart);
+          //manager.ctx.db.logger.debug("bodyEnd: " + bodyEnd);
+          //manager.ctx.db.logger.debug("endBodyStart: " + endBodyStart);
+          
+          //var endBodyEnd = result.content.indexOf(">",endBodyStart + 6);
+          
+          var bodyContent = result.content.substring(bodyEnd + 1,endBodyStart);
+          //manager.ctx.db.logger.debug("bodyContent: " + bodyContent);
+          var title = result.uri;
+          if (-1 != titleStart && -1 != titleEnd) {
+            title = result.content.substring(titleStart + 6,titleEnd);
+          } else {
+            var firstElStart = bodyContent.indexOf("<");
+            var firstElEnd = bodyContent.indexOf(">",firstElStart + 1);
+            var endFirstElStart = bodyContent.indexOf("</",firstElEnd);
+            if (-1 != firstElStart && -1 != firstElEnd && -1 != endFirstElStart) {
+              title = bodyContent.substring(firstElEnd + 1,endFirstElStart);
+            } 
+          }
+          //manager.ctx.db.logger.debug("title: " + title);
+          // render first 4 elements from /html/body/element()[1 to 4]
+          // render all content for now
+          
+          var resStr = "<div class='searchresults-result'><h3>" + result.index + ". " + title + "</h3>";
+          resStr += "<div class='searchresults-snippet'>" + bodyContent + "</div>";
+          resStr += "</div>";
+          return resStr;
+    }
+  },
+  triples: {
+    matcher: function(result,manager,settings) {
+      return ("<sem:triples" == result.content.substring(0,12));
+      // TODO flesh this out
+    },
+    processor: function(result,manager,settings) {
+      // gen title
+      var s = "<div class='searchresults-result'><h3>" + result.index + ". Subgraph " + result.uri + "</h3>";
+      
+      // convert to XML (sem:triples)
+      var xml = textToXML(result.content);
+      
+      var resolver = function(prefix){
+	      if (prefix === "sem") {
+    	    return "http://marklogic.com/semantics";
+	      } else {
+	        return null;
+	      }
+      };
+      
+      // get all child nodes (sem:triple)
+      var iterator = xml.evaluate("//sem:triple",xml,resolver,XPathResult.UNORDERED_NODE_ITERATOR_TYPE,null);
+      var child = iterator.iterateNext();
+      var first = true;
+      //for (var i = 0, max = children.length, child;i < max;i++) {
+      while (child) {
+        //child = children.item(i);
+        // cannot execute xpath on child nodes
+        var subject = "", predicate = "", obj = "";
+        for (var n = 0;n < child.childNodes.length;n++) {
+          var gc = child.childNodes.item(n);
+          if (1 == gc.nodeType) {
+            if ("sem:subject" == gc.nodeName) {
+              subject = gc.textContent;
+            } else if ("sem:predicate" == gc.nodeName) {
+              predicate = gc.textContent;
+            } else if ("sem:object" == gc.nodeName) {
+              obj = gc.textContent;
+            }
+          }
+        }
+        
+        //var subject = child.evaluate("/sem:subject/text()",child,resolver,XPathResult.STRING_TYPE,null);
+        //var predicate = child.evaluate("/sem:predicate/text()",child,resolver,XPathResult.STRING_TYPE,null);
+        //var obj = child.evaluate("/sem:object/text()",child,resolver,XPathResult.STRING_TYPE,null);
+        //var objectIRI = child.evaluate("/sem:subject[!@dataType]/text()",child,resolver,XPathResult.STRING_TYPE,null);
+        //var objectTyped = child.evaluate("/sem:subject[@dataType]/text()",child,resolver,XPathResult.STRING_TYPE,null);
+        if (!first) {
+          s += "<br/>";
+        } else {
+          first = false;
+        }
+        s += "Subject: " + subject + ", Predicate: " + predicate + ", Object: " + obj;
+        child = iterator.iterateNext();
+      }
+      s += "</div>";
+      return s;
+    }
+  },
+  xml: {
+    matcher: function(result,manager,settings) {
+      return ("xml" == result.format);
+      /*
+      try {
+        var xmlDoc = textToXML(result.content);
+        //manager.ctx.db.logger.debug("defaultProcessor:  - XML parse successful...");
+        return true;
+      } catch (err) {
+        // failed
+      }
+      return false;
+      */
+    },
+    processor: function(result,manager,settings) {
+      
+          // try XML now        
+          try {
+            var xmlDoc = textToXML(result.content);
+            //manager.ctx.db.logger.debug("defaultProcessor:  - XML parse successful...");
+            
+            var resStr = "";
+            // parse each results and snippet / raw content
+            var title = result.uri;
+            var snippet = null;
+            
+            if (undefined != xmlDoc.evaluate) {
+              // check for common title names - title, name, id, h1
+              var evalResult = xmlDoc.evaluate("//title[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
+              if (undefined == evalResult || "" == evalResult.stringValue) {
+                //manager.ctx.db.logger.debug("defaultProcessor: //title[1]/text() undefined");
+                evalResult = xmlDoc.evaluate("//name[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
+                
+                if (undefined == evalResult || "" == evalResult.stringValue) {
+                  //manager.ctx.db.logger.debug("defaultProcessor: //name[1]/text() undefined");
+                  evalResult = xmlDoc.evaluate("//id[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
+                
+                  if (undefined == evalResult || "" == evalResult.stringValue) {
+                //manager.ctx.db.logger.debug("defaultProcessor: //id[1]/text() undefined");
+                    evalResult = xmlDoc.evaluate("//h1[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
+                
+                    if (undefined == evalResult || "" == evalResult.stringValue) {
+                      //manager.ctx.db.logger.debug("defaultProcessor: //h1[1]/text() undefined");
+                      //manager.ctx.db.logger.debug("defaultProcessor: trying (//text())[1]");
+                      evalResult = xmlDoc.evaluate("(//text())[1]",xmlDoc,null,XPathResult.STRING_TYPE,null);
+                      //manager.ctx.db.logger.debug("defaultProcessor: output: " + evalResult.stringValue);
+                    }
+                  }
+                }
+              }
+              if (undefined != evalResult && null != evalResult && "" != evalResult.stringValue) {
+                title = evalResult.stringValue;
+              }
+              // check for common snippet names - summary, synopsis, description, details
+              evalResult = xmlDoc.evaluate("//summary[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
+              if (undefined == evalResult || "" == evalResult.stringValue) {
+                //manager.ctx.db.logger.debug("defaultProcessor: //summary[1]/text() undefined");
+                evalResult = xmlDoc.evaluate("//synopsis[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
+                if (undefined == evalResult || "" == evalResult.stringValue) {
+                  //manager.ctx.db.logger.debug("defaultProcessor: //synopsis[1]/text() undefined");
+                  evalResult = xmlDoc.evaluate("//description[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
+                  if (undefined == evalResult || "" == evalResult.stringValue) {
+                    //manager.ctx.db.logger.debug("defaultProcessor: //description[1]/text() undefined");
+                    evalResult = xmlDoc.evaluate("//details[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
+                    
+                    if (undefined == evalResult || "" == evalResult.stringValue) {
+                      //manager.ctx.db.logger.debug("defaultProcessor: //details[1]/text() undefined");
+                      //manager.ctx.db.logger.debug("defaultProcessor: trying (//text())[2]");
+                      evalResult = xmlDoc.evaluate("(//text())[2]",xmlDoc,null,XPathResult.STRING_TYPE,null);
+                      //manager.ctx.db.logger.debug("defaultProcessor: output: " + evalResult.stringValue);
+                    }
+                  }
+                }
+              }
+              if (undefined != evalResult && null != evalResult && "" != evalResult.stringValue) {
+                snippet = evalResult.stringValue;
+              }
+            }
+          
+            if (null == snippet) {
+              // show XML tree structure as HTML
+              //manager.ctx.db.logger.debug("defaultProcessor: No XML summary, building XML tree HTML output");
+              
+              // display tree of XML
+              snippet = com.marklogic.widgets.searchhelper.xmltohtml(xmlDoc); // TODO
+            }
+            
+            if (null == snippet) {
+              snippet = result.content;
+            }
+          
+            resStr += "<div class='searchresults-result'><h3>" + result.index + ". " + title + "</h3>";
+            if (null != snippet) {
+              resStr += "<div class='searchresults-snippet'>" + snippet + "</div>";
+            }
+            resStr += "</div>";
+            return resStr;
+          } catch (err) {
+            manager.ctx.db.logger.debug("defaultProcessor: XML mode: Failed to create XML document from text: " + result.content);
+          }
+          return "";
+          
+    }
+  },
+  text: {
+    matcher: function(result,manager,settings) {
+      return ("text" == result.format);
+    },
+    processor: function(result,manager,settings) {
+      
+        var resStr = "<div class='searchresults-result'><h3>" + result.index + ". " + result.uri + "</h3>";
+        if (result.content.length <= 100) {
+          resStr += result.content;
+        } else {
+          resStr += result.content.substring(0,100) + "...";
+        }
+        resStr += "</div>";
+        return resStr;
+    }
+  }/*,
+  unknown: {
+    
+  }*/
+};
+
+/**
+ * Generates a lazy loading ID. Used by custom renderers when they want to call a function after this widget renders individual result HTML renderings. 
+ * Usually action event handlers.
+ * 
+ */
 com.marklogic.widgets.searchresults.prototype.generateLazyID = function() {
   return this.lazyId++;
 };
@@ -1217,9 +1456,9 @@ com.marklogic.widgets.searchresults.prototype._navigateTo = function(uri) {
 };
 
 /**
- * Adds a result highlight listener to this widget.
+ * Adds a result highlight listener to this widget. 
  * 
- * @param {function(uri array)} sl - Search listener function
+ * @param {function} sl - Search listener function. Function will be passed a uri array
  */
 com.marklogic.widgets.searchresults.prototype.addResultHighlightListener = function(sl) {
   this.highlightPublisher.subscribe(sl);
@@ -1228,7 +1467,7 @@ com.marklogic.widgets.searchresults.prototype.addResultHighlightListener = funct
 /**
  * Removes a result higlight listener.
  * 
- * @param {function(uri array)} sl - Search listener function
+ * @param {function} sl - Search listener function. Function will be passed a uri array
  */
 com.marklogic.widgets.searchresults.prototype.removeResultHighlightListener = function(sl) {
   this.highlightPublisher.unsubscribe(sl);
@@ -1237,7 +1476,7 @@ com.marklogic.widgets.searchresults.prototype.removeResultHighlightListener = fu
 /**
  * Adds a result selection listener to this widget.
  * 
- * @param {function(uri array)} sl - Search listener function
+ * @param {function} sl - Search listener function. Function will be passed a uri array
  */
 com.marklogic.widgets.searchresults.prototype.addResultSelectionListener = function(sl) {
   this.selectionPublisher.subscribe(sl);
@@ -1246,7 +1485,7 @@ com.marklogic.widgets.searchresults.prototype.addResultSelectionListener = funct
 /**
  * Removes a result selection listener.
  * 
- * @param {function(uri array)} sl - Search listener function
+ * @param {function} sl - Search listener function. Function will be passed a uri array
  */
 com.marklogic.widgets.searchresults.prototype.removeResultSelectionListener = function(sl) {
   this.selectionPublisher.unsubscribe(sl);
@@ -1258,8 +1497,8 @@ com.marklogic.widgets.searchresults.prototype.removeResultSelectionListener = fu
  * Adds a result processor object to this widget.
  * 
  * @param {string} name - Processor name reference
- * @param {function(result)} matcher_func - Function to invoke to see if a particular result can be handled by this processor
- * @param {function(result)} processor_func - Function to process the result to generate representative XHTML
+ * @param {function} matcher_func - Function to invoke to see if a particular result can be handled by this processor. Function passed a result object
+ * @param {function} processor_func - Function to process the result to generate representative XHTML. Function passed a result object
  */
 com.marklogic.widgets.searchresults.prototype.addProcessor = function(name,matcher_func,processor_func) {
   this.processors[name] = {matcher:matcher_func,processor:processor_func};
@@ -1373,7 +1612,7 @@ com.marklogic.widgets.searchpager = function(container) {
  * 
  * @param {mljs.searchcontext} ctx - The search context instance to invoke
  */
-com.marklogic.widgets.searchpager.prototype.setContext = function(context) {
+com.marklogic.widgets.searchpager.prototype.setSearchContext = function(context) {
   this.ctx = context;
 };
 
@@ -1554,7 +1793,7 @@ com.marklogic.widgets.searchsort = function(container) {
  * 
  * @param {mljs.searchcontext} ctx - The search context instance to invoke
  */
-com.marklogic.widgets.searchsort.prototype.setContext = function(context) {
+com.marklogic.widgets.searchsort.prototype.setSearchContext = function(context) {
   this.ctx = context;
 };
 
@@ -1601,13 +1840,13 @@ com.marklogic.widgets.searchsort.prototype._refresh = function() {
       // element, element attribute, path etc sort options
       if (undefined != o.element) {
         if (undefined != o.attribute) {
-          val = o["attribute"];
+          val = o["attribute"].name;
         } else {
-          val = o["element"];
+          val = o["element"].name;
         }
       }
       if (undefined != o.field) {
-        val = o["field"];
+        val = o["field"].name;
       }
       
       // check for annotation to override title
@@ -1615,7 +1854,7 @@ com.marklogic.widgets.searchsort.prototype._refresh = function() {
     if (undefined != o.annotation && undefined != o.annotation[0]) {
       title = o.annotation[0];
     }
-    if ("" == title) {
+    if (undefined == title || "" == title) {
       title = com.marklogic.widgets.searchhelper.processValueAll(val);
       
       if ("" != title && undefined != o.direction) {
@@ -1732,6 +1971,10 @@ com.marklogic.widgets.selection = function(container) {
   this._selected = new Array(); // URI list
   
   this._refresh();
+};
+
+com.marklogic.widgets.selection.getConfigurationDefinition = function() {
+  return {};
 };
 
 com.marklogic.widgets.selection.prototype._refresh = function() {
@@ -1940,7 +2183,7 @@ com.marklogic.widgets.searchselection = function(container) {
  * 
  * @param {mljs.searchcontext} ctx - The search context instance to invoke
  */
-com.marklogic.widgets.searchselection.prototype.setContext = function(ctx) {
+com.marklogic.widgets.searchselection.prototype.setSearchContext = function(ctx) {
   this.ctx = ctx;
 };
 
@@ -2055,5 +2298,60 @@ com.marklogic.widgets.searchselection.prototype.setModeContributeStructured = fu
   this._mode = "contribute";
 };
 
+
+
+
+
+
+
+
+
+
+
+
+/**
+ * Creates a search metrics display widget. Shows nothing if search metrics not enabled in your search options.
+ * 
+ * @param {string} container - The HTML element ID of the container to render this widget within.
+ */
+com.marklogic.widgets.searchmetrics = function(container) {
+  this.container = container;
+  this.ctx = mljs.defaultconnection.createSearchContext();
+  
+  this.updateResults(false); // show 'blank' results
+};
+
+/**
+ * Called by a Search Context instance to render search metrics based on the last search operation.
+ * 
+ * @param {json} results - The MarkLogic REST API JSON results wrapper object
+ */
+com.marklogic.widgets.searchmetrics.prototype.updateResults = function(results) {
+  var str = "";
+  
+  // results can be true, false or a JSON REST API results object
+  if ("boolean" == typeof(results)) {
+    if (results) {
+      // refreshing search results, show loading icon
+      str += com.marklogic.widgets.bits.loading(this.container + "-loading");
+    } else {
+      // search failed - show nothing
+      // Alternatively: str += com.marklogic.widgets.bits.failure(this.container + "-failure");
+    }
+  } else {
+    // create html output
+    if (undefined != results.metrics) {
+      var time = results.metrics["total-time"]; // Value like: PT1.064535S - it's marklogic, so assumes it's never in minutes (because MarkLogic rocks!)
+      var time = time.substring(2,time.length - 1);
+      str += "Search completed in " + time + " seconds"; // TODO VALIDATE THIS LINE
+    } else {
+      // show nothing, rather than useless message
+      mljs.defaultconnection.logger.debug("searchmetrics.updateResults: Results REST API JSON doesn't contain search metrics. Did you set up the search options correctly?");
+    }
+  }
+  
+  // send output to webpage DOM (do not make multiple edits to the DOM - it's slower)
+  document.getElementById(this.container).innerHTML = str;
+};
 
 
