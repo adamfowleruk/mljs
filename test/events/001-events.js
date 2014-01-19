@@ -1,6 +1,6 @@
 var mljs = require("../../mljs"),
     tests = exports,
-    assert = require('assert'),
+    assert = require('chai').assert,
     winston = require('winston');
 
      var logger = new (winston.Logger)({

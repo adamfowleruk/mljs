@@ -8,3 +8,6 @@ dist/docs/widgets
 jsdocs/*
 
 test-results.html
+mldbwebtest/deploy/vanprod3.properties
+mljsrest/deploy/vanprod3.properties
+

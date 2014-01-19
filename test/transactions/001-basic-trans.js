@@ -1,7 +1,7 @@
 var mljs = require("../../mljs"),
     tests = exports,
     configurator = require('../../testconfig'),
-    assert = require('assert'),
+    assert = require('chai').assert,
     winston = require('winston');
 
      var logger = new (winston.Logger)({
@@ -45,8 +45,8 @@ describe("001-basic-trans",function() {
       
           db.get(uri, function(result) {
             // now print it
-            logger.debug("TEST: COMMIT: Doc content: " + JSON.stringify(result.doc));
-            if (JSON.stringify(json) == JSON.stringify(result.doc)) {
+            //logger.debug("TEST: COMMIT: Doc content: " + JSON.stringify(result.doc));
+            //if (JSON.stringify(json) == JSON.stringify(result.doc)) {
       
               // now delete it
               logger.debug("TEST: COMMIT: deleting doc");
@@ -56,10 +56,10 @@ describe("001-basic-trans",function() {
                 assert(false==result.inError);
                 done();
               });
-            } else {
-              logger.debug("TEST: COMMIT: ERROR: Retrieved document is not same as that saved");
-              done();
-            }
+            //} else {
+            //  logger.debug("TEST: COMMIT: ERROR: Retrieved document is not same as that saved");
+            //  done();
+            //}
           });
         }
       });

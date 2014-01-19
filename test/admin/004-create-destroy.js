@@ -3,7 +3,7 @@
 var mljs = require("../../mljs"),
     tests = exports,
     configurator = require('../../testconfig'),
-    assert = require('assert'),
+    assert = require('chai').assert,
     winston = require('winston');
 
      var logger = new (winston.Logger)({

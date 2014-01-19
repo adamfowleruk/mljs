@@ -1,7 +1,7 @@
 var mljs = require("../../mljs"),
     tests = exports,
     configurator = require('../../testconfig'),
-    assert = require('assert'),
+    assert = require('chai').assert,
     winston = require('winston');
 
      var logger = new (winston.Logger)({
@@ -60,7 +60,7 @@ after(function(done){
       //db.setLogger(logger);
       
       // requires global.js before() to be called
-      db.searchCollection("testcol","","all",function(result) {
+      db.searchCollection("testcol","","all",null,function(result) {
         logger.debug("JSON result: " + JSON.stringify(result));
         assert.equal(result.inError,false,"searchCollection() should not be in error");
         

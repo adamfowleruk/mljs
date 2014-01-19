@@ -1,7 +1,7 @@
 var mljs = require("../../mljs"),
     tests = exports,
     configurator = require('../../testconfig'),
-    assert = require('assert'),
+    assert = require('chai').assert,
     winston = require('winston');
 
      var logger = new (winston.Logger)({
@@ -34,7 +34,7 @@ describe("011-save-formats",function() {
     var doc = db.get(uri, function(result) {
       assert.equal(result.inError,false,"get() JSON should not be in error");
       // now print it
-      logger.debug("****** Doc content: " + JSON.stringify(result.doc));
+      //logger.debug("****** Doc content: " + JSON.stringify(result.doc));
       
       // now delete it
       logger.debug("****** deleting doc");
@@ -53,7 +53,8 @@ describe("011-save-formats",function() {
  
  describe("#save() XML", function(){
    
-  it.skip("Should complete entirely",function(done){
+  it
+    configurator = require('../../testconfig'),assert = require('chai').assert,("Should complete entirely",function(done){
   var db = new mljs(); // default options
   db.setLogger(logger);
   configurator.configure(db);
@@ -94,7 +95,8 @@ describe("011-save-formats",function() {
  
   describe("#save() plain", function(){
    
-    it.skip("Should complete entirely",function(done){
+    it
+    configurator = require('../../testconfig'),assert = require('chai').assert,("Should complete entirely",function(done){
       var text = "This is a plain text document";
     
       var db = new mljs(); // default options
@@ -131,7 +133,8 @@ describe("011-save-formats",function() {
  
   describe("#save() binary", function(){
    
-    it.skip("TODO Binary test not written yet",function(done){
+    it
+    configurator = require('../../testconfig'),assert = require('chai').assert,("TODO Binary test not written yet",function(done){
       done();
     });
   });

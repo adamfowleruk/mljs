@@ -18,8 +18,16 @@ window.onload = function() {
     var results = new com.marklogic.widgets.searchresults("results");
     sc.register(results);
     
+    var geocontext = db.createGeoContext();
+    
+    var address = new com.marklogic.widgets.addressbar("addressbar");
+    address.radius(20,"miles");
+    geocontext.register(address);
+    
     var ol = new com.marklogic.widgets.openlayers("map");
     sc.register(ol);
+    geocontext.register(ol); // used to change center location of map
+    
     /*
     ol.addGoogleStreet(); // add google street maps to the default Open Street Maps (OSM) base layer
     // removed because google's CDN is soooooo slowwwwww
@@ -69,6 +77,10 @@ window.onload = function() {
     
     selection.addQuery("Nearest First",byDistance);
     selection.addQuery("Best Rating First",byRating);
+    
+    geocontext.inform(sc,"locale","location").home(qb.circleDef(51.5112139,-0.1198244,20)); 
+    
+    // TODO remove concept of dynLocation and have it affected by the last address lookup (i.e. geocontext event) done
     
   } catch (err) {
     errors.show(err);

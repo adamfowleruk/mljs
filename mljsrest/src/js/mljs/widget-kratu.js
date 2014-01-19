@@ -20,6 +20,7 @@ com.marklogic.widgets = window.com.marklogic.widgets || {};
 
 /**
  * A wrapper for the Google Kratu tabular data exploration widget
+ * 
  * @constructor
  * @param {string} container - The HTML ID of the element to place this widget's content within.
  */
@@ -30,9 +31,10 @@ com.marklogic.widgets.kratu = function(container) {
   this.results = null;
   this.facts = null;
   this.kratu = new Kratu();
-  this.kratu.setRenderElement( document.getElementById(this.container) );
+  document.getElementById(container).innerHTML = "<div id='" + container + "-inner' class='mljswidget'></div>"
+  this.kratu.setRenderElement( document.getElementById(this.container + "-inner") );
   
-  this.render = "content"; // summary = top level ML search info, content = raw document info
+  this._render = "content"; // summary = top level ML search info, content = raw document info
   
   this._refresh();
 };
@@ -42,10 +44,10 @@ com.marklogic.widgets.kratu = function(container) {
  * summary = the search result summary. E.g. URI, score, etc.
  * content = the JSON content (default)
  * 
- * @param {string} render - What to render from the search result information
+ * @param {string} render - What to render from the search result information. "content|properties"
  */
 com.marklogic.widgets.kratu.prototype.render = function(render) {
-  this.render = render;
+  this._render = render;
 };
 
 /**
@@ -54,18 +56,36 @@ com.marklogic.widgets.kratu.prototype.render = function(render) {
  * @param {JSON} results - The REST API JSON results object to display. See GET /v1/search
  */
 com.marklogic.widgets.kratu.prototype.updateResults = function(results) {
-  this.results = results;
-  
-  if ("content" == this.render) {
-    var content = new Array();
-    for (var i = 0;i < this.results.results.length;i++) {
-      content.push(JSON.parse(this.results.results[i].content)); // TODO support XML and other types too
+  mljs.defaultconnection.logger.debug("kratu.updateResults called");
+  if (typeof (results) != "boolean" && undefined != results && null != results) {
+    mljs.defaultconnection.logger.debug("kratu.updateResults: Got real results");
+    this.results = results;
+    
+    if ("content" == this._render) {
+      mljs.defaultconnection.logger.debug("kratu.updateResults: Rendering search result contents");
+      var content = new Array();
+      for (var i = 0,r;i < this.results.results.length;i++) {
+        r = this.results.results[i];
+        mljs.defaultconnection.logger.debug("kratu.updateResults: Parsing result " + i + "=" + r.content);
+        if (typeof(r.content) == "string") {
+          // TODO support plain text, xml text
+          content.push(JSON.parse(this.results.results[i].content)); // TODO support XML and other types too
+        } else if (typeof(r.content) == "object") {
+          // xml or JSON
+          if (undefined != r.content.nodeType) {
+            // TODO support XML object
+          } else {
+            content.push(r.content);
+          }
+        }
+      }
+      this.kratu.setEntities(content);
+    } else {
+      mljs.defaultconnection.logger.debug("kratu.updateResults: Rendering search result statistics");
+      this.kratu.setEntities(this.results.results);
     }
-    this.kratu.setEntities(content);
-  } else {
-    this.kratu.setEntities(this.results.results);
+    this._refresh();
   }
-  this._refresh();
 };
 
 /**

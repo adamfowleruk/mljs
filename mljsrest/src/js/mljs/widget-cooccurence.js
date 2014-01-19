@@ -34,7 +34,18 @@ com.marklogic.widgets.cooccurence = function(container) {
   
   this.constraintArray = null;
   
+  this._displayTuple = null;
+  
   this._refresh();
+};
+
+/**
+ * Specifies that this widget should only display a named tuple result, not any tuple to come back from an updateValues call
+ * 
+ * @param {string} tuplename - The name of the tuple to only respond to
+ */
+com.marklogic.widgets.cooccurence.prototype.displayTuple = function(tuplename) {
+  this._displayTuple = tuplename;
 };
 
 /**
@@ -80,9 +91,14 @@ com.marklogic.widgets.cooccurence.prototype.removeFacetSelectionListener = funct
  * @param {JSON} values - the values returned as a values response JSON object.
  */
 com.marklogic.widgets.cooccurence.prototype.updateValues = function(values) {
-  this.values = values;
-  
-  this._refresh();
+  if ("boolean" == typeof(values)) {
+    return;
+  }
+  if (null == this._displayTuple || this._displayTuple == values["values-response"].name) {
+    this.values = values;
+    
+    this._refresh();
+  }
 };
 
 com.marklogic.widgets.cooccurence.prototype._refresh = function() {
@@ -150,6 +166,11 @@ com.marklogic.widgets.cooccurence.prototype._refresh = function() {
   }
 };
 
+/**
+ * Sets the names of the constraints in the right order to display and use to restrict queries on upon selection.
+ * 
+ * @param {Array} constraintArray - The ordered names of constraints
+ */
 com.marklogic.widgets.cooccurence.prototype.setTupleConstraints = function(constraintArray) {
   this.constraintArray = constraintArray;
 };
