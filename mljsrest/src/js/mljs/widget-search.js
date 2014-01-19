@@ -192,7 +192,64 @@ com.marklogic.widgets.searchhelper.xmltohtml = function(xml) {
   // Take first text element as title, second as snippet
   // TODO if needed - see search results logic itself for xmlDoc.evaluate
 };
-
+/*
+com.marklogic.widgets.searchhelper.htmlRec = function(content) {
+    var resStr = "";
+    console.log("type of content: " + (typeof content));
+    if ("string" == typeof content) {
+      return content;
+    } else {
+      for (var tag in content) {
+        console.log("processing tag: " + tag);
+        resStr += "<" + tag;
+        if (undefined != content[tag].class) {
+          resStr += " class='" + content[tag].class + "'";
+          content[tag].class = undefined;
+        }
+        if (undefined != content[tag].id) {
+          resStr += " id='" + content[tag].id + "'";
+          content[tag].id = undefined;
+        }
+        resStr += ">";
+        console.log("calling htmlRec for tag: " + tag);
+        resStr += com.marklogic.widgets.searchhelper.htmlRec(content[tag]);
+        resStr += "</" + tag + ">";
+      }
+      return resStr;
+    }
+  }; // UNUSED ANYWHERE ELSE */
+com.marklogic.widgets.searchhelper.handleJson = function(result,json) {
+    
+        var resStr = "";
+        // parse each results and snippet / raw content
+        var title = result.uri;
+        if (undefined != json && undefined != json.title ) {
+          title = json.title;
+        }
+        var snippet = null;
+        // TODO show all content if snippeting mode is snippet
+        if (undefined != json && undefined != json.summary) {
+          snippet = json.summary;
+        } else if (undefined != json) {
+          //snippet = JSON.stringify(result.content); 
+          snippet = com.marklogic.widgets.searchhelper.jsontohtml(json);
+          // TODO check for XML (string not object) content in results.results[i].content
+        } else {
+          // no snippet available
+        }
+        
+        if (null == snippet) {
+          // TODO show JSON tree structure as HTML
+          mljs.defaultconnection.logger.debug("defaultProcessor: No JSON summary, building JSON tree HTML output");
+        }
+        
+        resStr += "<div class='searchresults-result'><h3>" + result.index + ". " + title + "</h3>";
+        if (null != snippet) {
+          resStr += "<div class='searchresults-snippet'>" + snippet + "</div>";
+        }
+        resStr += "</div>";
+        return resStr;
+  };
 
 
 
@@ -805,305 +862,6 @@ com.marklogic.widgets.searchresults = function(container) {
   
   var self = this;
   
-  var htmlRec = function(content) {
-    var resStr = "";
-    console.log("type of content: " + (typeof content));
-    if ("string" == typeof content) {
-      return content;
-    } else {
-      for (var tag in content) {
-        console.log("processing tag: " + tag);
-        resStr += "<" + tag;
-        if (undefined != content[tag].class) {
-          resStr += " class='" + content[tag].class + "'";
-          content[tag].class = undefined;
-        }
-        if (undefined != content[tag].id) {
-          resStr += " id='" + content[tag].id + "'";
-          content[tag].id = undefined;
-        }
-        resStr += ">";
-        console.log("calling htmlRec for tag: " + tag);
-        resStr += htmlRec(content[tag]);
-        resStr += "</" + tag + ">";
-      }
-      return resStr;
-    }
-  };
-  var handleJson = function(result,json) {
-    
-        var resStr = "";
-        // parse each results and snippet / raw content
-        var title = result.uri;
-        if (undefined != json && undefined != json.title ) {
-          title = json.title;
-        }
-        var snippet = null;
-        // TODO show all content if snippeting mode is snippet
-        if (undefined != json && undefined != json.summary) {
-          snippet = json.summary;
-        } else if (undefined != json) {
-          //snippet = JSON.stringify(result.content); 
-          snippet = com.marklogic.widgets.searchhelper.jsontohtml(json);
-          // TODO check for XML (string not object) content in results.results[i].content
-        } else {
-          // no snippet available
-        }
-        
-        if (null == snippet) {
-          // TODO show JSON tree structure as HTML
-          self.ctx.db.logger.debug("defaultProcessor: No JSON summary, building JSON tree HTML output");
-        }
-        
-        resStr += "<div class='searchresults-result'><h3>" + result.index + ". " + title + "</h3>";
-        if (null != snippet) {
-          resStr += "<div class='searchresults-snippet'>" + snippet + "</div>";
-        }
-        resStr += "</div>";
-        return resStr;
-  };
-  this.defaultProcessor = {
-    matcher: function(result) {
-      return true; // handles all results
-    }, 
-    processor: function(result) {
-      // check if 1 root json element that is called 'html'
-      /*
-      console.log("TYPEOF: " + (typeof result.content));
-      console.log("length: " + ( result.content.length));
-      console.log("html: " + ( result.content.html)); */
-      self.ctx.db.logger.debug("matches: " + result.matches);
-      if (undefined != result.matches) {
-        self.ctx.db.logger.debug("first match: " + result.matches[0]);
-        self.ctx.db.logger.debug("match text: " + result.matches[0]["match-text"]);
-        self.ctx.db.logger.debug("match text 0: " + result.matches[0]["match-text"][0]);
-      }
-      if ("string" == typeof result.content && result.content.substring(0,1) == "{") {
-        self.ctx.db.logger.debug("Found JSON string object");
-        var json = JSON.parse(result.content);
-        self.ctx.db.logger.debug("defaultProcessor:  - JSON parse successful...");
-        
-        // we hit this line if we succeed
-        return handleJson(result,json);
-      } else if ("string" == typeof result.content && -1 != result.content.substring(0,100).indexOf("<html")) { // TODO replace with XPath as this is very wide ranging - http://www.w3.org/1999/xhtml (escape dots?)
-          // Get title from /html/head/title or /html/body/h1[1] or /html/body/h2[1] or /html/body/p[1]
-          // don't rely on xml.evaluate() though
-          self.ctx.db.logger.debug("searchresults: defaultProcesor: Got HTML content");
-          var titleStart = result.content.indexOf("title>"); // NB can't do <title because there may be a random namespace name. Replace this with XPATH if supported
-          var titleEnd = result.content.indexOf("title>",titleStart + 6);
-          var bodyStart = result.content.indexOf("body");
-          var bodyEnd = result.content.indexOf(">",bodyStart + 4);
-          var endBodyStart = result.content.indexOf("body",bodyEnd + 1);
-          self.ctx.db.logger.debug("titleStart: " + titleStart);
-          self.ctx.db.logger.debug("titleEnd: " + titleEnd);
-          self.ctx.db.logger.debug("bodyStart: " + bodyStart);
-          self.ctx.db.logger.debug("bodyEnd: " + bodyEnd);
-          self.ctx.db.logger.debug("endBodyStart: " + endBodyStart);
-          
-          //var endBodyEnd = result.content.indexOf(">",endBodyStart + 6);
-          
-          var bodyContent = result.content.substring(bodyEnd + 1,endBodyStart);
-          self.ctx.db.logger.debug("bodyContent: " + bodyContent);
-          var title = result.uri;
-          if (-1 != titleStart && -1 != titleEnd) {
-            title = result.content.substring(titleStart + 6,titleEnd);
-          } else {
-            var firstElStart = bodyContent.indexOf("<");
-            var firstElEnd = bodyContent.indexOf(">",firstElStart + 1);
-            var endFirstElStart = bodyContent.indexOf("</",firstElEnd);
-            if (-1 != firstElStart && -1 != firstElEnd && -1 != endFirstElStart) {
-              title = bodyContent.substring(firstElEnd + 1,endFirstElStart);
-            } 
-          }
-          self.ctx.db.logger.debug("title: " + title);
-          // render first 4 elements from /html/body/element()[1 to 4]
-          // render all content for now
-          
-          var resStr = "<div class='searchresults-result'><h3>" + result.index + ". " + title + "</h3>";
-          resStr += "<div class='searchresults-snippet'>" + bodyContent + "</div>";
-          resStr += "</div>";
-          return resStr;
-          
-        //} else {
-          
-          /*
-          self.ctx.db.logger.debug("defaultProcessor: Got JSON Object rendering of an HTML document");
-          // is a xhtml document rendered as json
-          var content = result.content.html.body;
-          var resStr = htmlRec(content);
-          */
-        } 
-       else if (undefined != result.matches && undefined != result.matches[0] && undefined != result.matches[0]["match-text"] && undefined != result.matches[0]["match-text"][0] /*&& result.matches[0]["match-text"][0].indexOf("<html") == 0*/) {
-        self.ctx.db.logger.debug("defaultProcessor: Got a snippet match with a html element");
-        
-        //var xml = textToXML(result.matches[0]["match-text"][0]);
-        //var txt = result.matches[0]["match-text"][0];
-        //self.ctx.db.logger.debug("RAW HTML TEXT: " + txt);
-        //var strip = txt.substring(txt.indexOf(">",txt.indexOf("<body") + 5) + 1,txt.indexOf("</body>"));
-        //self.ctx.db.logger.debug("STRIP TEXT: " + strip);
-        var title = null;
-        //var titleEl = xml.getElementsByTagName("title")[0];
-        self.ctx.db.logger.debug("PATH: " + result.path);
-        //if (undefined != titleEl && null != titleEl && null != titleEl.nodeValue) {
-        //  title = titleEl.nodeValue;
-        //} else {
-          title = result.path.substring(8,result.path.length - 2);
-        //}
-        var resStr = "<div class='searchresults-result'><h3>" + result.index + ". " + title + "</h3>";
-        //resStr += "<div class='searchresults-snippet'>" + (new XMLSerializer()).serializeToString(xml.getElementsByTagName("body")[0]) + "</div>";
-        
-        
-        resStr += com.marklogic.widgets.searchhelper.snippet(result);
-        
-        //resStr += "<div class='searchresults-snippet'>" + /*strip*/ txt + "</div>";
-        //resStr += "<div class='searchresults-snippet'><iframe scrolling='no'>" + result.matches[0]["match-text"][0] + "</iframe></div>";
-        
-        resStr += "</div>";
-        return resStr;
-      } else if ("object" == typeof(result.content)) {
-        // TRY TO GUESS JSON CONTENT - V6 and older V7 builds - now (29 Oct 2013) even JSON is escaped as a string!!!
-        self.ctx.db.logger.debug("defaultProcessor: Got JSON Object content");
-        
-        return handleJson(result,result.content);
-      } else if (result.format == "text") {
-        // plain text result
-        
-        var resStr = "<div class='searchresults-result'><h3>" + result.index + ". " + result.uri + "</h3>";
-        if (result.content.length <= 100) {
-          resStr += result.content;
-        } else {
-          resStr += result.content.substring(0,100) + "...";
-        }
-        resStr += "</div>";
-        return resStr;
-      } else {
-        // ATTEMPT TO PARSE AS XML
-        self.ctx.db.logger.debug("defaultProcessor: Got escaped string - Could be XML or JSON ...");
-        
-        // try to parse as JSON first
-        try {
-          var json = JSON.parse(result.content);
-          self.ctx.db.logger.debug("defaultProcessor:  - JSON parse successful...");
-          
-          // we hit this line if we succeed
-          return handleJson(result,json);
-        } catch (err) {
-          // try XML now        
-          try {
-            var xmlDoc = textToXML(result.content);
-            self.ctx.db.logger.debug("defaultProcessor:  - XML parse successful...");
-            
-            var resStr = "";
-            // parse each results and snippet / raw content
-            var title = result.uri;
-            var snippet = null;
-            
-            if (undefined != xmlDoc.evaluate) {
-              // check for common title names - title, name, id, h1
-              var evalResult = xmlDoc.evaluate("//title[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
-              if (undefined == evalResult || "" == evalResult.stringValue) {
-                self.ctx.db.logger.debug("defaultProcessor: //title[1]/text() undefined");
-                evalResult = xmlDoc.evaluate("//name[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
-                
-                if (undefined == evalResult || "" == evalResult.stringValue) {
-                  self.ctx.db.logger.debug("defaultProcessor: //name[1]/text() undefined");
-                  evalResult = xmlDoc.evaluate("//id[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
-                
-                  if (undefined == evalResult || "" == evalResult.stringValue) {
-                self.ctx.db.logger.debug("defaultProcessor: //id[1]/text() undefined");
-                    evalResult = xmlDoc.evaluate("//h1[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
-                
-                    if (undefined == evalResult || "" == evalResult.stringValue) {
-                      self.ctx.db.logger.debug("defaultProcessor: //h1[1]/text() undefined");
-                      self.ctx.db.logger.debug("defaultProcessor: trying (//text())[1]");
-                      evalResult = xmlDoc.evaluate("(//text())[1]",xmlDoc,null,XPathResult.STRING_TYPE,null);
-                      self.ctx.db.logger.debug("defaultProcessor: output: " + evalResult.stringValue);
-                    }
-                  }
-                }
-              }
-              if (undefined != evalResult && null != evalResult && "" != evalResult.stringValue) {
-                title = evalResult.stringValue;
-              }
-              // check for common snippet names - summary, synopsis, description, details
-              evalResult = xmlDoc.evaluate("//summary[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
-              if (undefined == evalResult || "" == evalResult.stringValue) {
-                self.ctx.db.logger.debug("defaultProcessor: //summary[1]/text() undefined");
-                evalResult = xmlDoc.evaluate("//synopsis[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
-                if (undefined == evalResult || "" == evalResult.stringValue) {
-                  self.ctx.db.logger.debug("defaultProcessor: //synopsis[1]/text() undefined");
-                  evalResult = xmlDoc.evaluate("//description[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
-                  if (undefined == evalResult || "" == evalResult.stringValue) {
-                    self.ctx.db.logger.debug("defaultProcessor: //description[1]/text() undefined");
-                    evalResult = xmlDoc.evaluate("//details[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
-                    
-                    if (undefined == evalResult || "" == evalResult.stringValue) {
-                      self.ctx.db.logger.debug("defaultProcessor: //details[1]/text() undefined");
-                      self.ctx.db.logger.debug("defaultProcessor: trying (//text())[2]");
-                      evalResult = xmlDoc.evaluate("(//text())[2]",xmlDoc,null,XPathResult.STRING_TYPE,null);
-                      self.ctx.db.logger.debug("defaultProcessor: output: " + evalResult.stringValue);
-                    }
-                  }
-                }
-              }
-              if (undefined != evalResult && null != evalResult && "" != evalResult.stringValue) {
-                snippet = evalResult.stringValue;
-              }
-            }
-          
-            if (null == snippet) {
-              // show XML tree structure as HTML
-              self.ctx.db.logger.debug("defaultProcessor: No XML summary, building XML tree HTML output");
-              
-              // display tree of XML
-              snippet = com.marklogic.widgets.searchhelper.xmltohtml(xmlDoc); // TODO
-            }
-            
-            if (null == snippet) {
-              snippet = result.content;
-            }
-          
-            resStr += "<div class='searchresults-result'><h3>" + result.index + ". " + title + "</h3>";
-            if (null != snippet) {
-              resStr += "<div class='searchresults-snippet'>" + snippet + "</div>";
-            }
-            resStr += "</div>";
-            return resStr;
-          } catch (err) {
-            self.ctx.db.logger.debug("defaultProcessor: XML mode: Failed to create XML document from text: " + result.content);
-          }
-          
-          
-          // end try XML noe
-        }
-      }
-    }
-  };
-  
-  this.builtinProcessors = [];
-  this.builtinProcessors["svg"] = {
-   matcher: function(result) {
-    var xml = null;
-    if ("string" == typeof result.content) {
-      xml = textToXML(result.content);
-    } else if ("object" == typeof result.content && undefined != result.content.nodeType) {
-      xml = result.content; // should never happen - always returned as string
-    }
-    if (null != xml) {
-      // check namespace and root element
-      if (xml.childNodes[0].nodeName == "svg") {
-        mljs.defaultconnection.logger.debug("Potential SVG nodeName: " + xml.childNodes[0].nodeName);
-        mljs.defaultconnection.logger.debug("Potential SVG nodeType: " + xml.childNodes[0].nodeType);
-        return true;
-      } else {
-        return false;
-      }
-    }
-    return false;
-  }, processor: function (result) {
-    return "<div class='searchresults-result'><h3>" + result.index + ". " + result.uri + "</h3>" +
-      "<div style='height: 200px;position:relative;'>" + result.content + "</div></div>"; // returns the full xml to be applied within the document as SVG
-  } };
   
   this._refresh();
   
@@ -1244,6 +1002,10 @@ com.marklogic.widgets.searchresults.prototype._refresh = function() {
           }
         }
       }
+      
+      /*
+      // use templated layout and replace relevant sections (or with blank), also a wrapper too
+      // make all built ins advanced processors
       if (!found) {
         mljs.defaultconnection.logger.debug("No processor found, checkin builtins");
         for (var pname in this.builtinProcessors) {
@@ -1260,12 +1022,37 @@ com.marklogic.widgets.searchresults.prototype._refresh = function() {
             }
           }
         }
-        
+        // refactor the default to several built ins
         if (!found) {
           mljs.defaultconnection.logger.debug("No processor found, using default");
           resStr += this.defaultProcessor.processor(result);
         }
-      }
+        
+        
+        */
+        
+        
+        // NEW START
+        if (!found) {
+          for (var pname in com.marklogic.widgets.searchresults.defaultrenderers) {
+            if (!found) {
+              found = com.marklogic.widgets.searchresults.defaultrenderers[pname].matcher(result,this,{});
+              if (found) {
+                mljs.defaultconnection.logger.debug("found builtin processor: " + pname);
+                var returned = com.marklogic.widgets.searchresults.defaultrenderers[pname].processor(result,this,{});
+                if (undefined != returned.nodeType) {
+                  var id = (uureplace++);
+                  resStr = "<div id='" + this.container + "-searchresults-xml-" + id + "'></div>";
+                  replacements[id] = returned;
+                } else {
+                  resStr += returned;
+                }
+              }
+            }
+          }
+        }
+        // NEW END
+      //}
       
       resStr += "</div>";
     }
@@ -1308,6 +1095,346 @@ com.marklogic.widgets.searchresults.prototype._refresh = function() {
       loader.callback(loader.docuri,loader.elid);
     }
   }
+};
+
+com.marklogic.widgets.searchresults.defaultrenderers = {
+  json: {
+    matcher: function(result,manager,settings) {
+      return ("json" == result.format);
+      /* {
+        return true;
+      }
+      // do we need the rest? Yes, if format reported wrong by server (stored with wrong mime type)
+      if ("string" == typeof result.content && result.content.substring(0,1) == "{") {
+        return true;
+      }
+      */
+      /*
+      if ("object" == typeof(result.content)) {
+        return true;
+      }
+      */
+      /*
+      try {
+        var json = JSON.parse(result.content);
+        return true;
+      } catch (err) {
+        // fail
+      }
+      */
+      //return false;
+    }, 
+    processor: function(result,manager,settings) {
+        try {
+          var json = result.content;
+          if ("string" == typeof(json)) {
+            json = JSON.parse(json);
+          }
+          //manager.ctx.db.logger.debug("defaultProcessor:  - JSON parse successful...");
+          
+          // we hit this line if we succeed
+          return com.marklogic.widgets.searchhelper.handleJson(result,json);
+        } catch (err) {
+          // failure
+        }
+        return "";
+    }
+  },
+  snippet: {
+    matcher: function(result,manager,settings) {
+      return (undefined != result.matches && undefined != result.matches[0] && undefined != result.matches[0]["match-text"] && 
+              undefined != result.matches[0]["match-text"][0] /*&& result.matches[0]["match-text"][0].indexOf("<html") == 0*/);
+      
+    },
+    processor: function(result,manager,settings) {
+        //manager.ctx.db.logger.debug("defaultProcessor: Got a snippet match with a html element");
+        
+        //var xml = textToXML(result.matches[0]["match-text"][0]);
+        //var txt = result.matches[0]["match-text"][0];
+        //manager.ctx.db.logger.debug("RAW HTML TEXT: " + txt);
+        //var strip = txt.substring(txt.indexOf(">",txt.indexOf("<body") + 5) + 1,txt.indexOf("</body>"));
+        //manager.ctx.db.logger.debug("STRIP TEXT: " + strip);
+        var title = null;
+        //var titleEl = xml.getElementsByTagName("title")[0];
+        //manager.ctx.db.logger.debug("PATH: " + result.path);
+        //if (undefined != titleEl && null != titleEl && null != titleEl.nodeValue) {
+        //  title = titleEl.nodeValue;
+        //} else {
+          title = result.path.substring(8,result.path.length - 2);
+        //}
+        var resStr = "<div class='searchresults-result'><h3>" + result.index + ". " + title + "</h3>";
+        //resStr += "<div class='searchresults-snippet'>" + (new XMLSerializer()).serializeToString(xml.getElementsByTagName("body")[0]) + "</div>";
+        
+        
+        resStr += com.marklogic.widgets.searchhelper.snippet(result);
+        
+        //resStr += "<div class='searchresults-snippet'>" + /*strip*/ txt + "</div>";
+        //resStr += "<div class='searchresults-snippet'><iframe scrolling='no'>" + result.matches[0]["match-text"][0] + "</iframe></div>";
+        
+        resStr += "</div>";
+        return resStr;
+    }
+  },
+  svg: {
+    matcher: function(result) {
+      var xml = null;
+      if ("string" == typeof result.content) {
+        xml = textToXML(result.content);
+      } else if ("object" == typeof result.content && undefined != result.content.nodeType) {
+        xml = result.content; // should never happen - always returned as string
+      }
+      if (null != xml) {
+        // check namespace and root element
+        if (xml.childNodes[0].nodeName == "svg") {
+          mljs.defaultconnection.logger.debug("Potential SVG nodeName: " + xml.childNodes[0].nodeName);
+          mljs.defaultconnection.logger.debug("Potential SVG nodeType: " + xml.childNodes[0].nodeType);
+          return true;
+        } else {
+          return false;
+        }
+      }
+      return false;
+    },
+    // backwards compatibility
+    processor: function (result,manager,settings) {
+      return "<div class='searchresults-result'><h3>" + result.index + ". " + result.uri + "</h3>" +
+        "<div style='height: 200px;position:relative;'>" + result.content + "</div></div>"; // returns the full xml to be applied within the document as SVG
+    },
+    title: function(result, manager, settings) {
+      return "<div class='searchresults-result'><h3>" + result.index + ". " + result.uri + "</h3>";
+    },
+    summary: function(result, manager, settings) {
+      return "<div style='height: 200px;position:relative;'>" + result.content + "</div></div>";
+    }
+    // TODO snippet, etc. etc.
+  },
+  html: {
+    matcher: function(result,manager,settings) {
+      return ("string" == typeof result.content && -1 != result.content.substring(0,100).indexOf("<html")); 
+      // TODO replace with XPath as this is very wide ranging - http://www.w3.org/1999/xhtml (escape dots?)
+    },
+    processor: function(result,manager,settings) {
+          // Get title from /html/head/title or /html/body/h1[1] or /html/body/h2[1] or /html/body/p[1]
+          // don't rely on xml.evaluate() though
+          //manager.ctx.db.logger.debug("searchresults: defaultProcesor: Got HTML content");
+          var titleStart = result.content.indexOf("title>"); // NB can't do <title because there may be a random namespace name. Replace this with XPATH if supported
+          var titleEnd = result.content.indexOf("title>",titleStart + 6);
+          var bodyStart = result.content.indexOf("body");
+          var bodyEnd = result.content.indexOf(">",bodyStart + 4);
+          var endBodyStart = result.content.indexOf("body",bodyEnd + 1);
+          //manager.ctx.db.logger.debug("titleStart: " + titleStart);
+          //manager.ctx.db.logger.debug("titleEnd: " + titleEnd);
+          //manager.ctx.db.logger.debug("bodyStart: " + bodyStart);
+          //manager.ctx.db.logger.debug("bodyEnd: " + bodyEnd);
+          //manager.ctx.db.logger.debug("endBodyStart: " + endBodyStart);
+          
+          //var endBodyEnd = result.content.indexOf(">",endBodyStart + 6);
+          
+          var bodyContent = result.content.substring(bodyEnd + 1,endBodyStart);
+          //manager.ctx.db.logger.debug("bodyContent: " + bodyContent);
+          var title = result.uri;
+          if (-1 != titleStart && -1 != titleEnd) {
+            title = result.content.substring(titleStart + 6,titleEnd);
+          } else {
+            var firstElStart = bodyContent.indexOf("<");
+            var firstElEnd = bodyContent.indexOf(">",firstElStart + 1);
+            var endFirstElStart = bodyContent.indexOf("</",firstElEnd);
+            if (-1 != firstElStart && -1 != firstElEnd && -1 != endFirstElStart) {
+              title = bodyContent.substring(firstElEnd + 1,endFirstElStart);
+            } 
+          }
+          //manager.ctx.db.logger.debug("title: " + title);
+          // render first 4 elements from /html/body/element()[1 to 4]
+          // render all content for now
+          
+          var resStr = "<div class='searchresults-result'><h3>" + result.index + ". " + title + "</h3>";
+          resStr += "<div class='searchresults-snippet'>" + bodyContent + "</div>";
+          resStr += "</div>";
+          return resStr;
+    }
+  },
+  triples: {
+    matcher: function(result,manager,settings) {
+      return ("<sem:triples" == result.content.substring(0,12));
+      // TODO flesh this out
+    },
+    processor: function(result,manager,settings) {
+      // gen title
+      var s = "<div class='searchresults-result'><h3>" + result.index + ". Subgraph " + result.uri + "</h3>";
+      
+      // convert to XML (sem:triples)
+      var xml = textToXML(result.content);
+      
+      var resolver = function(prefix){
+	      if (prefix === "sem") {
+    	    return "http://marklogic.com/semantics";
+	      } else {
+	        return null;
+	      }
+      };
+      
+      // get all child nodes (sem:triple)
+      var iterator = xml.evaluate("//sem:triple",xml,resolver,XPathResult.UNORDERED_NODE_ITERATOR_TYPE,null);
+      var child = iterator.iterateNext();
+      var first = true;
+      //for (var i = 0, max = children.length, child;i < max;i++) {
+      while (child) {
+        //child = children.item(i);
+        // cannot execute xpath on child nodes
+        var subject = "", predicate = "", obj = "";
+        for (var n = 0;n < child.childNodes.length;n++) {
+          var gc = child.childNodes.item(n);
+          if (1 == gc.nodeType) {
+            if ("sem:subject" == gc.nodeName) {
+              subject = gc.textContent;
+            } else if ("sem:predicate" == gc.nodeName) {
+              predicate = gc.textContent;
+            } else if ("sem:object" == gc.nodeName) {
+              obj = gc.textContent;
+            }
+          }
+        }
+        
+        //var subject = child.evaluate("/sem:subject/text()",child,resolver,XPathResult.STRING_TYPE,null);
+        //var predicate = child.evaluate("/sem:predicate/text()",child,resolver,XPathResult.STRING_TYPE,null);
+        //var obj = child.evaluate("/sem:object/text()",child,resolver,XPathResult.STRING_TYPE,null);
+        //var objectIRI = child.evaluate("/sem:subject[!@dataType]/text()",child,resolver,XPathResult.STRING_TYPE,null);
+        //var objectTyped = child.evaluate("/sem:subject[@dataType]/text()",child,resolver,XPathResult.STRING_TYPE,null);
+        if (!first) {
+          s += "<br/>";
+        } else {
+          first = false;
+        }
+        s += "Subject: " + subject + ", Predicate: " + predicate + ", Object: " + obj;
+        child = iterator.iterateNext();
+      }
+      s += "</div>";
+      return s;
+    }
+  },
+  xml: {
+    matcher: function(result,manager,settings) {
+      return ("xml" == result.format);
+      /*
+      try {
+        var xmlDoc = textToXML(result.content);
+        //manager.ctx.db.logger.debug("defaultProcessor:  - XML parse successful...");
+        return true;
+      } catch (err) {
+        // failed
+      }
+      return false;
+      */
+    },
+    processor: function(result,manager,settings) {
+      
+          // try XML now        
+          try {
+            var xmlDoc = textToXML(result.content);
+            //manager.ctx.db.logger.debug("defaultProcessor:  - XML parse successful...");
+            
+            var resStr = "";
+            // parse each results and snippet / raw content
+            var title = result.uri;
+            var snippet = null;
+            
+            if (undefined != xmlDoc.evaluate) {
+              // check for common title names - title, name, id, h1
+              var evalResult = xmlDoc.evaluate("//title[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
+              if (undefined == evalResult || "" == evalResult.stringValue) {
+                //manager.ctx.db.logger.debug("defaultProcessor: //title[1]/text() undefined");
+                evalResult = xmlDoc.evaluate("//name[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
+                
+                if (undefined == evalResult || "" == evalResult.stringValue) {
+                  //manager.ctx.db.logger.debug("defaultProcessor: //name[1]/text() undefined");
+                  evalResult = xmlDoc.evaluate("//id[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
+                
+                  if (undefined == evalResult || "" == evalResult.stringValue) {
+                //manager.ctx.db.logger.debug("defaultProcessor: //id[1]/text() undefined");
+                    evalResult = xmlDoc.evaluate("//h1[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
+                
+                    if (undefined == evalResult || "" == evalResult.stringValue) {
+                      //manager.ctx.db.logger.debug("defaultProcessor: //h1[1]/text() undefined");
+                      //manager.ctx.db.logger.debug("defaultProcessor: trying (//text())[1]");
+                      evalResult = xmlDoc.evaluate("(//text())[1]",xmlDoc,null,XPathResult.STRING_TYPE,null);
+                      //manager.ctx.db.logger.debug("defaultProcessor: output: " + evalResult.stringValue);
+                    }
+                  }
+                }
+              }
+              if (undefined != evalResult && null != evalResult && "" != evalResult.stringValue) {
+                title = evalResult.stringValue;
+              }
+              // check for common snippet names - summary, synopsis, description, details
+              evalResult = xmlDoc.evaluate("//summary[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
+              if (undefined == evalResult || "" == evalResult.stringValue) {
+                //manager.ctx.db.logger.debug("defaultProcessor: //summary[1]/text() undefined");
+                evalResult = xmlDoc.evaluate("//synopsis[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
+                if (undefined == evalResult || "" == evalResult.stringValue) {
+                  //manager.ctx.db.logger.debug("defaultProcessor: //synopsis[1]/text() undefined");
+                  evalResult = xmlDoc.evaluate("//description[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
+                  if (undefined == evalResult || "" == evalResult.stringValue) {
+                    //manager.ctx.db.logger.debug("defaultProcessor: //description[1]/text() undefined");
+                    evalResult = xmlDoc.evaluate("//details[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
+                    
+                    if (undefined == evalResult || "" == evalResult.stringValue) {
+                      //manager.ctx.db.logger.debug("defaultProcessor: //details[1]/text() undefined");
+                      //manager.ctx.db.logger.debug("defaultProcessor: trying (//text())[2]");
+                      evalResult = xmlDoc.evaluate("(//text())[2]",xmlDoc,null,XPathResult.STRING_TYPE,null);
+                      //manager.ctx.db.logger.debug("defaultProcessor: output: " + evalResult.stringValue);
+                    }
+                  }
+                }
+              }
+              if (undefined != evalResult && null != evalResult && "" != evalResult.stringValue) {
+                snippet = evalResult.stringValue;
+              }
+            }
+          
+            if (null == snippet) {
+              // show XML tree structure as HTML
+              //manager.ctx.db.logger.debug("defaultProcessor: No XML summary, building XML tree HTML output");
+              
+              // display tree of XML
+              snippet = com.marklogic.widgets.searchhelper.xmltohtml(xmlDoc); // TODO
+            }
+            
+            if (null == snippet) {
+              snippet = result.content;
+            }
+          
+            resStr += "<div class='searchresults-result'><h3>" + result.index + ". " + title + "</h3>";
+            if (null != snippet) {
+              resStr += "<div class='searchresults-snippet'>" + snippet + "</div>";
+            }
+            resStr += "</div>";
+            return resStr;
+          } catch (err) {
+            manager.ctx.db.logger.debug("defaultProcessor: XML mode: Failed to create XML document from text: " + result.content);
+          }
+          return "";
+          
+    }
+  },
+  text: {
+    matcher: function(result,manager,settings) {
+      return ("text" == result.format);
+    },
+    processor: function(result,manager,settings) {
+      
+        var resStr = "<div class='searchresults-result'><h3>" + result.index + ". " + result.uri + "</h3>";
+        if (result.content.length <= 100) {
+          resStr += result.content;
+        } else {
+          resStr += result.content.substring(0,100) + "...";
+        }
+        resStr += "</div>";
+        return resStr;
+    }
+  }/*,
+  unknown: {
+    
+  }*/
 };
 
 /**

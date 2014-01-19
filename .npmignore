@@ -19,3 +19,8 @@ documentation
 restclient
 release-notes
 mljsrest
+testconfig.js
+delete-configtest.js
+core.md
+browser.md
+samples

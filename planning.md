@@ -2,239 +2,6 @@
 
 ## Upcoming releases
 
-Targets for 1.2 (Dec 2013)
- - DONE Widgets: searchfacets - allow developer to specify facet value to human name. E.g. VALUE/hello -> Hello (still using "FACET/hello" as the actual value)
-  - DONE Core: Change options builder to store text translations for facets
-  - DONE Core: Change searchcontext so that setOptions takes an options builder (as well as legacy options JSON), so as to maintain a reference to these transactions
- - DONE Widgets: Address to Lon Lat - Perform address lookup for top matching point, feed as constraint in to structured query
-  - DONE Google address lookup
-   - NOT A BUG wasn't using same searchcontext - need to change setContext to setSearchContext globally - contributing multiple terms only processes last term in search
-  - DONE BUG heatmap doesn't clear when zero results returned from next search
-  - DONE Accept radius as a property
- - DONE Core: Add GeoContext to support concept of Area(s) of interest (E.g. total area that should be visible on a map, or within an area for analysis)
-  - DONE Widgets: Update addressbar to support geocontext
-  - DONE Docs: Update address lookup search page to use this
-  - DONE Widgets: Update OpenLayers to zoom to the location mentioned
-  - DONE Docs: Update openlayers map page to use this
-  - DONE BUG Widgets: OpenLayers heatmaps appear offset and are not refreshed when map's center position is changed
-  - DEFERRED Widgets: Update OpenLayers to zoom to the bounds mentioned (not just the center point at the current zoom level)
-   - DEFERRED Core: Calculate max bounds from areas specified and pass that in the updateLocale event
- - DONE Docs: XML example for custom renderer support, with namespaces in XPath
- - NA Not happening now: Figure out why HTTP 500s result in throwing an exception rather than MLJS error handling (e.g. extension execution errors)
- - DONE Ensure version extension absence errors gracefully
- - DONE Rework all examples to use searchcontext rather than direct invocation of mljs methods
- - DONE need to use values() not search() - BUG cooccurence widget now not returning results in combined V7 query mode
- - DONE Try N-way cooccurence (See co-occurence widget test page)
- - TEST Core: Options Builder
-  - TEST Added all options support for geoElement, geoElementPair, geoAttributePair and geoPath Constraints
-   - BUG geo-elem-pair constraint seems to ignore fragment-scope=properties option (reported to ENG) - 25342 in 6.0-5
-  - TEST Add custom constraint support
-  - TEST Add thesaurus support using custom constraint
-  - TEST element query constraint
-  - TEST Add extract metadata support (For use by custom renderers)
-  - TEST searchable expression
-  - TEST Add custom grammar support
-  - TEST Top level options properties: search-option, 
-  - DEFERRED (default)suggestion-source
- - IN PROGRESS App builder gap closing
-  - DONE Widgets: HighCharts: Apply chaining pattern to highchart options to make them simpler
-  - IN PROGRESS Core: Rework searchcontext
-   - DONE Allow contribution of facets/sort etc to alter both text (grammar) queries and structured query (independently, via searchcontext)
-   - DONE Add "values" as a searchcontext endpoint option (either /v1/search (default) or /v1/values/{tuplesname})
-   - DONE Added custom REST endpoint support to Search Context, and a tutorial on this to GitHub. See searchcontext.customEndpoint()
-   - DONE Add V7 combined options + values support to mljs.values()
-   - DONE Ensure searchcontext supports updateFacets
-   - NA Done when query refreshes anyway: Add addFacetSelection listener etc to highcharts widget
-   - IN PROGRESS Support compound search mode in V7 (options + search) (search, searchCollection, structuredSearch, saveSearchOptionsCheck, searchcontext alterations)
-    - DONE version rest extension
-    - BUG: V7 ignores URL search parameters if submitting a structuredQuery and options (previously if supplying just query and referring to options, it'd work) - 25306 in 7.0-2
-     - Fix chart search page
-   - DONE Docs: Rework cooccurence example to use search context, and contributeStructureQuery
-   - NA Not possible. Close approximation without grammar with term queries though: Check if structured query supports dynamic text query constraints with grammar (i.e. one term with grammar parsing)
-   - DEFERRED Do shadow query automatically in searchcontext rather than per-widget?
-   - DEFERRED Come up with a strategy for parent-child relationships in search widgets (one way facet selection - E.g. genre THEN album)
-   - NA alter the options to fetch data. Use updateResults to retrieve them for display: Allow widgets to request information in results, rather than alter search options (E.g. request a heatmap, or particular metadata properties) - context updates options on the fly
-  - DONE Core: SearchContext to support multiple searches when same context used across multiple tuple names
-  - IN PROGRESS Widgets: Navigable charts / co-occurence - clicking sets facet value
-   - IN PROGRESS co-occurence
-    - DONE Requires values() support in searchcontext
-    - BUG POST /v1/tuples also ignoring query string parameters - 25306 in 7.0-2
-   - DONE High charts column
-   - DONE High charts line
-   - DONE Pie segment
-   - DONE translated to category from x position: BUG passing 2:"8" - 2 is the x position, not the x value - should be 'pet' on the pie on chartsearch page
- - DONE BUG: OpenLayers polygon/circle selection no longer removing markers when executing more restrictive search
- - DONE BUG: Search sort widget showing [Object: object] instead of name in drop down
- - DONE BUG: Widgets: Search results. Plain text parsing error.
- - TEST mljs.combined and mljs.doCombinedQuery. Auto on contributeStructuredQuery already (if term is text). 
-  - TEST Core: searchcontext - support qtext for combined query when searchbar is contributing information to a structured query (rather than a term query as now)
-  - TEST How to handle this on V6 only systems? - Detect and fall back to term query
- - DONE Widgets: Tag cloud - add hover over text to include frequency of result
- - IN PROGRESS Widgets: Workplace - Removes any code anyone needs to write to use MLJS widgets
-  - IN PROGRESS Main edit page framework
-   - IN PROGRESS Layout rendering in edit mode
-    - DONE Render layout
-    - IN PROGRESS Render widget configs within layout
-     - DONE Replace encodeuri with encodehtmltag
-     - DONE http 500 error handling added to xhr2 library: Figure out json parse bug on loading main page (taking up too much debug time)
-     - Remove Data Series (Array of settings) Button: Data Series in table drawing
-     - IN PROGRESS Get button images and css sorted for multiples
-     - DONE bad widget config: BUG chart type options - only showing Line
-     - DONE shrink drop zone / make look better (sort out images)
-     - DONE add Data series instance number
-   - IN PROGRESS saving previous tab settings on switching tabs
-    - DONE page settings
-    - IN PROGRESS actions
-   - DONE Page (configuration) settings
-    - DONE Get workplace rest extension and wrapper
-    - DONE Save workplace rest extension and wrapper
-    - DONE Workplace config JSON format - including 'shared' flag, title, description
-    - DONE visuals (drop downs)
-    - DEFERRED no way to search for shared yet anyway: shared checkbox
-   - IN PROGRESS Widgets settings
-    - DONE Widget toolbox
-    - DONE Laying out widget positions within page Layout
-    - IN PROGRESS Add new widgets and place correctly when dropped
-     - DONE Drag/drop class on bottom drop zone places new widget correctly
-     - BUG drag/drop new or existing widget on other drop zones makes them initially appear at top, then split from their spacer
-     - Rework layout code so there's only a single method to add a wrapping element - createWrapper() ??? what about layout.wrap(widget)? layout.register(widget)?
-    - DONE Add 'Insert here' before each widget too
-    - TEST Make existing widget titles drag/droppable too 
-    - TEST Save changes to layout configuration on drop
-    - TEST Add html moving code, preserving event handlers
-    - TEST Apply equivalent change to workplace context when saving positions (switching away from widgets tab or saving)
-    - TEST Break out thinthick logic in to generic mixin for layouts
-   - IN PROGRESS Widget configuration settings (in place)
-    - IN PROGRESS visuals
-    - Contexts - add new (auto named)
-     - Thinking of doing this on the left hand side still
-   - Action settings
-    - IN PROGRESS on page load
-    - IN PROGRESS on page unload
-    - DEFERRED searchcontext on selection
-   - Widgets: Add Workplace Configuration support
-    - co-occurence
-    - OpenLayers
-    - Address lookup
-    - TagCloud
-    - document (result) selection, search selection
-    - searchbar
-    - sparqlbar / sparqlresults / entityfacts
-    - searchmetrics
-    - graphexplorer
-    - documentproperties / docheadproperties / docviewer
-    - docbuilder (upload)
-    - kratu
-    - rdb2rdf (no configuration params needed)
-    - layouts (embedding) - DONE thinthink / TEST thickthin / TEST single column / double column / triple column / 2 rows / 3 rows 
-  - DONE Programmatic access
-   - NA Doesn't make sense - all handled internally by workplacecontext: getWidget by name (so you can programmatically add settings after load)
-   - DONE getWorkplaceContext (could be done via widget optionally too)
-   - NA done in real time (run til complete): addLoadedListener (so you can programmatically add settings after load)
-   - DONE addSupportedWidgets() - so you can add widgets allowed to workplaceadmin after load
-   - DONE addSupportedLayouts() - so you can add layouts allowed to workplaceadmin after load
-   - DEFERRED 'app level' settings - configured search options
-  - DONE Widgets: Add Drag and Drop support to widgets.js
-   - DONE DND pure Test page in mldbwebtest roxy project
-   - DONE ensure basic drag and drop works
-   - DEFERRED Only needed when dnd used by third party developers on complex apps: Add rules around which draggables can be dropped on which droppables (dropzones)
-  - Render Workplace
-   - (default) Detect URL of page. Search in ML for workplace json page that matches this URL (not including query strings)
-   - User default workplace. Find user's own 'personal-workplace' for currently logged in user (akin to a single page mode app)
-   - DEFERRED Embeddable. Assume embedded in external app. Use workplace-share-id as key to find, on remote server via W3C CORS, the 'page' (embed) to draw
-   - Fallback. If no Workplace detected, create a generic search page with a Workplace edit button (depending on app wide settings - 'save/edit allowed')
-    - Allow fallback to be set programmatically or via app wide settings
-  - DONE Create WorkplaceContext object in workplace js file
-   - DONE updatePage event - occurs when a page is loaded. E.g. from current page URL or for current logged in user or as fallback
-   - NA using updatePage instead - updateSummary
-   - DEFERRED until we support app wide settings - updateApp event
-   - DEFERRED until we support app wide settings - loadApp
-   - DONE loadPage
- - DONE Latest REST API returns JSON as object not text: BUG Kratu no longer rendering content since migration to searchcontext
- - DONE Docs: Document all core concepts currently part of MLJS
-  - DONE Docs: searchcontext object
-  - DONE Docs: Supported rest extensions tutorial doc
-  - DONE Core API jsdoc
-  - DONE Widget API jsdoc
- - DONE Core: Search Options builder
-  - DEFERRED hide sem:triple elements from snippet highlighting
-  - DEFERRED Don't return sem:triples documents at all by default (Top level only)
-  - DONE actually write the pathConstraint function!
-  - DONE BUG WAS AN ISSUE IN MLJS CONSTRAINT SETTINGS: Investigate why REST insists upon some elements having indexes in the JSON namespace as well as the one required (E.g. xhtml and h1)
- - DONE Test: Create MLJS Rest only (not Roxy hybrid) deployment project
- - DONE Docs: Publish mljsrest and mldbwebtest to internal demo server
- - DONE Bug scanning/regression testing check
-  - DONE BUG Widgets: Default Search Renderer does not check for format="xml"!!! Assumes JSON even when format is specified
-  - DONE Widgets: searchresults add default renderer for documents containing triples (sem-triples parser)
-
-Floating Targets
- - CSV Import improvements / testing
-  - Checkout XSLT upload and transform method
-  - Test PAF file format
- - Nice to have: Widgets: Browse related Subjects in node diagram
- - TEST Core: Add support for save/get/delete/list transforms
- - LOW Widgets: Transforms administration
-  - LOW Upload (New) transform / Edit / View
-  - LOW List transforms
-  - LOW Add test document + run XSLT
-  - LOW Advanced Edit - syntax highlighting for XQuery/XSLT
- - LOW Widgets: Information flow administration
-  - LOW List pre/post commit triggers, action module name, whether acting on collection or URI base
-  - LOW List alerts, match criteria, actions list
-  - LOW List CPF pipeline information and flow
-  - LOW List norm configurations and denormalisation targets (including XSLT invocation)
- - SMA
-  - High:-
-   - Widgets: Advanced search editing - Support for boolean logic, word and phrase matches, NEAR searches, constraint drop downs
-    - Parsing existing text query
-    - Add/remove clause buttons
-    - Clause types: Boolean: AND(0+), OR(0+), NEAR(2) with number, NOT(0+)
-    - Clause types: Basic: Word or Phrase, Constraint Value (drop down constraint, lookup or type value), Thesaurus (Custom) value
-    - Clause types: Advanced: Range Constraint (min, max, lt, lte, gt, gte), Range fixed buckets (from options), range dynamic (time) buckets (last 2 days)
-    - Low: Clause types: Structured: geo box/radius/polygon
-     - Drop down for 'areas' (polygons pre-defined)
-     - Widgets: List saved search areas, new/edit/delete links
-     - Widgets: OpenLayers map used to define polygon - 'save polygon' link with name
-      - Saves data as a search query in JSON to a document with a wrapper, including area display name and type display name (constituency, country, state, AoR etc)
-   - Widgets: Save last executed search
-   - Widgets: Load saved search drop down (Last 10 saved, link to full list)
-   - Widgets: OpenLayers - show detail on hover, perform full action on click (E.g. preview appears mid page)
-   - Research: Most mentions as a sorting factor? Can we index this number using a path constraint? //tw:comments/fn:count(.) ?
-   - Widgets: docview: common Social Media formats support - Twitter, Facebook (messages and profile pages), with links to viewing online on original websites (or embed)
-   - Research: How to get messages in there - task server spawning task per capture method, option for global enable/disable on collectors
-   - Widgets: Collector list, links for new, delete, edit, task server checking schedule
-    - REST extension for task server set up
-   - Widgets: New/Edit collector
-    - Twitter Tweets
-    - DEFERRED Twitter Profiles
-    - DEFERRED Facebook messages
-    - DEFERRED Facebook profiles
-  - Medium:-
-   - Widgets: Workplace: Dynamic multi pages for MLJS Workplace (displayed as tabs)
-   - Widgets: Navigation widget
-    - One tab per Workplace in current app, sends to appropriate URL
-    - DEFERRED Allow workplaces to be kept instead in a drop down menu
-    - Also allow fixed tabs at start and end (list for each). E.g. Settings, Home, etc. for non-workplace dynamic pages - display text, url
-   - Widgets: List my saved searches
-   - Widgets: alert set up
-    - Widgets: New/Edit alert - name, action type, action settings, pre or post commit
-    - Alert Action: Tag match - element name(country), namespace (opt), word query ("UK" OR "United Kingdom") match attributeNameOpt (@country), attribute value("UK")
-    - Widgets: List saved alerts (including type of action)
-    - REST extension to save/modify/list alerts
-    - Widgets: Preview alert search matches in edit mode
-   - Widgets: Workplace Layout: Full screen width
-    - Widgets: OpenLayers test auto using full screen width, config option on child layouts to include container class name(s)
-   - Alert Action: Gazetteer mentions_location support for Entity Extraction tagging and Enrichment (lat,lon)
-   - Research: Plain text location to lon/lat accuracy tagging (ask AT)
-   - Config: Twitter, Facebook specific location geotagged field support (as a field constraint across multiple sources)
-   - Alert: Within polygon (county, country (within UK), parliamentary boundary) for Entity Extraction tagging
-  - Low:-
-   - Widgets: Enable search as alert, with drop down for actions (Email, IM, etc.)
-   - Widgets: Workplace app level settings. 
-    - Specifically, default role to see / edit shared searches
-    - Default REST Server search options set up (constraints)
-   - Refactor: Move widgets' use of 960.css out in to a Layout instance, as config options on the assignment itself (not widget or layout)
-
 Targets for 1.4 (Feb 2014) - Theme: Visualisations
  - Widgets: Search Results
   - IN PROGRESS Add support for pluggable rendering for areas of result pane:-
@@ -375,6 +142,74 @@ Targets for 1.4 (Feb 2014) - Theme: Visualisations
   - Document all new widgets
   - Tests for new widgets
  
+Floating Targets
+ - CSV Import improvements / testing
+  - Checkout XSLT upload and transform method
+  - Test PAF file format
+ - Nice to have: Widgets: Browse related Subjects in node diagram
+ - TEST Core: Add support for save/get/delete/list transforms
+ - LOW Widgets: Transforms administration
+  - LOW Upload (New) transform / Edit / View
+  - LOW List transforms
+  - LOW Add test document + run XSLT
+  - LOW Advanced Edit - syntax highlighting for XQuery/XSLT
+ - LOW Widgets: Information flow administration
+  - LOW List pre/post commit triggers, action module name, whether acting on collection or URI base
+  - LOW List alerts, match criteria, actions list
+  - LOW List CPF pipeline information and flow
+  - LOW List norm configurations and denormalisation targets (including XSLT invocation)
+ - SMA
+  - High:-
+   - Widgets: Advanced search editing - Support for boolean logic, word and phrase matches, NEAR searches, constraint drop downs
+    - Parsing existing text query
+    - Add/remove clause buttons
+    - Clause types: Boolean: AND(0+), OR(0+), NEAR(2) with number, NOT(0+)
+    - Clause types: Basic: Word or Phrase, Constraint Value (drop down constraint, lookup or type value), Thesaurus (Custom) value
+    - Clause types: Advanced: Range Constraint (min, max, lt, lte, gt, gte), Range fixed buckets (from options), range dynamic (time) buckets (last 2 days)
+    - Low: Clause types: Structured: geo box/radius/polygon
+     - Drop down for 'areas' (polygons pre-defined)
+     - Widgets: List saved search areas, new/edit/delete links
+     - Widgets: OpenLayers map used to define polygon - 'save polygon' link with name
+      - Saves data as a search query in JSON to a document with a wrapper, including area display name and type display name (constituency, country, state, AoR etc)
+   - Widgets: Save last executed search
+   - Widgets: Load saved search drop down (Last 10 saved, link to full list)
+   - Widgets: OpenLayers - show detail on hover, perform full action on click (E.g. preview appears mid page)
+   - Research: Most mentions as a sorting factor? Can we index this number using a path constraint? //tw:comments/fn:count(.) ?
+   - Widgets: docview: common Social Media formats support - Twitter, Facebook (messages and profile pages), with links to viewing online on original websites (or embed)
+   - Research: How to get messages in there - task server spawning task per capture method, option for global enable/disable on collectors
+   - Widgets: Collector list, links for new, delete, edit, task server checking schedule
+    - REST extension for task server set up
+   - Widgets: New/Edit collector
+    - Twitter Tweets
+    - DEFERRED Twitter Profiles
+    - DEFERRED Facebook messages
+    - DEFERRED Facebook profiles
+  - Medium:-
+   - Widgets: Workplace: Dynamic multi pages for MLJS Workplace (displayed as tabs)
+   - Widgets: Navigation widget
+    - One tab per Workplace in current app, sends to appropriate URL
+    - DEFERRED Allow workplaces to be kept instead in a drop down menu
+    - Also allow fixed tabs at start and end (list for each). E.g. Settings, Home, etc. for non-workplace dynamic pages - display text, url
+   - Widgets: List my saved searches
+   - Widgets: alert set up
+    - Widgets: New/Edit alert - name, action type, action settings, pre or post commit
+    - Alert Action: Tag match - element name(country), namespace (opt), word query ("UK" OR "United Kingdom") match attributeNameOpt (@country), attribute value("UK")
+    - Widgets: List saved alerts (including type of action)
+    - REST extension to save/modify/list alerts
+    - Widgets: Preview alert search matches in edit mode
+   - Widgets: Workplace Layout: Full screen width
+    - Widgets: OpenLayers test auto using full screen width, config option on child layouts to include container class name(s)
+   - Alert Action: Gazetteer mentions_location support for Entity Extraction tagging and Enrichment (lat,lon)
+   - Research: Plain text location to lon/lat accuracy tagging (ask AT)
+   - Config: Twitter, Facebook specific location geotagged field support (as a field constraint across multiple sources)
+   - Alert: Within polygon (county, country (within UK), parliamentary boundary) for Entity Extraction tagging
+  - Low:-
+   - Widgets: Enable search as alert, with drop down for actions (Email, IM, etc.)
+   - Widgets: Workplace app level settings. 
+    - Specifically, default role to see / edit shared searches
+    - Default REST Server search options set up (constraints)
+   - Refactor: Move widgets' use of 960.css out in to a Layout instance, as config options on the assignment itself (not widget or layout)
+
 Targets for 1.5 (Mar 2014) Interim Release
  - Missed 1.2 (Dec 2013) - Medium Priority - targets
   - Docs: Tutorials
@@ -978,3 +813,167 @@ Targets for 1.1 Interim release (Nov 2013)
    - DONE searchfacets widget
  - DONE Docs: date time dynamic bucketing example in search page sample
  
+Targets for 1.2 (Dec 2013)
+ - DONE Widgets: searchfacets - allow developer to specify facet value to human name. E.g. VALUE/hello -> Hello (still using "FACET/hello" as the actual value)
+  - DONE Core: Change options builder to store text translations for facets
+  - DONE Core: Change searchcontext so that setOptions takes an options builder (as well as legacy options JSON), so as to maintain a reference to these transactions
+ - DONE Widgets: Address to Lon Lat - Perform address lookup for top matching point, feed as constraint in to structured query
+  - DONE Google address lookup
+   - NOT A BUG wasn't using same searchcontext - need to change setContext to setSearchContext globally - contributing multiple terms only processes last term in search
+  - DONE BUG heatmap doesn't clear when zero results returned from next search
+  - DONE Accept radius as a property
+ - DONE Core: Add GeoContext to support concept of Area(s) of interest (E.g. total area that should be visible on a map, or within an area for analysis)
+  - DONE Widgets: Update addressbar to support geocontext
+  - DONE Docs: Update address lookup search page to use this
+  - DONE Widgets: Update OpenLayers to zoom to the location mentioned
+  - DONE Docs: Update openlayers map page to use this
+  - DONE BUG Widgets: OpenLayers heatmaps appear offset and are not refreshed when map's center position is changed
+  - DEFERRED Widgets: Update OpenLayers to zoom to the bounds mentioned (not just the center point at the current zoom level)
+   - DEFERRED Core: Calculate max bounds from areas specified and pass that in the updateLocale event
+ - DONE Docs: XML example for custom renderer support, with namespaces in XPath
+ - NA Not happening now: Figure out why HTTP 500s result in throwing an exception rather than MLJS error handling (e.g. extension execution errors)
+ - DONE Ensure version extension absence errors gracefully
+ - DONE Rework all examples to use searchcontext rather than direct invocation of mljs methods
+ - DONE need to use values() not search() - BUG cooccurence widget now not returning results in combined V7 query mode
+ - DONE Try N-way cooccurence (See co-occurence widget test page)
+ - TEST Core: Options Builder
+  - TEST Added all options support for geoElement, geoElementPair, geoAttributePair and geoPath Constraints
+   - BUG geo-elem-pair constraint seems to ignore fragment-scope=properties option (reported to ENG) - 25342 in 6.0-5
+  - TEST Add custom constraint support
+  - TEST Add thesaurus support using custom constraint
+  - TEST element query constraint
+  - TEST Add extract metadata support (For use by custom renderers)
+  - TEST searchable expression
+  - TEST Add custom grammar support
+  - TEST Top level options properties: search-option, 
+  - DEFERRED (default)suggestion-source
+ - BUG App builder gap closing
+  - DONE Widgets: HighCharts: Apply chaining pattern to highchart options to make them simpler
+  - BUG Core: Rework searchcontext
+   - DONE Allow contribution of facets/sort etc to alter both text (grammar) queries and structured query (independently, via searchcontext)
+   - DONE Add "values" as a searchcontext endpoint option (either /v1/search (default) or /v1/values/{tuplesname})
+   - DONE Added custom REST endpoint support to Search Context, and a tutorial on this to GitHub. See searchcontext.customEndpoint()
+   - DONE Add V7 combined options + values support to mljs.values()
+   - DONE Ensure searchcontext supports updateFacets
+   - NA Done when query refreshes anyway: Add addFacetSelection listener etc to highcharts widget
+   - IN PROGRESS Support compound search mode in V7 (options + search) (search, searchCollection, structuredSearch, saveSearchOptionsCheck, searchcontext alterations)
+    - DONE version rest extension
+    - BUG: V7 ignores URL search parameters if submitting a structuredQuery and options (previously if supplying just query and referring to options, it'd work) - 25306 in 7.0-2
+     - Fix chart search page
+   - DONE Docs: Rework cooccurence example to use search context, and contributeStructureQuery
+   - NA Not possible. Close approximation without grammar with term queries though: Check if structured query supports dynamic text query constraints with grammar (i.e. one term with grammar parsing)
+   - DEFERRED Do shadow query automatically in searchcontext rather than per-widget?
+   - DEFERRED Come up with a strategy for parent-child relationships in search widgets (one way facet selection - E.g. genre THEN album)
+   - NA alter the options to fetch data. Use updateResults to retrieve them for display: Allow widgets to request information in results, rather than alter search options (E.g. request a heatmap, or particular metadata properties) - context updates options on the fly
+  - DONE Core: SearchContext to support multiple searches when same context used across multiple tuple names
+  - BUG Widgets: Navigable charts / co-occurence - clicking sets facet value
+   - BUG co-occurence
+    - DONE Requires values() support in searchcontext
+    - BUG POST /v1/tuples also ignoring query string parameters - 25306 in 7.0-2
+   - DONE High charts column
+   - DONE High charts line
+   - DONE Pie segment
+   - DONE translated to category from x position: BUG passing 2:"8" - 2 is the x position, not the x value - should be 'pet' on the pie on chartsearch page
+ - DONE BUG: OpenLayers polygon/circle selection no longer removing markers when executing more restrictive search
+ - DONE BUG: Search sort widget showing [Object: object] instead of name in drop down
+ - DONE BUG: Widgets: Search results. Plain text parsing error.
+ - TEST mljs.combined and mljs.doCombinedQuery. Auto on contributeStructuredQuery already (if term is text). 
+  - TEST Core: searchcontext - support qtext for combined query when searchbar is contributing information to a structured query (rather than a term query as now)
+  - TEST How to handle this on V6 only systems? - Detect and fall back to term query
+ - DONE Widgets: Tag cloud - add hover over text to include frequency of result
+ - IN PROGRESS Widgets: Workplace - Removes any code anyone needs to write to use MLJS widgets
+  - IN PROGRESS Main edit page framework
+   - IN PROGRESS Layout rendering in edit mode
+    - DONE Render layout
+    - IN PROGRESS Render widget configs within layout
+     - DONE Replace encodeuri with encodehtmltag
+     - DONE http 500 error handling added to xhr2 library: Figure out json parse bug on loading main page (taking up too much debug time)
+     - Remove Data Series (Array of settings) Button: Data Series in table drawing
+     - IN PROGRESS Get button images and css sorted for multiples
+     - DONE bad widget config: BUG chart type options - only showing Line
+     - DONE shrink drop zone / make look better (sort out images)
+     - DONE add Data series instance number
+   - IN PROGRESS saving previous tab settings on switching tabs
+    - DONE page settings
+    - IN PROGRESS actions
+   - DONE Page (configuration) settings
+    - DONE Get workplace rest extension and wrapper
+    - DONE Save workplace rest extension and wrapper
+    - DONE Workplace config JSON format - including 'shared' flag, title, description
+    - DONE visuals (drop downs)
+    - DEFERRED no way to search for shared yet anyway: shared checkbox
+   - IN PROGRESS Widgets settings
+    - DONE Widget toolbox
+    - DONE Laying out widget positions within page Layout
+    - IN PROGRESS Add new widgets and place correctly when dropped
+     - DONE Drag/drop class on bottom drop zone places new widget correctly
+     - BUG drag/drop new or existing widget on other drop zones makes them initially appear at top, then split from their spacer
+     - Rework layout code so there's only a single method to add a wrapping element - createWrapper() ??? what about layout.wrap(widget)? layout.register(widget)?
+    - DONE Add 'Insert here' before each widget too
+    - TEST Make existing widget titles drag/droppable too 
+    - TEST Save changes to layout configuration on drop
+    - TEST Add html moving code, preserving event handlers
+    - TEST Apply equivalent change to workplace context when saving positions (switching away from widgets tab or saving)
+    - TEST Break out thinthick logic in to generic mixin for layouts
+   - IN PROGRESS Widget configuration settings (in place)
+    - IN PROGRESS visuals
+    - Contexts - add new (auto named)
+     - Thinking of doing this on the left hand side still
+   - Action settings
+    - IN PROGRESS on page load
+    - IN PROGRESS on page unload
+    - DEFERRED searchcontext on selection
+   - Widgets: Add Workplace Configuration support
+    - co-occurence
+    - OpenLayers
+    - Address lookup
+    - TagCloud
+    - document (result) selection, search selection
+    - searchbar
+    - sparqlbar / sparqlresults / entityfacts
+    - searchmetrics
+    - graphexplorer
+    - documentproperties / docheadproperties / docviewer
+    - docbuilder (upload)
+    - kratu
+    - rdb2rdf (no configuration params needed)
+    - layouts (embedding) - DONE thinthink / TEST thickthin / TEST single column / double column / triple column / 2 rows / 3 rows 
+  - DONE Programmatic access
+   - NA Doesn't make sense - all handled internally by workplacecontext: getWidget by name (so you can programmatically add settings after load)
+   - DONE getWorkplaceContext (could be done via widget optionally too)
+   - NA done in real time (run til complete): addLoadedListener (so you can programmatically add settings after load)
+   - DONE addSupportedWidgets() - so you can add widgets allowed to workplaceadmin after load
+   - DONE addSupportedLayouts() - so you can add layouts allowed to workplaceadmin after load
+   - DEFERRED 'app level' settings - configured search options
+  - DONE Widgets: Add Drag and Drop support to widgets.js
+   - DONE DND pure Test page in mldbwebtest roxy project
+   - DONE ensure basic drag and drop works
+   - DEFERRED Only needed when dnd used by third party developers on complex apps: Add rules around which draggables can be dropped on which droppables (dropzones)
+  - Render Workplace
+   - (default) Detect URL of page. Search in ML for workplace json page that matches this URL (not including query strings)
+   - User default workplace. Find user's own 'personal-workplace' for currently logged in user (akin to a single page mode app)
+   - DEFERRED Embeddable. Assume embedded in external app. Use workplace-share-id as key to find, on remote server via W3C CORS, the 'page' (embed) to draw
+   - Fallback. If no Workplace detected, create a generic search page with a Workplace edit button (depending on app wide settings - 'save/edit allowed')
+    - Allow fallback to be set programmatically or via app wide settings
+  - DONE Create WorkplaceContext object in workplace js file
+   - DONE updatePage event - occurs when a page is loaded. E.g. from current page URL or for current logged in user or as fallback
+   - NA using updatePage instead - updateSummary
+   - DEFERRED until we support app wide settings - updateApp event
+   - DEFERRED until we support app wide settings - loadApp
+   - DONE loadPage
+ - DONE Latest REST API returns JSON as object not text: BUG Kratu no longer rendering content since migration to searchcontext
+ - DONE Docs: Document all core concepts currently part of MLJS
+  - DONE Docs: searchcontext object
+  - DONE Docs: Supported rest extensions tutorial doc
+  - DONE Core API jsdoc
+  - DONE Widget API jsdoc
+ - DONE Core: Search Options builder
+  - DEFERRED hide sem:triple elements from snippet highlighting
+  - DEFERRED Don't return sem:triples documents at all by default (Top level only)
+  - DONE actually write the pathConstraint function!
+  - DONE BUG WAS AN ISSUE IN MLJS CONSTRAINT SETTINGS: Investigate why REST insists upon some elements having indexes in the JSON namespace as well as the one required (E.g. xhtml and h1)
+ - DONE Test: Create MLJS Rest only (not Roxy hybrid) deployment project
+ - DONE Docs: Publish mljsrest and mldbwebtest to internal demo server
+ - DONE Bug scanning/regression testing check
+  - DONE BUG Widgets: Default Search Renderer does not check for format="xml"!!! Assumes JSON even when format is specified
+  - DONE Widgets: searchresults add default renderer for documents containing triples (sem-triples parser)
