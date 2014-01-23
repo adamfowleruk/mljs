@@ -3,7 +3,8 @@
 usage(){
 	echo "Usage: CUSTOM APP: $0 -m custom [-d /your/app/main/dir] [-j /sub/js/dir] [-i /sub/images/dir] [-c /sub/css/dir]"
 	echo "Usage: ROXY: $0 -m roxy [-d /your/app/main/dir]"
-	echo "Usage: -d defaults to the current directory. For Roxy, this should be the parent of the src directory."
+	echo "Usage: REST: $0 -m rest [-d /your/app/main/dir]"
+	echo "Usage: -d defaults to the current directory. For Roxy and Rest, this should be the parent of the src directory."
 	echo "Usage: Roxy mode creates the mljstest controller and test pages too."
 	exit 1
 }
@@ -23,6 +24,9 @@ while getopts ":c:j:i:m:d:" o; do
       case "$OPTARG" in
         roxy)
           ROXY=true
+          ;;
+        rest)
+          REST=true
           ;;
         *)
           CUSTOM=true
@@ -52,15 +56,25 @@ if [ $ROXY ]; then
   echo "Roxy mode"
   mkdir -p $APP/src
 else
-  echo "Custom mode"
-  J=$APP/src/public/js/mljs
-  C=$APP/src/public/css/mljs
-  I=$APP/src/public/images
-  
-  # Ensure destination folders exist
-  mkdir -p $C
-  mkdir -p $J
-  mkdir -p $I
+  if [ $REST ]; then
+    echo "REST mode"
+    C=$APP/src/css/mljs
+    J=$APP/src/js/mljs
+    I=$APP/src/images/mljs
+    mkdir -p $C
+    mkdir -p $J
+    mkdir -p $I
+  else
+    echo "Custom mode"
+    J=$APP/src/public/js/mljs
+    C=$APP/src/public/css/mljs
+    I=$APP/src/public/images
+    
+    # Ensure destination folders exist
+    mkdir -p $C
+    mkdir -p $J
+    mkdir -p $I
+  fi
 fi
 
 echo "-d=$APP -j=$J -i=$I -c=$C -roxy=$ROXY"
