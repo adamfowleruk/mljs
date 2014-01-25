@@ -1841,6 +1841,30 @@ mljs.prototype.searchOptions = function(name,callback) {
 mljs.prototype.searchoptions = mljs.prototype.searchOptions; // typo workaround for backwards compatibility
 
 /**
+ * Suggest query completion based on the given partial query
+ * 
+ * {@link http://docs.marklogic.com/REST/GET/v1/suggest}
+ * 
+ * @param {string} q - The partial query to generate suggestions for
+ * @param {string} options_opt - The saved query options to use
+ * @param {json} additional_properties_opt - Extra properties as a json object. E.g. q, limit, cursor-position
+ * @param {function} callback - The callback to invoke after the method completes
+ */
+mljs.prototype.suggest = function(q,options_opt,additional_properties_opt,callback) {
+  var options = {
+    path: "/v1/suggest?format=json&partial-q=" + encodeURI(q) + "&options=" + encodeURI(options_opt),
+    method: "GET"
+  };
+  if (undefined != additional_properties_opt) {
+    for (var name in additional_properties_opt) {
+      var val = additional_properties_opt[name];
+      options.path += "&" + name + "=" + encodeURI(val); // TODO handle q value as array - at the moment only 1 q value is supported
+    }
+  }
+  this.__doreq("SUGGEST",options,null,callback);
+};
+
+/**
  * Fetches values from a lexicon or computes 2-way co-occurence.
  * 
  * {@link https://docs.marklogic.com/REST/GET/v1/values/*}
@@ -3699,6 +3723,7 @@ mljs.prototype.options.prototype.customConstraint = function(constraint_name,par
     con["custom"][n] = additional_properties_opt[n];
   }
   this.addConstraint(con);
+  this.suggest(constraint_name);
   return this;
 };
 
@@ -3745,6 +3770,7 @@ mljs.prototype.options.prototype.pathConstraint = function(constraint_name,xpath
   // see http://docs-ea.marklogic.com/guide/rest-dev/appendixa#id_97031
   
   this.addConstraint(range);
+  this.suggest(constraint_name);
   
   return this;
 };
@@ -3800,6 +3826,7 @@ mljs.prototype.options.prototype.elemattrRangeConstraint = function(constraint_n
   this.sortOrder(this.defaultSortDirection,type_opt || this.defaults.type,elspec,collation_opt || this.defaults.collation); // TODO verify this works with normal XML range indexes not json keys
   
   this.addConstraint(range);
+  this.suggest(constraint_name);
   
   return this;
 };
@@ -3946,6 +3973,7 @@ mljs.prototype.options.prototype.rangeConstraint = function(constraint_name_opt,
   this.sortOrder("descending",type_opt || this.defaults.type,elspec,collation_opt || this.defaults.collation); // TODO verify this works with normal XML range indexes not json keys
   
   this.addConstraint(range);
+  this.suggest(constraint_name_opt);
   
   return this;
 };
@@ -3997,6 +4025,7 @@ mljs.prototype.options.prototype.fieldRangeConstraint = function(constraint_name
   this.sortOrder("descending",type_opt || this.defaults.type,elspec,collation_opt || this.defaults.collation);
   
   this.addConstraint(range);
+  this.suggest(constraint_name);
   
   return this;
 };
@@ -4295,7 +4324,7 @@ mljs.prototype.options.prototype.geoattrpair = mljs.prototype.options.prototype.
  * @param {json} additional_properties_opt - Additional rest api properties to apply to this constraint. Copied after constraint constructed. E.g. fragmentScope.
  */
 mljs.prototype.options.prototype.geoPathConstraint = function(constraint_name,path,namespace_json,annotation_opt,additional_properties_opt) {
-  var con = {name: constraint_name, "path-index": {text: path, namespaces: namespace_json}};
+  var con = {name: constraint_name, "geo-path": {"path-index": {text: path, namespaces: namespace_json}}};
   if (undefined != annotation_opt) {
     if ("string" == typeof(annotation_opt)) {
       annotation_opt = [annotation_opt];
@@ -4304,7 +4333,7 @@ mljs.prototype.options.prototype.geoPathConstraint = function(constraint_name,pa
   }
   // copy over additional properties
   for (var n in additional_properties_opt) {
-    con["geo-attr-pair"][n] = additional_properties_opt[n];
+    con["geo-path"][n] = additional_properties_opt[n];
   }
   this.addConstraint(con);
   return this;
@@ -4324,6 +4353,7 @@ mljs.prototype.options.prototype.propertiesConstraint = function(constraint_name
     con.name = constraint_name_opt;
   }
   this.addConstraint(con);
+  this.suggest(constraint_name_opt);
   
   return this;
 };
@@ -4752,6 +4782,12 @@ mljs.prototype.options.prototype.values = function(name) {
   }
   this.options.values.push(values);
   return this;
+};
+
+mljs.prototype.options.prototype.suggest = function(constraint,options_opt) {
+  this.options["suggestion-source"].push({
+    ref: constraint, "suggestion-option": options_opt
+  });
 };
 
 
@@ -5339,6 +5375,7 @@ mljs.prototype.searchcontext = function() {
   this.simpleQueryPublisher = new com.marklogic.events.Publisher(); // simple query text
   this.selectionPublisher = new com.marklogic.events.Publisher(); // result selection uri array publisher
   this.highlightPublisher = new com.marklogic.events.Publisher(); // mouse over/highlight results
+  this.suggestionPublisher = new com.marklogic.events.Publisher(); // search query completion suggestion handling
   
 };
 
@@ -5574,6 +5611,9 @@ mljs.prototype.searchcontext.prototype.register = function(searchWidget) {
   if ('function' === typeof(searchWidget.updateValues)) {
     this.valuesPublisher.subscribe(function (values) {searchWidget.updateValues(values);});
   }
+  if ('function' === typeof(searchWidget.updateSuggestions)) {
+    this.suggestionPublisher.subscribe(function (suggestions) {searchWidget.updateSuggestions(suggestions);});
+  }
   var self = this;
   if ('function' === typeof(searchWidget.addSortListener)) {
     searchWidget.addSortListener(function (sort) {self.updateSort(sort);});
@@ -5675,6 +5715,19 @@ mljs.prototype.searchcontext.prototype._queryToText = function(parsed) {
 };
 
 /**
+ * Fetches suggestions based on the currently used options and the specified query
+ * 
+ * @param {string} q - The partial query to suggest completion for
+ * @param {json} additional_properties_opt - Any extra properties. E.g. q, limit,cursor-position
+ */
+mljs.prototype.searchcontext.prototype.doSuggest = function(q,additional_properties_opt) {
+  var self = this;
+  this.db.suggest(q,this.optionsName,additional_properties_opt,function(result) {
+    self.suggestionPublisher.publish(result.doc);
+  });
+};
+
+/**
  * Performs a structured query against this search context.
  * 
  * @param {json} q - The structured query JSON representation
@@ -5707,7 +5760,7 @@ mljs.prototype.searchcontext.prototype._doQuery = function(structured_opt,text_o
       self.resultsPublisher.publish(true); // forces refresh glyph to show
       self.facetsPublisher.publish(true);
   
-      self.db.structuredSearch(structured_opt,self.optionsName,function(result) { 
+      self.db.structuredSearch(structured_opt,self.optionsName,{start: ourstart},function(result) { 
         if (result.inError) {
           // report error on screen somewhere sensible (e.g. under search bar)
           self.__d(result.error);
@@ -5737,7 +5790,7 @@ mljs.prototype.searchcontext.prototype._doQuery = function(structured_opt,text_o
   var combinedF = function() {
       self.resultsPublisher.publish(true); // forces refresh glyph to show
       self.facetsPublisher.publish(true);
-      self.db.combined(structured_opt,text_opt,self._options,{start: start},function(result) { 
+      self.db.combined(structured_opt,text_opt,self._options,{start: ourstart},function(result) { 
         if (result.inError) {
           // report error on screen somewhere sensible (e.g. under search bar)
           self.__d(result.error);
@@ -5817,7 +5870,7 @@ mljs.prototype.searchcontext.prototype.contributeStructuredQuery = function(cont
   var doit = function() {
     var terms = calcTerms();
     //var allqueries = { query: {"and-query": terms}}; // TODO replace with query builder
-    self.doStructuredQuery(terms); 
+    self.doStructuredQuery(terms,start_opt); 
   };
   
   if (null == queryTerm || undefined == queryTerm) {
@@ -5879,6 +5932,10 @@ mljs.prototype.searchcontext.prototype.updateGeoHeatmap = function(constraint_na
     
     // force save of options
     this.optionsExist = false;
+    
+    // perform search
+  var qb = this.db.createQuery();
+  this.contributeStructuredQuery("__heatmap",qb.and([]));
 };
 
 /**
@@ -6301,7 +6358,12 @@ mljs.prototype.searchcontext.prototype.updatePage = function(json) {
     this.optionsExist = false; // force re save of options
     this._options.options["page-length"] = json.show;
   }
-  this.dosimplequery(this.simplequery,json.start);
+  if ("simple" == this._lastSearchFunction) {
+    this.dosimplequery(this.simplequery,json.start);
+  } else {
+    var qb = this.db.createQuery();
+    this.contributeStructuredQuery("__page",qb.and([]),json.start);
+  }
 };
 
 /**
@@ -6337,6 +6399,13 @@ mljs.prototype.searchcontext.prototype.reset = function() {
   this.sortPublisher.publish(null); // order default sort
   this.simpleQueryPublisher.publish(this.defaultQuery);
 };
+
+
+
+
+
+
+
 
 
 

@@ -287,12 +287,16 @@ com.marklogic.widgets.searchbar = function(container) {
         "<label class='searchbar-label' for='" + container + "-searchinput'>Search: </label>" +
         "<input class='searchbar-query' type='text' id='" + container + "-searchinput' value='' />" +
         "<input class='btn btn-primary searchbar-submit' type='submit' id='" + container + "-submit' value='Search' />" +
-      "</div><div class='searchbar-errorrow hidden'></div>";
+      "</div>" +
+      "<ul class='searchbar-autocomplete hidden' id='" + container + "-ac' tabindex='0'></ul>" +
+      "<div class='searchbar-errorrow hidden'></div>";
     "</div>";
   mljs.defaultconnection.logger.debug("adding submit click handler");
   var self = this;
   document.getElementById(container + "-submit").onclick = function() {self._dosearch(self);}; // TODO Check this is valid
   mljs.defaultconnection.logger.debug("added submit click handler");
+  
+  var input = document.getElementById(container + "-searchinput");
   
   // now do enter click handler
   var searchKeyPress = function(e)
@@ -301,10 +305,14 @@ com.marklogic.widgets.searchbar = function(container) {
         if (typeof e == 'undefined' && window.event) { e = window.event; }
         if (e.keyCode == 13)
         {
+          self.updateSuggestions(null);
             document.getElementById(container + "-submit").click();
+        } else {
+          // update suggestions
+          self.ctx.doSuggest(input.value);
         }
     };
-  document.getElementById(container + "-searchinput").onkeypress = searchKeyPress;
+  input.onkeypress = searchKeyPress;
   
 };
 
@@ -328,6 +336,99 @@ com.marklogic.widgets.searchbar.__dosearch = function(submitelement) {
 com.marklogic.widgets.searchbar.prototype.clear = function() {
   document.getElementById(this.container + "-searchinput").value = "";
   this.ctx.reset();
+};
+
+com.marklogic.widgets.searchbar.prototype.updateSuggestions = function(suggestions) {
+  var ul = document.getElementById(this.container + "-ac");
+  if (undefined == suggestions || suggestions.suggestions.length == 0) {
+    // hide ul
+    com.marklogic.widgets.hide(ul,true);
+  } else {
+    // TODO show a drop down just below the search bar, but higher Z order (on top) that is selectable to complete the query
+    var cont = document.getElementById(this.container);
+    var input = document.getElementById(this.container + "-searchinput");
+    
+    // draw items
+    var s = "";
+    for (var i = 0, max = suggestions.suggestions.length, sug;i < max;i++) {
+      sug = suggestions.suggestions[i];
+      s += "<li class='search-suggest-item'><a id='" + this.container + "-s-" + i + "'>" + sug + "</a></li>";
+    }
+    ul.innerHTML = s;
+    
+    function setCursor(node,pos) {
+
+    var node = (typeof node == "string" || node instanceof String) ? document.getElementById(node) : node;
+
+    if(!node){
+        return false;
+    }else if(node.createTextRange){
+        var textRange = node.createTextRange();
+        textRange.collapse(true);
+        textRange.moveEnd(pos);
+        textRange.moveStart(pos);
+        textRange.select();
+        return true;
+    }else if(node.setSelectionRange){
+        node.setSelectionRange(pos,pos);
+        return true;
+    }
+
+    return false;
+    };
+    
+    var handler = function(suggestion) {
+      com.marklogic.widgets.hide(ul,true);
+      
+      // find last word boundary and replace as appropriate
+      var q = input.value;
+      var pos = q.length - 1;
+      var found = false;
+      while (!found && pos > 0) {
+        var ch = q.substring(pos,pos+1);
+        if (":" == ch || " " == ch) {
+          found = true;
+          pos++;
+        } else {
+          pos--;
+        }
+      }
+      input.value = q.substring(0,pos) + suggestion;
+      
+      // set cursor position to end of the search bar
+      setCursor(input,q.length);
+    };
+    
+    
+    var addSelectHandler = function(el,suggestion) {
+      el.onclick = function(e) {
+        handler(suggestion);
+      };
+      // TODO button press too
+      // now do enter click handler
+      var selectKeyPress = function(e) {
+        // look for window.event in case event isn't passed in
+        if (typeof e == 'undefined' && window.event) { e = window.event; }
+        if (e.keyCode == 13) {
+          handler(suggestion);
+        }
+      };
+      el.onkeypress = selectKeyPress;
+      
+    };
+    
+    // TODO add event handlers
+    for (var i = 0, max = suggestions.suggestions.length, sug;i < max;i++) {
+      sug = suggestions.suggestions[i];
+      var li = document.getElementById(this.container + "-s-" + i);
+      addSelectHandler(li,sug)
+    }
+    
+    // reposition ul
+    ul.style.left = input.left - cont.left;
+    // show ul
+    com.marklogic.widgets.hide(ul,false);
+  }
 };
 
 /**
@@ -1255,6 +1356,9 @@ com.marklogic.widgets.searchresults.defaultrenderers = {
   },
   triples: {
     matcher: function(result,manager,settings) {
+      if (undefined == result.content) {
+        return false;
+      }
       return ("<sem:triples" == result.content.substring(0,12));
       // TODO flesh this out
     },
@@ -1423,11 +1527,16 @@ com.marklogic.widgets.searchresults.defaultrenderers = {
     processor: function(result,manager,settings) {
       
         var resStr = "<div class='searchresults-result'><h3>" + result.index + ". " + result.uri + "</h3>";
+        
+      if (undefined == result.content) {
+        // no text
+      } else {
         if (result.content.length <= 100) {
           resStr += result.content;
         } else {
           resStr += result.content.substring(0,100) + "...";
         }
+      }
         resStr += "</div>";
         return resStr;
     }
@@ -1549,6 +1658,10 @@ com.marklogic.widgets.searchresults.prototype.updateResultHighlight = function(n
   // loop through our results (NOT the selection list)
   // if newsel list contains result, then select it (CSS class)
   // else, remove selection class
+  if (undefined == this.results || undefined == this.results.results) {
+    // This can happen if a search is executing but markers still visible form old search, and user mouses over them
+    return;
+  }
   for (var i = 0;i < this.results.results.length;i++) {
     var wrapperId = this.container + "-searchresults-wrapper-" + i;
     // run processors in order

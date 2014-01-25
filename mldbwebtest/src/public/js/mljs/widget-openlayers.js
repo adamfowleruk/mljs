@@ -953,8 +953,41 @@ com.marklogic.widgets.openlayers.prototype.addSeries = function(title,searchcont
       //mljs.defaultconnection.logger.debug("openlayers.addSeries.listfunc: Processing result: " + JSON.stringify(r));
       
       var thedoc = jsonOrXml(r.content);
-      var lat = extractValue(thedoc,latsrc);
-      var lon = extractValue(thedoc,lonsrc);
+      // support metadata extraction too
+      var lat = null;
+      var lon = null;
+      if ("object" == typeof (latsrc)) {
+        // json description - {type: "extract", source: "constraint", "constraint": "location"}
+        if ("extract" == latsrc.type) {
+          if ("constraint" == latsrc.source) {
+            for (var metai = 0, maxi = r.metadata.length, meta;metai < maxi;metai++) {
+              meta = r.metadata[metai];
+              //console.log("  meta instance: " + metai);
+              for (var param in meta) {
+                //console.log("    found param: " + param);
+                // find our one
+                // NB may be multiple of them - TODO support more than just last found
+                if (param == latsrc.constraint) {
+                  //console.log("      found latsrc constraint param");
+                  var parts = meta[param].split(",");
+                  lat = parts[0];
+                  lon = parts[1];
+                  console.log("*** Found location parts: lat: " + parts[0] + ", lon: " + parts[1]);
+                }
+              }
+            }
+          } else {
+            console.log("latsrc source not a constraint");
+            // do something. E.g. element, not geo constraint
+          }
+        } else {
+            console.log("latsrc type not an extract");
+          // do something else
+        }
+      } else {
+        var lat = extractValue(thedoc,latsrc);
+        var lon = extractValue(thedoc,lonsrc);
+      }
       mljs.defaultconnection.logger.debug("openlayers.addSeries.listfunc: lat: " + lat + ", lon: " + lon);
       var m = new OpenLayers.Marker(new OpenLayers.LonLat(lon,lat).transform(self.transformWgs84,self.map.displayProjection),icon.clone());
       
@@ -991,7 +1024,7 @@ com.marklogic.widgets.openlayers.prototype.addSeries = function(title,searchcont
     mljs.defaultconnection.logger.debug("openlayers.addSeries.listfunc: Finished adding all results");
     
     // Now add heatmap information, if it exists
-    if (undefined != results.facets[heatmap_constraint].boxes) {
+    if (undefined != results.facets[heatmap_constraint] && undefined != results.facets[heatmap_constraint].boxes) {
       // create heatmap box overlays - but they're based on points, not boxes, so how is this done in AppBuilder?
       //  - Is this the old method used in some older demos, prior to AppBuilder 5?
       //  - How does AppBuilder 5's heatmaps work? Do they use *all* results? If so, how is this accomplished? (normally there's a limit)
@@ -1001,21 +1034,21 @@ com.marklogic.widgets.openlayers.prototype.addSeries = function(title,searchcont
       // { max: , data: [{lonlat: , count: },...]}
       var boxes = results.facets[heatmap_constraint].boxes;
       var data = []; // not an array object
-      var max = 0;
-      for (var i = 0, max = boxes.length,box,lat,lng,dp;i < max;i++) {
+      //var max = 0;
+      for (var i = 0, maxb = boxes.length,box,lat,lng,dp;i < maxb;i++) {
         box = boxes[i];
         lat = 0.5*(box.s+box.n);
         lng = 0.5*(box.w+box.e);
-        dp = {lonlat: new OpenLayers.LonLat(lng,lat),count:box.count*10};
-        if (box.count > max) {
+        dp = {lonlat: new OpenLayers.LonLat(lng,lat),count:box.count}; // was*10 // TODO figure out why a scaling factor is needed - can this be calculated generally using total???
+        /*if (box.count > max) {
           max = box.count;
-        }
+        }*/
         data[i] = dp;
       }
       // Do we need to create blank boxes too?
-      mljs.defaultconnection.logger.debug("HEATMAP DATA: " + JSON.stringify(data));
+      mljs.defaultconnection.logger.debug("Heatmap MAX: " + boxes.length);
       
-      self.heatmap.setDataSet({data: data, max: max});
+      self.heatmap.setDataSet({data: data, max: boxes.length});
     }
     
     
@@ -1025,17 +1058,28 @@ com.marklogic.widgets.openlayers.prototype.addSeries = function(title,searchcont
   
   // contribute our heatmap query if required
   if (undefined != this.series[name].constraint) {
-    var ex = this.map.getExtent().transform(this.map.displayProjection,this.transformWgs84); // Bounds object
-    var amount = this.heatmapGranularity;
-    var ratio = Math.sqrt(amount / (this.height*this.width));
-    var up = Math.ceil(ratio*this.height);
-    var across = Math.ceil(ratio*this.width);
-    mljs.defaultconnection.logger.debug("Amount: " + amount + ", ratio: " + ratio + ", up: " + up + ", across: " + across);
-    var heatmap = {n: ex.top,s: ex.bottom,w: ex.left,e: ex.right,latdivs:up,londivs:across};
     this.ensureHeatmap();
-    searchcontext.updateGeoHeatmap(heatmap_constraint,heatmap);
+    var self = this;
+    
+    var updateHeatmap = function() {
+      var ex = self.map.getExtent().transform(self.map.displayProjection,self.transformWgs84); // Bounds object
+      var amount = self.heatmapGranularity;
+      var ratio = Math.sqrt(amount / (self.height*self.width));
+      var up = Math.ceil(ratio*self.height);
+      var across = Math.ceil(ratio*self.width);
+      mljs.defaultconnection.logger.debug("Heatmap Amount: " + amount + ", ratio: " + ratio + ", up: " + up + ", across: " + across);
+      mljs.defaultconnection.logger.debug("Heatmap Bounds: N: " + ex.top + ", South: " + ex.bottom + ", West: " + ex.left + ", East: " + ex.right);
+      var heatmap = {n: ex.top,s: ex.bottom,w: ex.left,e: ex.right,latdivs:up,londivs:across};
+        
+      searchcontext.updateGeoHeatmap(heatmap_constraint,heatmap);
+    };
     
     // TODO also add map zoom event handler to update this on the fly too
+    this.map.events.register("moveend",this.map,function() {
+      updateHeatmap();
+    });
+    
+    updateHeatmap();
   }
   
 };
