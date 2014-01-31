@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Source: widget-profile.js</title>
+    <title>JSDoc: Class: advancedsearch</title>
     
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,116 +17,355 @@
 
 <div id="main">
     
-    <h1 class="page-title">Source: widget-profile.js</h1>
+    <h1 class="page-title">Class: advancedsearch</h1>
     
     
 
 
-    
-    <section>
-        <article>
-            <pre class="prettyprint source"><code>/*
-Copyright 2012 MarkLogic Corporation
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+<section>
+    
+<header>
+    <h2>
+    advancedsearch
+    </h2>
+    
+</header>  
 
-   http://www.apache.org/licenses/LICENSE-2.0
+<article>
+    <div class="container-overview">
+    
+    
+    
+        
+<dt>
+    <h4 class="name" id="advancedsearch"><span class="type-signature"></span>new advancedsearch<span class="signature">(container)</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        <p>Creates an advanced search widget. This uses the currently configured search options to render an appropriate advanced search form.</p>
+    </div>
+    
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
-// global variable definitions
-com = window.com || {};
-com.marklogic = window.com.marklogic || {};
-com.marklogic.widgets = window.com.marklogic.widgets || {};
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
 
-/**
- * A wrapper for the Google Kratu tabular data exploration widget
- * @constructor
- * @param {string} container - The HTML ID of the element to place this widget's content within.
- */
-com.marklogic.widgets.profile = function(container) {
-  this.container = container;
-  this.errorPublisher = new com.marklogic.events.Publisher(); 
-  
-  this._refresh();
-};
+<table class="params">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+		
+		<th>Type</th>
+		
+		
+		
+		
+		
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+	
+	<tbody>
+	
+	
+        <tr>
+            
+                <td class="name"><code>container</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
 
 
-com.marklogic.widgets.profile.prototype._refresh = function() {
-  var puri = "/profiles/" + username + ".json";
-  var self = this;
-  mljs.defaultconnection.get(puri,function(result) {
-    var str = "&lt;div class='mljswidget profile'>";
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last"><p>The ID of the HTML element to render this widget within</p></td>
+        </tr>
+	
+	
+	</tbody>
+</table>
     
-    var p = result.doc;
     
-    str += "&lt;table style='border:none;width:100%;'>&lt;tr>&lt;td style='width:12.5%;height:180px;'>";
-    //str += "&lt;img src='/show/view?uri=" + encodeURI(p.profileimguri) + "&original=true&fullurl=true' />";
-    str += "&lt;img src='/v1/documents?uri=" + encodeURI(p.profileimguri) + "' />";
-    str += "&lt;/td>&lt;td colspan='3' style='width:37.5%;height:180px;'>";
-    str += "&lt;h2>" + p.name + "&lt;/h3>";
-    str += "&lt;p>" + p.role + "&lt;/p>";
-    str += "&lt;p>" + p.contact + "&lt;/p>";
     
-    str += "&lt;/td>";
+<dl class="details">
     
-    str += "&lt;td colspan='4' rowspan='2' style='width:50%;'>";
+        
     
-    str += "&lt;h3>Details&lt;/h3>";
-    str += "&lt;table style='border:none;width:100%'>";
-    str += "&lt;tr>&lt;td style='width:50%;'>Mobile:&lt;/td>&lt;td>" + p.mobile + "&lt;td>&lt;/tr>";
-    str += "&lt;tr>&lt;td style='width:50%;'>Account:&lt;/td>&lt;td>" + p.account + "&lt;td>&lt;/tr>";
-    str += "&lt;tr>&lt;td style='width:50%;'>Email:&lt;/td>&lt;td>" + p.email + "&lt;td>&lt;/tr>";
-    str += "&lt;tr>&lt;td style='width:50%;'>City:&lt;/td>&lt;td>" + p.city + "&lt;td>&lt;/tr>";
-    str += "&lt;tr>&lt;td style='width:50%;'>Country:&lt;/td>&lt;td>" + p.country + "&lt;td>&lt;/tr>";
-    str += "&lt;tr>&lt;td style='width:50%;'>Other:&lt;/td>&lt;td>" + p.other + "&lt;td>&lt;/tr>";
-    str += "&lt;/table>";
     
-    str += "&lt;h3>My RFPs&lt;/h3>";
-    str += "&lt;table style='border:none;width:100%'>";
-    str += "&lt;tr>&lt;th>Name&lt;/th>&lt;th>Date&lt;/th>&lt;th>Client&lt;/th>&lt;/tr>";
-    for (var i = 0, max = p.rfps.length,r;i &lt; max;i++) {
-      r = p.rfps[i];
-      str += "&lt;tr>&lt;td>" + r.name + "&lt;/td>&lt;td>" + r.date + "&lt;/td>&lt;td>" + r.client + "&lt;/td>&lt;/tr>";
-    }
-    str += "&lt;/table>";
     
-    str += "&lt;h3>My Saved Searches&lt;/h3>";
-    str += "&lt;table style='border:none;width:100%'>";
-    str += "&lt;tr>&lt;th>Name&lt;/th>&lt;th>Search&lt;/th>&lt;/tr>";
-    for (var i = 0, max = p.searches.length,s;i &lt; max;i++) {
-      s = p.searches[i];
-      str += "&lt;tr>&lt;td>" + s.name + "&lt;/td>&lt;td>" + s.query + "&lt;/td>&lt;/tr>";
-    }
-    str += "&lt;/table>";
+
     
-    str += "&lt;/td>&lt;/tr>";
     
-    str += "&lt;tr>&lt;td colspan='4' style='width:50%;'>";
     
-    str += "&lt;h3>Documents added over time&lt;/h3>";
-    str += "&lt;img src='/v1/documents?uri=" + encodeURI(p.graphimguri) + "' />"
     
-    str += "&lt;h3>Tag Cloud&lt;/h3>";
-    str += "&lt;img src='/v1/documents?uri=" + encodeURI(p.cloudimguri) + "' />"
     
-    str += "&lt;/td>&lt;/tr>";
     
-    str += "&lt;/table>";
     
-    str += "&lt;/div>";
     
-    document.getElementById(self.container).innerHTML = str;
-  });
-};</code></pre>
-        </article>
-    </section>
+    
+    
+    
+    
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="widget-search.js.html">widget-search.js</a>, <a href="widget-search.js.html#line273">line 273</a>
+    </li></ul></dd>
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+</dd>
+
+    
+    </div>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+        <h3 class="subsection-title">Methods</h3>
+        
+        <dl>
+            
+<dt>
+    <h4 class="name" id="getSearchContext"><span class="type-signature"></span>getSearchContext<span class="signature">()</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        <p>Get the search context object this widget will use for operations</p>
+    </div>
+    
+
+    
+    
+    
+    
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="widget-search.js.html">widget-search.js</a>, <a href="widget-search.js.html#line331">line 331</a>
+    </li></ul></dd>
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="setSearchContext"><span class="type-signature"></span>setSearchContext<span class="signature">(ctx)</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        <p>Set the search context object to use for operations</p>
+    </div>
+    
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+		
+		<th>Type</th>
+		
+		
+		
+		
+		
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+	
+	<tbody>
+	
+	
+        <tr>
+            
+                <td class="name"><code>ctx</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">mljs.searchcontext</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last"><p>The search context instance to invoke</p></td>
+        </tr>
+	
+	
+	</tbody>
+</table>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="widget-search.js.html">widget-search.js</a>, <a href="widget-search.js.html#line324">line 324</a>
+    </li></ul></dd>
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+</dd>
+
+        </dl>
+    
+    
+    
+    
+    
+</article>
+
+</section>  
 
 
 

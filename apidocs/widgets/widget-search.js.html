@@ -288,6 +288,159 @@ com.marklogic.widgets.searchhelper.handleJson = function(result,json) {
 
 
 
+
+// ADVANCED SEARCH ELEMENT
+
+/**
+ * Creates an advanced search widget. This uses the currently configured search options to render an appropriate advanced search form.
+ * 
+ * @constructor
+ * @param {string} container - The ID of the HTML element to render this widget within
+ */
+com.marklogic.widgets.advancedsearch = function(container) {
+  this.container = container;
+  
+  this.ctx = new mljs.prototype.searchcontext();
+  
+  this._include = null;
+  
+  this._init();
+};
+
+com.marklogic.widgets.advancedsearch.prototype.include = function(arr) {
+  this._include = arr;
+};
+
+com.marklogic.widgets.advancedsearch.prototype._init = function() {
+  // TODO skeleton HTML
+  var s = "&lt;div class='mljswidget advancedsearch'>";
+  s += " &lt;h2>Advanced Search&lt;/h2>";
+  s += " &lt;div class='' id='" + this.container + "-fields'>&lt;/div>";
+  s += " &lt;div style='text-align:center;width:100%;'>";
+  s += "  &lt;input class='btn btn-primary advancedsearch-submit' type='submit' id='" + this.container + "-submit' value='Search' />";
+  s += " &lt;/div>";
+  s += "&lt;/div>";
+  document.getElementById(this.container).innerHTML = s;
+  
+  // event handlers
+  var self = this;
+  document.getElementById(this.container + "-submit").onclick = function() {self._dosearch();};
+};
+
+com.marklogic.widgets.advancedsearch.prototype._dosearch = function() {
+  // go through this._options.constraint[idx] from values in this._used
+  var facets = [];
+  for (var i = 0, max = this._used.length, idx;i &lt; max;i++) {
+    idx = this._used[i];
+    // get value
+    var val = document.getElementById(this.container + "-field-" + idx).value;
+    // if value specified, add to facets
+    if (val.trim().length > 0) {
+      facets.push({name: this._options.options.constraint[idx].name, value: val});
+    }
+  }
+  // contribute facets to search
+  this.ctx.contributeFacets(facets);
+};
+
+/**
+ * Set the search context object to use for operations
+ * 
+ * @param {mljs.searchcontext} ctx - The search context instance to invoke
+ */
+com.marklogic.widgets.advancedsearch.prototype.setSearchContext = function(context) {
+  this.ctx = context;
+};
+
+/**
+ * Get the search context object this widget will use for operations
+ */
+com.marklogic.widgets.advancedsearch.prototype.getSearchContext = function() {
+  return this.ctx;
+};
+
+
+com.marklogic.widgets.advancedsearch.prototype.render = function() {
+  this._options = this.ctx.getOptions(); // ML Options JSON
+  
+  // loop through constraints
+  var s = "";
+  this._used = [];
+  for (var i = 0, max = this._options.options.constraint.length,con;i &lt; max;i++) {
+    con = this._options.options.constraint[i];
+    // render appropriate form element
+    // TODO handle exclusions/inclusions
+    // TODO collection (all, some tickbox)
+    if (null == this._include || this._include.contains(con.name)) {
+      if (undefined != con.range) {
+        // TODO string
+        if ("xs:string" == con.range.type) {
+          // render annotation as label
+          s += "&lt;span class=' advancedsearch-field'>";
+          var title = ""
+          if (undefined != con.annotation && con.annotation.length > 0) {
+            title = con.annotation[0];
+          } else {
+            // get from name
+            title = com.marklogic.widgets.searchhelper.processValue(con.name,"all");
+          }
+          s += " &lt;label for='" + this.container + "-field-" + i + "'>" + title + ": &lt;/label>";
+          // render input box for value
+          // use constraint index as unique id reference
+          s += " &lt;input id='" + this.container + "-field-" + i + "' type='text' />";
+          s += "&lt;/span>";
+          this._used.push(i);
+          if (0 == this._used.length % 2) {
+            s += "&lt;br />";
+          }
+        } // range type if
+      } // constraint type if
+    } // include check if
+    // TODO geo (address lookup + range)
+  }
+  document.getElementById(this.container + "-fields").innerHTML = s;
+  
+  
+  // ENTER KEY HANDLER
+  var self = this;
+  var searchKeyPress = function(e)
+    {
+        // look for window.event in case event isn't passed in
+        if (typeof e == 'undefined' && window.event) { e = window.event; }
+        if (e.keyCode == 13)
+        {
+          // TODO self.updateSuggestions(null);
+            document.getElementById(self.container + "-submit").click();
+        } else {
+          // update suggestions
+          // TODO self.ctx.doSuggest(input.value);
+        }
+    };
+    
+  for (var i = 0, max = this._used.length, idx;i &lt; max;i++) {
+    idx = this._used[i];
+    
+    var input = document.getElementById(this.container + "-field-" + idx);
+    
+    // now do enter click handler
+    input.onkeypress = searchKeyPress;
+  }
+  
+  // TODO enable auto completion lookup
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
 // SEARCH BAR ELEMENT
 
 /**
@@ -314,12 +467,16 @@ com.marklogic.widgets.searchbar = function(container) {
         "&lt;label class='searchbar-label' for='" + container + "-searchinput'>Search: &lt;/label>" +
         "&lt;input class='searchbar-query' type='text' id='" + container + "-searchinput' value='' />" +
         "&lt;input class='btn btn-primary searchbar-submit' type='submit' id='" + container + "-submit' value='Search' />" +
-      "&lt;/div>&lt;div class='searchbar-errorrow hidden'>&lt;/div>";
+      "&lt;/div>" +
+      "&lt;ul class='searchbar-autocomplete hidden' id='" + container + "-ac' tabindex='0'>&lt;/ul>" +
+      "&lt;div class='searchbar-errorrow hidden'>&lt;/div>";
     "&lt;/div>";
   mljs.defaultconnection.logger.debug("adding submit click handler");
   var self = this;
   document.getElementById(container + "-submit").onclick = function() {self._dosearch(self);}; // TODO Check this is valid
   mljs.defaultconnection.logger.debug("added submit click handler");
+  
+  var input = document.getElementById(container + "-searchinput");
   
   // now do enter click handler
   var searchKeyPress = function(e)
@@ -328,10 +485,14 @@ com.marklogic.widgets.searchbar = function(container) {
         if (typeof e == 'undefined' && window.event) { e = window.event; }
         if (e.keyCode == 13)
         {
+          self.updateSuggestions(null);
             document.getElementById(container + "-submit").click();
+        } else {
+          // update suggestions
+          self.ctx.doSuggest(input.value);
         }
     };
-  document.getElementById(container + "-searchinput").onkeypress = searchKeyPress;
+  input.onkeypress = searchKeyPress;
   
 };
 
@@ -355,6 +516,99 @@ com.marklogic.widgets.searchbar.__dosearch = function(submitelement) {
 com.marklogic.widgets.searchbar.prototype.clear = function() {
   document.getElementById(this.container + "-searchinput").value = "";
   this.ctx.reset();
+};
+
+com.marklogic.widgets.searchbar.prototype.updateSuggestions = function(suggestions) {
+  var ul = document.getElementById(this.container + "-ac");
+  if (undefined == suggestions || suggestions.suggestions.length == 0) {
+    // hide ul
+    com.marklogic.widgets.hide(ul,true);
+  } else {
+    // TODO show a drop down just below the search bar, but higher Z order (on top) that is selectable to complete the query
+    var cont = document.getElementById(this.container);
+    var input = document.getElementById(this.container + "-searchinput");
+    
+    // draw items
+    var s = "";
+    for (var i = 0, max = suggestions.suggestions.length, sug;i &lt; max;i++) {
+      sug = suggestions.suggestions[i];
+      s += "&lt;li class='search-suggest-item'>&lt;a id='" + this.container + "-s-" + i + "'>" + sug + "&lt;/a>&lt;/li>";
+    }
+    ul.innerHTML = s;
+    
+    function setCursor(node,pos) {
+
+    var node = (typeof node == "string" || node instanceof String) ? document.getElementById(node) : node;
+
+    if(!node){
+        return false;
+    }else if(node.createTextRange){
+        var textRange = node.createTextRange();
+        textRange.collapse(true);
+        textRange.moveEnd(pos);
+        textRange.moveStart(pos);
+        textRange.select();
+        return true;
+    }else if(node.setSelectionRange){
+        node.setSelectionRange(pos,pos);
+        return true;
+    }
+
+    return false;
+    };
+    
+    var handler = function(suggestion) {
+      com.marklogic.widgets.hide(ul,true);
+      
+      // find last word boundary and replace as appropriate
+      var q = input.value;
+      var pos = q.length - 1;
+      var found = false;
+      while (!found && pos > 0) {
+        var ch = q.substring(pos,pos+1);
+        if (":" == ch || " " == ch) {
+          found = true;
+          pos++;
+        } else {
+          pos--;
+        }
+      }
+      input.value = q.substring(0,pos) + suggestion;
+      
+      // set cursor position to end of the search bar
+      setCursor(input,q.length);
+    };
+    
+    
+    var addSelectHandler = function(el,suggestion) {
+      el.onclick = function(e) {
+        handler(suggestion);
+      };
+      // TODO button press too
+      // now do enter click handler
+      var selectKeyPress = function(e) {
+        // look for window.event in case event isn't passed in
+        if (typeof e == 'undefined' && window.event) { e = window.event; }
+        if (e.keyCode == 13) {
+          handler(suggestion);
+        }
+      };
+      el.onkeypress = selectKeyPress;
+      
+    };
+    
+    // TODO add event handlers
+    for (var i = 0, max = suggestions.suggestions.length, sug;i &lt; max;i++) {
+      sug = suggestions.suggestions[i];
+      var li = document.getElementById(this.container + "-s-" + i);
+      addSelectHandler(li,sug)
+    }
+    
+    // reposition ul
+    ul.style.left = input.left - cont.left;
+    // show ul
+    com.marklogic.widgets.hide(ul,false);
+  }
 };
 
 /**
@@ -431,7 +685,7 @@ com.marklogic.widgets.searchbar.prototype.setSearchContext = function(context) {
 /**
  * Get the search context object this widget will use for operations
  */
-com.marklogic.widgets.searchbar.prototype.getContext = function() {
+com.marklogic.widgets.searchbar.prototype.getSearchContext = function() {
   return this.ctx;
 };
 
@@ -1282,6 +1536,9 @@ com.marklogic.widgets.searchresults.defaultrenderers = {
   },
   triples: {
     matcher: function(result,manager,settings) {
+      if (undefined == result.content) {
+        return false;
+      }
       return ("&lt;sem:triples" == result.content.substring(0,12));
       // TODO flesh this out
     },
@@ -1450,11 +1707,16 @@ com.marklogic.widgets.searchresults.defaultrenderers = {
     processor: function(result,manager,settings) {
       
         var resStr = "&lt;div class='searchresults-result'>&lt;h3>" + result.index + ". " + result.uri + "&lt;/h3>";
+        
+      if (undefined == result.content) {
+        // no text
+      } else {
         if (result.content.length &lt;= 100) {
           resStr += result.content;
         } else {
           resStr += result.content.substring(0,100) + "...";
         }
+      }
         resStr += "&lt;/div>";
         return resStr;
     }
@@ -1557,6 +1819,9 @@ com.marklogic.widgets.searchresults.prototype.updateResultSelection = function(n
   // loop through our results (NOT the selection list)
   // if newsel list contains result, then select it (CSS class)
   // else, remove selection class
+  if (undefined == this.results || undefined == this.results.results) {
+    return;
+  }
   for (var i = 0;i &lt; this.results.results.length;i++) {
     var wrapperId = this.container + "-searchresults-wrapper-" + i;
     // run processors in order
@@ -1576,6 +1841,10 @@ com.marklogic.widgets.searchresults.prototype.updateResultHighlight = function(n
   // loop through our results (NOT the selection list)
   // if newsel list contains result, then select it (CSS class)
   // else, remove selection class
+  if (undefined == this.results || undefined == this.results.results) {
+    // This can happen if a search is executing but markers still visible form old search, and user mouses over them
+    return;
+  }
   for (var i = 0;i &lt; this.results.results.length;i++) {
     var wrapperId = this.container + "-searchresults-wrapper-" + i;
     // run processors in order
@@ -1885,7 +2154,13 @@ com.marklogic.widgets.searchsort.prototype._refresh = function() {
       title = com.marklogic.widgets.searchhelper.processValueAll(val);
       
       if ("" != title && undefined != o.direction) {
-        title += " (" + com.marklogic.widgets.searchhelper.camelcase(o.direction,"all") + ")";
+        var dir = com.marklogic.widgets.searchhelper.camelcase(o.direction,"all");
+        if ("Ascending" == dir) {
+          dir = "Asc";
+        } else if ("Descending" == dir) {
+          dir = "Desc";
+        }
+        title += " (" + dir + ")";
       } else {
         // TODO not specified - default to ascending? - no, leave this to the first, untitled sort option given by MarkLogic server
       }
@@ -2392,13 +2667,13 @@ com.marklogic.widgets.searchmetrics.prototype.updateResults = function(results) 
 </div>
 
 <nav>
-    <h2><a href="index.html">Index</a></h2><h3>Classes</h3><ul><li><a href="com.marklogic.widgets.addressbar.html">addressbar</a></li><li><a href="com.marklogic.widgets.collectionuris.html">collectionuris</a></li><li><a href="com.marklogic.widgets.cooccurence.html">cooccurence</a></li><li><a href="com.marklogic.widgets.create.html">create</a></li><li><a href="com.marklogic.widgets.docheadviewer.html">docheadviewer</a></li><li><a href="com.marklogic.widgets.docproperties.html">docproperties</a></li><li><a href="com.marklogic.widgets.docviewer.html">docviewer</a></li><li><a href="com.marklogic.widgets.entityfacts.html">entityfacts</a></li><li><a href="com.marklogic.widgets.error.html">error</a></li><li><a href="com.marklogic.widgets.graphexplorer.html">graphexplorer</a></li><li><a href="com.marklogic.widgets.highcharts.html">highcharts</a></li><li><a href="com.marklogic.widgets.kratu.html">kratu</a></li><li><a href="com.marklogic.widgets.markings.html">markings</a></li><li><a href="com.marklogic.widgets.openlayers.html">openlayers</a></li><li><a href="com.marklogic.widgets.profile.html">profile</a></li><li><a href="com.marklogic.widgets.rdb2rdf.html">rdb2rdf</a></li><li><a href="com.marklogic.widgets.searchbar.html">searchbar</a></li><li><a href="com.marklogic.widgets.searchfacets.html">searchfacets</a></li><li><a href="com.marklogic.widgets.searchpage.html">searchpage</a></li><li><a href="com.marklogic.widgets.searchpager.html">searchpager</a></li><li><a href="com.marklogic.widgets.searchresults.html">searchresults</a></li><li><a href="com.marklogic.widgets.searchselection.html">searchselection</a></li><li><a href="com.marklogic.widgets.searchsort.html">searchsort</a></li><li><a href="com.marklogic.widgets.selection.html">selection</a></li><li><a href="com.marklogic.widgets.sparqlbar.html">sparqlbar</a></li><li><a href="com.marklogic.widgets.sparqlresults.html">sparqlresults</a></li><li><a href="com.marklogic.widgets.workplace.html">workplace</a></li><li><a href="com.marklogic.widgets.workplacecontext.html">workplacecontext</a></li></ul><h3>Namespaces</h3><ul><li><a href="com.marklogic.widgets.bits.html">bits</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-001-intro.html">001-intro</a></li><li><a href="tutorial-001-widgets-list.html">001-widgets-list</a></li><li><a href="tutorial-002-intro-firstpage.html">002-intro-firstpage</a></li><li><a href="tutorial-002-widgets-search.html">002-widgets-search</a></li><li><a href="tutorial-003-widgets-search-render.html">003-widgets-search-render</a></li><li><a href="tutorial-004-widgets-highcharts.html">004-widgets-highcharts</a></li><li><a href="tutorial-011-browser-create-app.html">011-browser-create-app</a></li><li><a href="tutorial-012-browser-install-app.html">012-browser-install-app</a></li><li><a href="tutorial-013-browser-samples-app.html">013-browser-samples-app</a></li><li><a href="tutorial-014-browser-workplace.html">014-browser-workplace</a></li><li><a href="tutorial-050-core-contexts.html">050-core-contexts</a></li><li><a href="tutorial-051-core-custom-searchcontext-endpoint.html">051-core-custom-searchcontext-endpoint</a></li><li><a href="tutorial-060-rest-ext.html">060-rest-ext</a></li><li><a href="tutorial-901-ontology.html">901-ontology</a></li><li><a href="tutorial-999-samples.html">999-samples</a></li><li><a href="tutorial-all.html">all</a></li></ul><h3>Global</h3><ul><li><a href="global.html#com">com</a></li></ul>
+    <h2><a href="index.html">Index</a></h2><h3>Classes</h3><ul><li><a href="com.marklogic.widgets.addressbar.html">addressbar</a></li><li><a href="com.marklogic.widgets.advancedsearch.html">advancedsearch</a></li><li><a href="com.marklogic.widgets.collectionuris.html">collectionuris</a></li><li><a href="com.marklogic.widgets.cooccurence.html">cooccurence</a></li><li><a href="com.marklogic.widgets.create.html">create</a></li><li><a href="com.marklogic.widgets.docheadviewer.html">docheadviewer</a></li><li><a href="com.marklogic.widgets.docproperties.html">docproperties</a></li><li><a href="com.marklogic.widgets.docviewer.html">docviewer</a></li><li><a href="com.marklogic.widgets.entityfacts.html">entityfacts</a></li><li><a href="com.marklogic.widgets.error.html">error</a></li><li><a href="com.marklogic.widgets.graphexplorer.html">graphexplorer</a></li><li><a href="com.marklogic.widgets.highcharts.html">highcharts</a></li><li><a href="com.marklogic.widgets.kratu.html">kratu</a></li><li><a href="com.marklogic.widgets.markings.html">markings</a></li><li><a href="com.marklogic.widgets.openlayers.html">openlayers</a></li><li><a href="com.marklogic.widgets.profile.html">profile</a></li><li><a href="com.marklogic.widgets.rdb2rdf.html">rdb2rdf</a></li><li><a href="com.marklogic.widgets.searchbar.html">searchbar</a></li><li><a href="com.marklogic.widgets.searchfacets.html">searchfacets</a></li><li><a href="com.marklogic.widgets.searchpage.html">searchpage</a></li><li><a href="com.marklogic.widgets.searchpager.html">searchpager</a></li><li><a href="com.marklogic.widgets.searchresults.html">searchresults</a></li><li><a href="com.marklogic.widgets.searchselection.html">searchselection</a></li><li><a href="com.marklogic.widgets.searchsort.html">searchsort</a></li><li><a href="com.marklogic.widgets.selection.html">selection</a></li><li><a href="com.marklogic.widgets.sparqlbar.html">sparqlbar</a></li><li><a href="com.marklogic.widgets.sparqlresults.html">sparqlresults</a></li><li><a href="com.marklogic.widgets.workplace.html">workplace</a></li><li><a href="com.marklogic.widgets.workplacecontext.html">workplacecontext</a></li></ul><h3>Namespaces</h3><ul><li><a href="com.marklogic.widgets.bits.html">bits</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-001-intro.html">001-intro</a></li><li><a href="tutorial-001-widgets-list.html">001-widgets-list</a></li><li><a href="tutorial-002-intro-firstpage.html">002-intro-firstpage</a></li><li><a href="tutorial-002-widgets-search.html">002-widgets-search</a></li><li><a href="tutorial-003-widgets-search-render.html">003-widgets-search-render</a></li><li><a href="tutorial-004-widgets-highcharts.html">004-widgets-highcharts</a></li><li><a href="tutorial-011-browser-create-app.html">011-browser-create-app</a></li><li><a href="tutorial-012-browser-install-app.html">012-browser-install-app</a></li><li><a href="tutorial-013-browser-samples-app.html">013-browser-samples-app</a></li><li><a href="tutorial-014-browser-workplace.html">014-browser-workplace</a></li><li><a href="tutorial-050-core-contexts.html">050-core-contexts</a></li><li><a href="tutorial-051-core-custom-searchcontext-endpoint.html">051-core-custom-searchcontext-endpoint</a></li><li><a href="tutorial-060-rest-ext.html">060-rest-ext</a></li><li><a href="tutorial-901-ontology.html">901-ontology</a></li><li><a href="tutorial-999-samples.html">999-samples</a></li><li><a href="tutorial-all.html">all</a></li></ul><h3>Global</h3><ul><li><a href="global.html#com">com</a></li></ul>
 </nav>
 
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Sun Jan 19 2014 23:36:29 GMT-0000 (GMT)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Fri Jan 31 2014 07:55:02 GMT-0000 (GMT)
 </footer>
 
 <script> prettyPrint(); </script>
