@@ -261,6 +261,159 @@ com.marklogic.widgets.searchhelper.handleJson = function(result,json) {
 
 
 
+
+// ADVANCED SEARCH ELEMENT
+
+/**
+ * Creates an advanced search widget. This uses the currently configured search options to render an appropriate advanced search form.
+ * 
+ * @constructor
+ * @param {string} container - The ID of the HTML element to render this widget within
+ */
+com.marklogic.widgets.advancedsearch = function(container) {
+  this.container = container;
+  
+  this.ctx = new mljs.prototype.searchcontext();
+  
+  this._include = null;
+  
+  this._init();
+};
+
+com.marklogic.widgets.advancedsearch.prototype.include = function(arr) {
+  this._include = arr;
+};
+
+com.marklogic.widgets.advancedsearch.prototype._init = function() {
+  // TODO skeleton HTML
+  var s = "<div class='mljswidget advancedsearch'>";
+  s += " <h2>Advanced Search</h2>";
+  s += " <div class='' id='" + this.container + "-fields'></div>";
+  s += " <div style='text-align:center;width:100%;'>";
+  s += "  <input class='btn btn-primary advancedsearch-submit' type='submit' id='" + this.container + "-submit' value='Search' />";
+  s += " </div>";
+  s += "</div>";
+  document.getElementById(this.container).innerHTML = s;
+  
+  // event handlers
+  var self = this;
+  document.getElementById(this.container + "-submit").onclick = function() {self._dosearch();};
+};
+
+com.marklogic.widgets.advancedsearch.prototype._dosearch = function() {
+  // go through this._options.constraint[idx] from values in this._used
+  var facets = [];
+  for (var i = 0, max = this._used.length, idx;i < max;i++) {
+    idx = this._used[i];
+    // get value
+    var val = document.getElementById(this.container + "-field-" + idx).value;
+    // if value specified, add to facets
+    if (val.trim().length > 0) {
+      facets.push({name: this._options.options.constraint[idx].name, value: val});
+    }
+  }
+  // contribute facets to search
+  this.ctx.contributeFacets(facets);
+};
+
+/**
+ * Set the search context object to use for operations
+ * 
+ * @param {mljs.searchcontext} ctx - The search context instance to invoke
+ */
+com.marklogic.widgets.advancedsearch.prototype.setSearchContext = function(context) {
+  this.ctx = context;
+};
+
+/**
+ * Get the search context object this widget will use for operations
+ */
+com.marklogic.widgets.advancedsearch.prototype.getSearchContext = function() {
+  return this.ctx;
+};
+
+
+com.marklogic.widgets.advancedsearch.prototype.render = function() {
+  this._options = this.ctx.getOptions(); // ML Options JSON
+  
+  // loop through constraints
+  var s = "";
+  this._used = [];
+  for (var i = 0, max = this._options.options.constraint.length,con;i < max;i++) {
+    con = this._options.options.constraint[i];
+    // render appropriate form element
+    // TODO handle exclusions/inclusions
+    // TODO collection (all, some tickbox)
+    if (null == this._include || this._include.contains(con.name)) {
+      if (undefined != con.range) {
+        // TODO string
+        if ("xs:string" == con.range.type) {
+          // render annotation as label
+          s += "<span class=' advancedsearch-field'>";
+          var title = ""
+          if (undefined != con.annotation && con.annotation.length > 0) {
+            title = con.annotation[0];
+          } else {
+            // get from name
+            title = com.marklogic.widgets.searchhelper.processValue(con.name,"all");
+          }
+          s += " <label for='" + this.container + "-field-" + i + "'>" + title + ": </label>";
+          // render input box for value
+          // use constraint index as unique id reference
+          s += " <input id='" + this.container + "-field-" + i + "' type='text' />";
+          s += "</span>";
+          this._used.push(i);
+          if (0 == this._used.length % 2) {
+            s += "<br />";
+          }
+        } // range type if
+      } // constraint type if
+    } // include check if
+    // TODO geo (address lookup + range)
+  }
+  document.getElementById(this.container + "-fields").innerHTML = s;
+  
+  
+  // ENTER KEY HANDLER
+  var self = this;
+  var searchKeyPress = function(e)
+    {
+        // look for window.event in case event isn't passed in
+        if (typeof e == 'undefined' && window.event) { e = window.event; }
+        if (e.keyCode == 13)
+        {
+          // TODO self.updateSuggestions(null);
+            document.getElementById(self.container + "-submit").click();
+        } else {
+          // update suggestions
+          // TODO self.ctx.doSuggest(input.value);
+        }
+    };
+    
+  for (var i = 0, max = this._used.length, idx;i < max;i++) {
+    idx = this._used[i];
+    
+    var input = document.getElementById(this.container + "-field-" + idx);
+    
+    // now do enter click handler
+    input.onkeypress = searchKeyPress;
+  }
+  
+  // TODO enable auto completion lookup
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
 // SEARCH BAR ELEMENT
 
 /**
@@ -505,7 +658,7 @@ com.marklogic.widgets.searchbar.prototype.setSearchContext = function(context) {
 /**
  * Get the search context object this widget will use for operations
  */
-com.marklogic.widgets.searchbar.prototype.getContext = function() {
+com.marklogic.widgets.searchbar.prototype.getSearchContext = function() {
   return this.ctx;
 };
 
@@ -1198,174 +1351,89 @@ com.marklogic.widgets.searchresults.prototype._refresh = function() {
   }
 };
 
-com.marklogic.widgets.searchresults.defaultrenderers = {
-  json: {
-    matcher: function(result,manager,settings) {
-      return ("json" == result.format);
-      /* {
-        return true;
-      }
-      // do we need the rest? Yes, if format reported wrong by server (stored with wrong mime type)
-      if ("string" == typeof result.content && result.content.substring(0,1) == "{") {
-        return true;
-      }
-      */
-      /*
-      if ("object" == typeof(result.content)) {
-        return true;
-      }
-      */
-      /*
-      try {
-        var json = JSON.parse(result.content);
-        return true;
-      } catch (err) {
-        // fail
-      }
-      */
-      //return false;
-    }, 
-    processor: function(result,manager,settings) {
-        try {
-          var json = result.content;
-          if ("string" == typeof(json)) {
-            json = JSON.parse(json);
-          }
-          //manager.ctx.db.logger.debug("defaultProcessor:  - JSON parse successful...");
-          
-          // we hit this line if we succeed
-          return com.marklogic.widgets.searchhelper.handleJson(result,json);
-        } catch (err) {
-          // failure
-        }
-        return "";
+// NB could be doc or search result actions. Be aware.
+com.marklogic.widgets.defaultactions = {
+  view: {
+    matcher: function(docuri,manager,settings) {
+      return true;
+    },
+    render: function(docuri,manager,settings) {
+      // return HTML
+      // Also register action (if required)
+      return com.marklogic.widgets.defaultactions.view.wrap("<img src='/images/mljs/view-small.png' />",docuri,manager,settings);
+    },
+    wrap: function(html,docuri,manager,settings) {
+      return "<a href='/v1/documents?uri=" + encodeURI(docuri) + "' target='_blank'>" + html + "</a>";
     }
   },
-  snippet: {
-    matcher: function(result,manager,settings) {
-      return (undefined != result.matches && undefined != result.matches[0] && undefined != result.matches[0]["match-text"] && 
-              undefined != result.matches[0]["match-text"][0] /*&& result.matches[0]["match-text"][0].indexOf("<html") == 0*/);
-      
+  viewPrettyXML: {
+    matcher: function(docuri,manager,settings) {
+      return true;
     },
-    processor: function(result,manager,settings) {
-        //manager.ctx.db.logger.debug("defaultProcessor: Got a snippet match with a html element");
-        
-        //var xml = textToXML(result.matches[0]["match-text"][0]);
-        //var txt = result.matches[0]["match-text"][0];
-        //manager.ctx.db.logger.debug("RAW HTML TEXT: " + txt);
-        //var strip = txt.substring(txt.indexOf(">",txt.indexOf("<body") + 5) + 1,txt.indexOf("</body>"));
-        //manager.ctx.db.logger.debug("STRIP TEXT: " + strip);
-        var title = null;
-        //var titleEl = xml.getElementsByTagName("title")[0];
-        //manager.ctx.db.logger.debug("PATH: " + result.path);
-        //if (undefined != titleEl && null != titleEl && null != titleEl.nodeValue) {
-        //  title = titleEl.nodeValue;
-        //} else {
-          title = result.path.substring(8,result.path.length - 2);
-        //}
-        var resStr = "<div class='searchresults-result'><h3>" + result.index + ". " + title + "</h3>";
-        //resStr += "<div class='searchresults-snippet'>" + (new XMLSerializer()).serializeToString(xml.getElementsByTagName("body")[0]) + "</div>";
-        
-        
-        resStr += com.marklogic.widgets.searchhelper.snippet(result);
-        
-        //resStr += "<div class='searchresults-snippet'>" + /*strip*/ txt + "</div>";
-        //resStr += "<div class='searchresults-snippet'><iframe scrolling='no'>" + result.matches[0]["match-text"][0] + "</iframe></div>";
-        
-        resStr += "</div>";
-        return resStr;
+    render: function(docuri,manager,settings) {
+      // return HTML
+      // Also register action (if required)
+      return com.marklogic.widgets.defaultactions.viewPrettyXML.wrap("<img src='/images/mljs/view-pretty-small.png' />",docuri,manager,settings);
+    },
+    wrap: function(html,docuri,manager,settings) {
+      return "<a href='/v1/documents?transform=xmltohtml&uri=" + encodeURI(docuri) + "' target='_blank'>" + html + "</a>";
     }
   },
-  svg: {
-    matcher: function(result) {
-      var xml = null;
-      if ("string" == typeof result.content) {
-        xml = textToXML(result.content);
-      } else if ("object" == typeof result.content && undefined != result.content.nodeType) {
-        xml = result.content; // should never happen - always returned as string
-      }
-      if (null != xml) {
-        // check namespace and root element
-        if (xml.childNodes[0].nodeName == "svg") {
-          mljs.defaultconnection.logger.debug("Potential SVG nodeName: " + xml.childNodes[0].nodeName);
-          mljs.defaultconnection.logger.debug("Potential SVG nodeType: " + xml.childNodes[0].nodeType);
-          return true;
-        } else {
-          return false;
-        }
-      }
-      return false;
-    },
-    // backwards compatibility
-    processor: function (result,manager,settings) {
-      return "<div class='searchresults-result'><h3>" + result.index + ". " + result.uri + "</h3>" +
-        "<div style='height: 200px;position:relative;'>" + result.content + "</div></div>"; // returns the full xml to be applied within the document as SVG
-    },
-    title: function(result, manager, settings) {
-      return "<div class='searchresults-result'><h3>" + result.index + ". " + result.uri + "</h3>";
-    },
-    summary: function(result, manager, settings) {
-      return "<div style='height: 200px;position:relative;'>" + result.content + "</div></div>";
-    }
-    // TODO snippet, etc. etc.
+  explore:  {
+    // default MLJS Document Ontology
+  }
+};
+
+com.marklogic.widgets.defaulthtmlrenderer = {
+  // default handlers entire areas for rendering
+  // old all render
+  defaultSearchResult: function(result,manager,settings) {
+    return com.marklogic.widgets.defaulthtmlrenderer.wrapSearchResult(
+        genericTitle(result.index,result.uri) + com.marklogic.widgets.searchhelper.snippet(result) // TODO refactor snippet generation code in to this object
+      ,result,manager,settings);
   },
-  html: {
-    matcher: function(result,manager,settings) {
-      return ("string" == typeof result.content && -1 != result.content.substring(0,100).indexOf("<html")); 
-      // TODO replace with XPath as this is very wide ranging - http://www.w3.org/1999/xhtml (escape dots?)
-    },
-    processor: function(result,manager,settings) {
-          // Get title from /html/head/title or /html/body/h1[1] or /html/body/h2[1] or /html/body/p[1]
-          // don't rely on xml.evaluate() though
-          //manager.ctx.db.logger.debug("searchresults: defaultProcesor: Got HTML content");
-          var titleStart = result.content.indexOf("title>"); // NB can't do <title because there may be a random namespace name. Replace this with XPATH if supported
-          var titleEnd = result.content.indexOf("title>",titleStart + 6);
-          var bodyStart = result.content.indexOf("body");
-          var bodyEnd = result.content.indexOf(">",bodyStart + 4);
-          var endBodyStart = result.content.indexOf("body",bodyEnd + 1);
-          //manager.ctx.db.logger.debug("titleStart: " + titleStart);
-          //manager.ctx.db.logger.debug("titleEnd: " + titleEnd);
-          //manager.ctx.db.logger.debug("bodyStart: " + bodyStart);
-          //manager.ctx.db.logger.debug("bodyEnd: " + bodyEnd);
-          //manager.ctx.db.logger.debug("endBodyStart: " + endBodyStart);
-          
-          //var endBodyEnd = result.content.indexOf(">",endBodyStart + 6);
-          
-          var bodyContent = result.content.substring(bodyEnd + 1,endBodyStart);
-          //manager.ctx.db.logger.debug("bodyContent: " + bodyContent);
-          var title = result.uri;
-          if (-1 != titleStart && -1 != titleEnd) {
-            title = result.content.substring(titleStart + 6,titleEnd);
-          } else {
-            var firstElStart = bodyContent.indexOf("<");
-            var firstElEnd = bodyContent.indexOf(">",firstElStart + 1);
-            var endFirstElStart = bodyContent.indexOf("</",firstElEnd);
-            if (-1 != firstElStart && -1 != firstElEnd && -1 != endFirstElStart) {
-              title = bodyContent.substring(firstElEnd + 1,endFirstElStart);
-            } 
-          }
-          //manager.ctx.db.logger.debug("title: " + title);
-          // render first 4 elements from /html/body/element()[1 to 4]
-          // render all content for now
-          
-          var resStr = "<div class='searchresults-result'><h3>" + result.index + ". " + title + "</h3>";
-          resStr += "<div class='searchresults-snippet'>" + bodyContent + "</div>";
-          resStr += "</div>";
-          return resStr;
-    }
+  // new section renders
+  defaultTitle: function(result,manager,settings) {
+    return com.marklogic.widgets.defaulthtmlrenderer.genericTitle(result.index,result.uri);
   },
-  triples: {
-    matcher: function(result,manager,settings) {
-      if (undefined == result.content) {
-        return false;
-      }
-      return ("<sem:triples" == result.content.substring(0,12));
-      // TODO flesh this out
-    },
-    processor: function(result,manager,settings) {
-      // gen title
-      var s = "<div class='searchresults-result'><h3>" + result.index + ". Subgraph " + result.uri + "</h3>";
-      
+  defaultSummary: function(result,manager,settings) { // for summary or snippet (determined by search options - must be one or the other only, never both)
+    // easy if snippet, not so easy if any content (just use matcher functions to check result)
+  },
+  defaultMetadata: function(result,manager,settings) {
+    var s = "";
+            for (var metai = 0, maxi = result.metadata.length, meta;metai < maxi;metai++) {
+              meta = result.metadata[metai];
+              //console.log("  meta instance: " + metai);
+              for (var p in meta) {
+                var value = meta[p];
+                if (null != value) { // TODO allow setting on segment for only showing named meta elements (p value)
+                  
+          s += " <b>" + name + ":</b> " + value;
+                }
+              }
+            }
+    return s;
+  },
+  defaultActions: function(result,manager,settings) {
+    // loop through configured actions
+    // call matcher function for each
+    // render each
+  },
+  defaultThumbnail: function(result,manager,settings) {
+    // custom pluggable linking function
+  },
+  defaultSimilar: function(result,manager,settings) {
+    // from returnSimilar option
+  },
+  defaultRelated: function(result,manager,settings) {
+    
+  },
+  defaultComments: function(result,manager,settings) {
+    
+  },
+  // default subclasses
+  defaultSummaryTriples: function(result,manager,settings) {
+    var s + "";
       // convert to XML (sem:triples)
       var xml = textToXML(result.content);
       
@@ -1412,32 +1480,28 @@ com.marklogic.widgets.searchresults.defaultrenderers = {
         s += "Subject: " + subject + ", Predicate: " + predicate + ", Object: " + obj;
         child = iterator.iterateNext();
       }
-      s += "</div>";
-      return s;
-    }
+    return s;
   },
-  xml: {
-    matcher: function(result,manager,settings) {
-      return ("xml" == result.format);
-      /*
-      try {
-        var xmlDoc = textToXML(result.content);
-        //manager.ctx.db.logger.debug("defaultProcessor:  - XML parse successful...");
-        return true;
-      } catch (err) {
-        // failed
-      }
-      return false;
-      */
-    },
-    processor: function(result,manager,settings) {
+  defaultSearchResultTriples: function(result,manager,settings) {
+    
+      // gen title
+      //var s = "<div class='searchresults-result'><h3>" + result.index + ". Subgraph " + result.uri + "</h3>";
+      var s = com.marklogic.widgets.defaulthtmlrenderer.wrapTitle(
+          result.index + ". Subgraph " + result.uri
+        ,result,manager,settings);
       
+      s += com.marklogic.widgets.defaulthtmlrenderer.defaultSummaryTriples(result,manager,settings);
+      
+      return com.marklogic.widgets.defaulthtmlrenderer.wrapResult(s,result,manager,settings);
+  },
+  defaultSearchResultXML: function(result,manager,settings){
+    
           // try XML now        
           try {
             var xmlDoc = textToXML(result.content);
             //manager.ctx.db.logger.debug("defaultProcessor:  - XML parse successful...");
             
-            var resStr = "";
+            //var resStr = "";
             // parse each results and snippet / raw content
             var title = result.uri;
             var snippet = null;
@@ -1507,26 +1571,77 @@ com.marklogic.widgets.searchresults.defaultrenderers = {
               snippet = result.content;
             }
           
-            resStr += "<div class='searchresults-result'><h3>" + result.index + ". " + title + "</h3>";
+            //resStr += "<div class='searchresults-result'><h3>" + result.index + ". " + title + "</h3>";
+            //if (null != snippet) {
+            //  resStr += "<div class='searchresults-snippet'>" + snippet + "</div>";
+            //}
+            //resStr += "</div>";
+            
+            var resStr = 
+                com.marklogic.widgets.defaulthtmlrenderer.wrapTitle(
+                    result.index + ". " + title,
+                  result,manager,settings);
             if (null != snippet) {
-              resStr += "<div class='searchresults-snippet'>" + snippet + "</div>";
+              resStr += com.marklogic.widgets.defaulthtmlrenderer.wrapSummary(snippet,result,manager,settings);
             }
-            resStr += "</div>";
-            return resStr;
+            
+            return com.marklogic.widgets.defaulthtmlrenderer.wrapSearchResult(
+                resStr;
+              ,result,manager,settings);
           } catch (err) {
             manager.ctx.db.logger.debug("defaultProcessor: XML mode: Failed to create XML document from text: " + result.content);
           }
           return "";
-          
-    }
   },
-  text: {
-    matcher: function(result,manager,settings) {
-      return ("text" == result.format);
-    },
-    processor: function(result,manager,settings) {
-      
-        var resStr = "<div class='searchresults-result'><h3>" + result.index + ". " + result.uri + "</h3>";
+  defaultSearchResultHTML: function(result,manager,settings) {
+    
+          // Get title from /html/head/title or /html/body/h1[1] or /html/body/h2[1] or /html/body/p[1]
+          // don't rely on xml.evaluate() though
+          //manager.ctx.db.logger.debug("searchresults: defaultProcesor: Got HTML content");
+          var titleStart = result.content.indexOf("title>"); // NB can't do <title because there may be a random namespace name. Replace this with XPATH if supported
+          var titleEnd = result.content.indexOf("title>",titleStart + 6);
+          var bodyStart = result.content.indexOf("body");
+          var bodyEnd = result.content.indexOf(">",bodyStart + 4);
+          var endBodyStart = result.content.indexOf("body",bodyEnd + 1);
+          //manager.ctx.db.logger.debug("titleStart: " + titleStart);
+          //manager.ctx.db.logger.debug("titleEnd: " + titleEnd);
+          //manager.ctx.db.logger.debug("bodyStart: " + bodyStart);
+          //manager.ctx.db.logger.debug("bodyEnd: " + bodyEnd);
+          //manager.ctx.db.logger.debug("endBodyStart: " + endBodyStart);
+          
+          //var endBodyEnd = result.content.indexOf(">",endBodyStart + 6);
+          
+          var bodyContent = result.content.substring(bodyEnd + 1,endBodyStart);
+          //manager.ctx.db.logger.debug("bodyContent: " + bodyContent);
+          var title = result.uri;
+          if (-1 != titleStart && -1 != titleEnd) {
+            title = result.content.substring(titleStart + 6,titleEnd);
+          } else {
+            var firstElStart = bodyContent.indexOf("<");
+            var firstElEnd = bodyContent.indexOf(">",firstElStart + 1);
+            var endFirstElStart = bodyContent.indexOf("</",firstElEnd);
+            if (-1 != firstElStart && -1 != firstElEnd && -1 != endFirstElStart) {
+              title = bodyContent.substring(firstElEnd + 1,endFirstElStart);
+            } 
+          }
+          //manager.ctx.db.logger.debug("title: " + title);
+          // render first 4 elements from /html/body/element()[1 to 4]
+          // render all content for now
+          
+          //var resStr = "<div class='searchresults-result'><h3>" + result.index + ". " + title + "</h3>";
+          //resStr += "<div class='searchresults-snippet'>" + bodyContent + "</div>";
+          //resStr += "</div>";
+          //return resStr;
+          return com.marklogic.widgets.defaulthtmlrenderer.wrapResult(
+              com.marklogic.widgets.defaulthtmlrenderer.wrapTitle(
+                  result.index + ". " + title
+                ,result,manager,settings) + 
+              com.marklogic.widgets.defaulthtmlrenderer.wrapSummary(bodyContent,result,manager,settings)
+            ,result,manager,settings);
+  },
+  defaultSearchResultText: function(result,manager,settings) {
+    
+      var resStr = com.marklogic.widgets.defaulthtmlrenderer.genericTitle(result.index,result.uri);
         
       if (undefined == result.content) {
         // no text
@@ -1539,6 +1654,167 @@ com.marklogic.widgets.searchresults.defaultrenderers = {
       }
         resStr += "</div>";
         return resStr;
+  },
+  defaultSearchResultJSON: function(result,manager,settings){
+    
+        try {
+          var json = result.content;
+          if ("string" == typeof(json)) {
+            json = JSON.parse(json); // hack for old 7.0-0 nightlies
+          }
+          
+          // we hit this line if we succeed
+          return com.marklogic.widgets.searchhelper.handleJson(result,json);
+        } catch (err) {
+          // failure
+        }
+        return "";
+  },
+  defaultSearchResultSVG: function(result,manager,settings) {
+      return com.marklogic.widgets.defaulthtmlrenderer.wrapSearchResult(
+          com.marklogic.widgets.defaulthtmlrenderer.genericSVG(result.content)
+        ,result,manager,settings);
+  },
+  
+  // wrappers handle MLJS provided outer HTML - they have a fixed API
+  wrapSearchResult: function(inner,result,manager,settings) {
+    return "<div class='searchresults-result'>" + inner + "</div>";
+  },
+  wrapTitle: function(inner,result,manager,settings) {
+    return "<h3>" + inner + "</h3>";
+  },
+  wrapSummary: function(inner,result,manager,settings) {
+    return "<div class='searchresult-snippet'>" + inner + "</div>";
+  },
+  wrapAction: function(action,inner,result,manager,settings) {
+    // E.g. view, edit link
+  },
+  
+  // Generics handle reusable inner content - they have a variable, specific API
+  genericTitle: function(index,docuri) {
+    return "<h3>" + index + ". " + docuri + "</h3>";
+  },
+  genericSVG: function(svg) {
+    return "<div style='height: 200px;position:relative;'>" + svg + "</div>";
+  },
+  
+  // helper methods
+  getMetadata: function(result,param) {
+    if (undefined == result.metadata) {
+      return null;
+    }
+            for (var metai = 0, maxi = result.metadata.length, meta;metai < maxi;metai++) {
+              meta = result.metadata[metai];
+              //console.log("  meta instance: " + metai);
+              for (var p in meta) {
+                //console.log("    found param: " + param);
+                // find our one
+                // NB may be multiple of them - TODO support more than just last found
+                if (p == param) {
+                  //console.log("      found latsrc constraint param");
+                  return meta[p];
+                  
+                }
+              }
+            }
+            return null;
+  },
+  getMetadataConstraint: function(result,constraintName) {
+    return getMetadata(result,constraintName); // same as generic getMetadata
+  },
+  getMetadataElement: function(result,element,namespace_opt) {
+    return getMetadata(result,"{" + (namespace_opt || "") + "}" + element);
+  } // TODO other metadata elements as required - path? geo?
+  
+};
+
+com.marklogic.widgets.searchresults.defaultrenderers = {
+  json: {
+    matcher: function(result,manager,settings) {
+      return ("json" == result.format);
+    }, 
+    processor: function(result,manager,settings) {
+      return com.marklogic.widgets.defaulthtmlrenderer.defaultSearchResultJSON(result,manager,settings);
+    }
+  },
+  snippet: {
+    matcher: function(result,manager,settings) {
+      return (undefined != result.matches && undefined != result.matches[0] && undefined != result.matches[0]["match-text"] && 
+              undefined != result.matches[0]["match-text"][0] /*&& result.matches[0]["match-text"][0].indexOf("<html") == 0*/);
+      
+    },
+    processor: function(result,manager,settings) {
+      return com.marklogic.widgets.defaulthtmlrenderer.defaultSearchResult(result,manager,settings);
+    }
+  },
+  svg: {
+    matcher: function(result) {
+      var xml = null;
+      if ("string" == typeof result.content) {
+        xml = textToXML(result.content);
+      } else if ("object" == typeof result.content && undefined != result.content.nodeType) {
+        xml = result.content; // should never happen - always returned as string
+      }
+      if (null != xml) {
+        // check namespace and root element
+        if (xml.childNodes[0].nodeName == "svg") {
+          mljs.defaultconnection.logger.debug("Potential SVG nodeName: " + xml.childNodes[0].nodeName);
+          mljs.defaultconnection.logger.debug("Potential SVG nodeType: " + xml.childNodes[0].nodeType);
+          return true;
+        } else {
+          return false;
+        }
+      }
+      return false;
+    },
+    // backwards compatibility
+    processor: function (result,manager,settings) {
+      return com.marklogic.widgets.defaulthtmlrenderer.defaultSearchResultSVG(result,manager,settings);
+    },
+    title: function(result, manager, settings) {
+      com.marklogic.widgets.defaulthtmlrenderer.defaultTitle(result,manager,settings);
+    },
+    summary: function(result, manager, settings) {
+      return com.marklogic.widgets.defaulthtmlrenderer.genericSVG(result.content);
+    }
+    // TODO snippet, etc. etc.
+  },
+  html: {
+    matcher: function(result,manager,settings) {
+      // TODO content type can be text/html - from get() anyway - is this reflected in search output too???
+      return ("string" == typeof result.content && -1 != result.content.substring(0,100).indexOf("<html")); 
+      // TODO replace with XPath as this is very wide ranging - http://www.w3.org/1999/xhtml (escape dots?)
+    },
+    processor: function(result,manager,settings) {
+      return com.marklogic.widgets.defaulthtmlrenderer.defaultSearchResultHTML(result,manager,settings);
+    }
+  },
+  triples: {
+    matcher: function(result,manager,settings) {
+      if (undefined == result.content) {
+        return false;
+      }
+      return ("<sem:triples" == result.content.substring(0,12)); // TODO handle wider variety of formats - E.g. whitespace at start
+      // TODO flesh this out
+    },
+    processor: function(result,manager,settings) {
+      return com.marklogic.widgets.defaulthtmlrenderer.defaultSearchResultTriples(result,manager,settings);
+    }
+  },
+  xml: {
+    matcher: function(result,manager,settings) {
+      return ("xml" == result.format);
+    },
+    processor: function(result,manager,settings) {
+      return com.marklogic.widgets.defaulthtmlrenderer.defaultSearchResultXML(result,manager,settings);
+    }
+  },
+  text: {
+    matcher: function(result,manager,settings) {
+      return ("text" == result.format);
+    },
+    processor: function(result,manager,settings) {
+      return com.marklogic.widgets.defaulthtmlrenderer.defaultSearchResultText(result,manager,settings);
     }
   }/*,
   unknown: {
@@ -1639,6 +1915,9 @@ com.marklogic.widgets.searchresults.prototype.updateResultSelection = function(n
   // loop through our results (NOT the selection list)
   // if newsel list contains result, then select it (CSS class)
   // else, remove selection class
+  if (undefined == this.results || undefined == this.results.results) {
+    return;
+  }
   for (var i = 0;i < this.results.results.length;i++) {
     var wrapperId = this.container + "-searchresults-wrapper-" + i;
     // run processors in order
@@ -1971,7 +2250,13 @@ com.marklogic.widgets.searchsort.prototype._refresh = function() {
       title = com.marklogic.widgets.searchhelper.processValueAll(val);
       
       if ("" != title && undefined != o.direction) {
-        title += " (" + com.marklogic.widgets.searchhelper.camelcase(o.direction,"all") + ")";
+        var dir = com.marklogic.widgets.searchhelper.camelcase(o.direction,"all");
+        if ("Ascending" == dir) {
+          dir = "Asc";
+        } else if ("Descending" == dir) {
+          dir = "Desc";
+        }
+        title += " (" + dir + ")";
       } else {
         // TODO not specified - default to ascending? - no, leave this to the first, untitled sort option given by MarkLogic server
       }

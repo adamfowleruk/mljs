@@ -3,10 +3,10 @@
 ## Upcoming releases
 
 Targets for 1.4 (Feb 2014) - Theme: Visualisations
- - Widgets: Search Results
+ - IN PROGRESS Widgets: Search Results
   - IN PROGRESS Add support for pluggable rendering for areas of result pane:-
    - DONE all (as now)
-   - title
+   - IN PROGRESS title
    - result summary (short, snippeting or non snippeting)
    - expanded result summary (controlled by action or global show detailed results setting)
    - thumbnail(s) on right hand side with navigation if multiple
@@ -14,27 +14,36 @@ Targets for 1.4 (Feb 2014) - Theme: Visualisations
    - similar documents (text or thumbnail) under actions bar, hidden by default
    - related documents (text or thumbnail) under actions bar, hidden by default
    - facts (semantic triples)
-   - extracted metadata
+   - IN PROGRESS extracted metadata
    - selection tickbox
    - latest comments (similar to related documents)
     - add comment support
-   - actions (pluggable)
-    - view more (expanded result summary)
-    - view less (default short result summary)
-    - edit (goto page - edit)
-    - view (goto page - view)
-    - similar (text or thumbnail)
-    - linked documents (text or thumbnail)
-    - preview (popup pain)
-    - delete
-    - explore (goto page - semantic data explorer)
+   - IN PROGRESS actions (pluggable)
+    - show more detail (expanded result summary)
+    - show less detail (default short result summary)
+    - show similar (text or thumbnail)
+    - show related/linked subjects/documents (navigable diagram with home button, embedded)
+    - popup preview (popup pain)
+    - popup delete
+    - go edit (goto page - edit)
+    - go all details (goto page - view)
+    - go explore (goto page - semantic data explorer)
+    - DONE new-window view (download - /v1/documents)
+    - DONE new-window view (pretty xml - /v1/documents with transform)
    - Ability to globally show/hide named sections
+   - IN PROGRESS Make it easier to add event handlers like click to navigate, view (as html via XSLT), download
+   - DONE Make using extracted metadata easier (getmeta function to fetch named meta element)
+   - DONE Reusable string generating calls on manager. E.g. title, summary, metadata (generates correct div tags and style links)
+   - Allow passing of custom parameters to event handlers in addition to document uri
+   - Externalise constraint name to display name (search option annotations on constraints) - constraintTitle function on manager
+  - DONE Add generic XML to XHTML support and CSS via XSLT transform in REST API
+  - Widgets: Explorer: Save URI to/from IRI mapping prior to calling document facets fetch (currently based on name substring - dangerous)
   - Docs: Create mock sample search pages
    - wordpress like demo summary view for documents
    - google like summary, with similar stories indented
    - tabular view - http://www.webdesignerdepot.com/2010/02/showcase-of-great-web-app-interfaces/
    - google images like summary view, and detail on click
-  - Core: Add metadata extraction support to search options and search context - extract() method on context?
+  - DONE Core: Add metadata extraction support to search options and search context - extract() method on context?
   - Allow rendering with other layouts rather than just a simple column
    - Widgets: 2 column across-first cell rendering layout
    - Widgets: 3 column across-first cell rendering layout
@@ -45,11 +54,20 @@ Targets for 1.4 (Feb 2014) - Theme: Visualisations
    - IN PROGRESS triple support (with summary?)
  - Widgets: Document Collector dropbox (also supports the searchresults document title, result summary plugins)
  - Widgets: search bar: Suppress facets, sorting shown within text query bar
+ - Widgets: search bar: Support boolean AND, OR, ( and ), NOT
  - Widgets: save search
  - Widgets: searchsorter: OOTB support for newest first/oldest first based on MarkLogic created and last modified dates
  - Widgets: searchperpage: Number of results to show per page 25 | 50 | 100 for example
  - Widgets: layouts to support collapsable zones (like springer images search modification left hand column)
  - Docs: Update sample apps to make best use of search presentation features
+ - BUG: Core: version being called multiple times per page
+ - Widgets: MLJS App wide settings in DB, generated from /mljs/app.json on webapp directory (E.g. for new application)
+ - Core: searchcontext
+  - Rework how facets are contributed - can't override at the moment, only contribute - causes facets to reappear
+  - Allow AND or OR queries for text queries by default (defaults to AND at the moment)
+  - Support for non exact matches (query options? query itself?) - E.g. wildcards
+ - Widgets: OpenLayers
+  - Support multiple result types (series) from same searchcontext. E.g. matcher() and series() functions (use same pattern as searchresults for simplicity)
  - Missed 1.2 (Dec 2013) - High Priority - targets
   - IN PROGRESS Widgets: Data Explorer improvements
    - DONE: Widgets: Data explorer widget shows "Loading..." when attempting to draw a link to an entity that already exists in the visible graph. Should just draw an arrow.
@@ -161,6 +179,7 @@ Floating Targets
  - SMA
   - High:-
    - Widgets: Advanced search editing - Support for boolean logic, word and phrase matches, NEAR searches, constraint drop downs
+    - DONE Basic named constraint mode (AND'ed text query of all, contributed as facets)
     - Parsing existing text query
     - Add/remove clause buttons
     - Clause types: Boolean: AND(0+), OR(0+), NEAR(2) with number, NOT(0+)

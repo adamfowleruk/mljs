@@ -3167,7 +3167,7 @@ mljs.prototype.options = function() {
   
   // general defaults
   this.defaults = {};
-  this.defaults.type = "xs:string";
+  this.defaults.datatype = "xs:string";
   this.defaults.collation = "http://marklogic.com/collation/";
   this.defaults.namespace = "http://marklogic.com/xdmp/json/basic";
   this.defaults.sortDirection = "ascending";
@@ -3549,7 +3549,7 @@ mljs.prototype.options.prototype.defaultSortOrder = function(sort) {
  * @param {string} type - Sets the default type (default is xs:string)
  */
 mljs.prototype.options.prototype.defaultType = function(type) {
-  this.defaults.type = type;
+  this.defaults.datatype = type;
   return this;
 };
 
@@ -3742,7 +3742,7 @@ mljs.prototype.options.prototype.customConstraint = function(constraint_name,par
 mljs.prototype.options.prototype.pathConstraint = function(constraint_name,xpath,namespaces,type_opt,collation_opt,facet_opt,facet_options_opt,annotation_opt) {
   var range = {name: constraint_name,
     range: {
-      type: type_opt || this.defaults.type, 
+      type: type_opt || this.defaults.datatype, 
       "path-index": {
         text: xpath, namespaces : namespaces
       }
@@ -3765,7 +3765,7 @@ mljs.prototype.options.prototype.pathConstraint = function(constraint_name,xpath
   }
   
   // Create sort orders automatically
-  //this.sortOrder(this.defaultSortDirection,type_opt || this.defaults.type,element,collation_opt || this.defaults.collation); 
+  //this.sortOrder(this.defaultSortDirection,type_opt || this.defaults.datatype,element,collation_opt || this.defaults.collation); 
   // TODO sort order - REST API V7 DOES NOT support ordering for path range indexes!!!
   // see http://docs-ea.marklogic.com/guide/rest-dev/appendixa#id_97031
   
@@ -3793,7 +3793,7 @@ mljs.prototype.options.prototype.path = mljs.prototype.options.prototype.pathCon
 mljs.prototype.options.prototype.elemattrRangeConstraint = function(constraint_name,element,namespace,attr,type_opt,collation_opt,facet_opt,facet_options_opt,annotation_opt) {
   var range = {name: constraint_name,
     range: {
-      type: type_opt || this.defaults.type, 
+      type: type_opt || this.defaults.datatype, 
       element: {
         name: element, ns : namespace || this.defaults.namespace
       },
@@ -3823,7 +3823,7 @@ mljs.prototype.options.prototype.elemattrRangeConstraint = function(constraint_n
   var elspec = {
     element: range.range.element.name, elementns: range.range.element.ns, attribute: range.range.attribute.name, attributens: range.range.attribute.ns
   }
-  this.sortOrder(this.defaultSortDirection,type_opt || this.defaults.type,elspec,collation_opt || this.defaults.collation); // TODO verify this works with normal XML range indexes not json keys
+  this.sortOrder(this.defaultSortDirection,type_opt || this.defaults.datatype,elspec,collation_opt || this.defaults.collation); // TODO verify this works with normal XML range indexes not json keys
   
   this.addConstraint(range);
   this.suggest(constraint_name);
@@ -3930,6 +3930,14 @@ mljs.prototype.options.prototype.rangeConstraint = function(constraint_name_opt,
   if (undefined == constraint_name_opt) {
     constraint_name_opt = name_or_key;  
   }
+  var thens = ns_opt;
+  if (undefined == ns_opt) { // this allows "" blank namespace
+    thens = this.defaults.namespace;
+  }
+  var thetype = type_opt;
+  if (undefined ==  type_opt) {
+    thetype = this.defaults.datatype;
+  }
   // output values here
   this.__d("rangeConstraint(): cName: " + constraint_name_opt + 
     ", name_or_key: " + name_or_key + ", ns_opt: " + ns_opt + ", type_opt: " + type_opt + ", collation_opt: " + collation_opt +
@@ -3937,9 +3945,9 @@ mljs.prototype.options.prototype.rangeConstraint = function(constraint_name_opt,
   // now use values
   var range = {name: constraint_name_opt,
     range: {
-      type: type_opt || this.defaults.type, 
+      type: thetype, 
       element: {
-        name: name_or_key, ns : ns_opt || this.defaults.namespace // NB this means if default namespace is not json, you must specify NS for ALL json rangeConstraints to be marklogic/basic full URL spec
+        name: name_or_key, ns : thens // NB this means if default namespace is not json, you must specify NS for ALL json rangeConstraints to be marklogic/basic full URL spec
       }
     }
   };
@@ -3969,8 +3977,8 @@ mljs.prototype.options.prototype.rangeConstraint = function(constraint_name_opt,
       element: range.range.element.name, elementns: range.range.element.ns
     };
   }
-  this.sortOrder("ascending",type_opt || this.defaults.type,elspec,collation_opt || this.defaults.collation); // TODO verify this works with normal XML range indexes not json keys
-  this.sortOrder("descending",type_opt || this.defaults.type,elspec,collation_opt || this.defaults.collation); // TODO verify this works with normal XML range indexes not json keys
+  this.sortOrder("ascending",type_opt || this.defaults.datatype,elspec,collation_opt || this.defaults.collation); // TODO verify this works with normal XML range indexes not json keys
+  this.sortOrder("descending",type_opt || this.defaults.datatype,elspec,collation_opt || this.defaults.collation); // TODO verify this works with normal XML range indexes not json keys
   
   this.addConstraint(range);
   this.suggest(constraint_name_opt);
@@ -3994,7 +4002,7 @@ mljs.prototype.options.prototype.range = mljs.prototype.options.prototype.rangeC
 mljs.prototype.options.prototype.fieldRangeConstraint = function(constraint_name,name,type_opt,collation_opt,facet_opt,facet_options_opt,fragmentScope_opt,annotation_opt) {
   var range = {name: constraint_name,
     range: {
-      type: type_opt || this.defaults.type, 
+      type: type_opt || this.defaults.datatype, 
       field: {
         name: name
       },
@@ -4021,8 +4029,8 @@ mljs.prototype.options.prototype.fieldRangeConstraint = function(constraint_name
   var elspec = {
     field: range.range.field.name, collation: range.range.collation
   };
-  this.sortOrder("ascending",type_opt || this.defaults.type,elspec,collation_opt || this.defaults.collation);
-  this.sortOrder("descending",type_opt || this.defaults.type,elspec,collation_opt || this.defaults.collation);
+  this.sortOrder("ascending",type_opt || this.defaults.datatype,elspec,collation_opt || this.defaults.collation);
+  this.sortOrder("descending",type_opt || this.defaults.datatype,elspec,collation_opt || this.defaults.collation);
   
   this.addConstraint(range);
   this.suggest(constraint_name);
@@ -4630,7 +4638,7 @@ mljs.prototype.options.prototype.sortOrderClear = function() {
 mljs.prototype.options.prototype.sortOrderScore = function() {
   this._includeSearchDefaults();
   // TODO add check to see if we already exist
-  this.options["sort-order"].push({"direction": "descending",score: null, "annotation": ["Relevancy (Descending)"]});
+  this.options["sort-order"].push({"direction": "descending",score: null, "annotation": ["Relevancy (Desc)"]});
   return this;
 };
 mljs.prototype.options.prototype.relevance = mljs.prototype.options.prototype.sortOrderScore; // common alias
@@ -4666,7 +4674,7 @@ mljs.prototype.options.prototype.searchableExpression = function(expression, nam
 mljs.prototype.options.prototype.sortOrder = function(direction_opt,type_opt,keyOrJSON,collation_opt) {
   this._includeSearchDefaults();
   // TODO check for unspecified type, direction, collation (and element + ns instead of key)
-  var so = {direction: direction_opt || this.defaults.sortDirection,type:type_opt || this.defaults.type/*, score: "score-logtfidf"*/};
+  var so = {direction: direction_opt || this.defaults.sortDirection,type:type_opt || this.defaults.datatype/*, score: "score-logtfidf"*/};
   if ("string" === typeof(keyOrJSON)) {
     so["json-key"] = keyOrJSON;
   } else {
@@ -4735,7 +4743,7 @@ mljs.prototype.options.prototype.sortOrder = function(direction_opt,type_opt,key
 
 mljs.prototype.options.prototype._quickRange = function(el) {
   if (typeof el == "string") {
-    return {type: this.defaults.type, element: {ns: this.defaults.namespace, name: el}};
+    return {type: this.defaults.datatype, element: {ns: this.defaults.namespace, name: el}};
   } else {
     // json range object
     return el;
@@ -6257,6 +6265,24 @@ mljs.prototype.searchcontext.prototype.contributeFacet = function(facetName,face
   this.updateFacets(this._facetSelection);
 };
 
+/**
+ * Contributes an array of facet selections to the underlying query (simple or structured).
+ * 
+ * @param {Array} facetArray - The facet values to restrict the search results by. [{name: "facetName", value: "facetValue"}, ... ]
+ */
+mljs.prototype.searchcontext.prototype.contributeFacets = function(facetArray) {
+  if (undefined == facetArray) {
+    return;
+  }
+  for (var i = 0, max = facetArray.length,facet;i < max;i++) {
+    facet = facetArray[i];
+    this._facetSelection.push(facet);
+  }
+  
+  // rerun search
+  this.updateFacets(this._facetSelection);
+};
+
 
 /**
  * Event target. Useful to call directly from a Search Facets widget upon selection of a facet value. Executes a new search.
@@ -7020,8 +7046,12 @@ com.marklogic.semantic.tripleconfig.prototype.addMarkLogic = function() {
   
   var doc = this.rdftype("http://marklogic.com/semantics/ontology/Document","http://marklogic.com/semantics/ontology/Document#uri").title("MarkLogic Document")
     .prefix("http://marklogic.com/semantics/ontology/Document").pattern("http://marklogic.com/semantics/ontology/Document/#VALUE#")
-    .from("*","http://marklogic.com/semantics/ontology/Document#uri");
+    .from("*","http://marklogic.com/semantics/ontology/Document#uri")
+    .from("*","http://www.w3.org/ns/prov#wasDerivedFrom")
+    .from("*","http://marklogic.com/semantics/ontology/mentioned_in")
+    .to("http://marklogic.com/semantics/ontology/Document",["http://www.w3.org/ns/prov#wasDerivedFrom","http://marklogic.com/semantics/ontology/mentioned_in"]);
   doc.predicate("http://marklogic.com/semantics/ontology/Document#uri").title("URI");
+  doc.predicate("http://www.w3.org/ns/prov#wasDerivedFrom").title("Derived From");
   this.include(doc);
 };
 
