@@ -6,7 +6,7 @@
         "includePattern": ".+\\.js(doc)?$",
         "excludePattern": "(^|\\/|\\\\)_"
     },
-    "plugins": ["/Users/adamfowler/Documents/marklogic/git/jsdoc/plugins/markdown"],
+    "plugins": ["plugins/markdown"],
 "markdown": {
     "parser": "gfm",
     "hardwrap": true
@@ -16,6 +16,14 @@
         "monospaceLinks": false,
         "default": {
             "outputSourceFiles": true
-        }
-    }
+        },
+    "systemName"      : "MLJS",
+    "footer"          : "MLJS - A JavaScript wrapper for the MarkLogic REST API",
+    "copyright"       : "MarkLogic 2012-2014",
+    "navType"         : "vertical",
+    "theme"           : "cerulean",
+    "linenums"        : true,
+    "collapseSymbols" : false,
+    "inverseNav"      : false
+    }, "opts": {"template": "templates/docstrap" }
 }

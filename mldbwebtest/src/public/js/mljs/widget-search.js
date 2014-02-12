@@ -1433,7 +1433,7 @@ com.marklogic.widgets.defaulthtmlrenderer = {
   },
   // default subclasses
   defaultSummaryTriples: function(result,manager,settings) {
-    var s + "";
+    var s = "";
       // convert to XML (sem:triples)
       var xml = textToXML(result.content);
       
@@ -1586,7 +1586,7 @@ com.marklogic.widgets.defaulthtmlrenderer = {
             }
             
             return com.marklogic.widgets.defaulthtmlrenderer.wrapSearchResult(
-                resStr;
+                resStr
               ,result,manager,settings);
           } catch (err) {
             manager.ctx.db.logger.debug("defaultProcessor: XML mode: Failed to create XML document from text: " + result.content);
