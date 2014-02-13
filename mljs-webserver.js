@@ -3,9 +3,7 @@ var http = require('http'),
     _und = require('underscore'),
     mljs = require('mljs');
     
-    
 // Provides a set of classes and server framework to run MLJS powered HTML5 apps with WebSocket and alerting support in a Node.js web server.
-
 
 var ConnectionManager = function() {
   this.clients = new Array();
@@ -46,12 +44,6 @@ ConnectionManager.prototype.getClient = function(id) {
   }
   return null;
 };
-
-
-
-
-
-
 
 
 
@@ -103,9 +95,6 @@ AlertServer.prototype.close = function() {
 
 
 
-
-
-
 var WebServer = function(port,connectionManager,appBaseDirectory,restServer,restPort) {
   this.port = port;
   this.manager = connectionManager;
@@ -136,9 +125,7 @@ function parseCookies (request) {
     return list;
 };
 
-
   this.httpServer = http.createServer(
-    
     // TODO handle AUTH immediately, shadowed from MarkLogic Server
     
   function(request, res) {
@@ -156,14 +143,7 @@ function parseCookies (request) {
       
     if (0 == request.url.indexOf("/v1/")) { // TODO future proof versioned URLs
       // forward on to REST API
-      
-      // USE MLJS INTERNAL CONNECTION MANAGERS TO HANDLE CONNECTION AND AUTH
-      //var conn = client.rest;
-      
-      //if (null == conn) {
-        // TODO set up new connection, caching for later in client object
-        // NA - http connection stateless in this case
-      //}
+      // TODO USE MLJS INTERNAL CONNECTION MANAGERS TO HANDLE CONNECTION AND AUTH
       
       // use connection to send request. Pass on response to listener
       var options = {
@@ -176,8 +156,6 @@ function parseCookies (request) {
       console.log("Sending REST request to: " + options.method + " " + options.host + ":" + options.port + options.path);
       
       // TODO if it's our MLJS alerts extension being called then add the server alert URL parameter encoded to the request URL (override one from app if present)
-      
-      
       
       var creq = http.request(options,function (response) {
         console.log("REST HTTP Request callback called");
@@ -286,13 +264,8 @@ this.httpServer.listen(this.port, function() {
     console.log((new Date()) + ' Server is listening on port ' + self.port);
 });
 
-
-
   // WEBSOCKETS SERVER NOW
-    
-    
 // SET UP CLIENT WEB SOCKETS SERVER
-
 
   this.wsServer = new WebSocketServer({
     httpServer: self.httpServer,
@@ -317,17 +290,12 @@ this.httpServer.listen(this.port, function() {
       return;
     }
     
-    
-    
     var socketClientConnection = request.accept('mljs-alerts', request.origin);
     
     
     console.log((new Date()) + ' Connection accepted.');
     
     // TODO get client id from web server cookie (from http original page request)
-    
-    
-    
 
       // Client request type 1: Receive a random message - reflect back to client
       socketClientConnection.on('message', function(message) {
@@ -350,15 +318,7 @@ this.httpServer.listen(this.port, function() {
       });
     });
     
-    
-  
-  
 };
-
-
-
-
-
 
 
 
