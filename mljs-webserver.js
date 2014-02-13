@@ -111,7 +111,7 @@ AlertServer.prototype.close = function() {
 
 
 
-var WebServer = function(port,connectionManager,appBaseDirectory) {
+var WebServer = function(port,connectionManager,appBaseDirectory,restServer,restPort) {
   this.port = port;
   this.manager = connectionManager;
   this.base = appBaseDirectory;
@@ -120,11 +120,27 @@ var WebServer = function(port,connectionManager,appBaseDirectory) {
   var WebSocketServer = require('websocket').server;
   var fs = require('fs');
   
+  var self = this;
+  
   // HTTP SERVER FIRST
   
   var mimes = {
     xml: "text/xml", txt: "text/plain", html: "text/html; charset=UTF-8", png: "image/png", jpg: "image/jpeg", gif: "image/gif", js: "text/javascript", css: "text/css"
   }; // TODO get MIMEs supported from MarkLogic server
+
+
+function parseCookies (request) {
+    var list = {},
+        rc = request.headers.cookie;
+
+    rc && rc.split(';').forEach(function( cookie ) {
+        var parts = cookie.split('=');
+        list[parts.shift().trim()] = unescape(parts.join('='));
+    });
+
+    return list;
+};
+
 
   this.httpServer = http.createServer(
     
@@ -132,13 +148,61 @@ var WebServer = function(port,connectionManager,appBaseDirectory) {
     
   function(request, res) {
     console.log((new Date()) + ' Received request for ' + request.url);
+    
+      // check and set cookie with client id
+      var cookies = parseCookies(request);
+      var cookie = cookies["mljsWebServerClientId"];
+      var clientid = cookie;
+      if (null == cookie) {
+        // create client reference
+        clientid = manager.registerClient(socketClientConnection,null); // TODO security auth info from HTTP auth call(s)
+      }
+      var client = manager.getClient(clientid);
+      
     if (0 == request.url.indexOf("/v1/")) { // TODO future proof versioned URLs
       // forward on to REST API
       
       // USE MLJS INTERNAL CONNECTION MANAGERS TO HANDLE CONNECTION AND AUTH
+      var conn = client.rest;
       
+      if (null == conn) {
+        // TODO set up new connection, caching for later in client object
+        // NA - http connection stateless in this case
+      }
+      
+      // use connection to send request. Pass on response to listener
+      var options = {
+        hostname: restServer,
+        port: restPort,
+        path: request.url,
+        method: request.method
+      };
+      http.request(options,function (response) {
+        var data = [];
+      response.on('data', function(chunk) {
+        data.push(chunk);
+      });
+      response.on('end', function() {
+        
+        
+          res.writeHead(response.statusCode, {
+            'Content-Type': response.getHeader("Content-Type"), 
+    'Set-Cookie': 'mljsWebServerClientId=' + clientid,
+          });
+          //console.log(data);
+          if (response.data.length > 0) {
+            res.write(data);
+          }
+          res.end();
+        
+        
+        return result;
+      }); // response end callback
+      }); // request response callback
       
     } else /* if (request.url.indexOf("/public/") == 0) */ {
+      
+      
       console.log("Public files requested");
       // get relative file path
       var path = base + request.url;
@@ -161,7 +225,8 @@ var WebServer = function(port,connectionManager,appBaseDirectory) {
           // write header and content type
           res.writeHead(200, {
             'Content-Type': mime, 
-            'Transfer-Encoding': 'chunked'
+            'Transfer-Encoding': 'chunked',
+    'Set-Cookie': 'mljsWebServerClientId=' + clientid,
           });
           //console.log(data);
           res.write(data);
@@ -217,8 +282,7 @@ this.httpServer.listen(this.port, function() {
     
     console.log((new Date()) + ' Connection accepted.');
     
-    // create client reference
-    var clientid = manager.registerClient(socketClientConnection,null); // TODO security auth info from HTTP auth call(s)
+    // TODO get client id from web server cookie (from http original page request)
 
       // Client request type 1: Receive a random message - reflect back to client
       socketClientConnection.on('message', function(message) {
@@ -255,9 +319,9 @@ this.httpServer.listen(this.port, function() {
 
 // now overall MLJSServer object
 
-var MLJSWebServer = function(webPort,alertPort,restServerBaseUrl,appBaseDirectory) {
+var MLJSWebServer = function(webPort,alertPort,restServer,restPort,appBaseDirectory) {
   this.manager = new ConnectionManager();
-  this.webServer = new WebServer(webPort,this.manager,restServerBaseUrl,appBaseDirectory); // TODO support this
+  this.webServer = new WebServer(webPort,this.manager,appBaseDirectory,restServer,restPort); // TODO support this
   this.alertServer = new AlertServer(alertPort,this.manager);
 };
 
