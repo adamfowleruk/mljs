@@ -172,7 +172,6 @@ function parseCookies (request) {
         path: request.url,
         method: request.method
         ,headers: request.headers
-        // TODO handle sending data and content type and other headers
       }; 
       console.log("Sending REST request to: " + options.method + " " + options.host + ":" + options.port + options.path);
       
@@ -227,11 +226,8 @@ function parseCookies (request) {
         
       }); // request response callback
       
-      // TODO send request data as necessary
+      // send request data as necessary
       
-      //if (request.)
-      //creq.write(content);
-      //request.pipe(creq);
       request.on('data', function(chunk) {
         console.log('HTTP REST PROXY: GOT REQUEST DATA: Got %d bytes of data: ' + chunk, chunk.length);
         creq.write(chunk);
