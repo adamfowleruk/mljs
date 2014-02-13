@@ -170,11 +170,12 @@ function parseCookies (request) {
         host: restServer,
         port: restPort,
         path: request.url,
-        method: request.method,
-        headers: request.headers
+        method: request.method
+        ,headers: request.headers
         // TODO handle sending data and content type and other headers
       }; 
       console.log("Sending REST request to: " + options.method + " " + options.host + ":" + options.port + options.path);
+      
       // TODO if it's our MLJS alerts extension being called then add the server alert URL parameter encoded to the request URL (override one from app if present)
       
       
@@ -182,27 +183,27 @@ function parseCookies (request) {
       var creq = http.request(options,function (response) {
         console.log("REST HTTP Request callback called");
         
-        var data = [];
+        var data = "";
         response.on('data', function(chunk) {
-          console.log("REST proxy data(chunk)");
-          data.push(chunk);
+          console.log("REST proxy data(chunk): " + chunk);
+          data += chunk;
         });
         
         var complete = function() {
           
           console.log("Got response from REST server: " + response.statusCode);
           res.writeHead(response.statusCode, {
-            'Content-Type': response.getHeader("Content-Type"), 
+            'Content-Type': response.headers["Content-Type"], 
             'Set-Cookie': 'mljsWebServerClientId=' + clientid
           });
           //console.log(data);
-          if (response.data.length > 0) {
+          if (data.length > 0) {
+            console.log("writing data: " + data);
             res.write(data);
           }
           res.end();
-          console.log("end of sending rest proxy response");
+          console.log("End of sending rest proxy response");
         
-          return result;
         };
         
         response.on('end', function() {
@@ -220,19 +221,30 @@ function parseCookies (request) {
         
         
     if (options.method == "PUT" || options.method == "DELETE") {
-      complete();
+  //    console.log("Forcing call to PUT or DELETE");
+//      complete();
     }
         
       }); // request response callback
       
       // TODO send request data as necessary
-      console.log("Calling REST client request.end()");
       
-  creq.on("error",function(e) {
-    self.logger.debug("creq: REQUEST ERROR: " + e);
-  });
-  
-      creq.end();
+      //if (request.)
+      //creq.write(content);
+      //request.pipe(creq);
+      request.on('data', function(chunk) {
+        console.log('HTTP REST PROXY: GOT REQUEST DATA: Got %d bytes of data: ' + chunk, chunk.length);
+        creq.write(chunk);
+      });
+      
+      creq.on("error",function(e) {
+        console.log("creq: REQUEST ERROR: " + e);
+      });
+      //creq.write("\n");
+      request.on("end", function() {    
+        console.log("Calling REST client request.end()");
+        creq.end();
+      });
       
     } else /* if (request.url.indexOf("/public/") == 0) */ {
       
@@ -275,7 +287,7 @@ function parseCookies (request) {
   }
 );
 this.httpServer.listen(this.port, function() {
-    console.log((new Date()) + ' Server is listening on port 8080');
+    console.log((new Date()) + ' Server is listening on port ' + self.port);
 });
 
 
