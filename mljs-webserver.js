@@ -158,43 +158,81 @@ function parseCookies (request) {
       // forward on to REST API
       
       // USE MLJS INTERNAL CONNECTION MANAGERS TO HANDLE CONNECTION AND AUTH
-      var conn = client.rest;
+      //var conn = client.rest;
       
-      if (null == conn) {
+      //if (null == conn) {
         // TODO set up new connection, caching for later in client object
         // NA - http connection stateless in this case
-      }
+      //}
       
       // use connection to send request. Pass on response to listener
       var options = {
-        hostname: restServer,
+        host: restServer,
         port: restPort,
         path: request.url,
-        method: request.method
+        method: request.method,
+        headers: request.headers
+        // TODO handle sending data and content type and other headers
       }; 
+      console.log("Sending REST request to: " + options.method + " " + options.host + ":" + options.port + options.path);
       // TODO if it's our MLJS alerts extension being called then add the server alert URL parameter encoded to the request URL (override one from app if present)
-      http.request(options,function (response) {
+      
+      
+      
+      var creq = http.request(options,function (response) {
+        console.log("REST HTTP Request callback called");
+        
         var data = [];
-      response.on('data', function(chunk) {
-        data.push(chunk);
-      });
-      response.on('end', function() {
+        response.on('data', function(chunk) {
+          console.log("REST proxy data(chunk)");
+          data.push(chunk);
+        });
         
-        
+        var complete = function() {
+          
+          console.log("Got response from REST server: " + response.statusCode);
           res.writeHead(response.statusCode, {
             'Content-Type': response.getHeader("Content-Type"), 
-    'Set-Cookie': 'mljsWebServerClientId=' + clientid,
+            'Set-Cookie': 'mljsWebServerClientId=' + clientid
           });
           //console.log(data);
           if (response.data.length > 0) {
             res.write(data);
           }
           res.end();
+          console.log("end of sending rest proxy response");
+        
+          return result;
+        };
+        
+        response.on('end', function() {
+          console.log("REST proxy end()");
+          complete();
+        }); // response end callback
+        response.on('close', function() {
+          console.log("REST proxy close()");
+          complete();
+        }); // response end callback
+        response.on('error', function() {
+          console.log("REST proxy error()");
+          complete();
+        }); // response end callback
         
         
-        return result;
-      }); // response end callback
+    if (options.method == "PUT" || options.method == "DELETE") {
+      complete();
+    }
+        
       }); // request response callback
+      
+      // TODO send request data as necessary
+      console.log("Calling REST client request.end()");
+      
+  creq.on("error",function(e) {
+    self.logger.debug("creq: REQUEST ERROR: " + e);
+  });
+  
+      creq.end();
       
     } else /* if (request.url.indexOf("/public/") == 0) */ {
       
