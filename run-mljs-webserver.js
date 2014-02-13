@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-var servers = require("mljs-webserver");
+var servers = require("./mljs-webserver");
 
-var server = new servers.MLJSServer(8080,8081,"./mljsrest/src","localhost",8040);
+var server = new servers.MLJSWebServer(5001,5002,"./mljsrest/src","192.168.123.145",8080);
 
 // this will now run until we quit

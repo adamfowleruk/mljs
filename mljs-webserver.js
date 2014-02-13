@@ -1,8 +1,3 @@
-
-
-
-
-
 var http = require('http'),
     crypto = require('crypto'),
     _und = require('underscore'),
@@ -25,7 +20,7 @@ ConnectionManager.prototype.registerClient = function(websocket,securityInfo) {
     security: securityInfo,
     websocket: websocket
   };
-  clients.push(client);
+  this.clients.push(client);
   return client.id;
 };
 
@@ -88,17 +83,17 @@ var AlertServer = function(alertListenPort,connectionManager) {
   
   };
   
-  this.server = restify.createServer();
-  server.use(restify.bodyParser()); // { mapParams: false }
+  this.server = restify.createServer({name: "MLJSAlertServer"});
+  this.server.use(restify.bodyParser()); // { mapParams: false }
   
   // Server request 1: handle echo directly to client
   //server.get('/echo/:clientid', respond);
   //server.head('/echo/:clientid', respond);
-  server.post('/alert/:clientid', respond);
+  this.server.post('/alert/:clientid', respond);
   
-  
-  server.listen(this.port, function() {
-    console.log('%s listening at %s', server.name, server.url);
+  var self = this;
+  this.server.listen(this.port, function() {
+    console.log('%s listening at %s', self.server.name, self.server.url);
   });
 };
 
@@ -155,9 +150,9 @@ function parseCookies (request) {
       var clientid = cookie;
       if (null == cookie) {
         // create client reference
-        clientid = manager.registerClient(socketClientConnection,null); // TODO security auth info from HTTP auth call(s)
+        clientid = self.manager.registerClient(null,null); // TODO security auth info from HTTP auth call(s)
       }
-      var client = manager.getClient(clientid);
+      var client = self.manager.getClient(clientid);
       
     if (0 == request.url.indexOf("/v1/")) { // TODO future proof versioned URLs
       // forward on to REST API
@@ -176,7 +171,8 @@ function parseCookies (request) {
         port: restPort,
         path: request.url,
         method: request.method
-      };
+      }; 
+      // TODO if it's our MLJS alerts extension being called then add the server alert URL parameter encoded to the request URL (override one from app if present)
       http.request(options,function (response) {
         var data = [];
       response.on('data', function(chunk) {
@@ -205,7 +201,7 @@ function parseCookies (request) {
       
       console.log("Public files requested");
       // get relative file path
-      var path = base + request.url;
+      var path = self.base + request.url;
       
       // determine MIME from file ext
       var dotpos = path.lastIndexOf(".");
@@ -253,7 +249,7 @@ this.httpServer.listen(this.port, function() {
 
 
   this.wsServer = new WebSocketServer({
-    httpServer: httpServer,
+    httpServer: self.httpServer,
     // You should not use autoAcceptConnections for production
     // applications, as it defeats all standard cross-origin protection
     // facilities built into the protocol and the browser.  You should
@@ -267,7 +263,7 @@ this.httpServer.listen(this.port, function() {
     return true;
   };
 
-  wsServer.on('request', function(request) {
+  this.wsServer.on('request', function(request) {
     if (!originIsAllowed(request.origin)) {
       // Make sure we only accept requests from an allowed origin
       request.reject();
@@ -283,6 +279,9 @@ this.httpServer.listen(this.port, function() {
     console.log((new Date()) + ' Connection accepted.');
     
     // TODO get client id from web server cookie (from http original page request)
+    
+    
+    
 
       // Client request type 1: Receive a random message - reflect back to client
       socketClientConnection.on('message', function(message) {
@@ -319,7 +318,7 @@ this.httpServer.listen(this.port, function() {
 
 // now overall MLJSServer object
 
-var MLJSWebServer = function(webPort,alertPort,restServer,restPort,appBaseDirectory) {
+var MLJSWebServer = function(webPort,alertPort,appBaseDirectory,restServer,restPort) {
   this.manager = new ConnectionManager();
   this.webServer = new WebServer(webPort,this.manager,appBaseDirectory,restServer,restPort); // TODO support this
   this.alertServer = new AlertServer(alertPort,this.manager);
@@ -330,11 +329,12 @@ MLJSWebServer.prototype.close = function() {
   this.alertServer.close();
 };
 
+module.exports = 
+ {
+    MLJSWebServer: MLJSWebServer,
+    AlertServer: AlertServer,
+    WebServer: WebServer,
+    ConnectionManager: ConnectionManager
+  };
 
-module.exports = {
-  MLJSWebServer: MLJSWebServer,
-  AlertServer: AlertServer,
-  WebServer: WebServer,
-  ConnectionManager: ConnectionManager
-};
 
