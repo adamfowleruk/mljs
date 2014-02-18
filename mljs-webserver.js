@@ -67,7 +67,7 @@ var AlertServer = function(alertListenPort,connectionManager) {
   
     if (null != client && undefined != client.websocket) {
       //console.log("Sending client node '" + node + "' message: '" + req.body.toString() + "'") // TESTED - WORKS A TREAT!
-      client.websocket.sendUTF(req.body.toString()); // TESTED - WORKS A TREAT!
+      client.websocket.sendUTF(JSON.stringify({response: "alert", content: req.body.toString()})); // TESTED - WORKS A TREAT! - TODO check this works fine for XML too
       // TODO do we want to send a multipart that describes the data???
     }
   
@@ -300,11 +300,27 @@ this.httpServer.listen(this.port, function() {
       // Client request type 1: Receive a random message - reflect back to client
       socketClientConnection.on('message', function(message) {
         if (message.type === 'utf8') {
-          // we've got a message - OUT OF SCOPE FOR THIS CONNECTOR - ONE WAY WEBSOCKETS ONLY
+          
+          
+          // TODO handle combined query submitted as JSON document string {request: "search", content: combinedQueryJson}
+          
+          // TODO also handle {request: "subscribe", content: combinedQueryJson}
+          
+          // TODO handle {request: "test"}
+          var json = JSON.parse(message.stringData); // TODO verify this is right line
+          if ("test" == json.request) {
+            socketClientConnection.sendUTF(JSON.stringify({response:"test"}));
+          } else if ("subscribe" == json.request) {
+            // do via rest call instead?
+          } else if ("search" == json.request) {
+            // do via rest call instead?
+          }
+          
         }
         else if (message.type === 'binary') {
             console.log('Received Binary Message of ' + message.binaryData.length + ' bytes');
-            socketClientConnection.sendBytes(message.binaryData);
+            socketClientConnection.sendBytes(message.binaryData); // TODO why are we replaying this?
+            
         }
       });
     

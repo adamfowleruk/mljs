@@ -8170,6 +8170,123 @@ mljs.prototype.geocontext.prototype._fireLocaleUpdate = function() {
 
 
 
+mljs.prototype.alertcontext = function() {
+  this.supported = false;
+  this.state = "initialising"; // also testing, connected, disconnected, connection_error
+  this.socket = null;
+  
+  this._alertPublisher = new com.marklogic.events.Publisher();
+  this._statePublisher = new com.marklogic.events.Publisher();
+  
+  this._init();
+};
+
+mljs.prototype.alertcontext.prototype._init = function() {
+  
+  if("WebSocket" in window) {  // TODO handle use within Node.js too
+    //The user has WebSockets  
+    this.supported = true;
+    this._connect();  
+  }
+};
+
+mljs.prototype.alertcontext.prototype._connect = function() {  
+  try {  
+    var self = this;
+    //var host = "ws://localhost:8080/"; // choose same as current window host/port
+    var host = window.location;
+    var startPos = host.indexOf("://") + 3;
+    var colonPos = host.indexOf(":",startPos);
+    var port = 80;
+    var slashPos = host.indexOf("/",startPos);
+    if (-1 != colonPos) {
+      if (-1 == slashPos) {
+        // no ending slash or :, so assume port 80
+      } else {
+        port = 1 * host.substring(colonPos + 1,slashPos);
+        host = host.substring(startPos,colonPos);
+      }
+    } else {
+      // assume port 80, find end of host
+      if (-1 != slashPos) {
+        host = host.substring(startPos,slashPos);
+      } // else host is whole thing
+      else {
+        host = host.substring(startPos);
+      }
+    }
+    host = "ws://" + host + ":" + port;
+    
+    this.socket = new WebSocket(host,"mljs-alerts"); // TODO handle use within Node.js too
+     
+  /* msg.data = 
+   {
+     response: "test|alert|search",
+     content: json | textAsxml 
+   }
+  
+  
+  */
+  
+  
+  
+    //message('<p class="event">Socket Status: '+socket.readyState);  
+    this.socket.onopen = function() {  
+      //message('<p class="event">Socket Status: '+socket.readyState+' (open)');  
+      // send message to login once connected
+      self.state = "testing";
+      self.socket.send(JSON.stringify({request:"test"}));
+    };
+    this.socket.onmessage = function(msg) {   
+      //console.log("MSG: " + msg.data);
+         
+         // TODO anything else with msg.* ?
+         
+         var json = JSON.parse(msg.data);
+         if (json.response == "test") {
+           // test works - we're connected
+           self._changeState("connected");
+         } else {
+           // fire message off to listeners
+           self._alertPublisher.publish(json);
+         }
+         
+    };
+    this.socket.onclose = function(){  
+         //message('<p class="event">Socket Status: '+socket.readyState+' (Closed)'); 
+         self._changeState("disconnected"); 
+    }; 
+    
+    
+  } catch(exception){  
+     //message('<p>Error'+exception);  
+     self._changeState("connection_error");
+  }
+
+};
+
+mljs.prototype.alertcontext.prototype.getState = function() {
+  return this.state;
+};
+
+mljs.prototype.alertcontext.prototype._changeState = function(newState) {
+  this.state = newState;
+  this._statePublisher.publish(newState);
+};
+
+mljs.prototype.alertcontext.prototype.register = function(wgt) {
+  if (undefined != wgt.updateAlert) {
+    this._alertPublisher.subscribe(function(alert) {wgt.updateAlert(alert);});
+  }
+  if (undefined != wgt.updateAlertState) {
+    this._statePublisher.subscribe(function(state) {wgt.updateAlertState(state);});
+  }
+};
+
+
+
+
+
 
 
 
