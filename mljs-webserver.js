@@ -85,7 +85,7 @@ var AlertServer = function(alertListenPort,connectionManager) {
   
   var self = this;
   this.server.listen(this.port, function() {
-    console.log('%s listening at %s', self.server.name, self.server.url);
+    console.log((new Date()) + ' - MLJS Alert Receiving HTTP Server listening at %s', self.server.url);
   });
 };
 
@@ -261,7 +261,7 @@ function parseCookies (request) {
   }
 );
 this.httpServer.listen(this.port, function() {
-    console.log((new Date()) + ' Server is listening on port ' + self.port);
+    console.log((new Date()) + ' - MLJS Web Server is listening on port ' + self.port);
 });
 
   // WEBSOCKETS SERVER NOW
@@ -286,14 +286,14 @@ this.httpServer.listen(this.port, function() {
     if (!originIsAllowed(request.origin)) {
       // Make sure we only accept requests from an allowed origin
       request.reject();
-      console.log((new Date()) + ' Connection from origin ' + request.origin + ' rejected.');
+      console.log((new Date()) + ' - MLJS Web Server Connection from origin ' + request.origin + ' rejected.');
       return;
     }
     
     var socketClientConnection = request.accept('mljs-alerts', request.origin);
     
     
-    console.log((new Date()) + ' Connection accepted.');
+    console.log((new Date()) + ' - MLJS Web Server Connection accepted.');
     
     // TODO get client id from web server cookie (from http original page request)
 
@@ -318,19 +318,19 @@ this.httpServer.listen(this.port, function() {
           
         }
         else if (message.type === 'binary') {
-            console.log('Received Binary Message of ' + message.binaryData.length + ' bytes');
+            console.log(' - MLJS Web Server Received Binary Message of ' + message.binaryData.length + ' bytes');
             socketClientConnection.sendBytes(message.binaryData); // TODO why are we replaying this?
             
         }
       });
     
       socketClientConnection.on('close', function(reasonCode, description) {
-        console.log((new Date()) + ' Peer ' + socketClientConnection.remoteAddress + ' disconnecting...');
+        console.log((new Date()) + ' - MLJS Web Server Peer ' + socketClientConnection.remoteAddress + ' disconnecting...');
         
         // TODO Unsubscribe from ML location intel
         
         
-        console.log((new Date()) + ' Peer ' + socketClientConnection.remoteAddress + ' disconnected.');
+        console.log((new Date()) + ' - MLJS Web Server Peer ' + socketClientConnection.remoteAddress + ' disconnected.');
       });
     });
     

@@ -7,6 +7,7 @@ Targets for 1.4 (Feb 2014) - Theme: Visualisations
   - IN PROGRESS Add support for pluggable rendering for areas of result pane:-
    - DONE all (as now)
    - IN PROGRESS title
+   - BUG existing results showing is screwed up
    - result summary (short, snippeting or non snippeting)
    - expanded result summary (controlled by action or global show detailed results setting)
    - thumbnail(s) on right hand side with navigation if multiple

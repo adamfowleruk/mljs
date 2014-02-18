@@ -89,6 +89,15 @@ b.xhr2.prototype.request = function(reqname,options,content,callback) {
       self.logger.debug("XHR2: typeof responseXML: " + typeof xhr.responseXML);
       self.logger.debug("XHR2: typeof responseText: " + typeof xhr.responseText);
       self.logger.debug("XHR2: typeof response: " + typeof xhr.response);
+      //var headers = xhr.getAllResponseHeaders();
+      //self.logger.debug("XHR2: Headers: " + headers);
+      var resct = xhr.getResponseHeader("Content-Type");
+      self.logger.debug("XHR2: Original Content-Type Header: " + resct);
+      self.logger.debug("XHR2: res start: " + xhr.responseText.substring(0,1));
+      if ((undefined == resct  || "undefined" == resct) && "{" == xhr.responseText.substring(0,1)) { // strange firefox specific issue
+        resct = "application/json";
+      } 
+      self.logger.debug("XHR2: Content-Type Header: " + resct);
       
       // TODO handle 304 etc responses (don't assume a non 200 is a 400/500)
       
@@ -99,18 +108,22 @@ b.xhr2.prototype.request = function(reqname,options,content,callback) {
         self.logger.debug("XHR2: Data type: " + (typeof content));
         self.logger.debug("XHR2: Data value: " + content);
         var xml = xhr.responseXML;
-        if (undefined != xml) {
+        if (undefined != xml && "application/json" != resct) {
+          self.logger.debug("XHR2: Got XML 2xx response");
           res.format = "xml";
           wibble = xml;
         } else {
+          self.logger.debug("XHR2: Got other 2xx response");
           self.logger.debug("XHR2: response text: " + xhr.responseText);
           if (xhr.status == 201 /* created */ || xhr.status == 204 /* updated */) {
+            self.logger.debug("XHR2: Got other 201 or 204 response");
             // created, use text content as location field - E.g. triple graph creation return 201 code with URI for graph in response text (not location header)
             res.location = xhr.responseText; // blank for updated
             wibble = "";
           } else {
+            self.logger.debug("XHR2: Got other 2xx response");
             try {
-              self.logger.debug("XHR2: parsing xhr.responseText");
+              self.logger.debug("XHR2: parsing xhr.responseText as JSON");
               wibble = JSON.parse(xhr.responseText); // successes are JSON text (needs parsing), could be anything though if GET /v1/documents ...
               res.format = "json";
               self.logger.debug("XHR2: js raw: " + wibble);

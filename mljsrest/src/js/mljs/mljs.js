@@ -698,7 +698,7 @@ mljs.prototype.__doreq_node = function(reqname,options,content,callback_opt) {
  * @private
  */
 mljs.prototype.__doreq = function(reqname,options,content,callback_opt) {
-  //this.logger.debug("__doreq: reqname: " + reqname + ", method: " + options.method + ", uri: " + options.path);
+  this.logger.debug("__doreq: reqname: " + reqname + ", method: " + options.method + ", uri: " + options.path);
   if (undefined == options.host) {
     options.host = this.dboptions.host;
   }
@@ -1601,38 +1601,41 @@ mljs.prototype._applyTransformProperties = function(url,sprops_opt) {
  */
 mljs.prototype._applySearchProperties = function(url,sprops_opt) {
   // apply properties
-  var format = "";
-  if (-1 != url.indexOf("?")) {
-    format += "&";
-  } else {
-    format += "?";
-  }
-  format += "format=json";
+  var gotQM = (-1 != url.indexOf("?"));
+  var prepend = function(param) {
+    if (gotQM) {
+      return "&" + param;
+    } else {
+      gotQM = true;
+      return "?" + param;
+    }
+  };
   
   if (undefined != sprops_opt) {
     if (undefined != sprops_opt.collection) {
       var cols = sprops_opt.collection.split(",");
       for (var c = 0;c < cols.length;c++) {
-        url += "&collection=" + encodeURI(cols[c]);
+        url += prepend("collection=" + encodeURI(cols[c]));
       }
     }
     if (undefined != sprops_opt.directory) {
-      url += "&directory=" + sprops_opt.directory;
+      url += prepend("directory=" + sprops_opt.directory);
     }
     if (undefined != sprops_opt.transform) {
-      url = this._applyTransformProperties(url,sprops_opt); // equals not append
+      url = this._applyTransformProperties(url,sprops_opt); // equals not append - the function returns the whole altered URL
     }
     if (undefined != sprops_opt.format) {
-      format = "&format=" + sprops_opt.format;
+      url += prepend("format=" + sprops_opt.format);
+    } else {
+      url += prepend("format=json");
     }
     if (undefined != sprops_opt.start_opt) {
-      url += "&start=" + sprops_opt.start_opt; // SHOULD THIS BE REMOVED? IT HAS _opt. IS A BIT RANDOM
+      url += prepend("start=" + sprops_opt.start_opt); // SHOULD THIS BE REMOVED? IT HAS _opt. IS A BIT RANDOM
     }
     if (undefined != sprops_opt.start) {
-      url += "&start=" + sprops_opt.start;
+      url += prepend("start=" + sprops_opt.start);
     }
   }
-  url += format;
   
   return url;
 };
@@ -1839,6 +1842,30 @@ mljs.prototype.searchOptions = function(name,callback) {
   this.__doreq("SEARCHOPTIONS",options,null,callback);
 };
 mljs.prototype.searchoptions = mljs.prototype.searchOptions; // typo workaround for backwards compatibility
+
+/**
+ * Suggest query completion based on the given partial query
+ * 
+ * {@link http://docs.marklogic.com/REST/GET/v1/suggest}
+ * 
+ * @param {string} q - The partial query to generate suggestions for
+ * @param {string} options_opt - The saved query options to use
+ * @param {json} additional_properties_opt - Extra properties as a json object. E.g. q, limit, cursor-position
+ * @param {function} callback - The callback to invoke after the method completes
+ */
+mljs.prototype.suggest = function(q,options_opt,additional_properties_opt,callback) {
+  var options = {
+    path: "/v1/suggest?format=json&partial-q=" + encodeURI(q) + "&options=" + encodeURI(options_opt),
+    method: "GET"
+  };
+  if (undefined != additional_properties_opt) {
+    for (var name in additional_properties_opt) {
+      var val = additional_properties_opt[name];
+      options.path += "&" + name + "=" + encodeURI(val); // TODO handle q value as array - at the moment only 1 q value is supported
+    }
+  }
+  this.__doreq("SUGGEST",options,null,callback);
+};
 
 /**
  * Fetches values from a lexicon or computes 2-way co-occurence.
@@ -3143,7 +3170,7 @@ mljs.prototype.options = function() {
   
   // general defaults
   this.defaults = {};
-  this.defaults.type = "xs:string";
+  this.defaults.datatype = "xs:string";
   this.defaults.collation = "http://marklogic.com/collation/";
   this.defaults.namespace = "http://marklogic.com/xdmp/json/basic";
   this.defaults.sortDirection = "ascending";
@@ -3525,7 +3552,7 @@ mljs.prototype.options.prototype.defaultSortOrder = function(sort) {
  * @param {string} type - Sets the default type (default is xs:string)
  */
 mljs.prototype.options.prototype.defaultType = function(type) {
-  this.defaults.type = type;
+  this.defaults.datatype = type;
   return this;
 };
 
@@ -3699,6 +3726,7 @@ mljs.prototype.options.prototype.customConstraint = function(constraint_name,par
     con["custom"][n] = additional_properties_opt[n];
   }
   this.addConstraint(con);
+  this.suggest(constraint_name);
   return this;
 };
 
@@ -3717,7 +3745,7 @@ mljs.prototype.options.prototype.customConstraint = function(constraint_name,par
 mljs.prototype.options.prototype.pathConstraint = function(constraint_name,xpath,namespaces,type_opt,collation_opt,facet_opt,facet_options_opt,annotation_opt) {
   var range = {name: constraint_name,
     range: {
-      type: type_opt || this.defaults.type, 
+      type: type_opt || this.defaults.datatype, 
       "path-index": {
         text: xpath, namespaces : namespaces
       }
@@ -3740,11 +3768,12 @@ mljs.prototype.options.prototype.pathConstraint = function(constraint_name,xpath
   }
   
   // Create sort orders automatically
-  //this.sortOrder(this.defaultSortDirection,type_opt || this.defaults.type,element,collation_opt || this.defaults.collation); 
+  //this.sortOrder(this.defaultSortDirection,type_opt || this.defaults.datatype,element,collation_opt || this.defaults.collation); 
   // TODO sort order - REST API V7 DOES NOT support ordering for path range indexes!!!
   // see http://docs-ea.marklogic.com/guide/rest-dev/appendixa#id_97031
   
   this.addConstraint(range);
+  this.suggest(constraint_name);
   
   return this;
 };
@@ -3767,7 +3796,7 @@ mljs.prototype.options.prototype.path = mljs.prototype.options.prototype.pathCon
 mljs.prototype.options.prototype.elemattrRangeConstraint = function(constraint_name,element,namespace,attr,type_opt,collation_opt,facet_opt,facet_options_opt,annotation_opt) {
   var range = {name: constraint_name,
     range: {
-      type: type_opt || this.defaults.type, 
+      type: type_opt || this.defaults.datatype, 
       element: {
         name: element, ns : namespace || this.defaults.namespace
       },
@@ -3797,9 +3826,10 @@ mljs.prototype.options.prototype.elemattrRangeConstraint = function(constraint_n
   var elspec = {
     element: range.range.element.name, elementns: range.range.element.ns, attribute: range.range.attribute.name, attributens: range.range.attribute.ns
   }
-  this.sortOrder(this.defaultSortDirection,type_opt || this.defaults.type,elspec,collation_opt || this.defaults.collation); // TODO verify this works with normal XML range indexes not json keys
+  this.sortOrder(this.defaultSortDirection,type_opt || this.defaults.datatype,elspec,collation_opt || this.defaults.collation); // TODO verify this works with normal XML range indexes not json keys
   
   this.addConstraint(range);
+  this.suggest(constraint_name);
   
   return this;
 };
@@ -3903,6 +3933,14 @@ mljs.prototype.options.prototype.rangeConstraint = function(constraint_name_opt,
   if (undefined == constraint_name_opt) {
     constraint_name_opt = name_or_key;  
   }
+  var thens = ns_opt;
+  if (undefined == ns_opt) { // this allows "" blank namespace
+    thens = this.defaults.namespace;
+  }
+  var thetype = type_opt;
+  if (undefined ==  type_opt) {
+    thetype = this.defaults.datatype;
+  }
   // output values here
   this.__d("rangeConstraint(): cName: " + constraint_name_opt + 
     ", name_or_key: " + name_or_key + ", ns_opt: " + ns_opt + ", type_opt: " + type_opt + ", collation_opt: " + collation_opt +
@@ -3910,9 +3948,9 @@ mljs.prototype.options.prototype.rangeConstraint = function(constraint_name_opt,
   // now use values
   var range = {name: constraint_name_opt,
     range: {
-      type: type_opt || this.defaults.type, 
+      type: thetype, 
       element: {
-        name: name_or_key, ns : ns_opt || this.defaults.namespace // NB this means if default namespace is not json, you must specify NS for ALL json rangeConstraints to be marklogic/basic full URL spec
+        name: name_or_key, ns : thens // NB this means if default namespace is not json, you must specify NS for ALL json rangeConstraints to be marklogic/basic full URL spec
       }
     }
   };
@@ -3942,10 +3980,11 @@ mljs.prototype.options.prototype.rangeConstraint = function(constraint_name_opt,
       element: range.range.element.name, elementns: range.range.element.ns
     };
   }
-  this.sortOrder("ascending",type_opt || this.defaults.type,elspec,collation_opt || this.defaults.collation); // TODO verify this works with normal XML range indexes not json keys
-  this.sortOrder("descending",type_opt || this.defaults.type,elspec,collation_opt || this.defaults.collation); // TODO verify this works with normal XML range indexes not json keys
+  this.sortOrder("ascending",type_opt || this.defaults.datatype,elspec,collation_opt || this.defaults.collation); // TODO verify this works with normal XML range indexes not json keys
+  this.sortOrder("descending",type_opt || this.defaults.datatype,elspec,collation_opt || this.defaults.collation); // TODO verify this works with normal XML range indexes not json keys
   
   this.addConstraint(range);
+  this.suggest(constraint_name_opt);
   
   return this;
 };
@@ -3966,7 +4005,7 @@ mljs.prototype.options.prototype.range = mljs.prototype.options.prototype.rangeC
 mljs.prototype.options.prototype.fieldRangeConstraint = function(constraint_name,name,type_opt,collation_opt,facet_opt,facet_options_opt,fragmentScope_opt,annotation_opt) {
   var range = {name: constraint_name,
     range: {
-      type: type_opt || this.defaults.type, 
+      type: type_opt || this.defaults.datatype, 
       field: {
         name: name
       },
@@ -3993,10 +4032,11 @@ mljs.prototype.options.prototype.fieldRangeConstraint = function(constraint_name
   var elspec = {
     field: range.range.field.name, collation: range.range.collation
   };
-  this.sortOrder("ascending",type_opt || this.defaults.type,elspec,collation_opt || this.defaults.collation);
-  this.sortOrder("descending",type_opt || this.defaults.type,elspec,collation_opt || this.defaults.collation);
+  this.sortOrder("ascending",type_opt || this.defaults.datatype,elspec,collation_opt || this.defaults.collation);
+  this.sortOrder("descending",type_opt || this.defaults.datatype,elspec,collation_opt || this.defaults.collation);
   
   this.addConstraint(range);
+  this.suggest(constraint_name);
   
   return this;
 };
@@ -4295,7 +4335,7 @@ mljs.prototype.options.prototype.geoattrpair = mljs.prototype.options.prototype.
  * @param {json} additional_properties_opt - Additional rest api properties to apply to this constraint. Copied after constraint constructed. E.g. fragmentScope.
  */
 mljs.prototype.options.prototype.geoPathConstraint = function(constraint_name,path,namespace_json,annotation_opt,additional_properties_opt) {
-  var con = {name: constraint_name, "path-index": {text: path, namespaces: namespace_json}};
+  var con = {name: constraint_name, "geo-path": {"path-index": {text: path, namespaces: namespace_json}}};
   if (undefined != annotation_opt) {
     if ("string" == typeof(annotation_opt)) {
       annotation_opt = [annotation_opt];
@@ -4304,7 +4344,7 @@ mljs.prototype.options.prototype.geoPathConstraint = function(constraint_name,pa
   }
   // copy over additional properties
   for (var n in additional_properties_opt) {
-    con["geo-attr-pair"][n] = additional_properties_opt[n];
+    con["geo-path"][n] = additional_properties_opt[n];
   }
   this.addConstraint(con);
   return this;
@@ -4324,6 +4364,7 @@ mljs.prototype.options.prototype.propertiesConstraint = function(constraint_name
     con.name = constraint_name_opt;
   }
   this.addConstraint(con);
+  this.suggest(constraint_name_opt);
   
   return this;
 };
@@ -4600,7 +4641,7 @@ mljs.prototype.options.prototype.sortOrderClear = function() {
 mljs.prototype.options.prototype.sortOrderScore = function() {
   this._includeSearchDefaults();
   // TODO add check to see if we already exist
-  this.options["sort-order"].push({"direction": "descending",score: null, "annotation": ["Relevancy (Descending)"]});
+  this.options["sort-order"].push({"direction": "descending",score: null, "annotation": ["Relevancy (Desc)"]});
   return this;
 };
 mljs.prototype.options.prototype.relevance = mljs.prototype.options.prototype.sortOrderScore; // common alias
@@ -4636,7 +4677,7 @@ mljs.prototype.options.prototype.searchableExpression = function(expression, nam
 mljs.prototype.options.prototype.sortOrder = function(direction_opt,type_opt,keyOrJSON,collation_opt) {
   this._includeSearchDefaults();
   // TODO check for unspecified type, direction, collation (and element + ns instead of key)
-  var so = {direction: direction_opt || this.defaults.sortDirection,type:type_opt || this.defaults.type/*, score: "score-logtfidf"*/};
+  var so = {direction: direction_opt || this.defaults.sortDirection,type:type_opt || this.defaults.datatype/*, score: "score-logtfidf"*/};
   if ("string" === typeof(keyOrJSON)) {
     so["json-key"] = keyOrJSON;
   } else {
@@ -4705,7 +4746,7 @@ mljs.prototype.options.prototype.sortOrder = function(direction_opt,type_opt,key
 
 mljs.prototype.options.prototype._quickRange = function(el) {
   if (typeof el == "string") {
-    return {type: this.defaults.type, element: {ns: this.defaults.namespace, name: el}};
+    return {type: this.defaults.datatype, element: {ns: this.defaults.namespace, name: el}};
   } else {
     // json range object
     return el;
@@ -4752,6 +4793,12 @@ mljs.prototype.options.prototype.values = function(name) {
   }
   this.options.values.push(values);
   return this;
+};
+
+mljs.prototype.options.prototype.suggest = function(constraint,options_opt) {
+  this.options["suggestion-source"].push({
+    ref: constraint, "suggestion-option": options_opt
+  });
 };
 
 
@@ -5339,6 +5386,7 @@ mljs.prototype.searchcontext = function() {
   this.simpleQueryPublisher = new com.marklogic.events.Publisher(); // simple query text
   this.selectionPublisher = new com.marklogic.events.Publisher(); // result selection uri array publisher
   this.highlightPublisher = new com.marklogic.events.Publisher(); // mouse over/highlight results
+  this.suggestionPublisher = new com.marklogic.events.Publisher(); // search query completion suggestion handling
   
 };
 
@@ -5574,6 +5622,9 @@ mljs.prototype.searchcontext.prototype.register = function(searchWidget) {
   if ('function' === typeof(searchWidget.updateValues)) {
     this.valuesPublisher.subscribe(function (values) {searchWidget.updateValues(values);});
   }
+  if ('function' === typeof(searchWidget.updateSuggestions)) {
+    this.suggestionPublisher.subscribe(function (suggestions) {searchWidget.updateSuggestions(suggestions);});
+  }
   var self = this;
   if ('function' === typeof(searchWidget.addSortListener)) {
     searchWidget.addSortListener(function (sort) {self.updateSort(sort);});
@@ -5675,6 +5726,19 @@ mljs.prototype.searchcontext.prototype._queryToText = function(parsed) {
 };
 
 /**
+ * Fetches suggestions based on the currently used options and the specified query
+ * 
+ * @param {string} q - The partial query to suggest completion for
+ * @param {json} additional_properties_opt - Any extra properties. E.g. q, limit,cursor-position
+ */
+mljs.prototype.searchcontext.prototype.doSuggest = function(q,additional_properties_opt) {
+  var self = this;
+  this.db.suggest(q,this.optionsName,additional_properties_opt,function(result) {
+    self.suggestionPublisher.publish(result.doc);
+  });
+};
+
+/**
  * Performs a structured query against this search context.
  * 
  * @param {json} q - The structured query JSON representation
@@ -5707,7 +5771,7 @@ mljs.prototype.searchcontext.prototype._doQuery = function(structured_opt,text_o
       self.resultsPublisher.publish(true); // forces refresh glyph to show
       self.facetsPublisher.publish(true);
   
-      self.db.structuredSearch(structured_opt,self.optionsName,function(result) { 
+      self.db.structuredSearch(structured_opt,self.optionsName,{start: ourstart},function(result) { 
         if (result.inError) {
           // report error on screen somewhere sensible (e.g. under search bar)
           self.__d(result.error);
@@ -5737,7 +5801,7 @@ mljs.prototype.searchcontext.prototype._doQuery = function(structured_opt,text_o
   var combinedF = function() {
       self.resultsPublisher.publish(true); // forces refresh glyph to show
       self.facetsPublisher.publish(true);
-      self.db.combined(structured_opt,text_opt,self._options,{start: start},function(result) { 
+      self.db.combined(structured_opt,text_opt,self._options,{start: ourstart},function(result) { 
         if (result.inError) {
           // report error on screen somewhere sensible (e.g. under search bar)
           self.__d(result.error);
@@ -5817,7 +5881,7 @@ mljs.prototype.searchcontext.prototype.contributeStructuredQuery = function(cont
   var doit = function() {
     var terms = calcTerms();
     //var allqueries = { query: {"and-query": terms}}; // TODO replace with query builder
-    self.doStructuredQuery(terms); 
+    self.doStructuredQuery(terms,start_opt); 
   };
   
   if (null == queryTerm || undefined == queryTerm) {
@@ -5879,6 +5943,10 @@ mljs.prototype.searchcontext.prototype.updateGeoHeatmap = function(constraint_na
     
     // force save of options
     this.optionsExist = false;
+    
+    // perform search
+  var qb = this.db.createQuery();
+  this.contributeStructuredQuery("__heatmap",qb.and([]));
 };
 
 /**
@@ -6200,6 +6268,24 @@ mljs.prototype.searchcontext.prototype.contributeFacet = function(facetName,face
   this.updateFacets(this._facetSelection);
 };
 
+/**
+ * Contributes an array of facet selections to the underlying query (simple or structured).
+ * 
+ * @param {Array} facetArray - The facet values to restrict the search results by. [{name: "facetName", value: "facetValue"}, ... ]
+ */
+mljs.prototype.searchcontext.prototype.contributeFacets = function(facetArray) {
+  if (undefined == facetArray) {
+    return;
+  }
+  for (var i = 0, max = facetArray.length,facet;i < max;i++) {
+    facet = facetArray[i];
+    this._facetSelection.push(facet);
+  }
+  
+  // rerun search
+  this.updateFacets(this._facetSelection);
+};
+
 
 /**
  * Event target. Useful to call directly from a Search Facets widget upon selection of a facet value. Executes a new search.
@@ -6301,7 +6387,12 @@ mljs.prototype.searchcontext.prototype.updatePage = function(json) {
     this.optionsExist = false; // force re save of options
     this._options.options["page-length"] = json.show;
   }
-  this.dosimplequery(this.simplequery,json.start);
+  if ("simple" == this._lastSearchFunction) {
+    this.dosimplequery(this.simplequery,json.start);
+  } else {
+    var qb = this.db.createQuery();
+    this.contributeStructuredQuery("__page",qb.and([]),json.start);
+  }
 };
 
 /**
@@ -6337,6 +6428,13 @@ mljs.prototype.searchcontext.prototype.reset = function() {
   this.sortPublisher.publish(null); // order default sort
   this.simpleQueryPublisher.publish(this.defaultQuery);
 };
+
+
+
+
+
+
+
 
 
 
@@ -6951,8 +7049,12 @@ com.marklogic.semantic.tripleconfig.prototype.addMarkLogic = function() {
   
   var doc = this.rdftype("http://marklogic.com/semantics/ontology/Document","http://marklogic.com/semantics/ontology/Document#uri").title("MarkLogic Document")
     .prefix("http://marklogic.com/semantics/ontology/Document").pattern("http://marklogic.com/semantics/ontology/Document/#VALUE#")
-    .from("*","http://marklogic.com/semantics/ontology/Document#uri");
+    .from("*","http://marklogic.com/semantics/ontology/Document#uri")
+    .from("*","http://www.w3.org/ns/prov#wasDerivedFrom")
+    .from("*","http://marklogic.com/semantics/ontology/mentioned_in")
+    .to("http://marklogic.com/semantics/ontology/Document",["http://www.w3.org/ns/prov#wasDerivedFrom","http://marklogic.com/semantics/ontology/mentioned_in"]);
   doc.predicate("http://marklogic.com/semantics/ontology/Document#uri").title("URI");
+  doc.predicate("http://www.w3.org/ns/prov#wasDerivedFrom").title("Derived From");
   this.include(doc);
 };
 
@@ -8063,6 +8165,129 @@ mljs.prototype.geocontext.prototype._fireLocaleUpdate = function() {
 };
 
 
+
+
+
+
+
+
+
+
+
+
+
+mljs.prototype.alertcontext = function() {
+  this.supported = false;
+  this.state = "initialising"; // also testing, connected, disconnected, connection_error
+  this.socket = null;
+  
+  this._alertPublisher = new com.marklogic.events.Publisher();
+  this._statePublisher = new com.marklogic.events.Publisher();
+  
+  this._init();
+};
+
+mljs.prototype.alertcontext.prototype._init = function() {
+  
+  if("WebSocket" in window) {  // TODO handle use within Node.js too
+    //The user has WebSockets  
+    this.supported = true;
+    this._connect();  
+  }
+};
+
+mljs.prototype.alertcontext.prototype._connect = function() {  
+  try {  
+    var self = this;
+    //var host = "ws://localhost:8080/"; // choose same as current window host/port
+    var host = window.location;
+    var startPos = host.indexOf("://") + 3;
+    var colonPos = host.indexOf(":",startPos);
+    var port = 80;
+    var slashPos = host.indexOf("/",startPos);
+    if (-1 != colonPos) {
+      if (-1 == slashPos) {
+        // no ending slash or :, so assume port 80
+      } else {
+        port = 1 * host.substring(colonPos + 1,slashPos);
+        host = host.substring(startPos,colonPos);
+      }
+    } else {
+      // assume port 80, find end of host
+      if (-1 != slashPos) {
+        host = host.substring(startPos,slashPos);
+      } // else host is whole thing
+      else {
+        host = host.substring(startPos);
+      }
+    }
+    host = "ws://" + host + ":" + port;
+    
+    this.socket = new WebSocket(host,"mljs-alerts"); // TODO handle use within Node.js too
+     
+  /* msg.data = 
+   {
+     response: "test|alert|search",
+     content: json | textAsxml 
+   }
+  
+  
+  */
+  
+  
+  
+    //message('<p class="event">Socket Status: '+socket.readyState);  
+    this.socket.onopen = function() {  
+      //message('<p class="event">Socket Status: '+socket.readyState+' (open)');  
+      // send message to login once connected
+      self.state = "testing";
+      self.socket.send(JSON.stringify({request:"test"}));
+    };
+    this.socket.onmessage = function(msg) {   
+      //console.log("MSG: " + msg.data);
+         
+         // TODO anything else with msg.* ?
+         
+         var json = JSON.parse(msg.data);
+         if (json.response == "test") {
+           // test works - we're connected
+           self._changeState("connected");
+         } else {
+           // fire message off to listeners
+           self._alertPublisher.publish(json);
+         }
+         
+    };
+    this.socket.onclose = function(){  
+         //message('<p class="event">Socket Status: '+socket.readyState+' (Closed)'); 
+         self._changeState("disconnected"); 
+    }; 
+    
+    
+  } catch(exception){  
+     //message('<p>Error'+exception);  
+     self._changeState("connection_error");
+  }
+
+};
+
+mljs.prototype.alertcontext.prototype.getState = function() {
+  return this.state;
+};
+
+mljs.prototype.alertcontext.prototype._changeState = function(newState) {
+  this.state = newState;
+  this._statePublisher.publish(newState);
+};
+
+mljs.prototype.alertcontext.prototype.register = function(wgt) {
+  if (undefined != wgt.updateAlert) {
+    this._alertPublisher.subscribe(function(alert) {wgt.updateAlert(alert);});
+  }
+  if (undefined != wgt.updateAlertState) {
+    this._statePublisher.subscribe(function(state) {wgt.updateAlertState(state);});
+  }
+};
 
 
 

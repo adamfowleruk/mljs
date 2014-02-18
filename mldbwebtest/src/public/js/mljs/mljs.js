@@ -698,7 +698,7 @@ mljs.prototype.__doreq_node = function(reqname,options,content,callback_opt) {
  * @private
  */
 mljs.prototype.__doreq = function(reqname,options,content,callback_opt) {
-  //this.logger.debug("__doreq: reqname: " + reqname + ", method: " + options.method + ", uri: " + options.path);
+  this.logger.debug("__doreq: reqname: " + reqname + ", method: " + options.method + ", uri: " + options.path);
   if (undefined == options.host) {
     options.host = this.dboptions.host;
   }
@@ -1601,38 +1601,41 @@ mljs.prototype._applyTransformProperties = function(url,sprops_opt) {
  */
 mljs.prototype._applySearchProperties = function(url,sprops_opt) {
   // apply properties
-  var format = "";
-  if (-1 != url.indexOf("?")) {
-    format += "&";
-  } else {
-    format += "?";
-  }
-  format += "format=json";
+  var gotQM = (-1 != url.indexOf("?"));
+  var prepend = function(param) {
+    if (gotQM) {
+      return "&" + param;
+    } else {
+      gotQM = true;
+      return "?" + param;
+    }
+  };
   
   if (undefined != sprops_opt) {
     if (undefined != sprops_opt.collection) {
       var cols = sprops_opt.collection.split(",");
       for (var c = 0;c < cols.length;c++) {
-        url += "&collection=" + encodeURI(cols[c]);
+        url += prepend("collection=" + encodeURI(cols[c]));
       }
     }
     if (undefined != sprops_opt.directory) {
-      url += "&directory=" + sprops_opt.directory;
+      url += prepend("directory=" + sprops_opt.directory);
     }
     if (undefined != sprops_opt.transform) {
-      url = this._applyTransformProperties(url,sprops_opt); // equals not append
+      url = this._applyTransformProperties(url,sprops_opt); // equals not append - the function returns the whole altered URL
     }
     if (undefined != sprops_opt.format) {
-      format = "&format=" + sprops_opt.format;
+      url += prepend("format=" + sprops_opt.format);
+    } else {
+      url += prepend("format=json");
     }
     if (undefined != sprops_opt.start_opt) {
-      url += "&start=" + sprops_opt.start_opt; // SHOULD THIS BE REMOVED? IT HAS _opt. IS A BIT RANDOM
+      url += prepend("start=" + sprops_opt.start_opt); // SHOULD THIS BE REMOVED? IT HAS _opt. IS A BIT RANDOM
     }
     if (undefined != sprops_opt.start) {
-      url += "&start=" + sprops_opt.start;
+      url += prepend("start=" + sprops_opt.start);
     }
   }
-  url += format;
   
   return url;
 };
@@ -8170,6 +8173,9 @@ mljs.prototype.geocontext.prototype._fireLocaleUpdate = function() {
 
 
 
+
+
+
 mljs.prototype.alertcontext = function() {
   this.supported = false;
   this.state = "initialising"; // also testing, connected, disconnected, connection_error
@@ -8282,6 +8288,9 @@ mljs.prototype.alertcontext.prototype.register = function(wgt) {
     this._statePublisher.subscribe(function(state) {wgt.updateAlertState(state);});
   }
 };
+
+
+
 
 
 
