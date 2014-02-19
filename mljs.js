@@ -5738,6 +5738,74 @@ mljs.prototype.searchcontext.prototype.doSuggest = function(q,additional_propert
   });
 };
 
+
+/**
+ * Generate a promise for use with frameworks like Angular JS. This method should be called prior to
+ * any individual method that fires a search from a context. Note: Caller MUST use the object returned
+ * by this function, which is a proxy for the underlying search context, rather than call this method
+ * then another on the search context. I.e. use chaining like sc.promise().doStructuredQuery(...)
+ * 
+ * @see {https://github.com/kriskowal/uncommonjs/blob/master/promises/specification.md}
+ * 
+ * @param {object} prom - Promise object with notify, resolve, reject
+ */
+mljs.prototype.searchcontext.prototype.promise = function(prom) {
+  var retProm = function(retObject) {
+    if (true === retObject) {
+      return;
+    }
+    this.resultsPublisher.unsubscribe(retProm);
+    this.valuesPublisher.unsubscribe(retProm);
+    this.suggestionPublisher.unsubscribe(retProm);
+    
+    if (false === retObject) {
+      prom.reject(retObject);
+    } else {
+      prom.resolve(retObject);
+    }
+  };
+  
+  this.resultsPublisher.subscribe(retProm);
+  this.valuesPublisher.subscribe(retProm);
+  this.suggestionPublisher.subscribe(retProm);
+  
+  var self = this;
+  return {
+    doStructuredQuery: function(args) {
+      self.doStructuredQuery(args);
+    }, doCombinedQuery: function(args) {
+      self.doCombinedQuery(args);
+    }, contributeStructuredQuery: function(args) {
+      self.contributeStructuredQuery(args);
+    }, updateGeoHeatmap: function(args) {
+      self.updateGeoHeatmap(args);
+    }, updateGeoSelection: function(args) {
+      self.updateGeoSelection(args);
+    }, doSimpleQuery: function(args) {
+      self.doSimpleQuery(args);
+    }, deselectFacet: function(args) {
+      self.deselectFacet(args);
+    }, contributeFacet: function(args) {
+      self.contributeFacet(args);
+    }, contributeFacets: function(args) {
+      self.contributeFacets(args);
+    }, updateFacets: function(args) {
+      self.updateFacets(args);
+    }, updateSelection: function(args) {
+      self.updateSelection(args);
+    }, updateHighlight: function(args) {
+      self.updateHighlight(args);
+    }, updatePage: function(args) {
+      self.updatePage(args);
+    }, updateSort: function(args) {
+      self.updateSort(args);
+    }, reset: function(args) {
+      self.reset(args);
+    }
+  };
+};
+
+
 /**
  * Performs a structured query against this search context.
  * 
