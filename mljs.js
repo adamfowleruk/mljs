@@ -5793,46 +5793,46 @@ mljs.prototype.searchcontext.prototype.promise = function(prom) {
   return {
     doStructuredQuery: function(args) {
       reqId = self._nextRequestId;
-      self.doStructuredQuery(args);
+      self.doStructuredQuery.apply(self, arguments);
     }, doCombinedQuery: function(args) {
       reqId = self._nextRequestId;
-      self.doCombinedQuery(args);
+      self.doCombinedQuery.apply(self, arguments);
     }, contributeStructuredQuery: function(args) {
       reqId = self._nextRequestId;
-      self.contributeStructuredQuery(args);
+      self.contributeStructuredQuery.apply(self, arguments);
     }, updateGeoHeatmap: function(args) {
       reqId = self._nextRequestId;
-      self.updateGeoHeatmap(args);
+      self.updateGeoHeatmap.apply(self, arguments);
     }, updateGeoSelection: function(args) {
       reqId = self._nextRequestId;
-      self.updateGeoSelection(args);
+      self.updateGeoSelection.apply(self, arguments);
     }, doSimpleQuery: function(args) {
       reqId = self._nextRequestId;
-      self.doSimpleQuery(args);
+      self.doSimpleQuery.apply(self, arguments);
     }, deselectFacet: function(args) {
       reqId = self._nextRequestId;
-      self.deselectFacet(args);
+      self.deselectFacet.apply(self, arguments);
     }, contributeFacet: function(args) {
       reqId = self._nextRequestId;
-      self.contributeFacet(args);
+      self.contributeFacet.apply(self, arguments);
     }, contributeFacets: function(args) {
       reqId = self._nextRequestId;
-      self.contributeFacets(args);
+      self.contributeFacets.apply(self, arguments);
     }, updateFacets: function(args) {
       reqId = self._nextRequestId;
-      self.updateFacets(args);
+      self.updateFacets.apply(self, arguments);
     }, updateSelection: function(args) {
       reqId = self._nextRequestId;
-      self.updateSelection(args);
+      self.updateSelection.apply(self, arguments);
     }, updateHighlight: function(args) {
       reqId = self._nextRequestId;
-      self.updateHighlight(args);
+      self.updateHighlight.apply(self, arguments);
     }, updatePage: function(args) {
       reqId = self._nextRequestId;
-      self.updatePage(args);
+      self.updatePage.apply(self, arguments);
     }, updateSort: function(args) {
       reqId = self._nextRequestId;
-      self.updateSort(args);
+      self.updateSort.apply(self, arguments);
     }
   };
 };
