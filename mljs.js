@@ -6331,11 +6331,11 @@ mljs.prototype.searchcontext.prototype.deselectFacet = function(facetName,facetV
   var newFacetSelection = new Array();
   for (var i = 0,fs;i < this._facetSelection.length;i++) {
     fs = this._facetSelection[i];
-    if (fs.facetName == facetName) {
+    if (fs.name == facetName) {
       if (undefined == facetValue_opt) {
         // don't add this facet to the new array
       } else {
-        if (fs.facetValue = facetValue_opt) {
+        if (fs.value == facetValue_opt) {
           // don't add
         } else {
           // keep it
