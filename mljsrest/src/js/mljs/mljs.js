@@ -1633,8 +1633,11 @@ mljs.prototype._applySearchProperties = function(url,sprops_opt) {
       url += prepend("start=" + sprops_opt.start_opt); // SHOULD THIS BE REMOVED? IT HAS _opt. IS A BIT RANDOM
     }
     if (undefined != sprops_opt.start) {
+      this.logger.debug("mljs._applySearchProperties: start prop: " + sprops_opt.start);
       url += prepend("start=" + sprops_opt.start);
     }
+  } else {
+    url += prepend("format=json");
   }
   
   return url;
@@ -5376,6 +5379,8 @@ mljs.prototype.searchcontext = function() {
   
   this._facetSelection = new Array();
   
+  this._nextRequestId = 1; // used to discard old requests that are returned by MarkLogic late. Also used by promise code to determine it's own request
+  
   // set up event handlers
   this.optionsPublisher = new com.marklogic.events.Publisher(); // updated search options JSON object, for parsing not storing a copy
   this.resultsPublisher = new com.marklogic.events.Publisher(); // publishes search results (including facet values)
@@ -5733,10 +5738,105 @@ mljs.prototype.searchcontext.prototype._queryToText = function(parsed) {
  */
 mljs.prototype.searchcontext.prototype.doSuggest = function(q,additional_properties_opt) {
   var self = this;
-  this.db.suggest(q,this.optionsName,additional_properties_opt,function(result) {
+  this.db.suggest(q,this.optionsName,additional_properties_opt,function(result){self._callbackOrDiscard(result,function(result) {
     self.suggestionPublisher.publish(result.doc);
-  });
+  },self._nextRequestId++)});
 };
+
+mljs.prototype.searchcontext.prototype._callbackOrDiscard = function(data,callback,requestId) {
+  if (this._nextRequestId - requestId != 1) {
+    // old request
+    // discard request (and discard associated promise)
+    this.__d("searchcontext._callbackOrDiscard: Discarding old callback. It's requestId: " + requestId + ", nextRequestId: " + this._nextRequestId);
+  } else {
+    callback(data,requestId);
+  }
+};
+
+/**
+ * Generate a promise for use with frameworks like Angular JS. This method should be called prior to
+ * any individual method that fires a search from a context. Note: Caller MUST use the object returned
+ * by this function, which is a proxy for the underlying search context, rather than call this method
+ * then another on the search context. I.e. use chaining like sc.promise().doStructuredQuery(...)
+ * 
+ * @see {https://github.com/kriskowal/uncommonjs/blob/master/promises/specification.md}
+ * 
+ * @param {object} prom - Promise object with notify, resolve, reject
+ */
+mljs.prototype.searchcontext.prototype.promise = function(prom) {
+  var reqId = 0;
+  var self = this;
+  var retProm = function(retObject,requestId) {
+    if (true === retObject) {
+      return;
+    }
+    // this next line is the important promise magic part
+    if (reqId != requestId) {
+      self.__d("searchcontext.promise: Dropping return call - promiseId: " + reqId + ", requestId: " + requestId);
+      return;
+    }
+    this.resultsPublisher.unsubscribe(retProm);
+    this.valuesPublisher.unsubscribe(retProm);
+    this.suggestionPublisher.unsubscribe(retProm);
+    
+    if (false === retObject) {
+      prom.reject(retObject);
+    } else {
+      prom.resolve(retObject);
+    }
+  };
+  
+  this.resultsPublisher.subscribe(retProm);
+  this.valuesPublisher.subscribe(retProm);
+  this.suggestionPublisher.subscribe(retProm);
+  
+  return {
+    doStructuredQuery: function(args) {
+      reqId = self._nextRequestId;
+      self.doStructuredQuery.apply(self, arguments);
+    }, doCombinedQuery: function(args) {
+      reqId = self._nextRequestId;
+      self.doCombinedQuery.apply(self, arguments);
+    }, contributeStructuredQuery: function(args) {
+      reqId = self._nextRequestId;
+      self.contributeStructuredQuery.apply(self, arguments);
+    }, updateGeoHeatmap: function(args) {
+      reqId = self._nextRequestId;
+      self.updateGeoHeatmap.apply(self, arguments);
+    }, updateGeoSelection: function(args) {
+      reqId = self._nextRequestId;
+      self.updateGeoSelection.apply(self, arguments);
+    }, doSimpleQuery: function(args) {
+      reqId = self._nextRequestId;
+      self.doSimpleQuery.apply(self, arguments);
+    }, deselectFacet: function(args) {
+      reqId = self._nextRequestId;
+      self.deselectFacet.apply(self, arguments);
+    }, contributeFacet: function(args) {
+      reqId = self._nextRequestId;
+      self.contributeFacet.apply(self, arguments);
+    }, contributeFacets: function(args) {
+      reqId = self._nextRequestId;
+      self.contributeFacets.apply(self, arguments);
+    }, updateFacets: function(args) {
+      reqId = self._nextRequestId;
+      self.updateFacets.apply(self, arguments);
+    }, updateSelection: function(args) {
+      reqId = self._nextRequestId;
+      self.updateSelection.apply(self, arguments);
+    }, updateHighlight: function(args) {
+      reqId = self._nextRequestId;
+      self.updateHighlight.apply(self, arguments);
+    }, updatePage: function(args) {
+      reqId = self._nextRequestId;
+      self.updatePage.apply(self, arguments);
+    }, updateSort: function(args) {
+      reqId = self._nextRequestId;
+      self.updateSort.apply(self, arguments);
+    }
+  };
+};
+
 
 /**
  * Performs a structured query against this search context.
@@ -5771,7 +5871,7 @@ mljs.prototype.searchcontext.prototype._doQuery = function(structured_opt,text_o
       self.resultsPublisher.publish(true); // forces refresh glyph to show
       self.facetsPublisher.publish(true);
   
-      self.db.structuredSearch(structured_opt,self.optionsName,{start: ourstart},function(result) { 
+      self.db.structuredSearch(structured_opt,self.optionsName,{start: ourstart},function(result){self._callbackOrDiscard(result,function(result,requestId) { 
         if (result.inError) {
           // report error on screen somewhere sensible (e.g. under search bar)
           self.__d(result.error);
@@ -5781,12 +5881,12 @@ mljs.prototype.searchcontext.prototype._doQuery = function(structured_opt,text_o
           self.resultsPublisher.publish(result.doc);
           self.facetsPublisher.publish(result.doc.facets);
         }
-      });
+      },self._nextRequestId++)});
   };
   var valuesF = function() {
       self.valuesPublisher.publish(true);
       for (var i = 0;i < self._tuples.length;i++) {
-        self.db.values(structured_opt,self._tuples[i],self.optionsName,null,function(result) {
+        self.db.values(structured_opt,self._tuples[i],self.optionsName,null,function(result){self._callbackOrDiscard(result,function(result,requestId) {
           if (result.inError) {
             // report error on screen somewhere sensible (e.g. under search bar)
             self.__d(result.error);
@@ -5794,14 +5894,14 @@ mljs.prototype.searchcontext.prototype._doQuery = function(structured_opt,text_o
           } else {
             self.valuesPublisher.publish(result.doc);
           }
-        });
+        },self._nextRequestId++)});
       }
     
   };
   var combinedF = function() {
       self.resultsPublisher.publish(true); // forces refresh glyph to show
       self.facetsPublisher.publish(true);
-      self.db.combined(structured_opt,text_opt,self._options,{start: ourstart},function(result) { 
+      self.db.combined(structured_opt,text_opt,self._options,{start: ourstart},function(result){self._callbackOrDiscard(result,function(result,requestId) { 
         if (result.inError) {
           // report error on screen somewhere sensible (e.g. under search bar)
           self.__d(result.error);
@@ -5811,11 +5911,11 @@ mljs.prototype.searchcontext.prototype._doQuery = function(structured_opt,text_o
           self.resultsPublisher.publish(result.doc);
           self.facetsPublisher.publish(result.doc.facets);
         }
-      });
+      },self._nextRequestId++)});
   };
   var customF = function() {
       // custom endpoint - must perform all valuesPublisher and resultsPublisher calls itself!!!
-      self._customEndpointFunction(self,null, q, self.optionsName, 1, null);
+      self._customEndpointFunction(self,null, q, self.optionsName, 1, null); // TODO make it support promises
   };
   
   var dos = function() {
@@ -6043,7 +6143,7 @@ mljs.prototype.searchcontext.prototype.doSimpleQuery = function(q,start) {
     if ("search" == self._searchEndpoint) {
       self.resultsPublisher.publish(true); // forces refresh glyph to show
       self.facetsPublisher.publish(true);
-      self.db.search(q,self.optionsName,ourstart,sprops,function(result) { 
+      self.db.search(q,self.optionsName,ourstart,sprops,function(result){self._callbackOrDiscard(result,function(result) { 
         if (result.inError) {
           // report error on screen somewhere sensible (e.g. under search bar)
           self.__d(result.error);
@@ -6053,11 +6153,11 @@ mljs.prototype.searchcontext.prototype.doSimpleQuery = function(q,start) {
           self.resultsPublisher.publish(result.doc);
           self.facetsPublisher.publish(result.doc.facets);
         }
-      });
+      },self._nextRequestId++)});
     } else if ("values" == self._searchEndpoint) { // values
       self.valuesPublisher.publish(true);
       for (var i = 0;i < self._tuples.length;i++) {
-        self.db.values(q,self._tuples[i],self.optionsName,null,function(result) {
+        self.db.values(q,self._tuples[i],self.optionsName,null,function(result){self._callbackOrDiscard(result,function(result) {
           if (result.inError) {
             // report error on screen somewhere sensible (e.g. under search bar)
             self.__d(result.error);
@@ -6065,11 +6165,11 @@ mljs.prototype.searchcontext.prototype.doSimpleQuery = function(q,start) {
           } else {
             self.valuesPublisher.publish(result.doc);
           }
-        });
+        },self._nextRequestId++)});
       }
     } else {
       // custom endpoint - must perform all valuesPublisher and resultsPublisher calls itself!!!
-      self._customEndpointFunction(self,q, null, self.optionsName, ourstart || 1, sprops);
+      self._customEndpointFunction(self,q, null, self.optionsName, ourstart || 1, sprops); // TODO support promises
     }
   };
   
