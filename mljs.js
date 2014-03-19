@@ -4179,25 +4179,27 @@ mljs.prototype.options.prototype.geoElementConstraint = function(constraint_name
   if (undefined == element) {
     if (undefined == ns_opt) {
       element = parent;
-      parent = constraint_name_opt;
+      parent = constraint_name;
       constraint_name_opt = undefined;
     } else {
       element = ns_opt;
       ns_opt = parent;
-      parent = constraint_name_opt;
+      parent = constraint_name;
       constraint_name_opt = undefined;
     }
   }
+  /*
   if (undefined == parent) {
-    constraint_name_opt = parent;
+    constraint_name = parent;
     parent = ns_opt;
     ns_opt = undefined;
   }
   if (undefined == constraint_name_opt) {
     constraint_name_opt = element;
-  }
-  var con = { name: constraint_name_opt, "geo-elem": {
-    parent: {ns: ns_opt || this.defaults.namespace, name: parent, element: {ns: ns_el_opt || this.defaults.namespace, name: element}}
+  }*/
+  var con = { name: constraint_name, "geo-elem": {
+    parent: {ns: ns_opt || this.defaults.namespace, name: parent},
+    element: {ns: ns_el_opt || this.defaults.namespace, name: element}
   }};
   if (undefined != annotation_opt) {
     if ("string" == typeof(annotation_opt)) {
@@ -4783,7 +4785,7 @@ mljs.prototype.options.prototype.tuples = function(name) { // TODO handle infini
  * Creates a values definition for returning lexicon values
  * 
  * @param {string} name - The name of the values configuration to create
- * @param {string|JSON} el - The json element for a co-occurence. Either an element/json key name (string) or a full REST API range type object (JSON)You can specify any number of these as required 
+ * @param {string|JSON} el - The json element for a co-occurence. Either an element/json key name (string) or a full REST API range type object (JSON). You can specify any number of these as required 
  */
 mljs.prototype.options.prototype.values = function(name) {
   var values = {name: name,range: new Array()};

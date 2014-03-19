@@ -1,0 +1,87 @@
+/* Search specific CSS. E.g. google example CSS */
+.mljsResultDefaultOuter {
+  margin: 5px;
+  width: 100%;
+}
+.mljsResultDefaultInner {
+  width: 100%;
+}
+.mljsResultDefaultResult {
+  width: 100%;
+  margin-bottom: 10px;
+  /*border: 2px solid red;*/
+}
+.mljsResultDefaultTopRow {
+  /*border: 1px solid blue;*/
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+.mljsResultDefaultTopRow:after {
+  content: '.';
+  display: block;
+  overflow: hidden;
+  visibility: hidden;
+  font-size: 0;
+  line-height: 0;
+  width: 0;
+  height: 0;
+  clear: both;
+}
+.mljsResultDefaultTopLeft {
+  /*border: 1px solid yellow;*/
+  width: 80%;
+  display: inline;
+  float: left;
+}
+.mljsResultDefaultTitle {
+  width: 100%;
+  background-color: grey;
+  font-size: +2;
+  font-weight: bold;
+}
+.mljsResultDefaultMain {
+  width: 100%;
+}
+.mljsResultDefaultSummary {
+  width: 100%;
+  /*border: 1px dashed purple;*/
+}
+.mljsResultDefaultMetadata {
+  width: 100%;
+  
+}
+.mljsResultDefaultActions {
+  width: 100%;
+  background-color: grey;
+  /*border: 1px dashed black;*/
+  /*height: 30px;*/
+}
+.mljsResultDefaultTopRight {
+  width: 100%;
+  /*border: 1px solid orange;*/
+  display: inline;
+  float: left;
+  width: 20%;
+}
+.mljsResultDefaultThumbnail {
+  /*border: 1px solid red;*/
+  
+}
+.mljsResultDefaultBottomRow {
+  /*border: 1px solid green;*/
+  width: 100%;
+  
+}
+.mljsResultDefaultDetail {
+  /*background-color: lightblue;*/
+}
+.mljsResultDefaultRelated {
+  
+}
+.mljsResultDefaultSimilar {
+  
+}
+.mljsResultDefaultFacts {
+  
+}

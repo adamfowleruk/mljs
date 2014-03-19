@@ -218,6 +218,7 @@ com.marklogic.widgets.searchhelper.htmlRec = function(content) {
       return resStr;
     }
   }; // UNUSED ANYWHERE ELSE */
+  
 com.marklogic.widgets.searchhelper.handleJson = function(result,json) {
     
         var resStr = "";
@@ -1114,6 +1115,8 @@ com.marklogic.widgets.searchresults = function(container) {
   this.lazyId = 1;
   this.lazyLoaders = new Array();
   
+  this._layout = new com.marklogic.widgets.searchlayouts.default(container); // pass entire container area to layout
+  
   var self = this;
   
   
@@ -1200,107 +1203,60 @@ com.marklogic.widgets.searchresults.prototype._refresh = function() {
   if (typeof this.results == "boolean" ) {
     // TODO show/hide refresh image based on value of this.results (true|false)
     if (true == this.results) {
-      document.getElementById(this.container).innerHTML = "<div class='mljswidget searchresults-inner'>" +
-        "<h2 class='title searchresults-title'>Results</h2><div class='searchresults-results'>" + 
-        com.marklogic.widgets.bits.loading(this.container + "-loading") + "</div></div>";
+      this._layout.loading();
     } else {
-      document.getElementById(this.container).innerHTML = "<div class='mljswidget searchresults-inner'>" +
-        "<h2 class='title searchresults-title'>Results</h2><div class='searchresults-results'>" + 
-        com.marklogic.widgets.bits.failure(this.container + "-failure") + "</div></div>";
+      this._layout.failure();
     }
     return;
   }
   this.lazyLoaders = new Array();
   if (null == this.results || undefined == this.results.results || this.results.results.length == 0) {
-    document.getElementById(this.container).innerHTML = 
-      "<div class='mljswidget searchresults-inner'>" +
-        "<h2 class='title searchresults-title'>Results</h2><div class='searchresults-results'>No Results</div>" +
-      "</div>";
+    this._layout.empty();
   } else {
     mljs.defaultconnection.logger.debug("RESULTS OBJECT: " + JSON.stringify(this.results));
     
-    var resStr = 
-      "<div class='mljswidget searchresults-inner'><h2 class='title searchresults-title'>Results</h2><div class='searchresults-results'>";
+    //var resStr = 
+    //  "<div class='mljswidget searchresults-inner'><h2 class='title searchresults-title'>Results</h2><div class='searchresults-results'>";
       
-    var uureplace = 1001;
-    var replacements = new Array();
+    //var uureplace = 1001;
+    //var replacements = new Array();
     
-    var pointer = null != this.detailsLink;
+    var settings = {}; // TODO parameters for renderer
     
     for (var i = 0;i < this.results.results.length;i++) {
-      var wrapperId = this.container + "-searchresults-wrapper-" + i;
-      resStr += "<div id='" + wrapperId + "' class='searchresults-wrapper"
-      if (pointer) {
-        resStr += " searchresults-navigable";
-      }
-      resStr += "'>";
+      //var wrapperId = this.container + "-searchresults-wrapper-" + i;
+      //resStr += "<div id='" + wrapperId + "' class='searchresults-wrapper"
+      //if (pointer) {
+      //  resStr += " searchresults-navigable";
+      //}
+      //resStr += "'>";
         
         
       // run processors in order
       var result = this.results.results[i];
       
       var found = false;
+      // Try first: Custom processors, configured on the page
       for (var p = 0;!found && p < this.processorPriority.length;p++) {
         var pname = this.processorPriority[p];
         mljs.defaultconnection.logger.debug("checking applicability of processor: " + pname);
-        if (this.processors[pname].matcher(result)) {
+        if (this.processors[pname].matcher(result,this,settings)) {
           found = true;
           mljs.defaultconnection.logger.debug("found processor: " + pname);
-          var returned = this.processors[pname].processor(result,this);
-          if (undefined != returned.nodeType) {
-            var id = (uureplace++);
-            resStr = "<div id='" + this.container + "-searchresults-xml-" + id + "'></div>";
-            replacements[id] = returned;
-          } else {
-            resStr += returned;
-          }
-        }
+          // process using a layout
+          this._layoutResult(result,this,settings,i,this.processors[pname]);
+        } // if matches
       }
-      
-      /*
-      // use templated layout and replace relevant sections (or with blank), also a wrapper too
-      // make all built ins advanced processors
-      if (!found) {
-        mljs.defaultconnection.logger.debug("No processor found, checkin builtins");
-        for (var pname in this.builtinProcessors) {
-          if ('object' == typeof(this.builtinProcessors[pname]) && this.builtinProcessors[pname].matcher(result)) {
-            found = true;
-            mljs.defaultconnection.logger.debug("found builtin processor: " + pname);
-            var returned = this.builtinProcessors[pname].processor(result,this);
-            if (undefined != returned.nodeType) {
-              var id = (uureplace++);
-              resStr = "<div id='" + this.container + "-searchresults-xml-" + id + "'></div>";
-              replacements[id] = returned;
-            } else {
-              resStr += returned;
-            }
-          }
-        }
-        // refactor the default to several built ins
+        
         if (!found) {
-          mljs.defaultconnection.logger.debug("No processor found, using default");
-          resStr += this.defaultProcessor.processor(result);
-        }
-        
-        
-        */
-        
-        
-        // NEW START
-        if (!found) {
+          // Try built in renderers
           for (var pname in com.marklogic.widgets.searchresults.defaultrenderers) {
             if (!found) {
-              found = com.marklogic.widgets.searchresults.defaultrenderers[pname].matcher(result,this,{});
+              found = com.marklogic.widgets.searchresults.defaultrenderers[pname].matcher(result,this,settings);
               if (found) {
                 mljs.defaultconnection.logger.debug("found builtin processor: " + pname);
-                var returned = com.marklogic.widgets.searchresults.defaultrenderers[pname].processor(result,this,{});
-                if (undefined != returned.nodeType) {
-                  var id = (uureplace++);
-                  resStr = "<div id='" + this.container + "-searchresults-xml-" + id + "'></div>";
-                  replacements[id] = returned;
-                } else {
-                  resStr += returned;
-                }
+                // process using a layout
+                this._layoutResult(result,this,settings,i,com.marklogic.widgets.searchresults.defaultrenderers[pname]);
               }
             }
           }
@@ -1308,15 +1264,37 @@ com.marklogic.widgets.searchresults.prototype._refresh = function() {
         // NEW END
       //}
       
-      resStr += "</div>";
+      //resStr += "</div>";
     }
-    resStr += "</div></div>"; // end of results container div and results inner
-    mljs.defaultconnection.logger.debug("RES STR: " + resStr);
+    //resStr += "</div></div>"; // end of results container div and results inner
+    //mljs.defaultconnection.logger.debug("RES STR: " + resStr);
     
-    document.getElementById(this.container).innerHTML = resStr;
+    //document.getElementById(this.container).innerHTML = resStr;
     
     // now add click handlers to each result div, if required
     //if (pointer) {
+    //}
+    
+    // now do any XML replacements
+    /*for (var r = 1001;r < uureplace;r++) {
+      document.getElementById(this.container + "-searchresults-xml-" + r).innerHTML = replacements[r]; // TODO verify we don't have to clone the XML document before insert (shouldn't need to)
+    }*/
+    
+    // go through lazy loaders and run them
+    for (var i = 0;i < this.lazyLoaders.length;i++) {
+      var loader = this.lazyLoaders[i];
+      loader.callback(loader.docuri,loader.elid);
+    }
+    // now clear them prior to next invocation
+    this.lazyLoaders = new Array();
+  }
+};
+
+
+com.marklogic.widgets.searchresults.prototype.addResultHoverHandler = function(result,elid) {
+  
+    var pointer = (null != this.detailsLink);
+    
       var self = this;
       var addPointerHandler = function(id,result) {
         document.getElementById(id).onclick = function(evt) {
@@ -1330,25 +1308,196 @@ com.marklogic.widgets.searchresults.prototype._refresh = function() {
             self.selectionPublisher.publish({mode: self.selectionMode, uri: result.uri});
           }
         };
-      }
+      }/*
       for (var i = 0;i < this.results.results.length;i++) {
         var id = this.container + "-searchresults-wrapper-" + i;
         var result = this.results.results[i];
         addPointerHandler(id,result);
+      }*/
+      addPointerHandler(elid,result);
+}
+
+/**
+ * This method uses the new MLJS 1.4 advanced search result rendering support. It queries the configured layout, and places the relevant processor sections within it.
+ */
+com.marklogic.widgets.searchresults.prototype._layoutResult = function(result,manager,settings,resultindex,processor) {
+  // get new result contianer from layout
+  var layout = this._layout;
+  var resultContainer = layout.getResultContainer(result,manager,settings,resultindex);
+  var sections = ["title","summary","metadata","thumbnail","related","similar","facts"]; // TODO comments area too
+  
+  var replacements = new Array();
+  
+  var replaceXML = function(docuri,elid) {
+    document.getElementById(elid).innerHTML = replacements[elid]; // TODO verify we don't have to clone the XML document before insert (shouldn't need to)
+  };
+  
+  mljs.defaultconnection.logger.debug("searchresults._layoutResult: Rendering result: " + result.uri);
+  
+  // try each section in turn
+  for (var s = 0, maxs = sections.length,section;s < maxs;s++) {
+    section = sections[s];
+    // get section elements from layout
+    var layoutSection = resultContainer[section];
+    mljs.defaultconnection.logger.debug("searchresults._layoutResult:   Rendering section: " + section);
+    // if not supported, show our results widget's default view for each
+    if (undefined == processor[section]) {
+      // show default
+      if ("summary" == section && undefined != processor.processor) {
+        // old style summary support
+        var returned = processor.processor(result,manager);
+        var resStr = "";
+        if (undefined != returned.nodeType) {
+          //var id = (uureplace++);
+          resStr = "<div id='" + this.container + "-searchresults-xml-" + resultindex + "'></div>";
+          replacements[this.container + "-searchresults-xml-" + resultindex] = returned;
+          manager.lazyLoad(result.uri,this.container + "-searchresults-xml-" + resultindex, replaceXML);
+        } else {
+          resStr += returned;
+        }
+        document.getElementById(layoutSection).innerHTML = resStr;
+      } else {
+        if ("title" == section && undefined != processor.processor) {
+          document.getElementById(layoutSection).innerHTML = "";
+        } else {
+          document.getElementById(layoutSection).innerHTML = com.marklogic.widgets.defaulthtmlsections[section](result,manager,settings);
+        }
       }
-    //}
-    
-    // now do any XML replacements
-    for (var r = 1001;r < uureplace;r++) {
-      document.getElementById(this.container + "-searchresults-xml-" + r).innerHTML = replacements[r]; // TODO verify we don't have to clone the XML document before insert (shouldn't need to)
+    } else {
+      // render content
+      document.getElementById(layoutSection).innerHTML = processor[section](result,manager,settings);
     }
-    
-    // go through lazy loaders and run them
-    for (var i = 0;i < this.lazyLoaders.length;i++) {
-      var loader = this.lazyLoaders[i];
-      loader.callback(loader.docuri,loader.elid);
+  } // end for (section)
+  
+  
+};
+
+com.marklogic.widgets.searchlayouts = {};
+com.marklogic.widgets.searchlayouts.default = function(container) {
+  // initialisation
+  this.container = container;
+  
+  this._areas = {};
+  this._hasMessage = false;
+  this._uriMap = {};
+  
+  this._init();
+};
+com.marklogic.widgets.searchlayouts.default.prototype._init = function() {
+  var s = "<div id='" + this.container + "-outer' class='mljswidget searchresults mljsResultDefaultOuter'>";
+  s += "<h2 class='title searchresults-title'>Results</h2>";
+  s += "<div id='" + this.container + "-inner' class='searchresults-results mljsResultDefaultInner'></div>";
+  s += "</div>";
+  document.getElementById(this.container).innerHTML = s;
+};
+com.marklogic.widgets.searchlayouts.default.prototype.reset = function() {
+  // strip out all current content areas
+  document.getElementById(this.container + "-inner").innerHTML = "";
+  this._areas = {};
+  this._uriMap = {};
+};
+com.marklogic.widgets.searchlayouts.default.prototype.loading = function() {
+  // strip out all current content areas
+  //document.getElementById(this.container + "-inner").innerHTML = "";
+  this._areas = {};
+  this._uriMap = {};
+  document.getElementById(this.container + "-inner").innerHTML = 
+    "<div class='searchresults-results'>" + 
+    com.marklogic.widgets.bits.loading(this.container + "-loading") + "</div>";
+  this._hasMessage = true;
+};
+com.marklogic.widgets.searchlayouts.default.prototype.failure = function() {
+  // strip out all current content areas
+  //document.getElementById(this.container + "-inner").innerHTML = "";
+  this._areas = {};
+  this._uriMap = {};
+  document.getElementById(this.container + "-inner").innerHTML = 
+    "<div class='searchresults-results'>" + 
+    com.marklogic.widgets.bits.failure(this.container + "-failure") + "</div>";
+  this._hasMessage = true;
+};
+
+com.marklogic.widgets.searchlayouts.default.prototype.empty = function() {
+  this._areas = {};
+  this._uriMap = {};
+  document.getElementById(this.container + "-inner").innerHTML = 
+    "<div class='searchresults-results'>No Results</div>";
+  
+  this._hasMessage = true;
+};
+com.marklogic.widgets.searchlayouts.default.prototype.select = function(newsel) {
+  // deselect all
+  for (var uri in this._uriMap) {
+    var idx = this._uriMap[uri];
+    if (undefined != idx) {
+      if (newsel.contains(uri)) {
+        com.marklogic.widgets.addClass(
+          document.getElementById(this.container + "-result-" + idx + "-summary"),"selected");
+      } else {
+        com.marklogic.widgets.removeClass(
+          document.getElementById(this.container + "-result-" + idx + "-summary"),"selected");
+      }
     }
   }
+};
+
+com.marklogic.widgets.searchlayouts.default.prototype.getResultContainer = function(result,manager,settings,resultindex) {
+  if (this._hasMessage) {
+    // clear results
+    document.getElementById(this.container + "-inner").innerHTML = "";
+    this._hasMessage = false;
+  }
+  var area = this._areas[resultindex];
+  if (undefined == area) {
+    // create new area
+    area = {
+      title: this.container + "-result-" + resultindex + "-title", 
+      summary: this.container + "-result-" + resultindex + "-summary", 
+      metadata: this.container + "-result-" + resultindex + "-metadata",
+      thumbnail: this.container + "-result-" + resultindex + "-thumbnail",
+      related: this.container + "-result-" + resultindex + "-related",
+      similar: this.container + "-result-" + resultindex + "-similar",
+      facts: this.container + "-result-" + resultindex + "-facts"
+    };
+    
+    // draw new area in html
+    // TODO default layout CSS
+    var s = "<div id='" + this.container + "-result-" + resultindex + "' class='mljsResultDefaultResult'>";
+    s += "<div id='" + this.container + "-result-" + resultindex + "-toprow' class='mljsResultDefaultTopRow'>";
+    s +=   "<div id='" + this.container + "-result-" + resultindex + "-topleft' class='mljsResultDefaultTopLeft'>";
+    s +=     "<div id='" + this.container + "-result-" + resultindex + "-title' class='mljsResultDefaultTitle'></div>"; // TODO number? Indented area for content?
+    s +=     "<div id='" + this.container + "-result-" + resultindex + "-main' class='mljsResultDefaultMain'>";
+    s +=       "<div id='" + this.container + "-result-" + resultindex + "-summary' class='mljsResultDefaultSummary'></div>";
+    s +=       "<div id='" + this.container + "-result-" + resultindex + "-metadata' class='mljsResultDefaultMetadata'></div>";
+    s +=     "</div>";
+    s +=     "<div id='" + this.container + "-result-" + resultindex + "-actions' class='mljsResultDefaultActions'></div>";
+    s +=   "</div>";
+    s +=   "<div id='" + this.container + "-result-" + resultindex + "-topright' class='mljsResultDefaultTopRight'>";
+    s +=     "<div id='" + this.container + "-result-" + resultindex + "-thumbnail' class='mljsResultDefaultThumbnail'></div>";
+    s +=   "</div>";
+    s += "</div>";
+    
+    s += "<div id='" + this.container + "-result-" + resultindex + "-bottomrow' class='mljsResultDefaultBottomRow'>";
+    s +=   "<div id='" + this.container + "-result-" + resultindex + "-detail' class='mljsResultDefaultDetail hidden'>";
+    s +=     "<div id='" + this.container + "-result-" + resultindex + "-related' class='mljsResultDefaultRelated hidden'></div>";
+    s +=     "<div id='" + this.container + "-result-" + resultindex + "-similar' class='mljsResultDefaultSimilar hidden'></div>";
+    s +=     "<div id='" + this.container + "-result-" + resultindex + "-facts' class='mljsResultDefaultFacts hidden'></div>";
+    s +=   "</div>";
+    s += "</div>";
+    
+    s += "</div>";
+    
+    // TODO correctly append content
+    com.marklogic.widgets.appendHTML(document.getElementById(this.container + "-inner"),s);
+    this._uriMap[result.uri] = resultindex;
+    //document.getElementById(this.container + "-inner").innerHTML += s;
+    
+    // add event handlers
+    manager.addResultHoverHandler(result,this.container + "-result-" + resultindex + "-summary");
+    
+    this._areas[resultindex] = area;
+  }
+  return area;
 };
 
 // NB could be doc or search result actions. Be aware.
@@ -1384,56 +1533,129 @@ com.marklogic.widgets.defaultactions = {
   }
 };
 
+com.marklogic.widgets.defaulthtmlsections = {
+  title: function(result,manager,settings) {
+    return com.marklogic.widgets.defaulthtmlrenderer.defaultTitle(result,manager,settings);
+  },summary: function(result,manager,settings) {
+    return com.marklogic.widgets.defaulthtmlrenderer.defaultSummary(result,manager,settings);
+  },metadata: function(result,manager,settings) {
+    return com.marklogic.widgets.defaulthtmlrenderer.defaultMetadata(result,manager,settings);
+  },actions: function(result,manager,settings) {
+    return com.marklogic.widgets.defaulthtmlrenderer.defaultActions(result,manager,settings);
+  },thumbnail: function(result,manager,settings) {
+    return com.marklogic.widgets.defaulthtmlrenderer.defaultThumbnail(result,manager,settings);
+  },similar: function(result,manager,settings) {
+    return com.marklogic.widgets.defaulthtmlrenderer.defaultSimilar(result,manager,settings);
+  },related: function(result,manager,settings) {
+    return com.marklogic.widgets.defaulthtmlrenderer.defaultRelated(result,manager,settings);
+  },comments: function(result,manager,settings) {
+    return com.marklogic.widgets.defaulthtmlrenderer.defaultComments(result,manager,settings);
+  },facts: function(result,manager,settings) {
+    return com.marklogic.widgets.defaulthtmlrenderer.defaultRelatedTriples(result,manager,settings);
+  }
+};
+
 com.marklogic.widgets.defaulthtmlrenderer = {
   // default handlers entire areas for rendering
   // old all render
   defaultSearchResult: function(result,manager,settings) {
     return com.marklogic.widgets.defaulthtmlrenderer.wrapSearchResult(
-        genericTitle(result.index,result.uri) + com.marklogic.widgets.searchhelper.snippet(result) // TODO refactor snippet generation code in to this object
+        com.marklogic.widgets.defaulthtmlrenderer.genericTitle(result.index,result.uri) + 
+        com.marklogic.widgets.searchhelper.snippet(result) // TODO refactor snippet generation code in to this object
       ,result,manager,settings);
   },
   // new section renders
   defaultTitle: function(result,manager,settings) {
     return com.marklogic.widgets.defaulthtmlrenderer.genericTitle(result.index,result.uri);
   },
-  defaultSummary: function(result,manager,settings) { // for summary or snippet (determined by search options - must be one or the other only, never both)
+  defaultSummary: function(result,manager,settings) {
+    // for summary or snippet (determined by search options - must be one or the other only, never both)
     // easy if snippet, not so easy if any content (just use matcher functions to check result)
+    if (undefined != result.matches) {
+      // snippet
+      return com.marklogic.widgets.defaulthtmlrenderer.genericTitle(result.index,result.uri) + com.marklogic.widgets.searchhelper.snippet(result);
+    } else {
+      // content
+      // assume same as default renderer - should never get to this point
+      for (var r in com.marklogic.widgets.searchresults.defaultrenderers) {
+        var renderer = com.marklogic.widgets.searchresults.defaultrenderers[r];
+        if (renderer.matcher(result,manager,settings)) {
+          return com.marklogic.widgets.defaulthtmlrenderer.genericTitle(result.index,result.uri) + renderer.processor(result,manager,settings);
+        }
+      }
+    }
   },
   defaultMetadata: function(result,manager,settings) {
     var s = "";
+    if (undefined != result.metadata) {
+      var count = 0;
             for (var metai = 0, maxi = result.metadata.length, meta;metai < maxi;metai++) {
               meta = result.metadata[metai];
               //console.log("  meta instance: " + metai);
               for (var p in meta) {
-                var value = meta[p];
-                if (null != value) { // TODO allow setting on segment for only showing named meta elements (p value)
-                  
-          s += " <b>" + name + ":</b> " + value;
+                if ("metadata-type" != p) { // TODO other exceptions
+                  var value = meta[p];
+                  if (null != value) { // TODO allow setting on segment for only showing named meta elements (p value)
+                    var name = p;
+                    if (name.substring(0,1) == "{") {
+                      name = name.substring(name.indexOf("}") + 1);
+                    }
+                    
+    var opts = manager.ctx.getOptions();
+    var con = opts._findConstraint(name);
+    if (undefined != con) {
+      // undefined is possible if it's an extracted element name, not a constraint with an annotation
+    var annotation = con.annotation;
+    if (undefined == annotation) {
+      name = name;
+    } else {
+      name = annotation[0];
+    }
+  }
+                    
+                    
+                    if (count > 0) {
+                      s += ", ";
+                    }
+                    s += " <b>" + name + ":</b> " + value;
+                    count++;
+                  }
                 }
               }
             }
+    } // if result.metadata
     return s;
   },
   defaultActions: function(result,manager,settings) {
     // loop through configured actions
     // call matcher function for each
     // render each
+    return "";
   },
   defaultThumbnail: function(result,manager,settings) {
     // custom pluggable linking function
+    return "";
   },
   defaultSimilar: function(result,manager,settings) {
     // from returnSimilar option
+    return "";
   },
   defaultRelated: function(result,manager,settings) {
-    
+    // lazy loaded
+    // by default, use custom MarkLogic ontology to relate to other documents via related_to assertion (not derived_from? others?)
+    return "";
   },
   defaultComments: function(result,manager,settings) {
-    
+    // lazy loaded
+    return "";
+  },
+  defaultRelatedTriples: function(result,manager,settings) {
+    return "";
   },
   // default subclasses
   defaultSummaryTriples: function(result,manager,settings) {
     var s = "";
+    
       // convert to XML (sem:triples)
       var xml = textToXML(result.content);
       
@@ -1492,7 +1714,7 @@ com.marklogic.widgets.defaulthtmlrenderer = {
       
       s += com.marklogic.widgets.defaulthtmlrenderer.defaultSummaryTriples(result,manager,settings);
       
-      return com.marklogic.widgets.defaulthtmlrenderer.wrapResult(s,result,manager,settings);
+      return com.marklogic.widgets.defaulthtmlrenderer.wrapSearchResult(s,result,manager,settings);
   },
   defaultSearchResultXML: function(result,manager,settings){
     
@@ -1632,7 +1854,7 @@ com.marklogic.widgets.defaulthtmlrenderer = {
           //resStr += "<div class='searchresults-snippet'>" + bodyContent + "</div>";
           //resStr += "</div>";
           //return resStr;
-          return com.marklogic.widgets.defaulthtmlrenderer.wrapResult(
+          return com.marklogic.widgets.defaulthtmlrenderer.wrapSearchResult(
               com.marklogic.widgets.defaulthtmlrenderer.wrapTitle(
                   result.index + ". " + title
                 ,result,manager,settings) + 
@@ -1720,10 +1942,10 @@ com.marklogic.widgets.defaulthtmlrenderer = {
             return null;
   },
   getMetadataConstraint: function(result,constraintName) {
-    return getMetadata(result,constraintName); // same as generic getMetadata
+    return com.marklogic.widgets.defaulthtmlrenderer.getMetadata(result,constraintName); // same as generic getMetadata
   },
   getMetadataElement: function(result,element,namespace_opt) {
-    return getMetadata(result,"{" + (namespace_opt || "") + "}" + element);
+    return com.marklogic.widgets.defaulthtmlrenderer.getMetadata(result,"{" + (namespace_opt || "") + "}" + element);
   } // TODO other metadata elements as required - path? geo?
   
 };
@@ -1731,9 +1953,10 @@ com.marklogic.widgets.defaulthtmlrenderer = {
 com.marklogic.widgets.searchresults.defaultrenderers = {
   json: {
     matcher: function(result,manager,settings) {
-      return ("json" == result.format);
+      return ("json" == result.format && undefined == result.matches);
     }, 
     processor: function(result,manager,settings) {
+      if (undefined != result.matches) {return com.marklogic.widgets.searchhelper.snippet(result);}
       return com.marklogic.widgets.defaulthtmlrenderer.defaultSearchResultJSON(result,manager,settings);
     }
   },
@@ -1744,7 +1967,8 @@ com.marklogic.widgets.searchresults.defaultrenderers = {
       
     },
     processor: function(result,manager,settings) {
-      return com.marklogic.widgets.defaulthtmlrenderer.defaultSearchResult(result,manager,settings);
+      //if (undefined != result.matches) {return com.marklogic.widgets.searchhelper.snippet(result);}
+      return com.marklogic.widgets.defaulthtmlrenderer.defaultSearchResult(result,manager,settings); // should never get here
     }
   },
   svg: {
@@ -1769,15 +1993,16 @@ com.marklogic.widgets.searchresults.defaultrenderers = {
     },
     // backwards compatibility
     processor: function (result,manager,settings) {
+      if (undefined != result.matches) {return com.marklogic.widgets.searchhelper.snippet(result);}
       return com.marklogic.widgets.defaulthtmlrenderer.defaultSearchResultSVG(result,manager,settings);
     },
-    title: function(result, manager, settings) {
-      com.marklogic.widgets.defaulthtmlrenderer.defaultTitle(result,manager,settings);
-    },
+    
+    // Enhanced rendering
     summary: function(result, manager, settings) {
+      if (undefined != result.matches) {return com.marklogic.widgets.searchhelper.snippet(result);}
       return com.marklogic.widgets.defaulthtmlrenderer.genericSVG(result.content);
     }
-    // TODO snippet, etc. etc.
+    // other areas are as default
   },
   html: {
     matcher: function(result,manager,settings) {
@@ -1786,6 +2011,7 @@ com.marklogic.widgets.searchresults.defaultrenderers = {
       // TODO replace with XPath as this is very wide ranging - http://www.w3.org/1999/xhtml (escape dots?)
     },
     processor: function(result,manager,settings) {
+      if (undefined != result.matches) {return com.marklogic.widgets.searchhelper.snippet(result);}
       return com.marklogic.widgets.defaulthtmlrenderer.defaultSearchResultHTML(result,manager,settings);
     }
   },
@@ -1798,6 +2024,7 @@ com.marklogic.widgets.searchresults.defaultrenderers = {
       // TODO flesh this out
     },
     processor: function(result,manager,settings) {
+      if (undefined != result.matches) {return com.marklogic.widgets.searchhelper.snippet(result);}
       return com.marklogic.widgets.defaulthtmlrenderer.defaultSearchResultTriples(result,manager,settings);
     }
   },
@@ -1806,6 +2033,7 @@ com.marklogic.widgets.searchresults.defaultrenderers = {
       return ("xml" == result.format);
     },
     processor: function(result,manager,settings) {
+      if (undefined != result.matches) {return com.marklogic.widgets.searchhelper.snippet(result);}
       return com.marklogic.widgets.defaulthtmlrenderer.defaultSearchResultXML(result,manager,settings);
     }
   },
@@ -1814,6 +2042,7 @@ com.marklogic.widgets.searchresults.defaultrenderers = {
       return ("text" == result.format);
     },
     processor: function(result,manager,settings) {
+      if (undefined != result.matches) {return com.marklogic.widgets.searchhelper.snippet(result);}
       return com.marklogic.widgets.defaulthtmlrenderer.defaultSearchResultText(result,manager,settings);
     }
   }/*,
@@ -1918,6 +2147,8 @@ com.marklogic.widgets.searchresults.prototype.updateResultSelection = function(n
   if (undefined == this.results || undefined == this.results.results) {
     return;
   }
+  this._layout.select(newsel);
+  /*
   for (var i = 0;i < this.results.results.length;i++) {
     var wrapperId = this.container + "-searchresults-wrapper-" + i;
     // run processors in order
@@ -1930,7 +2161,7 @@ com.marklogic.widgets.searchresults.prototype.updateResultSelection = function(n
       // remove selection class
       com.marklogic.widgets.removeClass(document.getElementById(wrapperId),"selected");
     }
-  }
+  }*/
 };
 
 com.marklogic.widgets.searchresults.prototype.updateResultHighlight = function(newhigh) {

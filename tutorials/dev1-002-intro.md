@@ -26,3 +26,7 @@ a webpage to download individual files. This is available at:-
 
 https://github.com/adamfowleruk/mljs
 
+- - - -
+
+[Course Home Page](tutorial-dev1-001-overview.html) | 
+[Next - 3. First Page](tutorial-dev1-003-first-page.html)

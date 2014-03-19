@@ -6,19 +6,23 @@ Targets for 1.4 (Feb 2014) - Theme: Visualisations
  - IN PROGRESS Widgets: Search Results
   - IN PROGRESS Add support for pluggable rendering for areas of result pane:-
    - DONE all (as now)
+   - DONE overarching default search results layout abstraction
+   - DONE default search layout CSS
+   - DONE default result summary (short - snippeting or non snippeting)
+   - DONE existing results showing is screwed up
+   - DONE extracted metadata
    - IN PROGRESS title
-   - BUG existing results showing is screwed up
-   - result summary (short, snippeting or non snippeting)
-   - expanded result summary (controlled by action or global show detailed results setting)
+   - DEFERRED expanded result summary (controlled by action or global show detailed results setting)
    - thumbnail(s) on right hand side with navigation if multiple
-   - thumbnail caption
+    - DEFERRED preview to occur on hover of thumbnail, if supported
+    - thumbnail caption
    - similar documents (text or thumbnail) under actions bar, hidden by default
    - related documents (text or thumbnail) under actions bar, hidden by default
-   - facts (semantic triples)
-   - IN PROGRESS extracted metadata
+   - related facts (semantic triples)
    - selection tickbox
    - latest comments (similar to related documents)
     - add comment support
+    - ratings support in same area
    - IN PROGRESS actions (pluggable)
     - show more detail (expanded result summary)
     - show less detail (default short result summary)

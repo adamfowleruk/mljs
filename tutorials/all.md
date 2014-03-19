@@ -46,3 +46,8 @@
   <li>The core do() function</li>
   <li>Integrating to AngularJS or another framework</li>
 </ul>
+
+## MLJS Training Courses
+<ul>
+  <li><a href=tutorial-dev1-001-overview.html>1 Day Introduction Course</a></li>
+</ul>

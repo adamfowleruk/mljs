@@ -39,7 +39,12 @@ window.onload = function() {
     .rangeConstraint("Month","month",ob.JSON,"xs:string","http://marklogic.com/collation/",true,["item-order"])
     .rangeConstraint("DateReceived","datereceived","http://marklogic.com/ns/dt","xs:date",null,true,null,null,"Received At")
     //constraint_name_opt,name_or_key,ns_opt,type_opt,collation_opt,facet_opt,facet_options_opt,fragmentScope_opt,annotation_opt
-    .annotate("DateReceived","Received On");
+    .annotate("DateReceived","Received On")
+      .extractConstraintMetadata("Animal")
+      //.extractConstraintMetadata("extract")
+      .extractElementMetadata("title","http://www.w3.org/1999/xhtml")
+      .extractConstraintMetadata("Year")
+      .extractConstraintMetadata("DateReceived");
   var dateBuckets = ob.buckets("DateReceived");
   dateBuckets.bucket("2013-01-01","2013-01-31","jan2013","Jan 2013")
              .bucket("2013-02-01","2013-02-28","feb2013","Feb 2013")
