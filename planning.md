@@ -12,17 +12,7 @@ Targets for 1.4 (Feb 2014) - Theme: Visualisations
    - DONE existing results showing is screwed up
    - DONE extracted metadata
    - IN PROGRESS title
-   - DEFERRED expanded result summary (controlled by action or global show detailed results setting)
-   - thumbnail(s) on right hand side with navigation if multiple
-    - DEFERRED preview to occur on hover of thumbnail, if supported
-    - thumbnail caption
-   - similar documents (text or thumbnail) under actions bar, hidden by default
-   - related documents (text or thumbnail) under actions bar, hidden by default
-   - related facts (semantic triples)
    - selection tickbox
-   - latest comments (similar to related documents)
-    - add comment support
-    - ratings support in same area
    - IN PROGRESS actions (pluggable)
     - show more detail (expanded result summary)
     - show less detail (default short result summary)
@@ -35,6 +25,16 @@ Targets for 1.4 (Feb 2014) - Theme: Visualisations
     - go explore (goto page - semantic data explorer)
     - DONE new-window view (download - /v1/documents)
     - DONE new-window view (pretty xml - /v1/documents with transform)
+   - similar documents (text or thumbnail) under actions bar, hidden by default
+   - related documents (text or thumbnail) under actions bar, hidden by default
+   - related facts (semantic triples)
+   - thumbnail(s) on right hand side with navigation if multiple
+    - DEFERRED preview to occur on hover of thumbnail, if supported
+    - thumbnail caption
+   - latest comments (similar to related documents)
+    - add comment support
+    - ratings support in same area
+   - DEFERRED expanded result summary (controlled by action or global show detailed results setting)
    - Ability to globally show/hide named sections
    - IN PROGRESS Make it easier to add event handlers like click to navigate, view (as html via XSLT), download
    - DONE Make using extracted metadata easier (getmeta function to fetch named meta element)
@@ -42,12 +42,12 @@ Targets for 1.4 (Feb 2014) - Theme: Visualisations
    - Allow passing of custom parameters to event handlers in addition to document uri
    - Externalise constraint name to display name (search option annotations on constraints) - constraintTitle function on manager
   - DONE Add generic XML to XHTML support and CSS via XSLT transform in REST API
-  - Widgets: Explorer: Save URI to/from IRI mapping prior to calling document facets fetch (currently based on name substring - dangerous)
   - Docs: Create mock sample search pages
    - wordpress like demo summary view for documents
    - google like summary, with similar stories indented
    - tabular view - http://www.webdesignerdepot.com/2010/02/showcase-of-great-web-app-interfaces/
    - google images like summary view, and detail on click
+  - Widgets: Explorer: Save URI to/from IRI mapping prior to calling document facets fetch (currently based on name substring - dangerous)
   - DONE Core: Add metadata extraction support to search options and search context - extract() method on context?
   - Allow rendering with other layouts rather than just a simple column
    - Widgets: 2 column across-first cell rendering layout
@@ -57,6 +57,24 @@ Targets for 1.4 (Feb 2014) - Theme: Visualisations
   - Default Rendering improvements
    - hierarchical XML viewing (down three levels?)
    - IN PROGRESS triple support (with summary?)
+ - Workplace improvements
+  - Basics
+   - drag/drop reordering of widgets working
+   - multiple layouts working
+   - Context configuration
+   - Page load actions
+   - Save function working
+   - Enable all widgets for Workplace
+   - Icons for widgets
+  - Widgets: Navigation widget
+   - One tab per Workplace in current app, sends to appropriate URL
+   - Share workplace via permissions
+   - Share workplace via URL
+    - Add this to My Workplaces option on non-owned workplace page load
+   - Edit limited to owner of workplace
+   - DEFERRED Allow workplaces to be kept instead in a drop down menu
+   - DEFERRED Menu Editor
+    - DEFERRED Also allow fixed tabs at start and end (list for each). E.g. Settings, Home, etc. for non-workplace dynamic pages - display text, url
  - Widgets: Document Collector dropbox (also supports the searchresults document title, result summary plugins)
  - Widgets: search bar: Suppress facets, sorting shown within text query bar
  - Widgets: search bar: Support boolean AND, OR, ( and ), NOT
@@ -209,11 +227,6 @@ Floating Targets
     - DEFERRED Facebook messages
     - DEFERRED Facebook profiles
   - Medium:-
-   - Widgets: Workplace: Dynamic multi pages for MLJS Workplace (displayed as tabs)
-   - Widgets: Navigation widget
-    - One tab per Workplace in current app, sends to appropriate URL
-    - DEFERRED Allow workplaces to be kept instead in a drop down menu
-    - Also allow fixed tabs at start and end (list for each). E.g. Settings, Home, etc. for non-workplace dynamic pages - display text, url
    - Widgets: List my saved searches
    - Widgets: alert set up
     - Widgets: New/Edit alert - name, action type, action settings, pre or post commit
