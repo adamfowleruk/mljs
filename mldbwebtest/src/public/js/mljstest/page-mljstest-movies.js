@@ -14,9 +14,9 @@ window.onload = function() {
 
   var ob = db.createOptions();
   ob.tuples("actor-genre","actor","genre"); // first is tuple name. defaults to string, json namespace
-  //ob.jsonRangeConstraint("actor",["item-frequency"])
-  //  .jsonRangeConstraint("year",["item-order"])
-  //  .jsonRangeConstraint("genre",["item-order"]);
+  ob.jsonRangeConstraint("actor",["item-frequency"])
+    .jsonRangeConstraint("year",["item-order"])
+    .jsonRangeConstraint("genre",["item-order"]);
   ob.tuples("actor-year","actor","year"); // first is tuple name. defaults to string, json namespace
   ob.tuples("actor-genre-year","actor","genre","year");
   
