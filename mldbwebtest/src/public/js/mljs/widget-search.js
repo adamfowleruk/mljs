@@ -191,6 +191,7 @@ com.marklogic.widgets.searchhelper.jsontohtml = function(json) {
 com.marklogic.widgets.searchhelper.xmltohtml = function(xml) {
   // Take first text element as title, second as snippet
   // TODO if needed - see search results logic itself for xmlDoc.evaluate
+  return "";
 };
 /*
 com.marklogic.widgets.searchhelper.htmlRec = function(content) {
@@ -1237,8 +1238,9 @@ com.marklogic.widgets.searchresults.prototype._refresh = function() {
       
       var found = false;
       // Try first: Custom processors, configured on the page
-      for (var p = 0;!found && p < this.processorPriority.length;p++) {
-        var pname = this.processorPriority[p];
+      //for (var p = 0;!found && p < this.processorPriority.length;p++) {
+      for (var pname in this.processors) {
+        //var pname = this.processorPriority[p];
         mljs.defaultconnection.logger.debug("checking applicability of processor: " + pname);
         if (this.processors[pname].matcher(result,this,settings)) {
           found = true;
@@ -1569,6 +1571,7 @@ com.marklogic.widgets.defaulthtmlrenderer = {
     return com.marklogic.widgets.defaulthtmlrenderer.genericTitle(result.index,result.uri);
   },
   defaultSummary: function(result,manager,settings) {
+    mljs.defaultconnection.logger.debug("defaulthtmlrenderer.defaultSummary");
     // for summary or snippet (determined by search options - must be one or the other only, never both)
     // easy if snippet, not so easy if any content (just use matcher functions to check result)
     if (undefined != result.matches) {
@@ -1717,15 +1720,18 @@ com.marklogic.widgets.defaulthtmlrenderer = {
       return com.marklogic.widgets.defaulthtmlrenderer.wrapSearchResult(s,result,manager,settings);
   },
   defaultSearchResultXML: function(result,manager,settings){
+            manager.ctx.db.logger.debug("defaulthtmlrenderer.defaultSearchResultXML");
     
           // try XML now        
           try {
             var xmlDoc = textToXML(result.content);
+            manager.ctx.db.logger.debug("successfully converted xml text to XML doc");
             //manager.ctx.db.logger.debug("defaultProcessor:  - XML parse successful...");
             
             //var resStr = "";
             // parse each results and snippet / raw content
             var title = result.uri;
+            manager.ctx.db.logger.debug("title initially: " + title);
             var snippet = null;
             
             if (undefined != xmlDoc.evaluate) {
@@ -1752,9 +1758,10 @@ com.marklogic.widgets.defaulthtmlrenderer = {
                   }
                 }
               }
-              if (undefined != evalResult && null != evalResult && "" != evalResult.stringValue) {
+              if (undefined != evalResult && null != evalResult && undefined != evalResult.stringValue && "" != evalResult.stringValue) {
                 title = evalResult.stringValue;
               }
+            manager.ctx.db.logger.debug("title after eval: " + title);
               // check for common snippet names - summary, synopsis, description, details
               evalResult = xmlDoc.evaluate("//summary[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
               if (undefined == evalResult || "" == evalResult.stringValue) {
@@ -1776,22 +1783,25 @@ com.marklogic.widgets.defaulthtmlrenderer = {
                   }
                 }
               }
-              if (undefined != evalResult && null != evalResult && "" != evalResult.stringValue) {
+              if (undefined != evalResult && null != evalResult && undefined != evalResult.stringValue && "" != evalResult.stringValue) {
                 snippet = evalResult.stringValue;
               }
             }
           
+            manager.ctx.db.logger.debug("content currently: " + snippet);
             if (null == snippet) {
               // show XML tree structure as HTML
               //manager.ctx.db.logger.debug("defaultProcessor: No XML summary, building XML tree HTML output");
               
               // display tree of XML
+            manager.ctx.db.logger.debug("setting content to full XML doc as html");
               snippet = com.marklogic.widgets.searchhelper.xmltohtml(xmlDoc); // TODO
             }
             
             if (null == snippet) {
               snippet = result.content;
             }
+            manager.ctx.db.logger.debug("content finally: " + snippet);
           
             //resStr += "<div class='searchresults-result'><h3>" + result.index + ". " + title + "</h3>";
             //if (null != snippet) {
@@ -2111,13 +2121,17 @@ com.marklogic.widgets.searchresults.prototype.removeResultSelectionListener = fu
  * Adds a result processor object to this widget.
  * 
  * @param {string} name - Processor name reference
- * @param {function} matcher_func - Function to invoke to see if a particular result can be handled by this processor. Function passed a result object
+ * @param {function|json} matcher_func - Function to invoke to see if a particular result can be handled by this processor. Function passed a result object. - OR - JSON object containing all processor supported sections
  * @param {function} processor_func - Function to process the result to generate representative XHTML. Function passed a result object
  */
 com.marklogic.widgets.searchresults.prototype.addProcessor = function(name,matcher_func,processor_func) {
-  this.processors[name] = {matcher:matcher_func,processor:processor_func};
-  this.availableProcessors.push(name);
-  this.processorPriority.push(name);
+  if (undefined == processor_func && typeof(matcher_func) == "object") {
+    this.processors[name] = matcher_func
+  } else {
+    this.processors[name] = {matcher:matcher_func,processor:processor_func};
+    this.availableProcessors.push(name);
+    this.processorPriority.push(name);
+  }
 };
 
 /**

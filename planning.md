@@ -3,6 +3,7 @@
 ## Upcoming releases
 
 Targets for 1.4 (Feb 2014) - Theme: Visualisations
+ - BUG Widgets: searchbar - When contributing query as term query for structured search, if text blank need to send and-query not term-query("") - else nothing is returned!
  - IN PROGRESS Widgets: Search Results
   - IN PROGRESS Add support for pluggable rendering for areas of result pane:-
    - DONE all (as now)
