@@ -1,17 +1,32 @@
 # Development feature planning
 
 ## Upcoming releases
+  
+Targets for 1.6 (Apr 2014) - Theme: MLJS Ease of Use in the Browser
+ - Widgets: Workplace completion
+  - Basics
+   - drag/drop reordering of widgets working
+   - multiple layouts working
+   - Context configuration
+   - Page load actions
+   - Save function working
+   - Enable all widgets for Workplace
+   - Icons for widgets
+  - Widgets: Navigation widget
+   - One tab per Workplace in current app, sends to appropriate URL
+   - Share workplace via permissions
+   - Share workplace via URL
+    - Add this to My Workplaces option on non-owned workplace page load
+   - Edit limited to owner of workplace
+   - DEFERRED Allow workplaces to be kept instead in a drop down menu
+   - DEFERRED Menu Editor
+    - DEFERRED Also allow fixed tabs at start and end (list for each). E.g. Settings, Home, etc. for non-workplace dynamic pages - display text, url
 
-Targets for 1.4 (Feb 2014) - Theme: Visualisations
+Targets for 1.8 (May 2014) - Theme: Visualisations
  - BUG Widgets: searchbar - When contributing query as term query for structured search, if text blank need to send and-query not term-query("") - else nothing is returned!
+ - BUG Widgets: combined query - test against latest MarkLogic 7 build
  - IN PROGRESS Widgets: Search Results
-  - IN PROGRESS Add support for pluggable rendering for areas of result pane:-
-   - DONE all (as now)
-   - DONE overarching default search results layout abstraction
-   - DONE default search layout CSS
-   - DONE default result summary (short - snippeting or non snippeting)
-   - DONE existing results showing is screwed up
-   - DONE extracted metadata
+  - IN PROGRESS Improve support for pluggable rendering for areas of result pane:-
    - IN PROGRESS title
    - selection tickbox
    - IN PROGRESS actions (pluggable)
@@ -38,18 +53,14 @@ Targets for 1.4 (Feb 2014) - Theme: Visualisations
    - DEFERRED expanded result summary (controlled by action or global show detailed results setting)
    - Ability to globally show/hide named sections
    - IN PROGRESS Make it easier to add event handlers like click to navigate, view (as html via XSLT), download
-   - DONE Make using extracted metadata easier (getmeta function to fetch named meta element)
-   - DONE Reusable string generating calls on manager. E.g. title, summary, metadata (generates correct div tags and style links)
    - Allow passing of custom parameters to event handlers in addition to document uri
    - Externalise constraint name to display name (search option annotations on constraints) - constraintTitle function on manager
-  - DONE Add generic XML to XHTML support and CSS via XSLT transform in REST API
   - Docs: Create mock sample search pages
    - wordpress like demo summary view for documents
    - google like summary, with similar stories indented
    - tabular view - http://www.webdesignerdepot.com/2010/02/showcase-of-great-web-app-interfaces/
    - google images like summary view, and detail on click
   - Widgets: Explorer: Save URI to/from IRI mapping prior to calling document facets fetch (currently based on name substring - dangerous)
-  - DONE Core: Add metadata extraction support to search options and search context - extract() method on context?
   - Allow rendering with other layouts rather than just a simple column
    - Widgets: 2 column across-first cell rendering layout
    - Widgets: 3 column across-first cell rendering layout
@@ -58,24 +69,6 @@ Targets for 1.4 (Feb 2014) - Theme: Visualisations
   - Default Rendering improvements
    - hierarchical XML viewing (down three levels?)
    - IN PROGRESS triple support (with summary?)
- - Workplace improvements
-  - Basics
-   - drag/drop reordering of widgets working
-   - multiple layouts working
-   - Context configuration
-   - Page load actions
-   - Save function working
-   - Enable all widgets for Workplace
-   - Icons for widgets
-  - Widgets: Navigation widget
-   - One tab per Workplace in current app, sends to appropriate URL
-   - Share workplace via permissions
-   - Share workplace via URL
-    - Add this to My Workplaces option on non-owned workplace page load
-   - Edit limited to owner of workplace
-   - DEFERRED Allow workplaces to be kept instead in a drop down menu
-   - DEFERRED Menu Editor
-    - DEFERRED Also allow fixed tabs at start and end (list for each). E.g. Settings, Home, etc. for non-workplace dynamic pages - display text, url
  - Widgets: Document Collector dropbox (also supports the searchresults document title, result summary plugins)
  - Widgets: search bar: Suppress facets, sorting shown within text query bar
  - Widgets: search bar: Support boolean AND, OR, ( and ), NOT
@@ -248,7 +241,7 @@ Floating Targets
     - Default REST Server search options set up (constraints)
    - Refactor: Move widgets' use of 960.css out in to a Layout instance, as config options on the assignment itself (not widget or layout)
 
-Targets for 1.5 (Mar 2014) Interim Release
+Targets for 1.9 (Jun 2014) Interim Release - Theme: Documentation
  - Missed 1.2 (Dec 2013) - Medium Priority - targets
   - Docs: Tutorials
    - (Emil Zegers) RDB2RDF quick start tutorial
@@ -377,7 +370,8 @@ Targets for 1.5 (Mar 2014) Interim Release
    - Widgets: DLS add retention rule widget
    - DONE Widgets: DLS declare search results as record widget
  
-Targets for 1.6 (Apr 2014) - Lifecycle
+Targets for 2.0 (Jul 2014) - Theme: Lifecycle
+ - MarkLogic version 8 support completed
  - Widgets: HTML content editing widget (new doc, and existing document with specified element (E.g. body, comments) and configuration for what is permissable as content)
  - Widgets: Situational awareness and search renderer app (from BF sim)
  - Widgets: Table - allow binding of JSON search results to jQuery table (for example)
@@ -389,7 +383,8 @@ Targets for 1.6 (Apr 2014) - Lifecycle
  - Widgets: (multi) Upload progress bar
  - Test: prototype.js browser AJAX binding
  
-Targets for 1.7 (May 2014) - Interim Release
+Targets for 2.1 (Aug 2014) Interim Release - Theme: Ease of migration to MLJS
+ - MarkLogic version 8 fixes and additions
  - IN PROGRESS NodeJS: Node.js tests for all functionality now in core MLJS
   - DONE Convert all assert usage to  assert = require('chai').assert (better exception handling)
   - DONE Once assert changed, modify tests to remove skipped tests
@@ -1015,3 +1010,23 @@ Targets for 1.2 (Dec 2013)
  - DONE Bug scanning/regression testing check
   - DONE BUG Widgets: Default Search Renderer does not check for format="xml"!!! Assumes JSON even when format is specified
   - DONE Widgets: searchresults add default renderer for documents containing triples (sem-triples parser)
+
+Targets for 1.4 (Mar 2014) - Theme: Documentation and Tidying up
+ - DONE Updated tutorials
+ - DONE Use more effective jsdoc theme (Cerulean from docstrap)
+ - DONE added one day introduction course material (in tutorials)
+ - DONE Widgets: Search Results: add support for 'advanced renderers' - render sections of search results summary. E.g. title, snippet/summary, related docs, thumbnail etc.
+  - DONE all (as now)
+  - DONE overarching default search results layout abstraction
+  - DONE default search layout CSS
+  - DONE default result summary (short - snippeting or non snippeting)
+  - DONE BUG: existing results showing is screwed up (renders nothing) - FIX: was parsing JSON and XML incorrectly in mljs-xhr2.js
+  - DONE metadata view section below search results by default
+  - DONE Reusable string generating calls on manager. E.g. title, summary, metadata (generates correct div tags and style links)
+  - DONE Test this against existing 'old style' renderers
+  - DONE Test mixing custom advanced renderers with default section renderers
+ - DONE Core: Search context
+  - DONE Core: Add metadata extraction support to search options and search context - extract() method on context?
+  - DONE Core: Add generic XML to XHTML support and CSS via XSLT transform in REST API
+ - DONE BUG Widgets: address bar: generates blank point - google geocode API has changed param names for lat and lon
+ - DONE BUG build script: Ensured mljsrest project is updated with every build

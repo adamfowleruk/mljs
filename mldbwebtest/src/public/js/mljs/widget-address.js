@@ -106,11 +106,13 @@ com.marklogic.widgets.addressbar.prototype._dosearch = function() {
     console.log("Results: " + JSON.stringify(results));
     if (status == google.maps.GeocoderStatus.OK) {
       var pos = results[0].geometry.location;
-      console.log("Results: pos: " + JSON.stringify(pos) + " := lat: " + pos.d + ", lon: " + pos.e);
+      var lat = pos.d || pos.k;
+      var lon = pos.e || pos.A;
+      console.log("Results: pos: " + JSON.stringify(pos) + " := lat: " + lat + ", lon: " + lon);
       
       // contribute ourselves to the search context
       // TODO CONVERT FROM EPSG900913 LatLng to EPSG4326/WGS84
-      var circle = self._qb.circleDef(pos.d,pos.e,self._radius,self._radiusMeasure);
+      var circle = self._qb.circleDef(lat,lon,self._radius,self._radiusMeasure);
       //self._ctx.contributeStructuredQuery(self.container, term);
       self._geo.contributeArea(self.container,circle);
     } else {

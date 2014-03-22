@@ -912,8 +912,8 @@ mljs.prototype.get = function(docuri,options_opt,callback_opt) {
     path: '/v1/documents?uri=' + encodeURI(docuri) /* + "&format=json"*/,
     method: 'GET'
   };
-  if (undefined != options_opt) {
-    options.path = this._applyTransformProperties(options.path);
+  if (undefined != options_opt && undefined != options_opt.path) {
+    options.path = this._applyTransformProperties(options_opt.path);
   }
   
   this.__doreq("GET",options,null,function (result) {
@@ -4179,25 +4179,27 @@ mljs.prototype.options.prototype.geoElementConstraint = function(constraint_name
   if (undefined == element) {
     if (undefined == ns_opt) {
       element = parent;
-      parent = constraint_name_opt;
+      parent = constraint_name;
       constraint_name_opt = undefined;
     } else {
       element = ns_opt;
       ns_opt = parent;
-      parent = constraint_name_opt;
+      parent = constraint_name;
       constraint_name_opt = undefined;
     }
   }
+  /*
   if (undefined == parent) {
-    constraint_name_opt = parent;
+    constraint_name = parent;
     parent = ns_opt;
     ns_opt = undefined;
   }
   if (undefined == constraint_name_opt) {
     constraint_name_opt = element;
-  }
-  var con = { name: constraint_name_opt, "geo-elem": {
-    parent: {ns: ns_opt || this.defaults.namespace, name: parent, element: {ns: ns_el_opt || this.defaults.namespace, name: element}}
+  }*/
+  var con = { name: constraint_name, "geo-elem": {
+    parent: {ns: ns_opt || this.defaults.namespace, name: parent},
+    element: {ns: ns_el_opt || this.defaults.namespace, name: element}
   }};
   if (undefined != annotation_opt) {
     if ("string" == typeof(annotation_opt)) {
@@ -4586,19 +4588,32 @@ mljs.prototype.options.prototype.raw = function() {
 
 /**
  * Uses default snippeting document snippeting mode.
+ * 
+ * NB To configure default snippeting function use snippet(null,null,{"max-matches": 10}) or similar
  *
  * {@link http://docs.marklogic.com/guide/rest-dev/appendixa#id_48012}
+ * 
+ * @param {string} ns_opt - The optional XQuery namespace of the snippeting module to invoke
+ * @param {string} at_opt - The relative location in the REST modules database to find the snippeting module to invoke
+ * @param {json} additional_opt - Map containing additional properties. E.g. "preferred-elements" or "max-matches"
  */
-mljs.prototype.options.prototype.snippet = function(preferredElements_opt,maxMatches_opt) {
+mljs.prototype.options.prototype.snippet = function(ns_opt,at_opt,additional_opt) {
   this._includeSearchDefaults();
   this.options["transform-results"].apply = "snippet";
-  this.options["transform-results"].ns = undefined;
-  this.options["transform-results"].at = undefined;
+  this.options["transform-results"].ns = ns_opt;
+  this.options["transform-results"].at = at_opt;
+  /*
   if (undefined != preferredElements_opt) {
     this.options["transform-results"]["preferred-elements"] = preferredElements_opt;
   }
   if (undefined != maxMatches_opt) {
     this.options["transform-results"]["max-matches"] = maxMatches_opt;
+  }
+  */
+  if (undefined != additional_opt) {
+    for (var p in additional_opt) {
+      this.options["transform-results"][p] = additional_opt[p];
+    }
   }
   return this;
 };
@@ -4783,7 +4798,7 @@ mljs.prototype.options.prototype.tuples = function(name) { // TODO handle infini
  * Creates a values definition for returning lexicon values
  * 
  * @param {string} name - The name of the values configuration to create
- * @param {string|JSON} el - The json element for a co-occurence. Either an element/json key name (string) or a full REST API range type object (JSON)You can specify any number of these as required 
+ * @param {string|JSON} el - The json element for a co-occurence. Either an element/json key name (string) or a full REST API range type object (JSON). You can specify any number of these as required 
  */
 mljs.prototype.options.prototype.values = function(name) {
   var values = {name: name,range: new Array()};
@@ -6529,9 +6544,60 @@ mljs.prototype.searchcontext.prototype.reset = function() {
   this.simpleQueryPublisher.publish(this.defaultQuery);
 };
 
+/**
+ * Returns a single metadata field value for the specified result and field.
+ * 
+ * @param {json} result - REST API single search result
+ * @param {string} fieldName - The field name to extract
+ */
+mljs.prototype.searchcontext.prototype.getMetadataValue = function(result,fieldName) {
+  if (undefined == result.metadata) return null;
+  for (var metai = 0, maxi = result.metadata.length, meta;metai < maxi;metai++) {
+    meta = result.metadata[metai];
+    //console.log("  meta instance: " + metai);
+    for (var p in meta) {
+      //console.log("    found param: " + param);
+      // find our one
+      // NB may be multiple of them - TODO support more than just last found
+      if (p == fieldName) {
+        //console.log("      found latsrc constraint param");
+        return meta[p];
+                  
+      }
+    }
+  }
+  return null;
+};
 
-
-
+/**
+ * Returns all metadata field values for the specified result and field.
+ * 
+ * @param {json} result - REST API single search result
+ * @param {string} fieldName - The field name to extract values for
+ */
+mljs.prototype.searchcontext.prototype.getMetadataValues = function(result,fieldName) {
+  if (undefined == result.metadata) return null;
+  var values = new Array();
+  for (var metai = 0, maxi = result.metadata.length, meta;metai < maxi;metai++) {
+    meta = result.metadata[metai];
+    //console.log("  meta instance: " + metai);
+    for (var p in meta) {
+      //console.log("    found param: " + param);
+      // find our one
+      // NB may be multiple of them - TODO support more than just last found
+      if (p == fieldName) {
+        //console.log("      found latsrc constraint param");
+        //return meta[p];
+        values.push(meta[p]);
+      }
+    }
+  }
+  if (0 == values.length) {
+    return null;
+  } else {
+    return values;
+  }
+};
 
 
 
