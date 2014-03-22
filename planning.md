@@ -1,40 +1,66 @@
 # Development feature planning
 
 ## Upcoming releases
+  
+Targets for 1.6 (Apr 2014) - Theme: MLJS Ease of Use in the Browser
+ - Widgets: Workplace completion
+  - Basics
+   - drag/drop reordering of widgets working
+   - multiple layouts working
+   - Context configuration
+   - Page load actions
+   - Save function working
+   - Enable all widgets for Workplace
+   - Icons for widgets
+  - Widgets: Navigation widget
+   - One tab per Workplace in current app, sends to appropriate URL
+   - Share workplace via permissions
+   - Share workplace via URL
+    - Add this to My Workplaces option on non-owned workplace page load
+   - Edit limited to owner of workplace
+   - DEFERRED Allow workplaces to be kept instead in a drop down menu
+   - DEFERRED Menu Editor
+    - DEFERRED Also allow fixed tabs at start and end (list for each). E.g. Settings, Home, etc. for non-workplace dynamic pages - display text, url
 
-Targets for 1.4 (Feb 2014) - Theme: Visualisations
- - Widgets: Search Results
-  - IN PROGRESS Add support for pluggable rendering for areas of result pane:-
-   - DONE all (as now)
-   - title
-   - result summary (short, snippeting or non snippeting)
-   - expanded result summary (controlled by action or global show detailed results setting)
-   - thumbnail(s) on right hand side with navigation if multiple
-   - thumbnail caption
+Targets for 1.8 (May 2014) - Theme: Visualisations
+ - BUG Widgets: searchbar - When contributing query as term query for structured search, if text blank need to send and-query not term-query("") - else nothing is returned!
+ - BUG Widgets: combined query - test against latest MarkLogic 7 build
+ - IN PROGRESS Widgets: Search Results
+  - IN PROGRESS Improve support for pluggable rendering for areas of result pane:-
+   - IN PROGRESS title
+   - selection tickbox
+   - IN PROGRESS actions (pluggable)
+    - show more detail (expanded result summary)
+    - show less detail (default short result summary)
+    - show similar (text or thumbnail)
+    - show related/linked subjects/documents (navigable diagram with home button, embedded)
+    - popup preview (popup pain)
+    - popup delete
+    - go edit (goto page - edit)
+    - go all details (goto page - view)
+    - go explore (goto page - semantic data explorer)
+    - DONE new-window view (download - /v1/documents)
+    - DONE new-window view (pretty xml - /v1/documents with transform)
    - similar documents (text or thumbnail) under actions bar, hidden by default
    - related documents (text or thumbnail) under actions bar, hidden by default
-   - facts (semantic triples)
-   - extracted metadata
-   - selection tickbox
+   - related facts (semantic triples)
+   - thumbnail(s) on right hand side with navigation if multiple
+    - DEFERRED preview to occur on hover of thumbnail, if supported
+    - thumbnail caption
    - latest comments (similar to related documents)
     - add comment support
-   - actions (pluggable)
-    - view more (expanded result summary)
-    - view less (default short result summary)
-    - edit (goto page - edit)
-    - view (goto page - view)
-    - similar (text or thumbnail)
-    - linked documents (text or thumbnail)
-    - preview (popup pain)
-    - delete
-    - explore (goto page - semantic data explorer)
+    - ratings support in same area
+   - DEFERRED expanded result summary (controlled by action or global show detailed results setting)
    - Ability to globally show/hide named sections
+   - IN PROGRESS Make it easier to add event handlers like click to navigate, view (as html via XSLT), download
+   - Allow passing of custom parameters to event handlers in addition to document uri
+   - Externalise constraint name to display name (search option annotations on constraints) - constraintTitle function on manager
   - Docs: Create mock sample search pages
    - wordpress like demo summary view for documents
    - google like summary, with similar stories indented
    - tabular view - http://www.webdesignerdepot.com/2010/02/showcase-of-great-web-app-interfaces/
    - google images like summary view, and detail on click
-  - Core: Add metadata extraction support to search options and search context - extract() method on context?
+  - Widgets: Explorer: Save URI to/from IRI mapping prior to calling document facets fetch (currently based on name substring - dangerous)
   - Allow rendering with other layouts rather than just a simple column
    - Widgets: 2 column across-first cell rendering layout
    - Widgets: 3 column across-first cell rendering layout
@@ -45,11 +71,20 @@ Targets for 1.4 (Feb 2014) - Theme: Visualisations
    - IN PROGRESS triple support (with summary?)
  - Widgets: Document Collector dropbox (also supports the searchresults document title, result summary plugins)
  - Widgets: search bar: Suppress facets, sorting shown within text query bar
+ - Widgets: search bar: Support boolean AND, OR, ( and ), NOT
  - Widgets: save search
  - Widgets: searchsorter: OOTB support for newest first/oldest first based on MarkLogic created and last modified dates
  - Widgets: searchperpage: Number of results to show per page 25 | 50 | 100 for example
  - Widgets: layouts to support collapsable zones (like springer images search modification left hand column)
  - Docs: Update sample apps to make best use of search presentation features
+ - BUG: Core: version being called multiple times per page
+ - Widgets: MLJS App wide settings in DB, generated from /mljs/app.json on webapp directory (E.g. for new application)
+ - Core: searchcontext
+  - Rework how facets are contributed - can't override at the moment, only contribute - causes facets to reappear
+  - Allow AND or OR queries for text queries by default (defaults to AND at the moment)
+  - Support for non exact matches (query options? query itself?) - E.g. wildcards
+ - Widgets: OpenLayers
+  - Support multiple result types (series) from same searchcontext. E.g. matcher() and series() functions (use same pattern as searchresults for simplicity)
  - Missed 1.2 (Dec 2013) - High Priority - targets
   - IN PROGRESS Widgets: Data Explorer improvements
    - DONE: Widgets: Data explorer widget shows "Loading..." when attempting to draw a link to an entity that already exists in the visible graph. Should just draw an arrow.
@@ -161,6 +196,7 @@ Floating Targets
  - SMA
   - High:-
    - Widgets: Advanced search editing - Support for boolean logic, word and phrase matches, NEAR searches, constraint drop downs
+    - DONE Basic named constraint mode (AND'ed text query of all, contributed as facets)
     - Parsing existing text query
     - Add/remove clause buttons
     - Clause types: Boolean: AND(0+), OR(0+), NEAR(2) with number, NOT(0+)
@@ -185,11 +221,6 @@ Floating Targets
     - DEFERRED Facebook messages
     - DEFERRED Facebook profiles
   - Medium:-
-   - Widgets: Workplace: Dynamic multi pages for MLJS Workplace (displayed as tabs)
-   - Widgets: Navigation widget
-    - One tab per Workplace in current app, sends to appropriate URL
-    - DEFERRED Allow workplaces to be kept instead in a drop down menu
-    - Also allow fixed tabs at start and end (list for each). E.g. Settings, Home, etc. for non-workplace dynamic pages - display text, url
    - Widgets: List my saved searches
    - Widgets: alert set up
     - Widgets: New/Edit alert - name, action type, action settings, pre or post commit
@@ -210,7 +241,7 @@ Floating Targets
     - Default REST Server search options set up (constraints)
    - Refactor: Move widgets' use of 960.css out in to a Layout instance, as config options on the assignment itself (not widget or layout)
 
-Targets for 1.5 (Mar 2014) Interim Release
+Targets for 1.9 (Jun 2014) Interim Release - Theme: Documentation
  - Missed 1.2 (Dec 2013) - Medium Priority - targets
   - Docs: Tutorials
    - (Emil Zegers) RDB2RDF quick start tutorial
@@ -339,7 +370,8 @@ Targets for 1.5 (Mar 2014) Interim Release
    - Widgets: DLS add retention rule widget
    - DONE Widgets: DLS declare search results as record widget
  
-Targets for 1.6 (Apr 2014) - Lifecycle
+Targets for 2.0 (Jul 2014) - Theme: Lifecycle
+ - MarkLogic version 8 support completed
  - Widgets: HTML content editing widget (new doc, and existing document with specified element (E.g. body, comments) and configuration for what is permissable as content)
  - Widgets: Situational awareness and search renderer app (from BF sim)
  - Widgets: Table - allow binding of JSON search results to jQuery table (for example)
@@ -351,7 +383,8 @@ Targets for 1.6 (Apr 2014) - Lifecycle
  - Widgets: (multi) Upload progress bar
  - Test: prototype.js browser AJAX binding
  
-Targets for 1.7 (May 2014) - Interim Release
+Targets for 2.1 (Aug 2014) Interim Release - Theme: Ease of migration to MLJS
+ - MarkLogic version 8 fixes and additions
  - IN PROGRESS NodeJS: Node.js tests for all functionality now in core MLJS
   - DONE Convert all assert usage to  assert = require('chai').assert (better exception handling)
   - DONE Once assert changed, modify tests to remove skipped tests
@@ -977,3 +1010,23 @@ Targets for 1.2 (Dec 2013)
  - DONE Bug scanning/regression testing check
   - DONE BUG Widgets: Default Search Renderer does not check for format="xml"!!! Assumes JSON even when format is specified
   - DONE Widgets: searchresults add default renderer for documents containing triples (sem-triples parser)
+
+Targets for 1.4 (Mar 2014) - Theme: Documentation and Tidying up
+ - DONE Updated tutorials
+ - DONE Use more effective jsdoc theme (Cerulean from docstrap)
+ - DONE added one day introduction course material (in tutorials)
+ - DONE Widgets: Search Results: add support for 'advanced renderers' - render sections of search results summary. E.g. title, snippet/summary, related docs, thumbnail etc.
+  - DONE all (as now)
+  - DONE overarching default search results layout abstraction
+  - DONE default search layout CSS
+  - DONE default result summary (short - snippeting or non snippeting)
+  - DONE BUG: existing results showing is screwed up (renders nothing) - FIX: was parsing JSON and XML incorrectly in mljs-xhr2.js
+  - DONE metadata view section below search results by default
+  - DONE Reusable string generating calls on manager. E.g. title, summary, metadata (generates correct div tags and style links)
+  - DONE Test this against existing 'old style' renderers
+  - DONE Test mixing custom advanced renderers with default section renderers
+ - DONE Core: Search context
+  - DONE Core: Add metadata extraction support to search options and search context - extract() method on context?
+  - DONE Core: Add generic XML to XHTML support and CSS via XSLT transform in REST API
+ - DONE BUG Widgets: address bar: generates blank point - google geocode API has changed param names for lat and lon
+ - DONE BUG build script: Ensured mljsrest project is updated with every build

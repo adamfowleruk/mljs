@@ -94,7 +94,7 @@ com.marklogic.widgets.cooccurence.prototype.updateValues = function(values) {
   if ("boolean" == typeof(values)) {
     return;
   }
-  if (null == this._displayTuple || this._displayTuple == values["values-response"].name) {
+  if (null == this._displayTuple || (undefined != values["values-response"] && this._displayTuple == values["values-response"].name)) {
     this.values = values;
     
     this._refresh();

@@ -21,6 +21,7 @@ declare option xdmp:mapping "false";
 
 <div xmlns="http://www.w3.org/1999/xhtml" class="mldbtest search">
 <link rel="stylesheet" type="text/css" href="/css/mljs/widgets.css" />
+<link rel="stylesheet" type="text/css" href="/css/mljs/widget-search.css" />
 <script type="text/javascript" src="/js/mljs/mljs.js"></script>
 <script type="text/javascript" src="/js/mljs/mljs-xhr2.js"></script>
 

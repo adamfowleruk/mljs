@@ -59,6 +59,8 @@ J=./build-lib/jsmin
 
 ./cpjs.sh
 
+./updaterest.sh
+
 cp $L/*.js $N/lib/
 cp mljs.js $RJ/
 cp mljs.js $N/

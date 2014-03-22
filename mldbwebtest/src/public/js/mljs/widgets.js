@@ -179,6 +179,9 @@ function insert(array, begin, end, v)
 
 
 function jsonExtractValue(json,namePath) {
+  if (undefined == json) {
+    return null;
+  }
   var paths = namePath.split(".");
   var obj = json;
   for (var i = 0;undefined != obj && i < paths.length;i++) {
@@ -190,21 +193,36 @@ function jsonExtractValue(json,namePath) {
 
 function xmlExtractValue(xmldoc,namePath) {
   // construct and apply XPath from namePath
-  var xpath = "/" + namePath.replace(/\./g,"/");
-  xpath = xpath.replace(/\/.*:/g,"/*:"); // replace all namespaces with global namespace - temporary hack
+  //var xpath = "/" + namePath.replace(/\./g,"/");
+  var xpath = namePath;
+  //xpath = xpath.replace(/\/.*:/g,"/*:"); // replace all namespaces with global namespace - temporary hack
+  console.log("Final XPath now: " + xpath);
   
   // TODO apply xpath to extract document value
   var myfunc = function(prefix) {
-    return null; // assume always default namespace
+	      if (prefix === "jb") {
+    	    return "http://marklogic.com/xdmp/json/basic";
+	      } else if (prefix === "i") {
+    	    return "http://www.marklogic.com/intel/intercept";
+	      } else {
+	        return null;
+	      }
+    //return null; // assume always default namespace
     // TODO support namespaces globally somehow - global context? page context?
   };
   
   var evalResult = xmldoc.evaluate(xpath,xmldoc,myfunc,2,null); // 2=string
   
-  return evalResult;
+  if (null == evalResult) {
+    return null;
+  }
+  return evalResult.stringValue;
 };
 
 function extractValue(jsonOrXml,namePath) {
+  if (undefined == jsonOrXml) {
+    return null;
+  }
   if ('object' == typeof(jsonOrXml) && undefined == jsonOrXml.nodeType) {
     return jsonExtractValue(jsonOrXml,namePath);
   } else if ('string' == typeof(jsonOrXml)) {

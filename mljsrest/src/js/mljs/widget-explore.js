@@ -506,13 +506,14 @@ com.marklogic.widgets.graphexplorer.prototype._drawSubjectDetail = function(subj
   var loadingContent = false;
   
   if ("http://marklogic.com/semantics/ontology/Document" == baseType) {
-    var facets = this.facetCache[subjectIri];
+    var uri = subjectIri.substring(48); // TODO get from URI property
+    var facets = this.facetCache[uri];
     if (null == facets) {
       mljs.defaultconnection.logger.debug("PROCESSING ML DOCUMENT SUBJECT: " + subjectIri);
       
       loadingContent = true;
       
-      this.documentContext.getFacets(subjectIri,this.searchOptionsName); // TODO in future may change this to the URI property rather than relying on the URI as the subjectIri (incase many entities link to the same doc)
+      this.documentContext.getFacets(uri,this.searchOptionsName); // TODO in future may change this to the URI property rather than relying on the URI as the subjectIri (incase many entities link to the same doc)
     } else {
       for (facet in facets) {
         var values = facets[facet].facetValues;
@@ -821,10 +822,22 @@ com.marklogic.widgets.graphexplorer.prototype.updateDocumentFacets = function(re
   // TODO for each result, lookup MLDocument node with the docuri predicate matching each docuri of the result
   // TODO SHOULD be a single document result as we're only ever looking up 1 doc at a time by URI
   // TODO show facet information as properties of the single doc (as each result set only contains 1 document)
+  var uri = result.docuri;
+  console.log("graphexplorer.updateDocumentFacets: URI: " + uri);
+  this.facetCache[uri] = result.facets;
   
-  this.facetCache[result.docuri] = result.facets;
-  
-  this._drawSubjectDetail(result.docuri,this.propertyCache[result.docuri]); // TODO replace this with lookup of subjects related to the same document - possible with multiple document entities
+  var iri = "http://marklogic.com/semantics/ontology/Document" + uri; // TODO replace with URI -> subject cache
+  var flen = 0;
+  if (undefined != result.facets) {
+    flen = result.facets.length;
+  }
+  console.log("graphexplorer.updateDocumentFacets: facet count: " + flen);
+  var plen = 0;
+  if (undefined != this.propertyCache[iri]) {
+    plen = this.propertyCache[iri].length;
+  }
+  console.log("graphexplorer.updateDocumentFacets: prop count: " + plen);
+  this._drawSubjectDetail(iri,this.propertyCache[iri]); // TODO replace this with lookup of subjects related to the same document - possible with multiple document entities
 };
 
 com.marklogic.widgets.graphexplorer.prototype._dropped = function(propelid) {

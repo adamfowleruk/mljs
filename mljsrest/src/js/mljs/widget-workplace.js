@@ -57,6 +57,11 @@ com.marklogic.widgets.workplace.prototype._init = function() {
   };
 };
 
+/**
+ * Specifies whether this workplace page widget is editable. Default is false.
+ * 
+ * @param {boolean} editme - Is this workplace editable?
+ */
 com.marklogic.widgets.workplace.prototype.editable = function(editme) {
   if (undefined == editme) {
     editme = true;
@@ -71,13 +76,21 @@ com.marklogic.widgets.workplace.prototype.editable = function(editme) {
   }
 };
 
+/**
+ * Loads the specified configuration
+ * 
+ * @param {json|string} jsonOrString - The JSON config object, or json string, representing the page configuration
+ */
 com.marklogic.widgets.workplace.prototype.loadPage = function(jsonOrString) {
   this._workplaceContext.loadPage(jsonOrString);
 };
 
+/**
+ * Redraws this workplace based on the configuration in the specified workplace context object.
+ * 
+ * @param {workplacecontext} context - The Workplace context holding the configuration to render.
+ */
 com.marklogic.widgets.workplace.prototype.updateWorkplace = function(context) {
-  //var json = jsonOrString; // TODO lookup json config if nothing or path specified
-  
   var json = this._workplaceContext.getJson();
   
   // load top level layout for this page (or panel we are managing, at least)
@@ -156,6 +169,11 @@ com.marklogic.widgets.workplace.prototype.updateWorkplace = function(context) {
   mljs.defaultconnection.logger.debug("finished loading page");
 };
 
+/**
+ * Returns the specified json configuration named object from the workplace context. Used by page JavaScript to override default widget settings.
+ * 
+ * @param {string} name - The Widget name from the configuration object. E.g. searchbar1
+ */
 com.marklogic.widgets.workplace.prototype.getContextObject = function(name) {
   return this._contexts[name];
 };
@@ -201,9 +219,15 @@ com.marklogic.widgets.workplace.prototype._createWidget = function(type,elementi
 
 // thinthick layout
 com.marklogic.widgets.layouts = {};
+/**
+ * Layout helper object
+ * @singleton
+ */
 com.marklogic.widgets.layouts.helper = {};
 /**
  * Helper function to prune admin widgets out of a layout. Used to generate saveable position data for workplace pages
+ * 
+ * @param {Array} assignmentArray - The assignment array to prune admin widgets from
  */
 com.marklogic.widgets.layouts.helper.prune = function(assignmentArray) {
   // assume if widget name has a leading underscore, it's an admin widget. E.g. _dropzone1234
@@ -215,6 +239,13 @@ com.marklogic.widgets.layouts.helper.prune = function(assignmentArray) {
   // DO NOT alter assignments in the original array passed in as an argument
 };
 
+/**
+ * Applies generic layout mixins to the specified layout instance.
+ * TODO page describing this mixin API
+ * @param {layout} layoutInstance - The layout to apply mixin functions to
+ * @param {string} container - The HTML ID of the container object for this layout
+ * @param {Array} zones - An array of zone names from the JSON workplace configuration object
+ */
 com.marklogic.widgets.layouts.helper.extendLayout = function(layoutInstance,container,zones) {
   // mixin generic parameters and functions
   var self = layoutInstance;
@@ -231,6 +262,9 @@ com.marklogic.widgets.layouts.helper.extendLayout = function(layoutInstance,cont
   //self.assignments = new Array(); // [widgetname] => assignment json, with elementid for element linked to - WHY???
   
   // new
+  /**
+   * Layout mixin method to return the contained assignment by name
+   */
   self.getAssignmentByWidgetName = function(widgetname) {
     return self._overZones(function(item) {
           if (undefined != item && "object" == typeof(item)) {
@@ -340,7 +374,7 @@ com.marklogic.widgets.layouts.helper.extendLayout = function(layoutInstance,cont
     return z[index];
   };
   
-  // TODO
+  // TODO generate the JSON assignment config
   self.generateAssignments = function() {
     // export assignments we've been managing
     // DO NOT prune - this is done by the caller only (E.g. using the prune() helper method)
@@ -589,7 +623,12 @@ com.marklogic.widgets.layouts.helper.extendLayout = function(layoutInstance,cont
 
 
 
-
+/**
+ * A thin thick layout. 960.css aware. Uses container_4 for the left (thin) side, and container_8 for the right (thick) side.
+ * @constructor
+ * 
+ * @param {string} container - The HTML ID of the container to render this layout within
+ */
 com.marklogic.widgets.layouts.thinthick = function(container) {
   com.marklogic.widgets.layouts.helper.extendLayout(this,container,["A","B"]);
   
@@ -610,6 +649,12 @@ com.marklogic.widgets.layouts.thinthick.prototype._init = function() {
 
 
 
+/**
+ * A thick thin layout. 960.css aware. Uses container_8 for the left (thick) side, and container_4 for the right (thin) side.
+ * @constructor
+ * 
+ * @param {string} container - The HTML ID of the container to render this layout within
+ */
 com.marklogic.widgets.layouts.thickthin = function(container) {
   com.marklogic.widgets.layouts.helper.extendLayout(this,container,["A","B"]);
   
@@ -632,6 +677,12 @@ com.marklogic.widgets.layouts.thickthin.prototype._init = function() {
 
 
 
+/**
+ * A single column layout. 960.css aware. Uses container_12 from 960.css.
+ * @constructor
+ * 
+ * @param {string} container - The HTML ID of the container to render this layout within
+ */
 com.marklogic.widgets.layouts.column = function(container) {
   com.marklogic.widgets.layouts.helper.extendLayout(this,container,["A"]);
   
@@ -656,6 +707,10 @@ com.marklogic.widgets.layouts.column.prototype._init = function() {
 
 // ACTIONS
 com.marklogic.widgets.actions = {};
+/**
+ * Holds configuration for a JavaScript generic method call action. Used on page load/unload only. (Not related to a searchresult action bar)
+ * @constructor
+ */
 com.marklogic.widgets.actions.javascript = function() {
   this._config = {
     targetObject: null,
@@ -664,14 +719,25 @@ com.marklogic.widgets.actions.javascript = function() {
   };
 };
 
+/**
+ * Returns the Workplace configuration definition object
+ */
 com.marklogic.widgets.actions.javascript.getConfigurationDefinition = function() {
   // TODO config definition
 };
 
+/**
+ * Sets the workplace widget instance configuration
+ */
 com.marklogic.widgets.actions.javascript.prototype.setConfiguration = function(config) {
   this._config = config;
 };
 
+/**
+ * Executes this action
+ * 
+ * @param {object} executionContext - The execution context. Holds environment configuration for this action.
+ */
 com.marklogic.widgets.actions.javascript.prototype.execute = function(executionContext) {
   if ((null == this._config.targetObject) || (null == this._config.methodName)) {
     return {executed: false, details: "targetObject or methodName are null"};
@@ -761,23 +827,46 @@ com.marklogic.widgets.workplacecontext.prototype._addWidgetName = function(short
   } else {
     throw new TypeError("shortname: " + shortname + " not a valid widget short name - no number at end of name.");
   }
-}
+};
 
+/**
+ * Reverts all configuration changes to the last saved JSON configuration
+ */
 com.marklogic.widgets.workplacecontext.prototype.revert = function() {
   this._json = this._lastSaved;
 };
 
+/**
+ * Saves this configuration, invoking the callback afterwards
+ * 
+ * @param {function} callback - The callback function to invoke after save
+ */
 com.marklogic.widgets.workplacecontext.prototype.save = function(callback) {
   // TODO
 };
 
+/**
+ * Returns the JSON configuration managed by this context
+ */
 com.marklogic.widgets.workplacecontext.prototype.getJson = function() {
   return this._json; // DO NOT EDIT the returned JSON - use context functions only
 };
 
+/**
+ * Returns a summary for this JSON configuration object
+ */
 com.marklogic.widgets.workplacecontext.prototype.getSummary = function() {
   return {title: this._json.title,urls: this._json.urls,layout: this._json.layout,shared:this._json.shared};
-}
+};
+
+/**
+ * Sets the summary for this JSON configuration object
+ * 
+ * @param {string} title - The title of this page
+ * @param {Array} urls - A string array containing matching URLs for this page in the application
+ * @param {string} layout - The fully qualified name of the Workplace layout to use
+ * @param {boolean} shared - Whether this layout is intended to be shared with other users
+ */
 com.marklogic.widgets.workplacecontext.prototype.setSummary = function(title, urls, layout,shared) {
   this._json.title = title;
   this._json.urls = urls;
@@ -785,10 +874,20 @@ com.marklogic.widgets.workplacecontext.prototype.setSummary = function(title, ur
   this._json.shared = shared;
 };
 
+/**
+ * Returns all widget configuration
+ */
 com.marklogic.widgets.workplacecontext.prototype.getWidgets = function() {
   return this._json.widgets;
 };
 
+/**
+ * Adds a widget to this configuration
+ * 
+ * @param {string} name - The configuration name of the widget. E.g. searchbar1
+ * @param {string} type - The fully qualified widget class name to create
+ * @param {json} config - The JSON configuration object for this widget
+ */
 com.marklogic.widgets.workplacecontext.prototype.addWidget = function(name,type,config) {
   var wgt = {widget: name, type: type, config: config};
   this._addWidgetName(name);
@@ -796,6 +895,11 @@ com.marklogic.widgets.workplacecontext.prototype.addWidget = function(name,type,
   return wgt;
 };
 
+/**
+ * Removes a named widget from this configuration
+ * 
+ * @param {string} name - The configuration name of the widget. E.g. searchbar1
+ */
 com.marklogic.widgets.workplacecontext.prototype.removeWidget = function(name) {
   var wgts = [];
   for (var i = 0;i < this._json.widgets.length;i++) {
@@ -808,14 +912,29 @@ com.marklogic.widgets.workplacecontext.prototype.removeWidget = function(name) {
   this._json.widgets = wgts;
 };
 
+/**
+ * Returns the assignments in this configuration
+ */
 com.marklogic.widgets.workplacecontext.prototype.getAssignments = function() {
   return this._json.assignments;
 };
 
+/**
+ * Sets the assignments in this configuration
+ * 
+ * @param {Array} assignments - The assignments array for this page
+ */
 com.marklogic.widgets.workplacecontext.prototype.setAssignments = function(assignments) {
   this._json.assignments = assignments;
 };
 
+/**
+ * Places the specified widget in to a particular layout zone and position
+ * 
+ * @param {string} name - The configuration name of the widget. E.g. searchbar1
+ * @param {string} zone - The named zone in the layout. E.g. "A"
+ * @param {integer} order - The order in this layout. 1 based.
+ */
 com.marklogic.widgets.workplacecontext.prototype.placeWidget = function(name,zone,order) {
   // get other widgets in zone
   var zoneWidgets = [];
@@ -849,14 +968,30 @@ com.marklogic.widgets.workplacecontext.prototype.placeWidget = function(name,zon
   this._json.assignments = places;
 };
 
+/**
+ * Returns the context object configuration for this page
+ */
 com.marklogic.widgets.workplacecontext.prototype.getContexts = function() {
   return this._json.contexts;
 };
 
+/**
+ * Adds a context configuration to this page
+ * 
+ * @param {string} name - The widget name. E.g. searchbar1
+ * @param {string} type - The short name for the context to create
+ * @param {json} config - Configuration of the context
+ */
 com.marklogic.widgets.workplacecontext.prototype.addContext = function(name,type,config) {
   this._json.contexts.push({context: name,type:type,config:config,register:[]});
 };
 
+/**
+ * Links a widget to a context (will invoke the register function on page loading)
+ * 
+ * @param {string} widgetName - The configuration widget name. E.g. searchbar1
+ * @param {string} contextName - The configuration context name. E.g. searchcontext1
+ */
 com.marklogic.widgets.workplacecontext.prototype.registerWidget = function(widgetName,contextName) {
   for (var i = 0, max = this._json.contexts.length,c;i < max;i++) {
     c = this._json.contexts[i];
@@ -867,6 +1002,12 @@ com.marklogic.widgets.workplacecontext.prototype.registerWidget = function(widge
   }
 };
 
+/**
+ * Sets a widget's configuration
+ * 
+ * @param {string} widgetName - The name of the widget. E.g. searchbar1
+ * @param {json} config - The JSON configuration for this widget
+ */
 com.marklogic.widgets.workplacecontext.prototype.setWidgetConfig = function(widgetName,config) {
   for (var i = 0, max = this._json.widgets.length,w;i < max;i++) {
     w = this._json.widgets[i];
@@ -877,6 +1018,11 @@ com.marklogic.widgets.workplacecontext.prototype.setWidgetConfig = function(widg
   }
 };
 
+/**
+ * Returns the configuration for the specified widget
+ * 
+ * @param {string} widgetName - The widget name. E.g. searchbar1
+ */
 com.marklogic.widgets.workplacecontext.prototype.getWidgetInfo = function(widgetName) {
   mljs.defaultconnection.logger.debug("workplacecontext.getWidgetInfo: Finding config for: " + widgetName);
   for (var i = 0, max = this._json.widgets.length,w;i < max;i++) {
@@ -891,21 +1037,45 @@ com.marklogic.widgets.workplacecontext.prototype.getWidgetInfo = function(widget
   return null;
 };
 
+/**
+ * Returns the actions in this page configuration
+ */
 com.marklogic.widgets.workplacecontext.prototype.getActions = function() {
   return this._json.actions;
 };
 
+/**
+ * Adds an onload action
+ * 
+ * @param {string} type - The action class name to create
+ * @param {json} config - The JSON configuration to apply
+ */
 com.marklogic.widgets.workplacecontext.prototype.addOnloadAction = function(type, config) {
   this._json.actions.onload.push({type: type,config: config});
 };
 
-com.marklogic.widgets.workplacecontext.prototype.addOnunloadAction = function(type,config) {
+/**
+ * Adds an on unload action
+ * 
+ * @param {string} type - The action class name to create
+ * @param {json} config - The JSON configuration to apply
+ */
+com.marklogic.widgets.workplacecontext.prototype.addOnUnloadAction = function(type,config) {
   this._json.actions.onunload.push({type: type,config: config});
   
 };
 
-com.marklogic.widgets.workplacecontext.prototype.addContextAction = function(context_name,event,actiontype,actionconfig) {
-  // TODO
+/**
+ * Adds an action to this configuration that responds to a context event. Equivalent of addResultsListener(function) et al
+ * NB this method is not yet implemented
+ * 
+ * @param {string} contextName - The name of this context. E.g. searchcontext1
+ * @param {string} event - The name of the event. E.g. addResultsListener
+ * @param {string} actiontype - The fully qualified action class name to invoke
+ * @param {json} actionconfig - The JSON configuration for the action
+ */
+com.marklogic.widgets.workplacecontext.prototype.addContextAction = function(contextName,event,actiontype,actionconfig) {
+  // TODO implement addContextAction
 };
 
 /**
@@ -919,6 +1089,11 @@ com.marklogic.widgets.workplacecontext.prototype._processConfig = function() {
   }
 };
 
+/**
+ * Loads the specified JSON or json string page configuration in to this context
+ * 
+ * @param {json|string} jsonOrString - The configuration to load
+ */
 com.marklogic.widgets.workplacecontext.prototype.loadPage = function(jsonOrString) {
   mljs.defaultconnection.logger.debug("workplacecontext.loadPage: value: " + jsonOrString);
   if (typeof(jsonOrString) == "string") {
@@ -945,6 +1120,11 @@ com.marklogic.widgets.workplacecontext.prototype.loadPage = function(jsonOrStrin
   }
 };
 
+/**
+ * Executes a search in MarkLogic for the JSON configuration matching the specified URI
+ * 
+ * @param {string} uri - The URI of the workplace configuration to load (NOT the web application URL)
+ */
 com.marklogic.widgets.workplacecontext.prototype.loadPageWithUri = function(uri) {
   this._uri = uri;
   var self = this;
@@ -961,6 +1141,11 @@ com.marklogic.widgets.workplacecontext.prototype.loadPageWithUri = function(uri)
 
 // Context event handling
 
+/**
+ * Registers a workplace admin widget with this context
+ * 
+ * @param {object} widget - The widget to register
+ */
 com.marklogic.widgets.workplacecontext.prototype.register = function(widget) {
   if (undefined != widget.setWorkplaceContext) {
     widget.setWorkplaceContext(this);
@@ -978,11 +1163,20 @@ com.marklogic.widgets.workplacecontext.prototype._fireUpdate = function() {
   this.updatePublisher.publish(this);
 };
 
+/**
+ * Adds a workplace update listener to this context
+ * 
+ * @param {function} lis - The listener function to invoke
+ */
 com.marklogic.widgets.workplacecontext.prototype.addWorkplaceUpdateListener = function(lis) {
   this.updatePublisher.subscribe(lis);
 };
 
-
+/**
+ * Removes a workplace update listener from this context
+ * 
+ * @param {function} lis - The listener function to invoke
+ */
 com.marklogic.widgets.workplacecontext.prototype.removeWorkplaceUpdatelistener = function(lis) {
   this.updatePublisher.unsubscribe(lis);
 };
@@ -1000,7 +1194,12 @@ com.marklogic.widgets.workplacecontext.prototype.removeWorkplaceUpdatelistener =
 
 
 
-
+/**
+ * The workplace admin widget
+ * @constructor
+ * 
+ * @param {string} container - The HTML ID to render this widget within
+ */
 com.marklogic.widgets.workplaceadmin = function(container) {
   this.container = container;
   
@@ -1053,6 +1252,10 @@ com.marklogic.widgets.workplaceadmin = function(container) {
   this._refresh();
 };
 
+/**
+ * Adds a list of custom supported widgets to the MLJS defaults
+ * @param {Array} widgetDefArray - The JSON array of widget definitions
+ */
 com.marklogic.widgets.workplaceadmin.prototype.addSupportedWidgets = function(widgetDefArray) {
   for (var i = 0, max = widgetDefArray.length, def;i < max;i++) {
     def = widgetDefArray[i];
@@ -1060,6 +1263,10 @@ com.marklogic.widgets.workplaceadmin.prototype.addSupportedWidgets = function(wi
   }
 };
 
+/**
+ * Adds a list of custom supported layouts to the MLJS defaults
+ * @param {Array} layoutDefArray - The JSON array of layout definitions
+ */
 com.marklogic.widgets.workplaceadmin.prototype.addSupportedLayouts = function(layoutDefArray) {
   for (var i = 0, max = layoutDefArray.length, def;i < max;i++) {
     def = layoutDefArray[i];
@@ -1067,6 +1274,10 @@ com.marklogic.widgets.workplaceadmin.prototype.addSupportedLayouts = function(la
   }
 };
 
+/**
+ * Returns a summary of the widget class specified
+ * @param {string} widgetclass - The fully qualified class name for the widget
+ */
 com.marklogic.widgets.workplaceadmin.prototype.getWidgetSummary = function(widgetclass) {
   for (var i = 0, max = this._config.widgetList.length, wc;i < max;i++) {
     wc = this._config.widgetList[i];
@@ -1079,7 +1290,9 @@ com.marklogic.widgets.workplaceadmin.prototype.getWidgetSummary = function(widge
 
 
 /**
- * Helper function to draw the edit screen full screen
+ * Helper function to draw the workplace edit screen full screen.
+ * 
+ * @param {com.marklogic.widgets.workplacecontext} workplaceContext - The workplace to edit full screen
  */
 com.marklogic.widgets.workplaceadmin.renderFullscreen = function(workplacecontext) {
   // draw container

@@ -35,7 +35,7 @@ window.onload = function() {
   ctx.register(wgtp);
   
   ctx.setOptions(optionsName,ob);
-  ctx.doStructuredQuery(query,optionsName);
+  ctx.doStructuredQuery(query,1);
   
   } catch (err) {
     error.show(err.message);

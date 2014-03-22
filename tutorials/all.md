@@ -26,6 +26,7 @@
   <li><a href=tutorial-003-widgets-search-render.html>About Search Result rendering</a></li>
   <li><a href=tutorial-004-widgets-highcharts.html>Using HighCharts widgets</a></li>
   <li><a href=tutorial-014-browser-workplace.html>The MLJS Workplace Widget</a></li>
+  <li><a href=tutorial-020-angular.html>Using MLJS with Angular.js</a></li>
 </ul>
 
 ## mljs Semantics
@@ -44,4 +45,9 @@
   <li>Writing your own Search Widget</li>
   <li>The core do() function</li>
   <li>Integrating to AngularJS or another framework</li>
+</ul>
+
+## MLJS Training Courses
+<ul>
+  <li><a href=tutorial-dev1-001-overview.html>1 Day Introduction Course</a></li>
 </ul>
