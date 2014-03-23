@@ -1,12 +1,15 @@
 #!/bin/sh
 
-if [ -a ../mljs-bower ]; then
-    rm -rf ../mljs-bower
+if [ ! -d ../mljs-bower ]; then
+   mkdir ../mljs-bower
 fi
 
-mkdir ../mljs-bower
-
 cd ../mljs-bower
+
+rm -rf prod
+rm -rf dev
+rm -rf widgets
+
 tar -xzf ../mljs/dist/mljs-browser-minified.tar.gz 
 
 mv dist/mljs/browser-minified prod
@@ -16,6 +19,9 @@ tar -xzf ../mljs/dist/mljs-browser.tar.gz
 mv dist/mljs/browser-raw dev
 
 rm -rf dist
+
+mkdir -p widgets
+cp ../mljs/mldbwebtest/src/public/js/mldbtest/widget*.js widgets
 
 cp ../mljs/mljs-bower.json bower.json
 
