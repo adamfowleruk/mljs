@@ -16,7 +16,7 @@ window.onload = function() {
     
   var options = ob.toJson();
   
-    var page = { title: "Workplace test page", layout: "thinthick", urls: ["/mljstest/workplace/","/mljstest/workplace","/mljstest/workplace.html"], widgets: [
+    var page = { title: "Workplace test page", layout: "thinthick", urls: ["/mljstest/workplace/","/mljstest/workplace","/mljstest/workplace.html","/workplace.html"], widgets: [
       {widget: "searchfacets1", type: "com.marklogic.widgets.searchfacets", config: {
         listSize: 5, extendedSize: 10, allowShowAll: true, hideEmptyFacets: true
       }},
@@ -58,9 +58,14 @@ window.onload = function() {
     }};
     
     var workplace = new com.marklogic.widgets.workplace("workplace");
+    var ctx = workplace.getWorkplaceContext();
+    var uri = "/mljstest/workplace/workplace.json";
+    ctx.setWorkplaceUri(uri);
     workplace.editable();
     //workplace.saveable(false); // don't persist changes
-    workplace.loadPage(page); // could instead use loadPage() to determine automatically via window.location, or loadPage("/my/path") to load via search in content database
+    // NB first below is "try this first, then default to second"
+    var pageurl = window.location.pathname; // TODO validate this works in all browsers
+    workplace.loadPage(pageurl,page); // could instead use loadPage() to determine automatically via window.location, or loadPage("/my/path") to load via search in content database
  /* 
   } catch (err) {
     console.log(JSON.stringify(err));

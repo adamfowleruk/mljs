@@ -445,6 +445,7 @@ com.marklogic.widgets.graphexplorer.prototype._drawSubjectDetail = function(subj
   // show properties within box
   var props = "";
   var title = subjectIri;
+  var docuri = null; // only applicable to MarkLogic document entities - see later code in this function
   var type = "Unknown";
     for (var b = 0,bindings = facts.results.bindings, max = bindings.length, predicate, obj, binding;b < max;b++) {
       binding = bindings[b];
@@ -468,6 +469,10 @@ com.marklogic.widgets.graphexplorer.prototype._drawSubjectDetail = function(subj
         
         //props += "<b>" + t + ":</b> " + obj.value + "<br/>";
         propValues[predicate.value] = {value: obj.value, title: ttitle, type: obj.type};
+        
+        if (predicate.value == "http://marklogic.com/semantics/ontology/Document#uri") {
+          docuri = obj.value;
+        }
 
         //s += "</p>";
       } else {
@@ -506,7 +511,11 @@ com.marklogic.widgets.graphexplorer.prototype._drawSubjectDetail = function(subj
   var loadingContent = false;
   
   if ("http://marklogic.com/semantics/ontology/Document" == baseType) {
-    var uri = subjectIri.substring(48); // TODO get from URI property
+    var uri = docuri; // SEE EARLIER CODE - OLD: //subjectIri.substring(48);
+    
+    // check the subject cache for this IRI (done earlier in function)
+    // <http://marklogic.com/semantics/ontology/Document#uri>
+    
     var facets = this.facetCache[uri];
     if (null == facets) {
       mljs.defaultconnection.logger.debug("PROCESSING ML DOCUMENT SUBJECT: " + subjectIri);
