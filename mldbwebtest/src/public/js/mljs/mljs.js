@@ -2669,7 +2669,7 @@ mljs.prototype.findWorkplace = function(pageurl,callback) {
     .returnResults(true)
     .raw();
   var qb = this.createQuery();
-  qb.value("pageurl",pageurl);
+  qb.query(qb.value("pageurl",pageurl));
   var sc = this.createSearchContext();
   sc.setOptions("mljsFindWorkplace",ob); // will fail on multi user system - need to use combined query dynamically
   sc.addResultsListener(function(results) {
