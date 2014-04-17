@@ -1,6 +1,6 @@
 #!/bin/sh
-cd ..
+cd ../..
 ./updaterest.sh
-cd mljsrest
+cd apps/mljsrest
 
 exit 0
