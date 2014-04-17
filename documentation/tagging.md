@@ -8,3 +8,10 @@ git remote (displays the name of your remote, for example YourRemote)
 git tag -a v1.2 -m 'tagging Version 1.2' (creates tag v1.2 from current branch)
 git push YourRemote v1.2 (pushes the tag you've created to YourRemote)
 http://pinkstone.co.uk/how-to-tag-a-release-in-git/
+
+
+
+Actual:-
+
+git tag -a v1.4.3 -m 'tagging V1.4.3'
+git push origin v1.4.3
