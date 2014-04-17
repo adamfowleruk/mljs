@@ -69,7 +69,7 @@ else
     J=$APP/src/public/js/mljs
     C=$APP/src/public/css/mljs
     I=$APP/src/public/images
-    
+
     # Ensure destination folders exist
     mkdir -p $C
     mkdir -p $J
@@ -120,10 +120,10 @@ $WGET=false
 # Fetch latest MLJS download tar.gz file
 cd $T
 if [ $WGET ]; then
-  wget -nd --no-check-certificate https://raw.github.com/adamfowleruk/mljs/master/dist/mljs-browser.tar.gz
+  wget -nd --no-check-certificate https://raw.github.com/adamfowleruk/mljs/master/dist/browser-dev.tar.gz
 else
   if [ $CURL]; then
-    curl -o mljs-browser.tar.gz https://raw.github.com/adamfowleruk/mljs/master/dist/mljs-browser.tar.gz
+    curl -o browser-dev.tar.gz https://raw.github.com/adamfowleruk/mljs/master/dist/browser-dev.tar.gz
   else
     echo "$0: Neither CURL nor WGET are installed. One must be installed to use mljsme.sh"
     usage
@@ -131,13 +131,15 @@ else
 fi
 
 # Unpack in to new temp folder
-tar xzf mljs-browser.tar.gz
-cd dist/mljs/browser-raw
+tar xzf browser-dev.tar.gz
+cd dist/
 
 if [ $ROXY ]; then
   echo "Roxy mode copies"
   # copy required and test files
-  cp -R roxy/* $APP/
+	cp -R js/* $APP/src/public/js/
+	cp -R images/* $APP/src/public/images/
+	cp -R css/* $APP/src/public/css/
 else
   echo "Custom mode copies"
   # Copy relevant files only
