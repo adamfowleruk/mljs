@@ -1,10 +1,10 @@
 {
   "name": "mljs-bower",
   "main": "mljs.js",
-  "version": "0.1.0",
-  "homepage": "https://github.com/paul-hoehne/mljs-bower",
+  "version": "1.4.0",
+  "homepage": "https://github.com/adamfowleruk/mljs",
   "authors": [
-    "Martin Fowler <martin.fowler@marklogic.com>"
+    "Adam Fowler <adam.fowler@marklogic.com>"
   ],
   "description": "MLJS MarkLogic JavaScript library (for the browser)",
   "keywords": [

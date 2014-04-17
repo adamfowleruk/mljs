@@ -37,6 +37,9 @@ window.onload = function() {
     .rangeConstraint("Year","year",ob.JSON,"xs:string","http://marklogic.com/collation/",true,["item-order"])
     .rangeConstraint("City","city",ob.JSON,"xs:string","http://marklogic.com/collation/",true,["item-order"])
     .rangeConstraint("Month","month",ob.JSON,"xs:string","http://marklogic.com/collation/",true,["item-order"])
+    .rangeConstraint("Title","title","http://www.w3.org/1999/xhtml","xs:string","http://marklogic.com/collation/",true,["item-order"])
+    .rangeConstraint("Heading","h1","http://www.w3.org/1999/xhtml","xs:string","http://marklogic.com/collation/",true,["item-order"])
+    //.rangeConstraint("Summary","summary","","xs:string","http://marklogic.com/collation/",true,["item-order"])
     .rangeConstraint("DateReceived","datereceived","http://marklogic.com/ns/dt","xs:date",null,true,null,null,"Received At")
     //constraint_name_opt,name_or_key,ns_opt,type_opt,collation_opt,facet_opt,facet_options_opt,fragmentScope_opt,annotation_opt
     .annotate("DateReceived","Received On")

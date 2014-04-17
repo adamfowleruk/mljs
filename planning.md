@@ -1,16 +1,33 @@
 # Development feature planning
 
 ## Upcoming releases
-  
+
 Targets for 1.6 (Apr 2014) - Theme: MLJS Ease of Use in the Browser
+ - DONE BUG mljs.returnFacets returns true instead of this, breaking chaining
  - Widgets: Workplace completion
   - Basics
-   - drag/drop reordering of widgets working
-   - multiple layouts working
-   - Context configuration
-   - Page load actions
+   - DONE drag/drop reordering of widgets working
+    - DONE Re-order existing ones on to each other's DZ
+     - DONE Reverse change of order doesn't move the DZ too
+    - DONE BUG Not allowing existing last widget to be dropped on last widget dropzone, also handle not last existing re-ordering
+    - DONE BUG dragging new class mid zone now breaks -> places new widget in last element of array, doesn't reshuffle undefined elements
+    - DONE BUG multiple drops of new widgets on to end of same zone causes errors due to blanks between elements - added self._eliminateBlanks(z); call at start and end
    - Save function working
+    - IN PROGRESS workplacecontext.prototype.save
+     - TEST Get assignments from layout - self.generateAssignments()
+      - DONE prune assignments (remove admin widgets)
+     - TEST call mljs.saveWorkplace function
+    - (this.container + "-save").onclick - show message that save was successful in error/notification area
+    - ensure configwrapper event handlers are running even when moved around in HTML (via drag/drop)
+   - findWorkplace working
+    - TEST need to add valueConstraint support to options builder
+    - need to add value query to query builder
+    - move *Workplace functions from MLJS in to Workplace Context (they use structured search)
+   - Context configuration
    - Enable all widgets for Workplace
+   - remove widget button
+   - multiple layouts working
+   - Page load actions
    - Icons for widgets
   - Widgets: Navigation widget
    - One tab per Workplace in current app, sends to appropriate URL
@@ -21,10 +38,42 @@ Targets for 1.6 (Apr 2014) - Theme: MLJS Ease of Use in the Browser
    - DEFERRED Allow workplaces to be kept instead in a drop down menu
    - DEFERRED Menu Editor
     - DEFERRED Also allow fixed tabs at start and end (list for each). E.g. Settings, Home, etc. for non-workplace dynamic pages - display text, url
+   - New workplace page button on end of nav widget
+   - Powered by MarkLogic image (license?)
+  - Practicality updates
+   - Options builder UI widget - read from ML if possible
+   - Query builder UI widget (base query for search, default query for page load)
+   - Docs: OOTB Workplace demo app - no data
+ - Widgets: UI Consistency
+  - Widgets: Update all for Bootstrap CSS support
+  - Docs: Update MLJSREST app framework for bootstrap support
+  - Docs: Get hold of MarkLogic bootstrap theme CSS from MY (License?)
+  - Get MY to review app, workplace and widget UX
+ - Docs: Deprecate mldbwebtest app as primary source of widget files in build, remove app itself
+ - DONE BUG Widgets: searchbar - When contributing query as term query for structured search, if text blank need to send and-query not term-query("") - else nothing is returned!
+ - DONE BUG Core: version being called multiple times per page (when version endpoint doesn't exist)
+ - IN PROGRESS BUG Docs: Explorer widget not loading document facet data on mljsrest app
+  - DONE Due to subjectIri to docuri hack line 508 of widget-explore.js: Need better way to determine document URI from subjectIri -> should use #uri child property
+  - Need to also cache links between docuri (key) and subject URI, so documentcontext listener can match subject correctly
+ - Docs: Put latest doc updates front and centre of MLJS main page and API home page
+  - aka release notes
+  - youtube videos
+  - blog (news) items
+  - latest tutorials
+ - Docs: Image previews of all widgets, linking to pages with code examples
+  - DEFERRED Workplace page configuration JSON download/upload too?
+  - DEFERRED Sample content for testing bundle too? (MLCP archive? Version dependent?)
+  - DEFERRED Workplace page search and share app (hosting?)
+  - DEFERRED Workplace widget NPM like search and install app (hosting?)
 
 Targets for 1.8 (May 2014) - Theme: Visualisations
- - BUG Widgets: searchbar - When contributing query as term query for structured search, if text blank need to send and-query not term-query("") - else nothing is returned!
  - BUG Widgets: combined query - test against latest MarkLogic 7 build
+ - BUG Widgets: Address Lookup: Google geocoder needs to fail gracefully if google libraries not available (offline mode)
+ - Core: Search Context: Search context chaining
+  - Add one or more child contexts, with a name for the contributed query term setting (E.g. parent contributes "collection:EmploymentStats AND year GT 2008 and year LT 2013")
+  - Ensure each context may have a hidden query term in it (E.g. one child has extra of Year=2010, one child has extra of Year=2011, and so on)
+  - Test this working with search page affecting master search context (and query), highcharts depending upon child search context
+  - DEFERRED detect circular relationships (infinite JavaScript loops)
  - IN PROGRESS Widgets: Search Results
   - IN PROGRESS Improve support for pluggable rendering for areas of result pane:-
    - IN PROGRESS title
@@ -55,34 +104,49 @@ Targets for 1.8 (May 2014) - Theme: Visualisations
    - IN PROGRESS Make it easier to add event handlers like click to navigate, view (as html via XSLT), download
    - Allow passing of custom parameters to event handlers in addition to document uri
    - Externalise constraint name to display name (search option annotations on constraints) - constraintTitle function on manager
-  - Docs: Create mock sample search pages
-   - wordpress like demo summary view for documents
-   - google like summary, with similar stories indented
-   - tabular view - http://www.webdesignerdepot.com/2010/02/showcase-of-great-web-app-interfaces/
-   - google images like summary view, and detail on click
-  - Widgets: Explorer: Save URI to/from IRI mapping prior to calling document facets fetch (currently based on name substring - dangerous)
-  - Allow rendering with other layouts rather than just a simple column
-   - Widgets: 2 column across-first cell rendering layout
-   - Widgets: 3 column across-first cell rendering layout
-   - Widgets: zoomable n row rendering layout (like on springer images website)
-  - Add support for result drag and drop to other areas
-  - Default Rendering improvements
-   - hierarchical XML viewing (down three levels?)
-   - IN PROGRESS triple support (with summary?)
- - Widgets: Document Collector dropbox (also supports the searchresults document title, result summary plugins)
- - Widgets: search bar: Suppress facets, sorting shown within text query bar
- - Widgets: search bar: Support boolean AND, OR, ( and ), NOT
- - Widgets: save search
- - Widgets: searchsorter: OOTB support for newest first/oldest first based on MarkLogic created and last modified dates
- - Widgets: searchperpage: Number of results to show per page 25 | 50 | 100 for example
- - Widgets: layouts to support collapsable zones (like springer images search modification left hand column)
+  - Core: data series context
+   - Handles series calculation and parsing external to any particular widget
+   - reliant upon a single searchcontext (and options builder) object
+   - list potential data sources
+   - list potential category x sources
+   - list potential value y (measure) sources
+   - calculate series and their data points dynamically when results arrive, based on above configuration
+   - fire series update event for individual series (need depends upon widget)
+   - fire all series update event for overall results (need depends upon widget)
+ - Widgets: Workplace
+  - Allow user personalisation for widgets on a page (auto save and load via workplace context)
+  - Allow showing of live data against configuration options (E.g. list the facets from options that are selectable for a highchart)
+ - Widgets: Highcharts
+  - editable flag on chart - uses widget personalisation
+  - Select chart type dynamically
+  - Multiple source support
+   - Facet totals
+   - Co-occurence values - THIS is likely to be the most common use case. E.g. Category x is actor, value y is quantity, series is Genre (actor-genre co-occurrence)
+   - Values call - UDFs etc - TBD
+   - DEFERRED in document values (requires pulling all doc values, or just extracted meta, to browser for multiple results pages)
+  - Filtering support
+   - Select category x
+   - Range for continuous x (e.g. date)
+   - DEFERRED filter affects overall search query across all widgets
+  - Quick altering - aka Pivot Charts
+   - select value y source
+   - select dynamic series source
+ - Docs: Create mock sample search pages
+  - wordpress like demo summary view for documents
+  - google like summary, with similar stories indented
+  - tabular view - http://www.webdesignerdepot.com/2010/02/showcase-of-great-web-app-interfaces/
+  - google images like summary view, and detail on click
+ - Widgets: Sparqlbar: Allow relatedFrom relationships as well as current relatedTo
+ - Widgets: Explorer: Save URI to/from IRI mapping prior to calling document facets fetch (currently based on name substring - dangerous)
+ - DEFERRED Widgets: Search Results: Allow rendering with other layouts rather than just a simple column
+  - Widgets: 2 column across-first cell rendering layout
+  - Widgets: 3 column across-first cell rendering layout
+  - Widgets: zoomable n row rendering layout (like on springer images website)
+ - DEFERRED Add support for result drag and drop to other areas
+ - Widgets: Search Results: Default Rendering improvements
+  - hierarchical XML viewing (down three levels?)
+  - IN PROGRESS triple support (with summary?)
  - Docs: Update sample apps to make best use of search presentation features
- - BUG: Core: version being called multiple times per page
- - Widgets: MLJS App wide settings in DB, generated from /mljs/app.json on webapp directory (E.g. for new application)
- - Core: searchcontext
-  - Rework how facets are contributed - can't override at the moment, only contribute - causes facets to reappear
-  - Allow AND or OR queries for text queries by default (defaults to AND at the moment)
-  - Support for non exact matches (query options? query itself?) - E.g. wildcards
  - Widgets: OpenLayers
   - Support multiple result types (series) from same searchcontext. E.g. matcher() and series() functions (use same pattern as searchresults for simplicity)
  - Missed 1.2 (Dec 2013) - High Priority - targets
@@ -93,6 +157,25 @@ Targets for 1.8 (May 2014) - Theme: Visualisations
    - DONE BUG: Widgets: Data explorer widget shows extra two boxes when drawing Wendy (Doesn't remove original link boxes when redrawing?)
    - ? Widgets: Give the data explorer the same document title heuristics as the search results widget. (E.g. XHTML title element value)
    - Widgets: Add a view document link to the data explorer when rendering a document node (Links to different app URL)
+ - Immediate explorer
+  - Left hand side Subject of interest
+  - Related content below
+  - Related subjects to right
+  - Navigating onward redraws, shows parent (previous) Subject above new subject of interest
+
+DEFERRED from 1.8 Theme: Visualisations
+ - Widgets: Document Collector dropbox (also supports the searchresults document title, result summary plugins)
+ - Widgets: search bar: Suppress facets, sorting shown within text query bar
+ - Widgets: search bar: Support boolean AND, OR, ( and ), NOT
+ - Widgets: save search
+ - Widgets: searchsorter: OOTB support for newest first/oldest first based on MarkLogic created and last modified dates
+ - Widgets: searchperpage: Number of results to show per page 25 | 50 | 100 for example
+ - Widgets: layouts to support collapsable zones (like springer images search modification left hand column)
+ - Widgets: MLJS App wide settings in DB, generated from /mljs/app.json on webapp directory (E.g. for new application)
+ - Core: searchcontext
+  - Rework how facets are contributed - can't override at the moment, only contribute - causes facets to reappear
+  - Allow AND or OR queries for text queries by default (defaults to AND at the moment)
+  - Support for non exact matches (query options? query itself?) - E.g. wildcards
  - Missed 1.2 (Dec 2013) - Medium Priority - targets
   - IN PROGRESS Widget: RDB2RDF in test app
    - Remove jQuery specific code
@@ -116,10 +199,10 @@ Targets for 1.8 (May 2014) - Theme: Visualisations
     - Widgets: Drag & Drop semantic context object browser with support for menu popups 'add as series, add as secondary axis' etc.
    - NA Widgets: Use highcharts explore instead - Widgets: InfoVis network diagram
    - Widgets: Node diagram. Show images, other metadata. Force directed using selectable methods. Support for clustering. Navigable (not all drawn at once)
-   - Widgets: XML/JSON document creation-by-example (via HTML form generator) 
+   - Widgets: XML/JSON document creation-by-example (via HTML form generator)
    - Widgets: Alerting client widget (Requires Alerting API, CORS) with popups
     - Core: Node.js Alerting middleware support
-   - Widgets: 2 way Co-occurence drawn as x by y grid, with size and colour of points relating to values 
+   - Widgets: 2 way Co-occurence drawn as x by y grid, with size and colour of points relating to values
    - Widgets: Setting up system alerts (NOT V7 REST alerts) to send new docs to specified URL (as PUT or POST requests, configurable)
    - Widgets: Interactive query builder
     - Document type to retrieve
@@ -176,7 +259,7 @@ Targets for 1.8 (May 2014) - Theme: Visualisations
    - Widgets: Workplace: Style overrides. Hardcoded CSS for this version. Useful for layouts in particular. Also at page level.
   - Document all new widgets
   - Tests for new widgets
- 
+
 Floating Targets
  - CSV Import improvements / testing
   - Checkout XSLT upload and transform method
@@ -236,7 +319,7 @@ Floating Targets
    - Alert: Within polygon (county, country (within UK), parliamentary boundary) for Entity Extraction tagging
   - Low:-
    - Widgets: Enable search as alert, with drop down for actions (Email, IM, etc.)
-   - Widgets: Workplace app level settings. 
+   - Widgets: Workplace app level settings.
     - Specifically, default role to see / edit shared searches
     - Default REST Server search options set up (constraints)
    - Refactor: Move widgets' use of 960.css out in to a Layout instance, as config options on the assignment itself (not widget or layout)
@@ -269,7 +352,7 @@ Targets for 1.9 (Jun 2014) Interim Release - Theme: Documentation
    1. DONE Introduction to MLJS (text done. 3min 15) - Why should I care? (Akin to the first 5 minutes of my company wide webinar)
    2. IN PROGRESS Introduction to the MLJS Core API (text done. 4min21). Core communication with MarkLogic server. Introduction to Search Context and other Context objects
    3. DONE Introduction to the MLJS Widget API. Briefly show the mldbwebtest app, deploying it, and a brief description of the widget test pages
-   4. Creating a new Hybrid app with MLJS. (Already exists, on blog site). Creating a search page and configuring options and facets. A search page with two charts (akin to an  AppBuilder demo) 
+   4. Creating a new Hybrid app with MLJS. (Already exists, on blog site). Creating a search page and configuring options and facets. A search page with two charts (akin to an  AppBuilder demo)
     a. Creating a new REST app with MLJS
    5. Customising how search results are displayed - The Renderer architecture. Detect and display data in a search results page in new and interesting ways
   - Docs: MLJS Webinar series of Video Tutorials
@@ -300,7 +383,7 @@ Targets for 1.9 (Jun 2014) Interim Release - Theme: Documentation
    - IN PROGRESS lowerCamelCase for functions (searchcontext and mljs have some alllowercase methods)
    - DONE Using Factory pattern. See mljs.create*() methods. Changed mljs.defaultconnection in core MLJS to instead access parent MLJS instance
    - DONE Using logger mixin. Logger's attached to DB, so have had to link tripleconfig to creating db via factory method. keep tripleconfig separate from core MLJS instantiator (as it never requires a connection to use), but allow a way to specify a logger and check for this (to avoid defaultconnection.logger)
-   - DONE better way to access logging functionality by default - define _i(), _d() prototype methods for each subobject? Via a core mixin utility func? 
+   - DONE better way to access logging functionality by default - define _i(), _d() prototype methods for each subobject? Via a core mixin utility func?
     - DONE (Could use same mechanism to provide correct 'this' reference from constructor function.)
     - DONE Using mljs.create*() factory methods. Have mljs.prototype. constructor functions add a db property pointer to all created children
    - NA Using factory pattern instead. Add check in constructor functions to ensure if not called via new MyObject(), that it returns a new instance anyway (location 1051)
@@ -323,7 +406,7 @@ Targets for 1.9 (Jun 2014) Interim Release - Theme: Documentation
    - dls
    - whoami
    - Test pages for each of the above too
-  - Core: Query Builder. 
+  - Core: Query Builder.
    - Easy geospatial search (Already done?)
    - triples-range-query support
   - Core: Support all search functions not currently provided in query builder
@@ -369,7 +452,7 @@ Targets for 1.9 (Jun 2014) Interim Release - Theme: Documentation
    - Core: DLS add retention rule
    - Widgets: DLS add retention rule widget
    - DONE Widgets: DLS declare search results as record widget
- 
+
 Targets for 2.0 (Jul 2014) - Theme: Lifecycle
  - MarkLogic version 8 support completed
  - Widgets: HTML content editing widget (new doc, and existing document with specified element (E.g. body, comments) and configuration for what is permissable as content)
@@ -382,7 +465,7 @@ Targets for 2.0 (Jul 2014) - Theme: Lifecycle
  - Widgets: File upload (multiple)
  - Widgets: (multi) Upload progress bar
  - Test: prototype.js browser AJAX binding
- 
+
 Targets for 2.1 (Aug 2014) Interim Release - Theme: Ease of migration to MLJS
  - MarkLogic version 8 fixes and additions
  - IN PROGRESS NodeJS: Node.js tests for all functionality now in core MLJS
@@ -396,7 +479,7 @@ Targets for 2.1 (Aug 2014) Interim Release - Theme: Ease of migration to MLJS
   12. Customising the Chrome of your application. How to customise an entire MLJS based Roxy hybrid app for a particular client's web theme.
   13. Using MLJS with your favourite widget library. Using an AngularJS page controller and widgets integrated with MLJS powered widgets
   14. Writing your own widget I. Create a search metrics widget with a refresh button to re-execute the search.
-  15. Writing your own widget II. Create a multiple document upload widget, with progress bar, named collection, and link to a search page to show those just uploaded. 
+  15. Writing your own widget II. Create a multiple document upload widget, with progress bar, named collection, and link to a search page to show those just uploaded.
  - App Builder to MLJS+Roxy automated conversion
   - Point at Roxy generated App Builder download / local file system copy of appbuilder folder
   - Copy over rest extensions as required
@@ -498,7 +581,7 @@ Targets for 2.1 (Aug 2014) Interim Release - Theme: Ease of migration to MLJS
   - Add sparql query widget using same ontology
    - Add entity facts and content linking search widget
    - Add relationship visualisation widget
-  - Implying triples from document content 
+  - Implying triples from document content
    - define a trigger to highlight key XML with known terms
    - link these xml elements to the ontology via the suggestions widget
   - Inferencing
@@ -513,7 +596,7 @@ Targets for 2.1 (Aug 2014) Interim Release - Theme: Ease of migration to MLJS
    - Inferencing - we've shown, but should mention here
    - aggregates (count, sum, avg, etc.)
    - Sparql update
-   
+
 Unscheduled
  - Core: More support for server management (namespaces, indexes, service extensions, update REST instance configuration, XSLT transform management)
  - Widgets: Administration widgets (mainly aimed at pre-sales developers, not sysadmins)
@@ -531,11 +614,11 @@ Not applicable / dropped / postponed targets
  - Browser: Support REST API proxy within general javascript and nodejs javascript code
  - NA generic xml document tree fallback
  - NA Widgets: Lazy loading on search results (E.g. when requesting page 2 result 3 (result 13), make http request for re-search transparent) - Also for graphing when all search results need loading
- 
+
 ## Past Releases
 
 Targets for V 0.2 (Dec 2012) in descending order of importance
- - DONE abstract authentication (digest and basic) 
+ - DONE abstract authentication (digest and basic)
  - DONE support creation of database and rest api on the fly
  - DONE provide document save, get, update
  - DONE access all documents within a directory (mljs.list)
@@ -556,7 +639,7 @@ Targets for 0.4 (Feb 2013)
  - TEST Create a saved search with a name (default grammar, collection, geospatial proximity) (NB uses REST API Extension from myself)
  - TEST subscribe/unsubscribe to saved searches (NB uses REST API Extension from myself)
  - TEST no auth (default user)
- 
+
 Targets for 0.6 (Apr 2013) - for MarkLogic World 2013
  - DONE Browser: Execute mljs from within general JavaScript, not just NodeJS (requires many wrappers, refactoring, extra tests)
  - DONE Core: search options persistence support
@@ -565,13 +648,13 @@ Targets for 0.6 (Apr 2013) - for MarkLogic World 2013
  - DONE browser distribution building script
  - DONE Widgets: graphs to support simple aggregations of query results (mean, sum, min, max, count)
  - DONE Widgets: example for joining search bar to graphs, using different aggregations for the same results
- - DONE Widgets: Co-occurence widget 
+ - DONE Widgets: Co-occurence widget
  - DONE Core: Added values() function for lexicon and co-occurence (GET /v1/values/[name])
  - DONE Widgets: Google Kratu Analytics widget linked to MarkLogic search results
  - DONE Core: include XML -> JSON transform in JavaScript (workaround for XML snippets / raw returned in search results even with format=json enabled)
  - DONE Widgets: Pretty print utility for errors in JSON and XML (Probably requires XML -> JSON utility. Errors are always XML, unless configured on server otherwise.)
  - DONE Widgets: Update search samples to include a custom renderer for one document type
- 
+
 Targets for 0.8 (Jul 2013)
  - DONE Added Apache 2.0 license text file and statement to all code files (not sample files though)
  - DONE Core+Widgets: Create search context object, and make search widgets responsible for registering themselves with it. Refactor search execution code in to here. (Required for Sort widget)
@@ -585,7 +668,7 @@ Targets for 0.8 (Jul 2013)
  - DONE Widgets: Search widgets, and overarching search page widget UI layer over mljs in browser, including custom result rendering plugins (search bar, facets, results, paging, sorting)
   - DONE Widgets: Sorting widget actions
   - DONE Widgets: More... all... links in facets -> BUG always updating last facet, not the correct facet
-  - DONE BUG: Pagination no longer refreshes search results shown (was probably related to JSON being saved as binary incorrectly) 
+  - DONE BUG: Pagination no longer refreshes search results shown (was probably related to JSON being saved as binary incorrectly)
   - DONE BUG: Hitting enter in search bar executes search
   - DONE BUG: one page too many in results if results are multiple of page size (i.e. 30 gives you 4 pages, not 3)
   - DONE BUG: multi word facet selection causes search to be limited to first word only (no quotes) -> query parser, not facet issue
@@ -604,7 +687,7 @@ Targets for 0.8 (Jul 2013)
   - DONE TEST xhtml documents
   - DONE generic xml document (//title, //summary, //description, //synopsis, or first 2 elements, or xml snippet)
   - DONE generic JSON document tree fallback
- - DONE Tests: Test samples for xml content 
+ - DONE Tests: Test samples for xml content
   - DONE hurt-bat svg in animals search test
  - DONE Docs: Architecture of widgets and MLJS for developers -> Issue with MLJS gh-pages docs rebuild process, not linked properly
  - DONE Integrate error widget on each demo page
@@ -845,7 +928,7 @@ Targets for 1.1 Interim release (Nov 2013)
    - DONE Sort widget
    - DONE searchfacets widget
  - DONE Docs: date time dynamic bucketing example in search page sample
- 
+
 Targets for 1.2 (Dec 2013)
  - DONE Widgets: searchfacets - allow developer to specify facet value to human name. E.g. VALUE/hello -> Hello (still using "FACET/hello" as the actual value)
   - DONE Core: Change options builder to store text translations for facets
@@ -878,7 +961,7 @@ Targets for 1.2 (Dec 2013)
   - TEST Add extract metadata support (For use by custom renderers)
   - TEST searchable expression
   - TEST Add custom grammar support
-  - TEST Top level options properties: search-option, 
+  - TEST Top level options properties: search-option,
   - DEFERRED (default)suggestion-source
  - BUG App builder gap closing
   - DONE Widgets: HighCharts: Apply chaining pattern to highchart options to make them simpler
@@ -910,7 +993,7 @@ Targets for 1.2 (Dec 2013)
  - DONE BUG: OpenLayers polygon/circle selection no longer removing markers when executing more restrictive search
  - DONE BUG: Search sort widget showing [Object: object] instead of name in drop down
  - DONE BUG: Widgets: Search results. Plain text parsing error.
- - TEST mljs.combined and mljs.doCombinedQuery. Auto on contributeStructuredQuery already (if term is text). 
+ - TEST mljs.combined and mljs.doCombinedQuery. Auto on contributeStructuredQuery already (if term is text).
   - TEST Core: searchcontext - support qtext for combined query when searchbar is contributing information to a structured query (rather than a term query as now)
   - TEST How to handle this on V6 only systems? - Detect and fall back to term query
  - DONE Widgets: Tag cloud - add hover over text to include frequency of result
@@ -943,7 +1026,7 @@ Targets for 1.2 (Dec 2013)
      - BUG drag/drop new or existing widget on other drop zones makes them initially appear at top, then split from their spacer
      - Rework layout code so there's only a single method to add a wrapping element - createWrapper() ??? what about layout.wrap(widget)? layout.register(widget)?
     - DONE Add 'Insert here' before each widget too
-    - TEST Make existing widget titles drag/droppable too 
+    - TEST Make existing widget titles drag/droppable too
     - TEST Save changes to layout configuration on drop
     - TEST Add html moving code, preserving event handlers
     - TEST Apply equivalent change to workplace context when saving positions (switching away from widgets tab or saving)
@@ -970,7 +1053,7 @@ Targets for 1.2 (Dec 2013)
     - docbuilder (upload)
     - kratu
     - rdb2rdf (no configuration params needed)
-    - layouts (embedding) - DONE thinthink / TEST thickthin / TEST single column / double column / triple column / 2 rows / 3 rows 
+    - layouts (embedding) - DONE thinthink / TEST thickthin / TEST single column / double column / triple column / 2 rows / 3 rows
   - DONE Programmatic access
    - NA Doesn't make sense - all handled internally by workplacecontext: getWidget by name (so you can programmatically add settings after load)
    - DONE getWorkplaceContext (could be done via widget optionally too)
