@@ -4,6 +4,7 @@ node_modules
 test/*
 *.sh
 samples/*
+apps/*
 logs
 mldb-browser.tar.gz
 mldb-browser.zip
@@ -25,3 +26,5 @@ core.md
 browser.md
 samples
 bower.json
+npm-debug.log
+Gruntfile.js

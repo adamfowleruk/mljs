@@ -1,11 +1,11 @@
 {
   "name": "mljs",
   "main": [
-    "dist/grunt/css/*.css",
-    "dist/grunt/js/*.js",
-    "dist/grunt/images/*"
+    "dist/browser-prod/css/*.css",
+    "dist/browser-prod/js/*.js",
+    "dist/browser-prod/images/*"
   ],
-  "version": "1.4.2",
+  "version": "1.4.3",
   "homepage": "https://github.com/adamfowleruk/mljs",
   "authors": [
     "Adam Fowler <adam.fowler@marklogic.com>"
@@ -20,7 +20,6 @@
   "ignore": [
     "**/.*",
     ".*",
-
     "node_modules",
     "bower_components",
     "test",
