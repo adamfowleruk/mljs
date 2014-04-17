@@ -1,0 +1,31 @@
+{
+  "name": "mljs",
+  "main": [
+    "dist/browser-prod/css/*.css",
+    "dist/browser-prod/js/*.js",
+    "dist/browser-prod/images/*"
+  ],
+  "version": "1.4.3",
+  "homepage": "https://github.com/adamfowleruk/mljs",
+  "authors": [
+    "Adam Fowler <adam.fowler@marklogic.com>"
+  ],
+  "description": "MLJS MarkLogic JavaScript library (for the browser)",
+  "keywords": [
+    "MarkLogic",
+    "MLJS",
+    "NoSQL"
+  ],
+  "license": "Apache License, Version 2.0",
+  "ignore": [
+    "**/.*",
+    ".*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+	  "jquery": "*"
+  }
+}

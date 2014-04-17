@@ -13,10 +13,10 @@ mkdir $D/core
 mkdir $D/widgets
 
 echo "Generating core documentation..."
-$JSDOC --verbose -u ./tutorials -c jsdoc-conf.json --lenient -d $D/core mljs.js ./lib/basic-wrapper.js ./lib/digest-wrapper.js ./lib/noop.js ./lib/passthrough-wrapper.js core.md
+$JSDOC --verbose -u ./tutorials -c jsdoc-conf.json --lenient -d $D/core ./src/js/mljs.js ./src/js/lib/basic-wrapper.js ./src/js/lib/digest-wrapper.js ./src/js/lib/noop.js ./src/js/lib/passthrough-wrapper.js core.md
 echo "...done."
 echo "Generating widget documentation..."
-$JSDOC --verbose -u ./tutorials -c jsdoc-conf.json --lenient -d $D/widgets ./mldbwebtest/src/public/js/mljs/mljs-*.js ./mldbwebtest/src/public/js/mljs/widget*.js browser.md
+$JSDOC --verbose -u ./tutorials -c jsdoc-conf.json --lenient -d $D/widgets ./src/js/mljs-*.js ./src/js/widget*.js browser.md
 echo "...done."
 
 cp -R $D/core $P/
@@ -39,4 +39,3 @@ cd ../mljs
 
 echo "Done All."
 exit 0
-
