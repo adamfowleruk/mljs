@@ -2,18 +2,18 @@
 
 rm -rf dist
 mkdir dist
-mkdir dist/mljs/node-dev
-mkdir dist/mljs/node-prod
-mkdir dist/mljs/node-dev/lib
-mkdir dist/mljs/node-prod/lib
-mkdir dist/mljs/browser-dev
-mkdir dist/mljs/browser-dev/js
-mkdir dist/mljs/browser-dev/css
-mkdir dist/mljs/browser-dev/images
-mkdir dist/mljs/browser-prod
-mkdir dist/mljs/browser-prod/js
-mkdir dist/mljs/browser-prod/css
-mkdir dist/mljs/browser-prod/images
+mkdir dist/node-dev
+mkdir dist/node-prod
+mkdir dist/node-dev/lib
+mkdir dist/node-prod/lib
+mkdir dist/browser-dev
+mkdir dist/browser-dev/js
+mkdir dist/browser-dev/css
+mkdir dist/browser-dev/images
+mkdir dist/browser-prod
+mkdir dist/browser-prod/js
+mkdir dist/browser-prod/css
+mkdir dist/browser-prod/images
 
 P=../mljs-pages/apidocs
 SRC=./src
@@ -21,7 +21,7 @@ CS=./src/css
 S=./src/js
 SA=./apps/mldbwebtest/src
 SJ=./apps/mldbwebtest/src/public/js
-L=./src/lib
+L=./src/js/lib
 D=./dist/browser-prod
 DJ=$D/js
 N=./dist/node-dev
@@ -30,23 +30,25 @@ R=./dist/browser-dev
 RJ=$R/js
 J=./build-lib/jsmin
 
-./cpjs.sh
+#./cpjs.sh
 
 ./updaterest.sh
 
 cp $L/*.js $N/lib/
 cp $S/mljs.js $RJ/
 cp $S/mljs.js $N/
+cp $SRC/images/* $R/images/
+cp $SRC/images/* $D/images/
 cp $S/mljs-*.js $RJ/
 cp $S/widget*.js $RJ/
 cp $SJ/highcharts.js $RJ/
 
 $J < $S/mljs.js > $DJ/mljs.js
 cp $DJ/mljs.js $NM/
-$J < ./lib/basic-wrapper.js > $NM/lib/basic-wrapper.js
-$J < ./lib/digest-wrapper.js > $NM/lib/digest-wrapper.js
-$J < ./lib/noop.js > $NM/lib/noop.js
-$J < ./lib/passthrough-wrapper.js > $NM/lib/passthrough-wrapper.js
+$J < ./src/js/lib/basic-wrapper.js > $NM/lib/basic-wrapper.js
+$J < ./src/js/lib/digest-wrapper.js > $NM/lib/digest-wrapper.js
+$J < ./src/js/lib/noop.js > $NM/lib/noop.js
+$J < ./src/js/lib/passthrough-wrapper.js > $NM/lib/passthrough-wrapper.js
 
 $J < $S/mljs-jquery.js > $DJ/mljs-jquery.js
 $J < $S/mljs-prototype.js > $DJ/mljs-prototype.js
@@ -73,12 +75,12 @@ $J < $S/widget-triples.js > $DJ/widget-triples.js
 $J < $S/widget-workplace.js > $DJ/widget-workplace.js
 $J < $S/widgets.js > $DJ/widgets.js
 
-cp $CS/widgets.css $D/css/widgets.css
-cp $CS/widgets.css $R/css/widgets.css
+cp $CS/*.css $D/css/
+cp $CS/*.css $R/css/
 
 # tests
-cp $ST/page*.js $R/mljstest/
-cp $ST/page*.js $D/mljstest/
+#cp $ST/page*.js $R/mljstest/
+#cp $ST/page*.js $D/mljstest/
 
 # Roxy controller, layout, etc.
 # NB non minified versions are copied for Roxy code - for ease of debugging on reported issues.
@@ -87,7 +89,7 @@ cp $ST/page*.js $D/mljstest/
 #cp $SRC/app/views/layouts/mljs-* $R/roxy/app/views/layouts/
 #cp $SRC/public/css/one-column.less $R/roxy/public/css/
 cp $SA/public/css/bootstrap-roxy.css $R/css/
-cp -R $SRC/public/css/960 $R/css/960
+cp -R $SA/public/css/960 $R/css/960
 #cp $SA/css/* $R/css/
 #cp $SA/js/* $R/js/
 #cp $SA/images/* $R/images/

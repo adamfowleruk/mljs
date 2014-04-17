@@ -1,6 +1,8 @@
 #!/bin/sh
 ./cpjs.sh
 
+echo "In update rest..."
+
 cd apps
 
 mkdir mljsrest/src/app

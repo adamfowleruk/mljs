@@ -1,4 +1,6 @@
 #!/bin/sh
+echo "In CPJS..."
+
 cp src/js/mljs.js ./apps/mldbwebtest/src/public/js/mljs/
 cp src/js/widgets*.js ./apps/mldbwebtest/src/public/js/mljs/
 cp src/css/* ./apps/mldbwebtest/src/public/css/mljs/
