@@ -61,7 +61,7 @@ Targets for 1.6 (Apr 2014) - Theme: MLJS Ease of Use in the Browser
   - blog (news) items
   - latest tutorials
  - Docs: Image previews of all widgets, linking to pages with code examples
-  - DEFERRED Workplace page configuration JSON too?
+  - DEFERRED Workplace page configuration JSON download/upload too?
   - DEFERRED Sample content for testing bundle too? (MLCP archive? Version dependent?)
   - DEFERRED Workplace page search and share app (hosting?)
   - DEFERRED Workplace widget NPM like search and install app (hosting?)
