@@ -2023,13 +2023,13 @@ mljs.prototype.v7check = function(v6func,v7func) {
   // check version number first
   var self = this;
   var doit = function() {
-    if (null == self._version || self._version.substring(0,self._version.indexOf(".")) &lt; 7) {
+    if (null == self._version || false === self._version || self._version.substring(0,self._version.indexOf(".")) &lt; 7) {
       v6func();
     } else {
       v7func();
     }
   };
-  if (this._version == null && null != this._forceVersion) {
+  if ((this._version == null || false === this._version) && null != this._forceVersion) {
     this.logger.debug("v7check: Forcing version: " + this._forceVersion);
     this._version = this._forceVersion;
   }
@@ -2897,22 +2897,61 @@ mljs.prototype.saveAll2 = function(doc_array,uri_array_opt,callback_opt) {
 
 
 // MLJS WORKPLACE
+
+/**
+ * TODO Should this be in the workplace context? Feels kinda high level.
+ */
 mljs.prototype.getWorkplace = function(name,callback) {
   this.get("/admin/workplace/" + encodeURI(name) + ".json", callback);
 };
 
+
+/**
+ * TODO Should this be in the workplace context? Feels kinda high level.
+ */
 mljs.prototype.saveWorkplace = function(json,uri_opt,props_opt,callback) {
+  var col = props_opt.collection;
+  var wpcols = "mljsInternalData,mljsWorkplacePages";
+  if (undefined == col) {
+    col = wpcols;
+  } else {
+    col = col + "," + wpcols;
+  }
+  props_opt.collection = col;
   this.save(json,uri_opt || "/admin/workplace/" + this.__genid() + ".json",props_opt,callback);
 };
 
+/**
+ * TODO Should this be in the workplace context? Feels kinda high level.
+ */
 mljs.prototype.findWorkplace = function(pageurl,callback) {
   // query http://docs.marklogic.com/guide/search-dev/structured-query#id_47536
   // options http://docs.marklogic.com/guide/rest-dev/appendixa#id_62771
   // docs missing at the moment
   // TODO ensure we ask for RAW results, limit 1
   // TODO support multiple users (ASSUME: security handling visibility for same url, different config)
+  var ob = this.createOptions();
+  ob.valueConstraint("pageurl","pageurl",ob.JSON)
+    .returnFacets(false)
+    .returnResults(true)
+    .raw();
+  var qb = this.createQuery();
+  qb.query(qb.value("pageurl",pageurl));
+  var sc = this.createSearchContext();
+  sc.setOptions("mljsFindWorkplace",ob); // will fail on multi user system - need to use combined query dynamically
+  sc.addResultsListener(function(results) {
+    if (true === results || false === results) {
+      return;
+    }
+    // pass single document as result to callback
+    callback({inError: false,doc: results.results[0]}); // TODO convert back to JSON (won't be done automatically potentially - may be string)
+  });
+  sc.doStructuredQuery(qb.toJson());
 };
 
+/**
+ * TODO Should this be in the workplace context? Feels kinda high level.
+ */
 mljs.prototype.listSharedWorkplaces = function(callback) {
   // query http://docs.marklogic.com/guide/search-dev/structured-query#id_47536
   // options http://docs.marklogic.com/guide/rest-dev/appendixa#id_62771
@@ -3248,6 +3287,8 @@ mljs.prototype.version = function(callback) {
   this.__doreq("VERSION",options,null,function(result){
     if (!result.inError) {
       that._version = result.doc.version;
+    } else {
+      that._version = false; // indicates error
     }
     callback(result);
   });
@@ -3689,7 +3730,7 @@ mljs.prototype.options.prototype.returnFacets = function(ret) {
     ret = true;
   }
   this.options["return-facets"] = ret;
-  return true;
+  return this;
 };
 
 /**
@@ -4259,6 +4300,72 @@ mljs.prototype.options.prototype.rangeConstraint = function(constraint_name_opt,
   return this;
 };
 mljs.prototype.options.prototype.range = mljs.prototype.options.prototype.rangeConstraint;
+
+/**
+ * Creates a new value Constraint, and adds it to the search options object
+ * 
+ * MarkLogic does not support faceting or sorting for value constraints - add a range constraint and range index for this functionality.
+ * 
+ * @param {string} constraint_name_opt - Optional constraint name to use. Defaults to NULL
+ * @param {string} name_or_key - Element name or JSON key to use
+ * @param {string} ns_opt - Namespace to use. Optional. If not specified, default namespace is used. (If type is XML element)
+ * @param {string} fragmentScope_opt - The fragment to use (defaults to document)
+ * @param {string|Array} annotation_opt - The annotation to add to the constraint. MLJS uses annotation[0] as the display title, falling back to camel case constraint name if not specified
+ */
+mljs.prototype.options.prototype.valueConstraint = function(constraint_name_opt,name_or_key,ns_opt,fragmentScope_opt,annotation_opt) {
+  this._includeSearchDefaults();
+  
+  if (undefined == name_or_key) {
+    if (undefined !=  constraint_name_opt) {
+      name_or_key = constraint_name_opt; // keep contraint name same as name or key (dont set to undefined)
+    }
+  }
+  if (undefined == constraint_name_opt) {
+    constraint_name_opt = name_or_key;  
+  }
+  var thens = ns_opt;
+  if (undefined == ns_opt) { // this allows "" blank namespace
+    thens = this.defaults.namespace;
+  }
+  
+  var con = {name: constraint_name_opt,
+    value: {
+      element: {
+        name: name_or_key, ns : thens // NB this means if default namespace is not json, you must specify NS for ALL json rangeConstraints to be marklogic/basic full URL spec
+      }
+    }
+  };
+  if (undefined != annotation_opt) {
+    if ("string" == typeof(annotation_opt)) {
+      annotation_opt = [annotation_opt];
+    }
+    con.annotation = annotation_opt;
+  }
+  if (undefined != fragmentScope_opt) {
+    con.value["fragment-scope"] = fragmentScope_opt;
+  }
+  
+  // Create sort orders automatically - CAN THIS BE DONE ON VALUE CONSTRAINTS??? NO?
+  /*
+  var elspec = name_or_key;
+  if (undefined != ns_opt) {
+    elspec = {
+      element: con.value.element.name, elementns: con.value.element.ns
+    };
+  }
+  this.sortOrder("ascending",type_opt || this.defaults.datatype,elspec,collation_opt || this.defaults.collation); // TODO verify this works with normal XML range indexes not json keys
+  this.sortOrder("descending",type_opt || this.defaults.datatype,elspec,collation_opt || this.defaults.collation); // TODO verify this works with normal XML range indexes not json keys
+  */
+  
+  
+  this.__d("valueConstraint(): Constraint JSON: " + JSON.stringify(con));
+  
+  this.addConstraint(con);
+  //this.suggest(constraint_name_opt); // CAN THIS BE DONE WITH VALUE CONS??? NO?
+  
+  return this;
+};
+mljs.prototype.options.prototype.value = mljs.prototype.options.prototype.valueConstraint;
 
 /**
  * Specifies a new field range constraint, and adds it to the search options object
@@ -5478,6 +5585,23 @@ mljs.prototype.query.prototype.range = function(constraint_name,val,range_operat
   return query;
 };
 
+
+mljs.prototype.query.prototype.value = function(constraint_name,val /*,options_opt*/ ) {
+  var query = {
+    "value-constraint-query": {
+      "value": val,
+      "constraint-name": constraint_name
+    }
+  };
+  /*
+  if (undefined != options_opt) {
+    // TODO sanity check value
+    query["value-constraint-query"]["range-option"] = options_opt;
+  }*/
+  
+  return query;
+};
+
 /**
  * Creates a document (uri list) query
  *
@@ -6274,6 +6398,11 @@ mljs.prototype.searchcontext.prototype.contributeStructuredQuery = function(cont
     if ("string" == typeof(queryTerm)) {
       this.db.v7check(function() {
         // v6 func
+        if ("" == queryTerm.trim()) {
+          queryTerm = qb.and();
+        } else {
+          queryTerm = qb.term(queryTerm);
+        }
         self.structuredContrib[contributor] = qb.term(queryTerm);
         doit();
       },
@@ -8811,7 +8940,7 @@ mljs.prototype.xmlToText = xmlToText;
 					
 		<span class="jsdoc-message">
 		Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.3-dev</a>
-		on Sat Mar 22 2014 11:23:25 GMT-0000 (GMT) using the <a href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
+		on Thu Apr 17 2014 13:42:17 GMT+0100 (BST) using the <a href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
 		</span>
 				</footer>
 			</div>
