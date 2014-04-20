@@ -1,8 +1,7 @@
 #!/bin/sh
 ./cpjs.sh
 echo "Core:-"
-wc -l mldbwebtest/src/public/js/mljs/mljs*.js
+wc -l src/js/mljs*.js
 echo "Widget API:-"
-wc -l mldbwebtest/src/public/js/mljs/widget*.js
+wc -l src/js/widget*.js
 echo "Done."
-

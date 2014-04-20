@@ -10,6 +10,25 @@ mkdir mljsrest/src/app/models
 mkdir mljsrest/src/roxy
 mkdir mljsrest/src/roxy/config
 
+cd ..
+
+SRC=./src
+CS=./src/css
+S=./src/js
+SA=./apps/mldbwebtest/src
+SJ=./apps/mldbwebtest/src/public/js
+RA=./apps/mljsrest/src
+RJ=./apps/mljsrest/src/js
+
+
+cp $S/*.js $SJ/mljs/
+cp $SRC/images/* $SA/public/images/mljs/
+cp $SRC/css/* $SA/public/css/mljs/
+cp $S/*.js $RJ/mljs/
+cp $SRC/images/* $RA/images/mljs/
+cp $SRC/css/* $RA/css/mljs/
+
+cd apps
 
 # other dependencies now
 cp -R mldbwebtest/src/public/js/OpenLayers-2.13.1 mljsrest/src/js

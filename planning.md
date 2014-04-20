@@ -12,18 +12,20 @@ Targets for 1.6 (Apr 2014) - Theme: MLJS Ease of Use in the Browser
     - DONE BUG Not allowing existing last widget to be dropped on last widget dropzone, also handle not last existing re-ordering
     - DONE BUG dragging new class mid zone now breaks -> places new widget in last element of array, doesn't reshuffle undefined elements
     - DONE BUG multiple drops of new widgets on to end of same zone causes errors due to blanks between elements - added self._eliminateBlanks(z); call at start and end
-   - Save function working
-    - IN PROGRESS workplacecontext.prototype.save
+   - TEST Save function working
+    - TEST workplacecontext.prototype.save
      - TEST Get assignments from layout - self.generateAssignments()
       - DONE prune assignments (remove admin widgets)
      - TEST call mljs.saveWorkplace function
-    - (this.container + "-save").onclick - show message that save was successful in error/notification area
-    - ensure configwrapper event handlers are running even when moved around in HTML (via drag/drop)
-   - findWorkplace working
+    - TEST (this.container + "-save").onclick - show message that save was successful in error/notification area
+    - TEST ensure configwrapper event handlers are running even when moved around in HTML (via drag/drop)
+    - BUG widget edit page on initial load does not give accurate order values for widgets laid out there
+    - BUG on save, widget config loses type (class name) values
+   - TEST findWorkplace working
     - TEST need to add valueConstraint support to options builder
-    - need to add value query to query builder
-    - move *Workplace functions from MLJS in to Workplace Context (they use structured search)
-   - Context configuration
+    - TEST need to add value query to query builder
+    - TEST move *Workplace functions from MLJS in to Workplace Context (they use structured search)
+   - Context configuration for Workplace
    - Enable all widgets for Workplace
    - remove widget button
    - multiple layouts working
@@ -49,7 +51,7 @@ Targets for 1.6 (Apr 2014) - Theme: MLJS Ease of Use in the Browser
   - Docs: Update MLJSREST app framework for bootstrap support
   - Docs: Get hold of MarkLogic bootstrap theme CSS from MY (License?)
   - Get MY to review app, workplace and widget UX
- - Docs: Deprecate mldbwebtest app as primary source of widget files in build, remove app itself
+ - DONE Docs: Deprecate mldbwebtest app as primary source of widget files in build, remove app itself
  - DONE BUG Widgets: searchbar - When contributing query as term query for structured search, if text blank need to send and-query not term-query("") - else nothing is returned!
  - DONE BUG Core: version being called multiple times per page (when version endpoint doesn't exist)
  - IN PROGRESS BUG Docs: Explorer widget not loading document facet data on mljsrest app
@@ -77,6 +79,7 @@ Targets for 1.8 (May 2014) - Theme: Visualisations
  - IN PROGRESS Widgets: Search Results
   - IN PROGRESS Improve support for pluggable rendering for areas of result pane:-
    - IN PROGRESS title
+   - Use Bootstrap CSS throughout
    - selection tickbox
    - IN PROGRESS actions (pluggable)
     - show more detail (expanded result summary)
@@ -114,9 +117,11 @@ Targets for 1.8 (May 2014) - Theme: Visualisations
    - fire series update event for individual series (need depends upon widget)
    - fire all series update event for overall results (need depends upon widget)
  - Widgets: Workplace
+  - Use Bootstrap CSS throughout
   - Allow user personalisation for widgets on a page (auto save and load via workplace context)
   - Allow showing of live data against configuration options (E.g. list the facets from options that are selectable for a highchart)
  - Widgets: Highcharts
+  - Use bootstrap CSS throughout
   - editable flag on chart - uses widget personalisation
   - Select chart type dynamically
   - Multiple source support
@@ -132,11 +137,13 @@ Targets for 1.8 (May 2014) - Theme: Visualisations
    - select value y source
    - select dynamic series source
  - Docs: Create mock sample search pages
+  - Use bootstrap CSS throughout
   - wordpress like demo summary view for documents
   - google like summary, with similar stories indented
   - tabular view - http://www.webdesignerdepot.com/2010/02/showcase-of-great-web-app-interfaces/
   - google images like summary view, and detail on click
  - Widgets: Sparqlbar: Allow relatedFrom relationships as well as current relatedTo
+  - Use Bootstrap CSS
  - Widgets: Explorer: Save URI to/from IRI mapping prior to calling document facets fetch (currently based on name substring - dangerous)
  - DEFERRED Widgets: Search Results: Allow rendering with other layouts rather than just a simple column
   - Widgets: 2 column across-first cell rendering layout
@@ -148,6 +155,7 @@ Targets for 1.8 (May 2014) - Theme: Visualisations
   - IN PROGRESS triple support (with summary?)
  - Docs: Update sample apps to make best use of search presentation features
  - Widgets: OpenLayers
+  - Use Bootstrap CSS for surrounding areas
   - Support multiple result types (series) from same searchcontext. E.g. matcher() and series() functions (use same pattern as searchresults for simplicity)
  - Missed 1.2 (Dec 2013) - High Priority - targets
   - IN PROGRESS Widgets: Data Explorer improvements
@@ -157,13 +165,24 @@ Targets for 1.8 (May 2014) - Theme: Visualisations
    - DONE BUG: Widgets: Data explorer widget shows extra two boxes when drawing Wendy (Doesn't remove original link boxes when redrawing?)
    - ? Widgets: Give the data explorer the same document title heuristics as the search results widget. (E.g. XHTML title element value)
    - Widgets: Add a view document link to the data explorer when rendering a document node (Links to different app URL)
- - Immediate explorer
+ - Widgets: New Immediate explorer widget
+  - Use Bootstrap CSS throughout
   - Left hand side Subject of interest
   - Related content below
   - Related subjects to right
   - Navigating onward redraws, shows parent (previous) Subject above new subject of interest
 
 DEFERRED from 1.8 Theme: Visualisations
+ - Widgets: Refactor remaining for Bootstrap CSS
+  - searchbar
+  - facets
+  - facet deselection
+  - pager
+  - search sorter
+  - search selection
+  - select structured search
+  - co-occurence
+  - tagcloud
  - Widgets: Document Collector dropbox (also supports the searchresults document title, result summary plugins)
  - Widgets: search bar: Suppress facets, sorting shown within text query bar
  - Widgets: search bar: Support boolean AND, OR, ( and ), NOT

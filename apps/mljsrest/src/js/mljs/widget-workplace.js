@@ -29,15 +29,15 @@ com.marklogic.widgets = window.com.marklogic.widgets || {};
  */
 com.marklogic.widgets.workplace = function(container) {
   this.container = container;
-  
+
   this._editable = false;
-  
+
   this._contexts = new Array(); // contextname => contextObject instance
-  
+
   this._workplaceContext = new com.marklogic.widgets.workplacecontext();
-  
+
   this._init();
-  
+
   this._workplaceContext.register(this);
 };
 
@@ -66,7 +66,7 @@ com.marklogic.widgets.workplace.prototype._init = function() {
   str += " </div>";
   str += "</div>";
   document.getElementById(this.container).innerHTML = str;
-  
+
   // add click event handler
   var self = this;
   document.getElementById(this.container + "-link").onclick = function(evt) {
@@ -76,7 +76,7 @@ com.marklogic.widgets.workplace.prototype._init = function() {
 
 /**
  * Specifies whether this workplace page widget is editable. Default is false.
- * 
+ *
  * @param {boolean} editme - Is this workplace editable?
  */
 com.marklogic.widgets.workplace.prototype.editable = function(editme) {
@@ -84,7 +84,7 @@ com.marklogic.widgets.workplace.prototype.editable = function(editme) {
     editme = true;
   }
   this._editable = editme;
-  
+
   // show editable div within page
   if (this._editable) {
     document.getElementById(this.container + "-mask").style.display = "block";
@@ -95,7 +95,7 @@ com.marklogic.widgets.workplace.prototype.editable = function(editme) {
 
 /**
  * Loads the specified configuration
- * 
+ *
  * @param {json|string} jsonOrString - The JSON config object, or json string, representing the page configuration
  * @param {json} json_opt - Optional fall back JSON configuration, if remote workplace config does not exist. Useful for new applications.
  */
@@ -105,50 +105,50 @@ com.marklogic.widgets.workplace.prototype.loadPage = function(jsonOrString,json_
 
 /**
  * Redraws this workplace based on the configuration in the specified workplace context object.
- * 
+ *
  * @param {workplacecontext} context - The Workplace context holding the configuration to render.
  */
 com.marklogic.widgets.workplace.prototype.updateWorkplace = function(context) {
   var json = this._workplaceContext.getJson();
-  
+
   // load top level layout for this page (or panel we are managing, at least)
   mljs.defaultconnection.logger.debug("Creating layout");
   var layout = new (com.marklogic.widgets.layouts[json.layout])(this.container + "-layout");
-  
+
   // generate named areas for widgets to be contained
   mljs.defaultconnection.logger.debug("Creating zones");
   layout.createZones(json.assignments);
-  
+
   var widgets = new Array(); // widgetid => wgt instance
-  
+
   // initialise widgets in these areas
   mljs.defaultconnection.logger.debug("Creating widget instances");
   for (var w = 0, max = json.widgets.length,widget;w < max;w++) {
     widget = json.widgets[w];
     mljs.defaultconnection.logger.debug("Creating widget: " + w + " with: " + JSON.stringify(widget));
-    
+
     var item = layout.getAssignmentByWidgetName(widget.widget).item;
     var elementid = item.elementid;
-    
+
     var wgt = this._createWidget(widget.type,elementid,widget.config);
     mljs.defaultconnection.logger.debug("Create widget has returned");
     widgets[widget.widget] = wgt;
   }
-  
+
   var contexts = new Array(); // contextid => context object
-  
+
   // create management contexts from connection object
   mljs.defaultconnection.logger.debug("Creating contexts");
   for (var c = 0, max = json.contexts.length,ctx;c < max;c++) {
     ctx = json.contexts[c];
     mljs.defaultconnection.logger.debug("Context: " + c + " is " + JSON.stringify(ctx));
-    
+
     var creator = mljs.defaultconnection["create" + ctx.type];
     mljs.defaultconnection.logger.debug("Is creator function of type function?: " + (typeof creator));
     var inst = creator.call(mljs.defaultconnection);
     contexts[ctx.context] = inst;
     mljs.defaultconnection.logger.debug("Is context instance valid?: is object?: " + (typeof inst));
-    
+
     // initialise context configuration
     mljs.defaultconnection.logger.debug("Config: " + JSON.stringify(ctx.config));
     mljs.defaultconnection.logger.debug("Context Obj: " + JSON.stringify(inst));
@@ -156,7 +156,7 @@ com.marklogic.widgets.workplace.prototype.updateWorkplace = function(context) {
       mljs.defaultconnection.logger.debug("Setting context configuration");
       inst.setConfiguration(ctx.config);
     }
-    
+
     // register widgets with contexts
     for (var wid = 0, widmax = ctx.register.length,widgetid;wid < widmax;wid++) {
       widgetid = ctx.register[wid];
@@ -164,9 +164,9 @@ com.marklogic.widgets.workplace.prototype.updateWorkplace = function(context) {
       inst.register(widgets[widgetid]);
     }
   }
-  
+
   this._contexts = contexts;
-  
+
   // call onload actions in order
   if (undefined != json.actions && undefined != json.actions.onload) {
     mljs.defaultconnection.logger.debug("Processing onload actions");
@@ -183,13 +183,13 @@ com.marklogic.widgets.workplace.prototype.updateWorkplace = function(context) {
     }
     mljs.defaultconnection.logger.debug("COMPLETE processing onload actions");
   }
-  
+
   mljs.defaultconnection.logger.debug("finished loading page");
 };
 
 /**
  * Returns the specified json configuration named object from the workplace context. Used by page JavaScript to override default widget settings.
- * 
+ *
  * @param {string} name - The Widget name from the configuration object. E.g. searchbar1
  */
 com.marklogic.widgets.workplace.prototype.getContextObject = function(name) {
@@ -210,20 +210,20 @@ com.marklogic.widgets.workplace._getWidgetClass = function(type) {
 
 com.marklogic.widgets.workplace.prototype._createWidget = function(type,elementid,config) {
   mljs.defaultconnection.logger.debug("workplace._createWidget: Creating widget: " + type + " in " + elementid + " with config: " + JSON.stringify(config));
-  
+
   var wobj = com.marklogic.widgets.workplace._getWidgetClass(type);
-  
+
   mljs.defaultconnection.logger.debug("workplace._createWidget: instantiating widget: " + JSON.stringify(wobj));
   var wgt = new wobj(elementid);
-  
+
   mljs.defaultconnection.logger.debug("workplace._createWidget: has widget instance been created? type is object?: " + (typeof wgt));
-  
-  
+
+
   // apply config to object
   if (undefined !== wgt.setConfiguration) { // backwards compatibility - widget may not have configuration
     wgt.setConfiguration(config);
   }
-  
+
   return wgt;
 };
 
@@ -244,7 +244,7 @@ com.marklogic.widgets.layouts = {};
 com.marklogic.widgets.layouts.helper = {};
 /**
  * Helper function to prune admin widgets out of a layout. Used to generate saveable position data for workplace pages
- * 
+ *
  * @param {Array} assignmentArray - The assignment array to prune admin widgets from
  */
 com.marklogic.widgets.layouts.helper.prune = function(assignmentArray) {
@@ -268,7 +268,7 @@ com.marklogic.widgets.layouts.helper.extendLayout = function(layoutInstance,cont
   // mixin generic parameters and functions
   var self = layoutInstance;
   self.container = container;
-  
+
   self.zones = {}; // "A" => [null, {elementid: ""},{widget: "searchbar1",...}, ... ] // ordered, also order: parameter holds the order (1 based)
   self.zoneNames = zones;
   for (var i = 0, max = zones.length, zone;i < max;i++) {
@@ -276,9 +276,9 @@ com.marklogic.widgets.layouts.helper.extendLayout = function(layoutInstance,cont
     self.zones[zone] = new Array();
   }
   self._nextID = 1;
-  
+
   //self.assignments = new Array(); // [widgetname] => assignment json, with elementid for element linked to - WHY???
-  
+
   // new
   /**
    * Layout mixin method to return the contained assignment by name
@@ -350,27 +350,27 @@ com.marklogic.widgets.layouts.helper.extendLayout = function(layoutInstance,cont
   self.getZoneList = function() {
     return self.zoneNames;
   };
-  
+
   // assigns assignments to this layout, then generates those assignments
   self.createZones = function(assignments) {
     mljs.defaultconnection.logger.debug("Creating zones in thinthick layout");
     // group by zones, order by order
-    
+
     if (undefined != assignments) {
       for (var i = 0, max = assignments.length,ass;i < max;i++) {
-        mljs.defaultconnection.logger.debug("layout<class>.createZones: i: " + i); 
+        mljs.defaultconnection.logger.debug("layout<class>.createZones: i: " + i);
         ass = assignments[i];
         mljs.defaultconnection.logger.debug("layout<class>.createZones: i: " + i + " has ass: " + JSON.stringify(ass));
         self.zones[ass.zone][ass.order] = ass;
       }
     }
-    
+
     // do zone A then zone B
     for (var zone in self.zones) {
       self._genZones(zone, self.zones[zone]);
     }
   }; // REQUIRES instance._genZones() function
-  
+
   // WHY? When will it ever not exist?
   self._getZone = function(zone) {
     var z = self.zones[zone];
@@ -397,7 +397,7 @@ com.marklogic.widgets.layouts.helper.extendLayout = function(layoutInstance,cont
       }
     }
   };
-  
+
   /**
    * Returns the widget assignment JSON
    * @private
@@ -410,7 +410,7 @@ com.marklogic.widgets.layouts.helper.extendLayout = function(layoutInstance,cont
     }
     return z[index];
   };
-  
+
   // TODO generate the JSON assignment config
   self.generateAssignments = function() {
     // export assignments we've been managing
@@ -443,7 +443,7 @@ com.marklogic.widgets.layouts.helper.extendLayout = function(layoutInstance,cont
     }
     var elid = self.container + "-" + zone + "-" + self._nextID++;
     self.zones[zone][lastOrder] = elid; // gen new id
-    
+
     // generate HTML
     if (undefined != self._createPlaceholderHTMLOverride) {
       self._createPlaceholderHTMLOverride(zone,elid);
@@ -452,9 +452,9 @@ com.marklogic.widgets.layouts.helper.extendLayout = function(layoutInstance,cont
       var div = document.createElement("div");
       div.setAttribute("id",elid);
       //var toappend = div.firstChild; // assume one child only. Could use div.childNodes for all children
-      zoneel.appendChild(div); 
+      zoneel.appendChild(div);
     }
-    
+
     return elid;
   };
   // MUST call createPlaceholder first
@@ -499,13 +499,13 @@ com.marklogic.widgets.layouts.helper.extendLayout = function(layoutInstance,cont
   self._genZones = function(zone,arr) {
     mljs.defaultconnection.logger.debug("layout<class>._genZones: " + zone + " with array: " + JSON.stringify(arr));
     for (var i = 1, max = arr.length, ass;i < max;i++) {
-      mljs.defaultconnection.logger.debug("layout<class>._genZones: zone: " + zone + " index: " + i); 
+      mljs.defaultconnection.logger.debug("layout<class>._genZones: zone: " + zone + " index: " + i);
       ass = arr[i];
       // create PlaceHolder HTML
       var elid = self.createPlaceholder(zone);
       // draw widget now? - NO (can be done afterwards safely as part of full page load)
       var newAss = self.registerAssignment(elid,ass);
-      
+
       //s += self._ass(zone,ass);
     }
     //self._replaceZone(zone,s);
@@ -599,7 +599,7 @@ com.marklogic.widgets.layouts.helper.extendLayout = function(layoutInstance,cont
         div.innerHTML = html;
         //var toappend = div.firstChild; // assume one child only. Could use div.childNodes for all children
         zoneel.appendChild(div);
-      
+
     }
   };*/
   // TODO make this not dependant upon spacers as per workplaceadmin
@@ -611,11 +611,11 @@ com.marklogic.widgets.layouts.helper.extendLayout = function(layoutInstance,cont
     var spacer = self._elementAt(me.zone,me.order - 1); // TODO detect spacer
     var oldZone = me.zone;
     var oldOrder = me.order;
-    
+
     mljs.defaultconnection.logger.debug("layout<subclass>.moveToPosition: Got Widget at target position. Moving those afterwards");
     //var z = self._getZone(newZone);
     var z = self.zones[newZone];
-    
+
     var lastWidget = null;
     for (var w = z.length - 1, min = z.length - 3, moveme;w >= min && null == lastWidget;w--) {
       moveme = z[w];
@@ -626,16 +626,16 @@ com.marklogic.widgets.layouts.helper.extendLayout = function(layoutInstance,cont
     self._eliminateBlanks(z);
     if (undefined == newIndexOneBased) {
       lastWidget = z[lastWidget.order - 2]; // new two elements at end right now
-      
+
       wgt = lastWidget; // dropped on end of zone
       newIndexOneBased = wgt.order;
-      
+
       var lastWidgetPos = wgt.order;
-      
+
       // move last widget to end
       z[me.order + 1] = wgt;
       z[lastWidgetPos] = undefined;
-      
+
       // move all back 1
       wgt.order = me.order + 1;
       z[lastWidgetPos] = spacer;
@@ -646,7 +646,7 @@ com.marklogic.widgets.layouts.helper.extendLayout = function(layoutInstance,cont
       wgt.order = lastWidgetPos + 2;
       z[lastWidgetPos + 3] = undefined;
     } else {
-    
+
     if (null != wgt) { // null if we're placing at the end
       // if not empty, increment order on all widgets at and after position
       if (null != lastWidget && lastWidget.elementid == wgt.elementid) {
@@ -657,7 +657,7 @@ com.marklogic.widgets.layouts.helper.extendLayout = function(layoutInstance,cont
           z[newIndexOneBased + 1] = undefined; // spacer - corrects z.length later
         }
         lastWidget.order += 2;
-    
+
         // blank out old positions
         self.zones[oldZone][oldOrder] = undefined;
         self.zones[oldZone][oldOrder - 1] = undefined; // spacer
@@ -672,8 +672,8 @@ com.marklogic.widgets.layouts.helper.extendLayout = function(layoutInstance,cont
         }
       }
     }
-    
-    
+
+
     mljs.defaultconnection.logger.debug("layout<subclass>.moveToPosition: Getting widget to move");
     me.order = newIndexOneBased + 1; // +1 is so spacer is before this widget
     me.zone = newZone;
@@ -682,7 +682,7 @@ com.marklogic.widgets.layouts.helper.extendLayout = function(layoutInstance,cont
     // place widget at required position
     z[newIndexOneBased] = spacer; // assumes new index is valid
     z[newIndexOneBased + 1] = me;
-    
+
     if (null == lastWidget || lastWidget.elementid != wgt.elementid) {
       // blank out old positions
       var diff = 0;
@@ -693,22 +693,22 @@ com.marklogic.widgets.layouts.helper.extendLayout = function(layoutInstance,cont
       self.zones[oldZone][oldOrder + diff] = undefined;
       self.zones[oldZone][oldOrder - 1 + diff] = undefined; // spacer
     }
-    
+
     } // end if new class dropped on end of zone if
-    
+
     mljs.defaultconnection.logger.debug("layout<subclass>.moveToPosition: Moving (decrementing order) widgets passed original position");
     // decrement order's after this element's position - if oldzone different from newzone this is valid
     //if (newZone != oldZone) {
       //z = self._getZone(oldZone);
       z = self.zones[oldZone];
-      
+
     self._eliminateBlanks(z);
-    
-    
+
+
     mljs.defaultconnection.logger.debug("layout<subclass>.moveToPosition: Moving HTML element");
     // ACTUALLY MOVE THE DAMNED HTML!!!
     self._moveElementToPosition(me,spacer,wgt);
-    
+
     mljs.defaultconnection.logger.debug("layout<subclass>.moveToPosition: Ended");
   };
   self._eliminateBlanks = function(z) {
@@ -778,12 +778,12 @@ com.marklogic.widgets.layouts.helper.extendLayout = function(layoutInstance,cont
 /**
  * A thin thick layout. 960.css aware. Uses container_4 for the left (thin) side, and container_8 for the right (thick) side.
  * @constructor
- * 
+ *
  * @param {string} container - The HTML ID of the container to render this layout within
  */
 com.marklogic.widgets.layouts.thinthick = function(container) {
   com.marklogic.widgets.layouts.helper.extendLayout(this,container,["A","B"]);
-  
+
   this._init();
 };
 
@@ -804,12 +804,12 @@ com.marklogic.widgets.layouts.thinthick.prototype._init = function() {
 /**
  * A thick thin layout. 960.css aware. Uses container_8 for the left (thick) side, and container_4 for the right (thin) side.
  * @constructor
- * 
+ *
  * @param {string} container - The HTML ID of the container to render this layout within
  */
 com.marklogic.widgets.layouts.thickthin = function(container) {
   com.marklogic.widgets.layouts.helper.extendLayout(this,container,["A","B"]);
-  
+
   this._init();
 };
 
@@ -832,12 +832,12 @@ com.marklogic.widgets.layouts.thickthin.prototype._init = function() {
 /**
  * A single column layout. 960.css aware. Uses container_12 from 960.css.
  * @constructor
- * 
+ *
  * @param {string} container - The HTML ID of the container to render this layout within
  */
 com.marklogic.widgets.layouts.column = function(container) {
   com.marklogic.widgets.layouts.helper.extendLayout(this,container,["A"]);
-  
+
   this._init();
 };
 
@@ -887,7 +887,7 @@ com.marklogic.widgets.actions.javascript.prototype.setConfiguration = function(c
 
 /**
  * Executes this action
- * 
+ *
  * @param {object} executionContext - The execution context. Holds environment configuration for this action.
  */
 com.marklogic.widgets.actions.javascript.prototype.execute = function(executionContext) {
@@ -913,7 +913,7 @@ com.marklogic.widgets.actions.javascript.prototype.execute = function(executionC
 
 /**
  * Acts as a co-ordinating context for a single MLJS Workplace Page configuration
- * 
+ *
  * @constructor
  */
 com.marklogic.widgets.workplacecontext = function() {
@@ -928,11 +928,11 @@ com.marklogic.widgets.workplacecontext = function() {
   };
   this._lastSaved = this._json;
   this._uri = null;
-  
+
   this.db = mljs.defaultconnection;
-  
+
   this._instanceNames = {}; // [shortname] -> next available instance id or null
-  
+
   this.updatePublisher = new com.marklogic.events.Publisher(); // page loaded from server
 };
 
@@ -950,7 +950,7 @@ com.marklogic.widgets.workplacecontext.prototype.resetWidgetConfig = function() 
 com.marklogic.widgets.workplacecontext.prototype.nextWidgetName = function(classname) {
   // get last . character
   var classString = classname.split(".").pop(); // TODO check this works on all browsers
-  
+
   var next = this._instanceNames[classString];
   if (undefined == next) {
     next = 1;
@@ -968,7 +968,7 @@ com.marklogic.widgets.workplacecontext.prototype._addWidgetName = function(short
     var endPos = shortname.indexOf(number);
     var classString = shortname.substring(0,endPos);
     number = parseInt(number, 10);
-    
+
     var next = this._instanceNames[classString];
     if (undefined == next) {
       next = 0;
@@ -998,18 +998,91 @@ com.marklogic.widgets.workplacecontext.prototype.setWorkplaceUri = function(uri)
 
 /**
  * Saves this configuration, invoking the callback afterwards
- * 
+ *
  * @param {function} callback - The callback function to invoke after save
  */
-com.marklogic.widgets.workplacecontext.prototype.save = function(callback) {
+com.marklogic.widgets.workplacecontext.prototype.save = function(callback) { // TODO determine is we want to remove callbacks at this level (contexts)
   // NB admin widgets all update context before this function is called, so we just persist our current state, then update previously saved config variable too
-  // NB only widget config held in context - no admin widgets referenced. 
+  // NB only widget config held in context - no admin widgets referenced.
   // NB We assume the order in zones has been updated correctly via a call to setAssignments from the layout
-  
+
   // NB this._uri may be blank if loaded from a JSON config object in page, not via doc URI
-  this.db.saveWorkplace(this._uri,function(result) {
-    // TODO COMPLETE WORKPLACE CONTEXT SAVE METHOD
+  var self = this;
+  this.saveWorkplace(this._json,this._uri,null,function(result) {
+    console.log("WORKPLACE SAVED");
+    self._fireUpdate();
+    callback();
   });
+};
+
+
+// MLJS WORKPLACE
+
+/**
+ * TODO docs
+ */
+com.marklogic.widgets.workplacecontext.prototype.getWorkplace = function(name,callback) {
+  this.db.get("/admin/workplace/" + encodeURI(name) + ".json", callback);
+};
+
+
+/**
+ * TODO docs
+ */
+com.marklogic.widgets.workplacecontext.prototype.saveWorkplace = function(json,uri_opt,props_opt,callback) {
+  var col = null;
+  if (undefined != props_opt) {
+    col = props_opt.collection;
+  }
+  var wpcols = "mljsInternalData,mljsWorkplacePages";
+  if (undefined == col) {
+    col = wpcols;
+  } else {
+    col = col + "," + wpcols;
+  }
+  if (undefined == props_opt) {
+    props_opt = {};
+  }
+  props_opt.collection = col;
+  this.db.save(json,uri_opt || "/admin/workplace/" + this.__genid() + ".json",props_opt,callback);
+};
+
+/**
+ * TODO docs
+ */
+com.marklogic.widgets.workplacecontext.prototype.findWorkplace = function(pageurl,callback) {
+  // query http://docs.marklogic.com/guide/search-dev/structured-query#id_47536
+  // options http://docs.marklogic.com/guide/rest-dev/appendixa#id_62771
+  // docs missing at the moment
+  // TODO ensure we ask for RAW results, limit 1
+  // TODO support multiple users (ASSUME: security handling visibility for same url, different config)
+  var ob = this.db.createOptions();
+  ob.valueConstraint("pageurl","pageurl",ob.JSON)
+    .returnFacets(false)
+    .returnResults(true)
+    .raw();
+  var qb = this.db.createQuery();
+  qb.query(qb.value("pageurl",pageurl));
+  var sc = this.db.createSearchContext();
+  sc.setOptions("mljsFindWorkplace",ob); // will fail on multi user system - need to use combined query dynamically
+  sc.addResultsListener(function(results) {
+    if (true === results || false === results) {
+      return;
+    }
+    // pass single document as result to callback
+    callback({inError: false,doc: results.results[0]});
+  });
+  sc.doStructuredQuery(qb.toJson());
+};
+
+/**
+ * TODO Sdocs
+ */
+com.marklogic.widgets.workplacecontext.prototype.listSharedWorkplaces = function(callback) {
+  // query http://docs.marklogic.com/guide/search-dev/structured-query#id_47536
+  // options http://docs.marklogic.com/guide/rest-dev/appendixa#id_62771
+  // docs missing at the moment
+  // TODO ensure we ask for RAW results, limit 1
 };
 
 /**
@@ -1028,7 +1101,7 @@ com.marklogic.widgets.workplacecontext.prototype.getSummary = function() {
 
 /**
  * Sets the summary for this JSON configuration object
- * 
+ *
  * @param {string} title - The title of this page
  * @param {Array} urls - A string array containing matching URLs for this page in the application
  * @param {string} layout - The fully qualified name of the Workplace layout to use
@@ -1050,7 +1123,7 @@ com.marklogic.widgets.workplacecontext.prototype.getWidgets = function() {
 
 /**
  * Adds a widget to this configuration
- * 
+ *
  * @param {string} name - The configuration name of the widget. E.g. searchbar1
  * @param {string} type - The fully qualified widget class name to create
  * @param {json} config - The JSON configuration object for this widget
@@ -1064,7 +1137,7 @@ com.marklogic.widgets.workplacecontext.prototype.addWidget = function(name,type,
 
 /**
  * Removes a named widget from this configuration
- * 
+ *
  * @param {string} name - The configuration name of the widget. E.g. searchbar1
  */
 com.marklogic.widgets.workplacecontext.prototype.removeWidget = function(name) {
@@ -1088,7 +1161,7 @@ com.marklogic.widgets.workplacecontext.prototype.getAssignments = function() {
 
 /**
  * Sets the assignments in this configuration
- * 
+ *
  * @param {Array} assignments - The assignments array for this page
  */
 com.marklogic.widgets.workplacecontext.prototype.setAssignments = function(assignments) {
@@ -1097,7 +1170,7 @@ com.marklogic.widgets.workplacecontext.prototype.setAssignments = function(assig
 
 /**
  * Places the specified widget in to a particular layout zone and position
- * 
+ *
  * @param {string} name - The configuration name of the widget. E.g. searchbar1
  * @param {string} zone - The named zone in the layout. E.g. "A"
  * @param {integer} order - The order in this layout. 1 based.
@@ -1124,7 +1197,7 @@ com.marklogic.widgets.workplacecontext.prototype.placeWidget = function(name,zon
   }
   // now add in our widget
   zoneWidgets[order - 1] = {widget: name,zone:zone,order:order};
-  
+
   var places = [];
   for (var i = 0;i < otherWidgets.length;i++) {
     places.push(otherWidgets[i]);
@@ -1144,7 +1217,7 @@ com.marklogic.widgets.workplacecontext.prototype.getContexts = function() {
 
 /**
  * Adds a context configuration to this page
- * 
+ *
  * @param {string} name - The widget name. E.g. searchbar1
  * @param {string} type - The short name for the context to create
  * @param {json} config - Configuration of the context
@@ -1155,7 +1228,7 @@ com.marklogic.widgets.workplacecontext.prototype.addContext = function(name,type
 
 /**
  * Links a widget to a context (will invoke the register function on page loading)
- * 
+ *
  * @param {string} widgetName - The configuration widget name. E.g. searchbar1
  * @param {string} contextName - The configuration context name. E.g. searchcontext1
  */
@@ -1171,7 +1244,7 @@ com.marklogic.widgets.workplacecontext.prototype.registerWidget = function(widge
 
 /**
  * Sets a widget's configuration
- * 
+ *
  * @param {string} widgetName - The name of the widget. E.g. searchbar1
  * @param {json} config - The JSON configuration for this widget
  */
@@ -1187,7 +1260,7 @@ com.marklogic.widgets.workplacecontext.prototype.setWidgetConfig = function(widg
 
 /**
  * Returns the configuration for the specified widget
- * 
+ *
  * @param {string} widgetName - The widget name. E.g. searchbar1
  */
 com.marklogic.widgets.workplacecontext.prototype.getWidgetInfo = function(widgetName) {
@@ -1213,7 +1286,7 @@ com.marklogic.widgets.workplacecontext.prototype.getActions = function() {
 
 /**
  * Adds an onload action
- * 
+ *
  * @param {string} type - The action class name to create
  * @param {json} config - The JSON configuration to apply
  */
@@ -1223,19 +1296,19 @@ com.marklogic.widgets.workplacecontext.prototype.addOnloadAction = function(type
 
 /**
  * Adds an on unload action
- * 
+ *
  * @param {string} type - The action class name to create
  * @param {json} config - The JSON configuration to apply
  */
 com.marklogic.widgets.workplacecontext.prototype.addOnUnloadAction = function(type,config) {
   this._json.actions.onunload.push({type: type,config: config});
-  
+
 };
 
 /**
  * Adds an action to this configuration that responds to a context event. Equivalent of addResultsListener(function) et al
  * NB this method is not yet implemented
- * 
+ *
  * @param {string} contextName - The name of this context. E.g. searchcontext1
  * @param {string} event - The name of the event. E.g. addResultsListener
  * @param {string} actiontype - The fully qualified action class name to invoke
@@ -1258,7 +1331,7 @@ com.marklogic.widgets.workplacecontext.prototype._processConfig = function() {
 
 /**
  * Loads the specified JSON or json string page configuration in to this context
- * 
+ *
  * @param {json|string} jsonOrString - The configuration to load
  * @param {json} json_opt - Optional fall back JSON configuration, if remote workplace config does not exist. Useful for new applications.
  */
@@ -1268,15 +1341,21 @@ com.marklogic.widgets.workplacecontext.prototype.loadPage = function(jsonOrStrin
     mljs.defaultconnection.logger.debug("workplacecontext.loadPage: Got server URI workplace page definition");
     // doc uri
     var self = this;
-    this.db.findWorkplace(jsonOrString,function(result) {
+    this.findWorkplace(jsonOrString,function(result) {
       if (result.inError && undefined != json_opt) {
         // fall back to default
         self._uri = jsonOrString;
-        self._json = json;
+        self._json = json_opt;
       } else {
-        // assume just one
-        self._uri = result.doc.uri;
-        self._json = result.doc.content;
+        // could have succeeded, but found none!
+        if (undefined != result.doc) {
+          // assume just one
+          self._uri = result.doc.uri;
+          self._json = result.doc.content;
+        } else {
+          self._uri = jsonOrString;
+          self._json = json_opt;
+        }
       }
       if (undefined != self._json) {
         if ("string" == typeof (self._json)) {
@@ -1298,18 +1377,18 @@ com.marklogic.widgets.workplacecontext.prototype.loadPage = function(jsonOrStrin
 
 /**
  * Executes a search in MarkLogic for the JSON configuration matching the specified URI
- * 
+ *
  * @param {string} uri - The URI of the workplace configuration to load (NOT the web application URL)
  */
 com.marklogic.widgets.workplacecontext.prototype.loadPageWithUri = function(uri) {
   this._uri = uri;
   var self = this;
-  this.db.getWorkplace(uri,function(result) {
+  this.getWorkplace(uri,function(result) {
     self._json = result.doc;
     self._lastSaved = self._json;
-    
+
     self._processConfig();
-    
+
     // fire updatePage event
     self._fireUpdate();
   });
@@ -1319,7 +1398,7 @@ com.marklogic.widgets.workplacecontext.prototype.loadPageWithUri = function(uri)
 
 /**
  * Registers a workplace admin widget with this context
- * 
+ *
  * @param {object} widget - The widget to register
  */
 com.marklogic.widgets.workplacecontext.prototype.register = function(widget) {
@@ -1341,7 +1420,7 @@ com.marklogic.widgets.workplacecontext.prototype._fireUpdate = function() {
 
 /**
  * Adds a workplace update listener to this context
- * 
+ *
  * @param {function} lis - The listener function to invoke
  */
 com.marklogic.widgets.workplacecontext.prototype.addWorkplaceUpdateListener = function(lis) {
@@ -1350,7 +1429,7 @@ com.marklogic.widgets.workplacecontext.prototype.addWorkplaceUpdateListener = fu
 
 /**
  * Removes a workplace update listener from this context
- * 
+ *
  * @param {function} lis - The listener function to invoke
  */
 com.marklogic.widgets.workplacecontext.prototype.removeWorkplaceUpdatelistener = function(lis) {
@@ -1373,12 +1452,12 @@ com.marklogic.widgets.workplacecontext.prototype.removeWorkplaceUpdatelistener =
 /**
  * The workplace admin widget
  * @constructor
- * 
+ *
  * @param {string} container - The HTML ID to render this widget within
  */
 com.marklogic.widgets.workplaceadmin = function(container) {
   this.container = container;
-  
+
   this._workplaceContext = new com.marklogic.widgets.workplacecontext();
 
   this._config = {
@@ -1416,15 +1495,15 @@ com.marklogic.widgets.workplaceadmin = function(container) {
       {title: "Column", classname: "com.marklogic.widgets.layouts.column", description: "Single column, content widgets are horizontal panels"}
     ]
   };
-  
+
   this.closePublisher = new com.marklogic.events.Publisher();
-  
+
   this._currentTab = "page";
-  
+
   this._nextID = 1;
-  
+
   this._configWrappers = new Array();
-  
+
   this._refresh();
 };
 
@@ -1467,7 +1546,7 @@ com.marklogic.widgets.workplaceadmin.prototype.getWidgetSummary = function(widge
 
 /**
  * Helper function to draw the workplace edit screen full screen.
- * 
+ *
  * @param {com.marklogic.widgets.workplacecontext} workplaceContext - The workplace to edit full screen
  */
 com.marklogic.widgets.workplaceadmin.renderFullscreen = function(workplacecontext) {
@@ -1475,16 +1554,16 @@ com.marklogic.widgets.workplaceadmin.renderFullscreen = function(workplacecontex
   // ensure main window is 960 pixels wide (for 960.css to ensure consistent rendering)
   // ensure main window has vertical scroll bar
   //str = " <div id='workplaceeditorcontainer'>Loading...</div>";
-  
+
   var el = document.createElement("div");
   el.id = "workplaceeditormain";
   //el.innerHTML = str;
   document.body.appendChild(el);
-  
+
   var admin = new com.marklogic.widgets.workplaceadmin("workplaceeditormain");
   workplacecontext.register(admin);
   admin.updateWorkplace(workplacecontext);
-  
+
   // add event listener to workplace admin for closing admin widget
   admin.addCloseListener(function(wgt) {
     // destroy edit div on close
@@ -1528,9 +1607,9 @@ com.marklogic.widgets.workplaceadmin.prototype.getWorkplaceContext = function() 
 com.marklogic.widgets.workplaceadmin.prototype._refresh = function() {
   var str = "<div id='" + this.container + "-workplaceadmin' class='mljswidget workplaceadmin'>";
   str += " <div id='" + this.container + "-panels' class='workplaceadmin-panels'>";
-  
+
   str += "  <h2 class='title'>Edit Workplace Page</h2>";
-  
+
   str += "  <div id='" + this.container + "-page-heading' class='workplaceadmin-page-heading subtitle active'>Page Settings</div>";
   str += "  <div id='" + this.container + "-page-content' class='workplaceadmin-page-content'>";
   str += "<table class='mljstable'>";
@@ -1548,18 +1627,18 @@ com.marklogic.widgets.workplaceadmin.prototype._refresh = function() {
   str += "</td></tr>";
   str += "</table>";
   str += "  </div>";
-  
+
   str += "  <div id='" + this.container + "-widgets-heading' class='workplaceadmin-widgets-heading subtitle active'>Widgets</div>";
   str += "  <div id='" + this.container + "-widgets-content' class='workplaceadmin-widgets-content hidden'>";
   str += "<table class='mljstable workplaceadmin-widgets-list'>"
   for (var i = 0, col = 0, max = this._config.widgetList.length,w;i < max;i++) {
     w = this._config.widgetList[i];
-    
+
     col = i % 3;
     if (0 == col) {
       str += "<tr>";
     }
-    
+
     str += "<td id='" + this.container + "-widgets-" + i + "' title='" + w.title + "'>";
     // replace text with image of widget
     str += "<div class='workplaceadmin-widgets-list-img' id='" + this.container + "-widgets-" + i + "-img'"
@@ -1568,7 +1647,7 @@ com.marklogic.widgets.workplaceadmin.prototype._refresh = function() {
     }
     str += " draggable='true'><div class='workplaceadmin-widgets-list-span'>" + w.title + "</div></div>";
     str += "</td>";
-    
+
     if (2 == col) {
       str += "</tr>";
     }
@@ -1578,7 +1657,7 @@ com.marklogic.widgets.workplaceadmin.prototype._refresh = function() {
   }
   str += "</table>";
   str += "  </div>";
-  
+
   str += "  <div id='" + this.container + "-contexts-heading' class='workplaceadmin-contexts-heading subtitle active'>Contexts</div>";
   str += "  <div id='" + this.container + "-contexts-content' class='workplaceadmin-contexts-content hidden'>TODO</div>";
   str += "  <div id='" + this.container + "-actions-heading' class='workplaceadmin-actions-heading subtitle active'>Actions</div>";
@@ -1591,16 +1670,16 @@ com.marklogic.widgets.workplaceadmin.prototype._refresh = function() {
   str += " <div id='" + this.container + "-config' class='workplaceadmin-config container_12'>";
   str += " </div>";
   str += "</div>";
-  
+
   document.getElementById(this.container).innerHTML = str;
-  
+
   // DND info
-  
+
   for (var i = 0, col = 0, max = this._config.widgetList.length,w;i < max;i++) {
     w = this._config.widgetList[i];
     com.marklogic.widgets.dnd.onto(this.container + "-widgets-" + i + "-img","widgetclass",["layoutzone"],{type: "widgetclass", data: w.classname});
   }
-  
+
   // TODO event handlers etc.
   // widget drag/drop/click
   var self = this;
@@ -1616,7 +1695,7 @@ com.marklogic.widgets.workplaceadmin.prototype._refresh = function() {
   document.getElementById(this.container + "-actions-heading").onclick = function(evt) {
     self._showTab("actions");
   };
-  
+
   document.getElementById(this.container + "-cancel").onclick = function(evt) {
     self._workplaceContext.revert();
     self.closePublisher.publish(true);
@@ -1625,6 +1704,7 @@ com.marklogic.widgets.workplaceadmin.prototype._refresh = function() {
     self._persistTabChanges();
     self._workplaceContext.save(function(result) {
       // TODO do something like show a save message
+      self.closePublisher.publish(true);
     });
   };
 };
@@ -1655,16 +1735,16 @@ com.marklogic.widgets.workplaceadmin.prototype._showTab = function(tab) {
 
 com.marklogic.widgets.workplaceadmin.prototype._saveLayout = function() {
   // NB This function is not dangerous because context maintains previously saved (to server) widget config too
-  
+
   // clear context of widget configurations and assignments
   this._workplaceContext.resetWidgetConfig();
-  
+
   // save each widget's config to the context
   for (var i = 0, max = this._configWrappers.length, wrapper;i < max;i++) {
     wrapper = this._configWrappers[i];
     this._workplaceContext.addWidget(wrapper.getWidgetName(),wrapper.getWidgetType(),wrapper.getWidgetConfig());
   }
-  
+
   // generate assignments from layout
   var assignments = this._layout.generateAssignments();
   // save assignments to workplacecontext
@@ -1674,28 +1754,28 @@ com.marklogic.widgets.workplaceadmin.prototype._saveLayout = function() {
 // Adds a new widget instance to the specified zone
 com.marklogic.widgets.workplaceadmin.prototype._addClassToZone = function(widgetclass,zone,order) {
   var self = this;
-  
+
   // create new layout dropzone
   var dzElid = this._layout.createPlaceholder(zone);
   var insert = new com.marklogic.widgets.dropzone(dzElid);
   var iAss = this._layout.registerAssignment(dzElid,dzElid); // no 'widgetname' so re-use elid as widgetname
   this._addDzAccept(insert, iAss.zone, iAss.order, iAss.elementid);
-  
-  
+
+
   // create widget instance
   var wgtElid = this._layout.createPlaceholder(zone);
   var instanceName = self._workplaceContext.nextWidgetName(widgetclass); // data.data = widgetclassname
   var widget = self._workplaceContext.addWidget(instanceName,widgetclass,{});
   // add to layout
   //var wid = self._layout.appendToZone(widget.widget,zone,"");
-  
+
   // create new config wrapper
   var wgt = new com.marklogic.widgets.configwrapper(wgtElid);
   var wAss = this._layout.registerAssignment(wgtElid,instanceName);
   this._configWrappers.push(wgt);
-  
+
   // update workplace config and register event handlers
-  
+
   wgt.setWorkplaceContext(this._workplaceContext);
   wgt.onto("widgetconfig",["layoutposition"],{type: "widgetconfig", data: widget});
   // get json config for this widget
@@ -1708,7 +1788,7 @@ com.marklogic.widgets.workplaceadmin.prototype._addClassToZone = function(widget
     cls = {};
   }
   wgt.wrap(widget.widget,cls,cfg.config);
-  
+
   // now move new widget up one (so it's before the drop zone it was dropped on to)
   //if (undefined == order) {
     // dropped at end of drop zone
@@ -1716,7 +1796,7 @@ com.marklogic.widgets.workplaceadmin.prototype._addClassToZone = function(widget
   //}
   this._layout.moveToPosition(widget.widget,zone,order); // should move it's spacer too
   // TODO move spacer and config wrapper widget independantly (don't rely on layout doing this for us - creates logical dependency)
-  
+
   return widget;
 };
 
@@ -1728,15 +1808,15 @@ com.marklogic.widgets.workplaceadmin.prototype._addDzAccept = function(aDrop, zo
   aDrop.accept("layoutposition",["widgetclass"],function(data) {
     // determine current (not initial) position of drop zone
     var curPos = self._layout.getAssignmentByPlaceholder(layoutelementid).item; // fetch CURRENT order based on layout's stored ID value
-      
+
     if ("widgetclass" == data.type) {
-      
+
       // we've had a widget class image dropped on us
-      mljs.defaultconnection.logger.debug("APPENDING INSERT WIDGET CLASS " + data + " ON TO DROP ZONE " + zone + 
+      mljs.defaultconnection.logger.debug("APPENDING INSERT WIDGET CLASS " + data + " ON TO DROP ZONE " + zone +
         " OF LAYOUT AT POSITION: " + position + ", WITH CURRENT ZONE: " + curPos.zone + " AND ORDER: " + curPos.order);
-      
+
       var widget = self._addClassToZone(data.data,curPos.zone,curPos.order);
-      
+
       // add to widgetconfig at this position
       // NB addClassToZone does the move for us
       //self._layout.moveToPosition(widget.widget,curPos.zone,curPos.order);
@@ -1756,19 +1836,19 @@ com.marklogic.widgets.workplaceadmin.prototype._addDzAccept = function(aDrop, zo
  */
 com.marklogic.widgets.workplaceadmin.prototype.updateWorkplace = function(ctx) { // TODO remove ctx parameter???
   // do something with this._workplaceContext.getJson()
-  
+
   // TODO blow away current layout
-  
+
   // draw layout inside this container
-  
+
   var json = this._workplaceContext.getJson();
   var self = this;
-  
+
   // load top level layout for this page (or panel we are managing, at least)
   mljs.defaultconnection.logger.debug("workplaceadmin.updateWorkplace: Creating layout");
   mljs.defaultconnection.logger.debug("workplaceadmin.updateWorkplace: Got JSON: " + JSON.stringify(json));
   this._layout = new (com.marklogic.widgets.layouts[json.layout])(this.container + "-config");
-  
+
   // Go through assignments, generate IDs for each widget in each area
   var zones = this._layout.getZoneList();
   var zoneWidgets = {}; // zoneWidgets[zone] => [{widget: widgetname, zone: "A", order: 1}, ...]
@@ -1790,7 +1870,7 @@ com.marklogic.widgets.workplaceadmin.prototype.updateWorkplace = function(ctx) {
     // order each
     bubbleSort(zarray,"order",true); // reverse order means ascending (normally used for facet ordering, descending)
   }
-  
+
   var addBottomDz = function(zone) {
     var dzElid = self._layout.createPlaceholder(zone);
     var bDrop = new com.marklogic.widgets.dropzone(dzElid);
@@ -1798,45 +1878,45 @@ com.marklogic.widgets.workplaceadmin.prototype.updateWorkplace = function(ctx) {
     bDrop.accept("layoutposition",["widgetclass","widgetconfig"],function(data) {
       // we've had a widget class image dropped on us
       console.log("APPENDING WIDGET CLASS " + data + " ON TO DROP ZONE " + zone + " OF LAYOUT");
-      
+
       if ("widgetclass" == data.type) { // <- should we use this?
       //if (typeof(data.data) == "string") {
         self._addClassToZone(data.data,zone);
       } else {
         // existing widget being re-ordered
         var curPos = self._layout.getAssignmentByPlaceholder(dzElid).item; // fetch CURRENT order based on layout's stored ID value
-        
+
         self._layout.moveToPosition(data.data.widget,curPos.zone,curPos.order); // data.data.widget = widget instance name
       }
     });
   };
-  
+
   // Create wrapper config widget for each widget in it's area
   for (var z = 0, maxz = zones.length, zone;z < maxz;z++) {
     zone = zones[z];
-    
+
     // create wrapper for each widget
     for (var w = 0, maxw = zoneWidgets[zone].length, widget;w < maxw;w++) {
       widget = zoneWidgets[zone][w];
-      
+
       // create insert zone before each widget
-      
+
       //var aAss = {widget: "dropzone-" + zone + "-" + self._nextID++};
       //this._layout.generateId(zone,aAss);
       var dzElid = this._layout.createPlaceholder(zone);
       var aDrop = new com.marklogic.widgets.dropzone(dzElid);
       var dzAss = this._layout.registerAssignment(dzElid,dzElid); // no widgetname for drop zones, so re-use element id
-      
+
       // create widget
       var wgtElid = this._layout.createPlaceholder(zone);
       var wgt = new com.marklogic.widgets.configwrapper(wgtElid);
       var wgtAss = this._layout.registerAssignment(wgtElid,widget.widget);
-      
+
       // now reposition (not required - appending in order)
-      
-      
+
+
       this._addDzAccept(aDrop, zone, dzAss.order, dzElid); // w ok to use at this point
-      
+
       this._configWrappers.push(wgt);
       wgt.setWorkplaceContext(this._workplaceContext);
       wgt.onto("widgetconfig",["layoutposition"],{type: "widgetconfig", data: widget}); // SHOULD THIS BE wid INSTEAD??? wid is a JSON assignment object
@@ -1851,11 +1931,11 @@ com.marklogic.widgets.workplaceadmin.prototype.updateWorkplace = function(ctx) {
       }
       wgt.wrap(widget.widget,cls,cfg.config);
     }
-    
+
     // now add 'add to zone' widget
     addBottomDz(zone);
   }
-  
+
   // load information in to summary page
   document.getElementById(this.container + "-page-title").value = json.title;
   var str = "";
@@ -1868,11 +1948,11 @@ com.marklogic.widgets.workplaceadmin.prototype.updateWorkplace = function(ctx) {
   document.getElementById(this.container + "-page-urls").innerHTML = str;
   //document.getElementById(this.container + "-layoutselect-" + json.layout).selected = "selected"; // TODO check this works when switching pages
   document.getElementById(this.container + "-page-layout").value = json.layout;
-  
+
   // TODO load other state information shown in left bar from JSON (is there any? Actions?)
-  
+
   this._layout.printZoneInfo();
-  
+
   mljs.defaultconnection.logger.debug("workplaceadmin.updateWorkplace: Finished creating layout");
 };
 
@@ -1894,7 +1974,7 @@ com.marklogic.widgets.dropzone = function(container) {
   this.container = container;
   this._accepted = [];
   this._callback = null;
-  
+
   this._init();
 };
 
@@ -1906,7 +1986,7 @@ com.marklogic.widgets.dropzone.prototype._init = function() {
   str += "  <p class='dropzone-text'>Drop here</p>";
   str += " </div>";
   str += "</div>";
-  
+
   document.getElementById(this.container).innerHTML = str;
 };
 
@@ -1940,10 +2020,10 @@ com.marklogic.widgets.configwrapper = function(container) {
   this._widgetName = "";
   this._configDescription = null;
   this._config = null;
-  
+
   this._workplaceContext = null;
   this.__nextID = 1;
-  
+
   this._init();
 };
 
@@ -1992,7 +2072,7 @@ com.marklogic.widgets.configwrapper.prototype.onto = function(draggableClass,dro
   mljs.defaultconnection.logger.debug("configwrapper.onto: Adding drag handler for " + this.container + "-name");
   com.marklogic.widgets.dnd.onto(this.container + "-name",draggableClass,droppableTypeAcceptArray,dataOrCallback);
 };
-  
+
 /**
  * Refreshes this widget based on the specified widget config
  * @param {string} widgetName - The widget name to draw. E.g. searchbar1
@@ -2003,7 +2083,7 @@ com.marklogic.widgets.configwrapper.prototype.wrap = function(widgetName,configD
   this._widgetName = widgetName;
   this._configDescription = configDescription;
   this._config = currentConfig;
-  
+
   this._updateWidgetConfig();
 };
 
@@ -2018,20 +2098,20 @@ com.marklogic.widgets.configwrapper.prototype._genConfigHTML = function(json,def
   var str = "<table class='configwrapper-table'>";
   for (var name in json) {
     gotConfig = true;
-    
+
     // get actual current config values (if specified, if not use defaults from definition)
     var c = json[name];
     // get config descriptor for this element - get type from there, not introspection (more exacting)
     var d = def[name];
-    
+
     str += "<tr>";
     var addtitle = function() {
       str += "<td title='" + d.description + "'>" + d.title + "</td><td>";
     };
-    
+
     var conf = {id: this.__nextID++, json: c, def: d};
     var self = this;
-    
+
     if ("string" == d.type) {
       addtitle();
       var val = c || d.default;
@@ -2075,8 +2155,8 @@ com.marklogic.widgets.configwrapper.prototype._genConfigHTML = function(json,def
           // validate value. If crap, use current value
           var val = el.value;
           try {
-            if ( (("" + val) == ("" + Math.floor(val))) && 
-                 ((undefined == d.minimum) || (undefined != d.minimum && val >= d.minimum)) && 
+            if ( (("" + val) == ("" + Math.floor(val))) &&
+                 ((undefined == d.minimum) || (undefined != d.minimum && val >= d.minimum)) &&
                  ((undefined == d.maximum) || (undefined != d.maximum && val <= d.maximum)) ) {
               // valid value;
               json[name] = val;
@@ -2127,7 +2207,7 @@ com.marklogic.widgets.configwrapper.prototype._genConfigHTML = function(json,def
       str += "</table>";
       str += "</div>";
     }
-    
+
     str += "</td></tr>";
   }
   if (!gotConfig) {
@@ -2139,15 +2219,15 @@ com.marklogic.widgets.configwrapper.prototype._genConfigHTML = function(json,def
 
 com.marklogic.widgets.configwrapper.prototype._init = function() {
   var str = "<div class='mljswidget configwrapper'>";
-  
+
   str += " <h3 class='subtitle' draggable='true' id='" + this.container + "-name'>" + this._widgetName + "</h3>"; // TODO show widget type title here too
   // show config elements on page
   str += "<div id='" + this.container + "-cfg'>";
   str += this._genConfigHTML(this._config,this._configDescription,0);
   str += "</div>";
-  
+
   str += "</div>";
-  
+
   document.getElementById(this.container).innerHTML = str;
 };
 
@@ -2183,7 +2263,7 @@ com.marklogic.widgets.actionorderer.prototype._init = function() {
   s += "  <div class='actionorderer-drop' id='" + this.container + "-drop'></div>";
   s += "</div>";
   document.getElementById(this.container).innerHTML = s;
-  
+
   // TODO Drop zone action handler
 };
 
@@ -2192,7 +2272,7 @@ com.marklogic.widgets.actionorderer.prototype._init = function() {
  */
 com.marklogic.widgets.actionorderer.prototype.wrap = function(actions) {
   this._actions = actions;
-  
+
   // render in same order in display
 };
 
@@ -2226,7 +2306,7 @@ com.marklogic.widgets.actionconfig = function(container) {
 };
 
 com.marklogic.widgets.actionconfig.prototype._init = function() {
-  
+
 };
 
 /**
@@ -2235,7 +2315,7 @@ com.marklogic.widgets.actionconfig.prototype._init = function() {
  */
 com.marklogic.widgets.actionconfig.prototype.wrap = function(config) {
   this._config = config;
-  
+
   // TODO render config
 };
 
