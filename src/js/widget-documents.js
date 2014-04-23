@@ -22,7 +22,7 @@ com.marklogic.widgets = window.com.marklogic.widgets || {};
 
 /**
  * Shows an editable list of document properties from the document's properties fragment.
- * 
+ *
  * @constructor
  * @param {string} container - ID of the HTML element to draw the widget within
  */
@@ -32,14 +32,38 @@ com.marklogic.widgets.docproperties = function(container) {
   this.documentcontext = null;
   this._properties = new Array();
 
+  this._config = {};
+
   this._uriHandlers = new Array();
 
   this._init();
 };
 
 /**
+ * Returns the MLJS Workplace configuration definition listing config properties supported by this widget
+ *
+ * @static
+ */
+com.marklogic.widgets.docproperties.getConfigurationDefinition = function() {
+  var self = this;
+  return {
+  };
+};
+
+/**
+ * Sets the configuration for this instance of a widget in an MLJS Workplace
+ *
+ * @param {json} config - The JSON Workplace widget configuration to apply
+ */
+com.marklogic.widgets.docproperties.prototype.setConfiguration = function(config) {
+  for (var prop in config) {
+    this._config[prop] = config[prop];
+  }
+};
+
+/**
  * Sets the document context for this widget
- * 
+ *
  * @param {documentcontext} ctx - The document context instance
  */
 com.marklogic.widgets.docproperties.prototype.setDocumentContext = function(ctx) {
@@ -67,9 +91,9 @@ com.marklogic.widgets.docproperties.prototype._init = function() {
 /**
  * Called my a document context to indicate the document properties have been updated and should
  * be redrawn
- * 
+ *
  * @param {result} result - The MLJS result wrapper object
- */ 
+ */
 com.marklogic.widgets.docproperties.prototype.updateDocumentProperties = function(result) {
   this._hidePropertyEditor();
   /*
@@ -102,8 +126,8 @@ com.marklogic.widgets.docproperties.prototype.updateDocumentProperties = functio
     var propvalue, mreplace;
     var propsGot = new Array();
     var propMapping = new Array(); // [name] -> index
-    
-    
+
+
   var allprops = this.documentcontext.getAllowableProperties();
   var isEditable = function(propertyname) {
     for (var i = 0, max = allprops.length, prop, name;i < max;i++) {
@@ -115,7 +139,7 @@ com.marklogic.widgets.docproperties.prototype.updateDocumentProperties = functio
     }
     return false;
   };
-    
+
   for (var name in props) {
     propvalue = props[name];
     propsGot.push(name);
@@ -132,8 +156,8 @@ com.marklogic.widgets.docproperties.prototype.updateDocumentProperties = functio
           s += " style='width: " + (0.8 * width) + "%;'";
         }
         s += "><b id='" + this.container + "-docproperties-propname-" + propcount + "' class='docproperties-name";
-        
-        // use docproperties-name-editable class when property is editable class='docproperties-name-editable' 
+
+        // use docproperties-name-editable class when property is editable class='docproperties-name-editable'
         if (isEditable(name)) {
           s +=" docproperties-name-editable";
         }
@@ -285,7 +309,7 @@ com.marklogic.widgets.docproperties.prototype._showPropertyEditor = function(pro
 
   //s += "</div></div></div></div>";
   s += "</div></div>";
-  
+
   el.innerHTML = s;
 
 
@@ -410,7 +434,7 @@ com.marklogic.widgets.docproperties.prototype._hidePropertyEditor = function() {
 /**
  * Called by the document context to indicate that a document is being updated through a MarkLogic server call
  * and that the UI should be disabled until complete.
- * 
+ *
  * @param {object} msg - The operation description of what is happening to the document (e.g. setProperties called)
  */
 com.marklogic.widgets.docproperties.prototype.updateOperation = function(msg) {
@@ -436,7 +460,7 @@ com.marklogic.widgets.docproperties.prototype.updateOperation = function(msg) {
  * Views the head section properties from an XHTML document. These properties are
  * always embedded within a document. This is distinct from MarkLogic document properties
  * which are held in the document properties fragment and are nothing to do with XHTML.
- * 
+ *
  * @constructor
  * @param {string} container - ID of the HTML element to draw this widget in
  */
@@ -445,7 +469,31 @@ com.marklogic.widgets.docheadviewer = function(container) {
 
   this._uriHandlers = new Array(); // propertyname -> pattern string #URI#
 
+  this._config = {};
+
   this._init();
+};
+
+/**
+ * Returns the MLJS Workplace configuration definition listing config properties supported by this widget
+ *
+ * @static
+ */
+com.marklogic.widgets.docheadviewer.getConfigurationDefinition = function() {
+  var self = this;
+  return {
+  };
+};
+
+/**
+ * Sets the configuration for this instance of a widget in an MLJS Workplace
+ *
+ * @param {json} config - The JSON Workplace widget configuration to apply
+ */
+com.marklogic.widgets.docheadviewer.prototype.setConfiguration = function(config) {
+  for (var prop in config) {
+    this._config[prop] = config[prop];
+  }
 };
 
 /**
@@ -461,7 +509,7 @@ com.marklogic.widgets.docheadviewer.prototype.addUriHandler = function(name,patt
 
 /**
  * Sets the document context for this widget
- * 
+ *
  * @param {documentcontext} ctx - The document context instance
  */
 com.marklogic.widgets.docheadviewer.prototype.setDocumentContext = function(ctx) {
@@ -487,7 +535,7 @@ com.marklogic.widgets.docheadviewer.prototype._init = function() {
 
 /**
  * Called by a document context to indicate that the document content has been reloaded, and should be redrawn
- * 
+ *
  * @param {result} result - The MLJS result wrapper
  */
 com.marklogic.widgets.docheadviewer.prototype.updateDocumentContent = function(result) {
@@ -651,7 +699,7 @@ com.marklogic.widgets.docheadviewer.prototype.updateDocumentContent = function(r
 
 /**
  * Previews an (XHTML) document. Tries to introspect the document to use the most appropriate method.
- * 
+ *
  * @constructor
  * @param {string} container - The HTML ID of the element to place this widget's content within.
  */
@@ -659,12 +707,36 @@ com.marklogic.widgets.docviewer = function(container) {
   this.container = container;
   this.errorPublisher = new com.marklogic.events.Publisher();
 
+  this._config = {};
+
   this._init();
 };
 
 /**
+ * Returns the MLJS Workplace configuration definition listing config properties supported by this widget
+ *
+ * @static
+ */
+com.marklogic.widgets.docviewer.getConfigurationDefinition = function() {
+  var self = this;
+  return {
+  };
+};
+
+/**
+ * Sets the configuration for this instance of a widget in an MLJS Workplace
+ *
+ * @param {json} config - The JSON Workplace widget configuration to apply
+ */
+com.marklogic.widgets.docviewer.prototype.setConfiguration = function(config) {
+  for (var prop in config) {
+    this._config[prop] = config[prop];
+  }
+};
+
+/**
  * Sets the document context for this widget
- * 
+ *
  * @param {documentcontext} ctx - The document context instance
  */
 com.marklogic.widgets.docviewer.prototype.setDocumentContext = function(ctx) {

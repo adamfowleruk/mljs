@@ -26,12 +26,40 @@ Targets for 1.6 (Apr 2014) - Theme: MLJS Ease of Use in the Browser
     - TEST need to add value query to query builder
     - TEST move *Workplace functions from MLJS in to Workplace Context (they use structured search)
    - Context configuration for Workplace
-   - Enable all widgets for Workplace
-   - remove widget button
-   - multiple layouts working
+    - Search context
+    - semantic context
+    - document context
+    - DEFERRED alert context
+   - TEST Enable all widgets for Workplace
+    - DONE searchbar
+    - DONE searchselect
+    - DONE searchfacets
+    - DONE searchsort
+    - DONE searchresults
+    - DONE searchpager
+    - DONE searchpage
+    - DONE searchselection
+    - DONE sparqlbar
+    - DONE entityfacts
+    - DONE tagcloud
+    - DONE openlayers (with toggles for pre-defined layers with methods)
+    - DONE kratu
+    - DONE address lookup
+    - DONE co-occurence
+    - DONE docviewer
+    - DONE docproperties
+    - DONE docheadproperties
+    - DEFERRED create
+    - DEFERRED markings (non prod)
+    - DEFERRED rdb2rdf (non prod)
+    - TEST Add all production ready widgets as admissable in the Workplace widget's default configuration
+   - remove widget button on heading for each widget on UI
+   - TEST multiple layouts working
+    - Each individually selected
+    - Transition between different selected layouts (widgets moved on to zones)
    - Page load actions
    - Icons for widgets
-  - Widgets: Navigation widget
+  - Widgets: Application Navigation widget
    - One tab per Workplace in current app, sends to appropriate URL
    - Share workplace via permissions
    - Share workplace via URL
@@ -40,6 +68,7 @@ Targets for 1.6 (Apr 2014) - Theme: MLJS Ease of Use in the Browser
    - DEFERRED Allow workplaces to be kept instead in a drop down menu
    - DEFERRED Menu Editor
     - DEFERRED Also allow fixed tabs at start and end (list for each). E.g. Settings, Home, etc. for non-workplace dynamic pages - display text, url
+   - Create new Workplace page dialogue - name, based on - then load in page editor
    - New workplace page button on end of nav widget
    - Powered by MarkLogic image (license?)
   - Practicality updates
@@ -48,6 +77,38 @@ Targets for 1.6 (Apr 2014) - Theme: MLJS Ease of Use in the Browser
    - Docs: OOTB Workplace demo app - no data
  - Widgets: UI Consistency
   - Widgets: Update all for Bootstrap CSS support
+   - searchbar
+   - searchselect
+   - searchfacets
+   - searchsort
+   - searchresults
+   - searchpager
+   - searchpage
+   - searchselection
+   - sparqlbar
+   - entityfacts
+   - tagcloud
+   - openlayers
+   - kratu
+   - address lookup
+   - co-occurence
+   - docviewer
+   - docproperties
+   - docheadproperties
+   - Workplace
+   - thin thick layout
+   - thick thin layout
+   - column layout
+   - workplace admin (including left hand side)
+   - widget config
+   - widget drop zone
+   - new workplace page dialogue
+   - options builder widget
+   - query builder widget
+   - DEFERRED create
+   - DEFERRED markings (non prod)
+   - DEFERRED rdb2rdf (non prod)
+   - Bootstrap CSS toggles/options in Workplace configuration?
   - Docs: Update MLJSREST app framework for bootstrap support
   - Docs: Get hold of MarkLogic bootstrap theme CSS from MY (License?)
   - Get MY to review app, workplace and widget UX
@@ -62,7 +123,8 @@ Targets for 1.6 (Apr 2014) - Theme: MLJS Ease of Use in the Browser
   - youtube videos
   - blog (news) items
   - latest tutorials
- - Docs: Image previews of all widgets, linking to pages with code examples
+ - Docs: Various doc issues
+  - Docs: Wiki: Image previews of all widgets, linking to pages with code examples (Like d3.js' home page)
   - DEFERRED Workplace page configuration JSON download/upload too?
   - DEFERRED Sample content for testing bundle too? (MLCP archive? Version dependent?)
   - DEFERRED Workplace page search and share app (hosting?)
@@ -280,6 +342,7 @@ DEFERRED from 1.8 Theme: Visualisations
   - Tests for new widgets
 
 Floating Targets
+ - Document all TODOs in code in this planning document
  - CSV Import improvements / testing
   - Checkout XSLT upload and transform method
   - Test PAF file format
@@ -484,6 +547,9 @@ Targets for 2.0 (Jul 2014) - Theme: Lifecycle
  - Widgets: File upload (multiple)
  - Widgets: (multi) Upload progress bar
  - Test: prototype.js browser AJAX binding
+ - Core: Logging
+  - Refactor logging to make it less typing
+  - Allow general logging configuration so as to hide/show messages easily for particular actions (for easier debugging)
 
 Targets for 2.1 (Aug 2014) Interim Release - Theme: Ease of migration to MLJS
  - MarkLogic version 8 fixes and additions
