@@ -20,22 +20,54 @@ com.marklogic.widgets = window.com.marklogic.widgets || {};
 
 /**
  * A wrapper for the Google Kratu tabular data exploration widget
- * 
+ *
  * @constructor
  * @param {string} container - The HTML ID of the element to place this widget's content within.
  */
 com.marklogic.widgets.kratu = function(container) {
   this.container = container;
-  this.errorPublisher = new com.marklogic.events.Publisher(); 
-  
+  this.errorPublisher = new com.marklogic.events.Publisher();
+
   this.results = null;
   this.facts = null;
   this.kratu = new Kratu();
   document.getElementById(container).innerHTML = "<div id='" + container + "-inner' class='mljswidget'></div>"
   this.kratu.setRenderElement( document.getElementById(this.container + "-inner") );
-  
-  this._render = "content"; // summary = top level ML search info, content = raw document info
-  
+
+  this._config = {
+    render: "content" // summary = top level ML search info, content = raw document info
+  };
+
+  this._refresh();
+};
+
+/**
+ * Returns the MLJS Workplace configuration definition listing config properties supported by this widget
+ *
+ * @static
+ */
+com.marklogic.widgets.kratu.getConfigurationDefinition = function() {
+  var self = this;
+  return {
+    render: {type:enum, default: "content", title: "Render", description: "Whether to render the document content or the search result summary.",
+      options: [
+        {value: "content", title: "Content", description: "Content of the result document."},
+        {value: "summary", title: "Summary", description: "Summary of the search result metadata."}
+      ]
+    }
+  };
+};
+
+/**
+ * Sets the configuration for this instance of a widget in an MLJS Workplace
+ *
+ * @param {json} config - The JSON Workplace widget configuration to apply
+ */
+com.marklogic.widgets.kratu.prototype.setConfiguration = function(config) {
+  for (var prop in config) {
+    this._config[prop] = config[prop];
+  }
+
   this._refresh();
 };
 
@@ -43,16 +75,16 @@ com.marklogic.widgets.kratu = function(container) {
  * Specifies what to render within the search results.
  * summary = the search result summary. E.g. URI, score, etc.
  * content = the JSON content (default)
- * 
+ *
  * @param {string} render - What to render from the search result information. "content|properties"
  */
 com.marklogic.widgets.kratu.prototype.render = function(render) {
-  this._render = render;
+  this._config.render = render;
 };
 
 /**
  * Event target. Can be used with addResultsListener
- * 
+ *
  * @param {JSON} results - The REST API JSON results object to display. See GET /v1/search
  */
 com.marklogic.widgets.kratu.prototype.updateResults = function(results) {
@@ -60,8 +92,8 @@ com.marklogic.widgets.kratu.prototype.updateResults = function(results) {
   if (typeof (results) != "boolean" && undefined != results && null != results) {
     mljs.defaultconnection.logger.debug("kratu.updateResults: Got real results");
     this.results = results;
-    
-    if ("content" == this._render) {
+
+    if ("content" == this._config.render) {
       mljs.defaultconnection.logger.debug("kratu.updateResults: Rendering search result contents");
       var content = new Array();
       for (var i = 0,r;i < this.results.results.length;i++) {
@@ -90,12 +122,12 @@ com.marklogic.widgets.kratu.prototype.updateResults = function(results) {
 
 /**
  * Draw sparql facts results as a table
- * 
+ *
  * @param {JSON} facts - the response from the REST API (W3C SPARQL Protocol) sparql endpoint, passed usually by the semanticcontext
  */
 com.marklogic.widgets.kratu.prototype.updateFacts = function(facts) {
   this.facts = facts;
-  
+
   // build simpler JSON results object - rows
   var rows = new Array();
   for (var r = 0, max = facts.results.bindings.length;r < max;r++) {
@@ -108,7 +140,7 @@ com.marklogic.widgets.kratu.prototype.updateFacts = function(facts) {
     }
     rows.push(res);
   }
-  
+
   // show in Kratu
   this.kratu.setEntities(rows);
   this._refresh();
@@ -116,7 +148,7 @@ com.marklogic.widgets.kratu.prototype.updateFacts = function(facts) {
 
 /**
  * Adds an error listener to this widget
- * 
+ *
  * @param {function(error)} fl - The error listener to add
  */
 com.marklogic.widgets.kratu.prototype.addErrorListener = function(fl) {
@@ -125,7 +157,7 @@ com.marklogic.widgets.kratu.prototype.addErrorListener = function(fl) {
 
 /**
  * Removes an error listener
- * 
+ *
  * @param {function(error)} fl - The error listener to remove
  */
 com.marklogic.widgets.kratu.prototype.removeErrorListener = function(fl) {

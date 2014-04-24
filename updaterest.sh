@@ -28,6 +28,9 @@ cp $S/*.js $RJ/mljs/
 cp $SRC/images/* $RA/images/mljs/
 cp $SRC/css/* $RA/css/mljs/
 
+# Copy over page JS files - MLJSTEST IS PRIMARY
+cp $RJ/mljstest/*.js $SJ/mljstest/
+
 cd apps
 
 # other dependencies now

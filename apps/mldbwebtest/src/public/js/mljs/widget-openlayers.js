@@ -20,61 +20,111 @@ com.marklogic.widgets = window.com.marklogic.widgets || {};
 
 /**
  * OpenLayers mapping widget.
- * 
+ *
  * Openlayers website - http://www.openlayers.org/
- * 
+ *
  * @constructor
  */
 com.marklogic.widgets.openlayers = function(container) {
   this.container = container;
-  
+
   // granularity constants
   this.HIGH = 256;
   this.MEDIUM = 128;
   this.LOW = 64;
-  
+
   this.map = null; // openlayers map control
   this.baseLayer = null;
-  
+
   this._config = {
-    "constraint-name": null
+    "constraint-name": null,
+    showGoogleStreet: false,
+    showArcGISOnline: false,
+    showAllBing: false,
+    heatmapGranularity: this.HIGH
   };
-  
+
   this.transformWgs84 = new OpenLayers.Projection("EPSG:4326");
-  
+
   this.series = {}; // {title: "", context: searchcontext,latsource:"location.lat",lonsource:"location.lon",titlesource:"",summarysource:""};
-  
+
   this._selectionLayer = null;
   //this._drawControls = {};
   this._polyControl = null; // regular polygon (circle and bounding box)
   this._polygonControl = null; // irregular polygon (free hand polygon)
   this._dragControl = null; // NOT USED
-  
+
   this._geoSelectionPublisher = new com.marklogic.events.Publisher();
   this._resultSelectionPublisher = new com.marklogic.events.Publisher();
   this._resultHighlightPublisher = new com.marklogic.events.Publisher();
-  
+
   this._selectedUri = null;
   this._highlightedUri = null;
-  
+
   this.heatmap = null; // open layers heatmap
-  this.heatmapGranularity = this.HIGH;
-  
+
   this._refresh();
 };
 
 /**
+ * Returns the MLJS Workplace configuration definition listing config properties supported by this widget
+ *
+ * @static
+ */
+com.marklogic.widgets.openlayers.getConfigurationDefinition = function() {
+  var self = this;
+  return {
+    showGoogleStreet: {type: "boolean", default: false, title: "Show Google Street Layer",description: "Show the Google Street layer."},
+    showArcGISOnline: {type: "boolean", default: false, title: "Show Arc GIS Online Layer",description: "Show the Arc GIS Online layer."},
+    showAllBing: {type: "boolean", default: false, title: "Show All Bing Maps Layers",description: "Show all Bing Maps layers."},
+    "constraint-name": {type: "string", default: null, title: "Selection Constraint Name", description: "The name of the search options constraint to use for selection."},
+    heatmapGranularity: {type:enum, default: self.HIGH, title: " Heat Map Granularity", description: "How detailed a heatmap to calculate in MarkLogic Server.",
+      options: [
+        {value: self.HIGH, title: "High", description: "Many heatmap areas(" + self.HIGH + ")."},
+        {value: self.MEDIUM, title: "Medium", description: "Several heatmap areas(" + self.MEDIUM + ")."},
+        {value: self.LOW, title: "Low", description: "Few heatmap areas(" + self.LOW + ")."}
+      ]
+    }
+  };
+};
+
+/**
+ * Sets the configuration for this instance of a widget in an MLJS Workplace
+ *
+ * @param {json} config - The JSON Workplace widget configuration to apply
+ */
+com.marklogic.widgets.openlayers.prototype.setConfiguration = function(config) {
+  for (var prop in config) {
+    this._config[prop] = config[prop];
+  }
+
+  // refresh display
+  this.refresh();
+
+  // process layer config AFTER refresh
+  if (true===this._config.showGoogleStreet) {
+    this.addGoogleStreet();
+  }
+  if (true===this._config.showArcGISOnline) {
+    this.addArcGISOnline();
+  }
+  if (true===this._config.showAllBing) {
+    this.addAllBing();
+  }
+};
+
+/**
  * The minimum grid to generate heatmap results in
- * 
+ *
  * @param {double} val - The grid size. E.g. 5x5 grid = 25 as a value. Widget guarantees heatmap will be at least this granular.
  */
 com.marklogic.widgets.openlayers.prototype.setHeatmapGranularity = function(val) {
-  this.heatmapGranularity = val;
+  this._config.heatmapGranularity = val;
 };
 
 /**
  * Called by a searchcontext to listen for area selection events
- * 
+ *
  * @param {function} lis - The listener
  */
 com.marklogic.widgets.openlayers.prototype.addGeoSelectionListener = function(lis) {
@@ -83,7 +133,7 @@ com.marklogic.widgets.openlayers.prototype.addGeoSelectionListener = function(li
 
 /**
  * Called by a searchcontext to remove a listener for area selection events
- * 
+ *
  * @param {function} lis - The listener
  */
 com.marklogic.widgets.openlayers.prototype.removeGeoSelectionListener = function(lis) {
@@ -92,7 +142,7 @@ com.marklogic.widgets.openlayers.prototype.removeGeoSelectionListener = function
 
 /**
  * Called by a searchcontext to listen for result search selection events
- * 
+ *
  * @param {function} lis - The listener
  */
 com.marklogic.widgets.openlayers.prototype.addResultSelectionListener = function(lis) {
@@ -101,7 +151,7 @@ com.marklogic.widgets.openlayers.prototype.addResultSelectionListener = function
 
 /**
  * Called by a searchcontext to remove a listener for search result selection events
- * 
+ *
  * @param {function} lis - The listener
  */
 com.marklogic.widgets.openlayers.prototype.removeResultSelectionListener = function(lis) {
@@ -110,7 +160,7 @@ com.marklogic.widgets.openlayers.prototype.removeResultSelectionListener = funct
 
 /**
  * Called by a searchcontext to listen for result highlighting (usually hovering over a marker)
- * 
+ *
  * @param {function} lis - The listener
  */
 com.marklogic.widgets.openlayers.prototype.addResultHighlightListener = function(lis) {
@@ -120,7 +170,7 @@ com.marklogic.widgets.openlayers.prototype.addResultHighlightListener = function
 
 /**
  * Called by a searchcontext to remove a listener for result highlighting (usually hovering over a marker)
- * 
+ *
  * @param {function} lis - The listener
  */
 com.marklogic.widgets.openlayers.prototype.removeResultHighlightListener = function(lis) {
@@ -130,7 +180,7 @@ com.marklogic.widgets.openlayers.prototype.removeResultHighlightListener = funct
 /**
  * Called by a searchcontext to instruct the map that a result has been selection.
  * NOT IMPLEMENTED
- * 
+ *
  * @param {Array} newsel - The new selection
  */
 com.marklogic.widgets.openlayers.prototype.updateResultSelection = function(newsel) {
@@ -140,7 +190,7 @@ com.marklogic.widgets.openlayers.prototype.updateResultSelection = function(news
 /**
  * Called by a searchcontext to instruct the map that a result has been highlighted.
  * NOT IMPLEMENTED
- * 
+ *
  * @param {Array} newsel - The newly highlighted selection
  */
 com.marklogic.widgets.openlayers.prototype.updateResultHighlight = function(newsel) {
@@ -149,7 +199,7 @@ com.marklogic.widgets.openlayers.prototype.updateResultHighlight = function(news
 
 /**
  * Sets the constraint name this widget should use when raising a selection change event and passing a structured query term.
- * 
+ *
  * @param {string} name - Constraint name to use (the constraint should point to a geospatial index of points that should be within this selection)
  */
 com.marklogic.widgets.openlayers.prototype.setGeoSelectionConstraint = function(name) {
@@ -326,7 +376,7 @@ com.marklogic.widgets.openlayers.prototype.addArcGISOnline = function() {
     },
     "capabilities": "Map"
   };
-  
+
   var maxExtent = new OpenLayers.Bounds(-20037508.34, -20037508.34, 20037508.34, 20037508.34);
   //Max extent from layerInfo above
   var layerMaxExtent = new OpenLayers.Bounds(
@@ -335,15 +385,15 @@ com.marklogic.widgets.openlayers.prototype.addArcGISOnline = function() {
   for (var i = 0; i < layerInfo.tileInfo.lods.length; i++) {
     resolutions.push(layerInfo.tileInfo.lods[i].resolution);
   }
-    
+
   var l = new OpenLayers.Layer.ArcGISCache( "Arc GIS Online",
     "http://services.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer", {
     isBaseLayer: true,
-    // From layerInfo above                        
-    resolutions: resolutions,                        
-    tileSize: new OpenLayers.Size(layerInfo.tileInfo.cols, layerInfo.tileInfo.rows),                        
-    tileOrigin: new OpenLayers.LonLat(layerInfo.tileInfo.origin.x , layerInfo.tileInfo.origin.y),                        
-    maxExtent: layerMaxExtent,                        
+    // From layerInfo above
+    resolutions: resolutions,
+    tileSize: new OpenLayers.Size(layerInfo.tileInfo.cols, layerInfo.tileInfo.rows),
+    tileOrigin: new OpenLayers.LonLat(layerInfo.tileInfo.origin.x , layerInfo.tileInfo.origin.y),
+    maxExtent: layerMaxExtent,
     projection: 'EPSG:' + layerInfo.spatialReference.wkid
   });
   this.addLayer(l);
@@ -371,7 +421,7 @@ com.marklogic.widgets.openlayers.prototype.addAllBing = function() {
     name: "Bing Aerial",
     key: apiKey,
     type: "Aerial"
-  }); 
+  });
   var layers = [road,hybrid,aerial];
   this.addLayers(layers);
   return layers;
@@ -379,7 +429,7 @@ com.marklogic.widgets.openlayers.prototype.addAllBing = function() {
 
 /**
  * Ensures that this OpenLayers map has a heatmap layer. (It doesn't always by default, but will if it detects you want one).
- * 
+ *
  * NB This may no longer be true. I believe the heatmap acts as a layer that always exists in the map.
  */
 com.marklogic.widgets.openlayers.prototype.ensureHeatmap = function() {
@@ -391,7 +441,7 @@ com.marklogic.widgets.openlayers.prototype.ensureHeatmap = function() {
 
 /**
  * Adds a custom instance of OpenLayers.Layer - E.g. your own WMS based layer, or ArcGIS layer
- * 
+ *
  * @param {OpenLayers.Layer} layer - The OpenLayers layer to add to this map as a base layer
  */
 com.marklogic.widgets.openlayers.prototype.addLayer = function(layer) {
@@ -401,7 +451,7 @@ com.marklogic.widgets.openlayers.prototype.addLayer = function(layer) {
 
 /**
  * Adds several custom instances of OpenLayers.Layer - E.g. your own WMS based layer, or ArcGIS layer
- * 
+ *
  * @param {Array} layers - The OpenLayers layers to add to this map as a base layer
  */
 com.marklogic.widgets.openlayers.prototype.addLayers = function(layers) {
@@ -411,7 +461,7 @@ com.marklogic.widgets.openlayers.prototype.addLayers = function(layers) {
 
 com.marklogic.widgets.openlayers.prototype.__mode = function(newmode) {
   mljs.defaultconnection.logger.debug("openlayers.__mode: Mode selected: " + newmode);
-  
+
   // TODO destroy any existing polygons
   // find matching layer and activate
   /*
@@ -457,7 +507,7 @@ com.marklogic.widgets.openlayers.prototype.__mode = function(newmode) {
 };
 
 com.marklogic.widgets.openlayers.prototype._removeAllFeaturesBut = function(feature) {
-  
+
       var nonMeFeatures = new Array();
       for (var f = 0;f < this._selectionLayer.features.length;f++) {
         if (feature === this._selectionLayer.features[f]) {
@@ -475,7 +525,7 @@ com.marklogic.widgets.openlayers.prototype._removeAllFeaturesBut = function(feat
  */
 com.marklogic.widgets.openlayers.prototype._refresh = function() {
   var self = this;
-  
+
   // detect parent bounds
   var p = document.getElementById(this.container);
   var width = p.offsetWidth;
@@ -490,33 +540,33 @@ com.marklogic.widgets.openlayers.prototype._refresh = function() {
   var actualWidth = width - 2;
   this.width = actualWidth;
   this.height = actualHeight;
-  
+
   var str = "<div class='openlayers-content'><div id='" + this.container + "-map' class='openlayers-map' style='height:" + actualHeight + "px;width:" + actualWidth + "px;'></div>";
-  
+
   // mode selection
   str += "<div class='openlayers-mode'>Mode: <select id='" + this.container + "-mode'><option value='none'>Move</option><option value='circle'>Circle Radius Select</option>";
   str += "<option value='box'>Bounding Box Select</option><option value='polygon'>Polygon Select</option></select>";
   str += " <a href='#' id='" + this.container + "-clear' class='openalyers-clear'>Clear Selection</a>  ";
   str += " | <i>Hint: Hold down shift and drag the mouse to draw a freehand polygon. Double click to complete. </i></div></div>";
-  
+
   p.innerHTML = str;
-  
+
   // mode selection handler
   var sel = document.getElementById(this.container + "-mode");
   sel.onchange = function(evt) {
     self.__mode(sel.value);
   };
-  
+
   var clear = document.getElementById(this.container + "-clear");
   clear.onclick = function(evt) {
     self._removeAllFeaturesBut(); // removes all
-    
+
     self._geoSelectionPublisher.publish({type: null,contributor: self.container});
-        
+
     evt.preventDefault();
     return false;
   };
-  
+
   // Use proxy to get same origin URLs for tiles that don't support CORS.
   //OpenLayers.ProxyHost = "proxy.cgi?url=";
 
@@ -524,11 +574,11 @@ com.marklogic.widgets.openlayers.prototype._refresh = function() {
 
   function init() {
     self.baseLayer = new OpenLayers.Layer.OSM("OpenStreetMap (CORS)", null, {
-          eventListeners: {
-            tileloaded: this._updateStatus,
-            loadend: this._detect
-          }
-        });
+      eventListeners: {
+        tileloaded: this._updateStatus,
+        loadend: this._detect
+      }
+    });
     map = new OpenLayers.Map({
       div: self.container + "-map",
       projection: "EPSG:900913",
@@ -540,14 +590,14 @@ com.marklogic.widgets.openlayers.prototype._refresh = function() {
       zoom: 1
     });
     self.map = map;
-    
+
     //var gmap = new OpenLayers.Layer.Google("Google Streets");
     //map.addLayers([gmap]);
-    
+
     self.ensureHeatmap(); // add this underneath selection layer and markers layer
-    
+
     self._selectionLayer = new OpenLayers.Layer.Vector("Selection Layer");
-    
+
     map.addLayers([self._selectionLayer]);
     //map.addControl(new OpenLayers.Control.MousePosition());
     /*
@@ -569,17 +619,17 @@ com.marklogic.widgets.openlayers.prototype._refresh = function() {
             irregular: false
           }
         }),
-      drag: new OpenLayers.Control.DragFeature(self._selectionLayer) 
+      drag: new OpenLayers.Control.DragFeature(self._selectionLayer)
     };
     for(var key in self._drawControls) {
       map.addControl(self._drawControls[key]);
-    } 
+    }
     self._drawControls.drag.activate();*/
-    
+
     var polyOptions = {sides:4};
     self._polyControl = new OpenLayers.Control.DrawFeature(self._selectionLayer,
       OpenLayers.Handler.RegularPolygon,
-      {handlerOptions: polyOptions}); 
+      {handlerOptions: polyOptions});
     self._polygonControl = new OpenLayers.Control.DrawFeature(self._selectionLayer,
         OpenLayers.Handler.Polygon);
     map.addControl(self._polyControl);
@@ -588,16 +638,16 @@ com.marklogic.widgets.openlayers.prototype._refresh = function() {
     map.addControl(drag);
     //drag.activate();
     self._dragControl = drag;
-    
+
     var featureFunc = function(feature) {
       mljs.defaultconnection.logger.debug("FEATURE ADDED: " + feature);
-      
+
       // TODO destroy previous features
       self._removeAllFeaturesBut(feature);
-      
+
       // check for type of polygon that has been created - box, poly, circle
       var selmode = document.getElementById(self.container + "-mode").value;
-      
+
       if ("polygon" == selmode) {
         var points = [];
         var ps = feature.geometry.components[0].components;
@@ -614,20 +664,20 @@ com.marklogic.widgets.openlayers.prototype._refresh = function() {
       } else if ("circle" == selmode) {
         // Find centre location and radius on map (and convert to miles for ML)
         var center = feature.geometry.getCentroid();
-        
+
         mljs.defaultconnection.logger.debug("x,y=" + center.x + "," + center.y);
-        
+
         // get first (any) point on circle and determine radius
         var point = feature.geometry.components[0].components[0]; // assume Point member of LinearRing
-        
+
         var line = new OpenLayers.Geometry.LineString([center, point]);
         var dist = line.getGeodesicLength(new OpenLayers.Projection("EPSG:900913"));
-        
+
         var radiusMiles = dist * 0.000621371192; // conversion to statute (British) Miles as used by MarkLogic
-        
+
         // Convert EPSG:900913 point to EPSG:4326 (WGS84)
         var wgsPoint = new OpenLayers.LonLat(center.x,center.y).transform(self.map.displayProjection,self.transformWgs84);
-        
+
         self._geoSelectionPublisher.publish({
           type: "circle",contributor: self.container,
           "constraint-name": self._config["constraint-name"],
@@ -653,7 +703,7 @@ com.marklogic.widgets.openlayers.prototype._refresh = function() {
         var nw = new OpenLayers.LonLat(west,north).transform(self.map.displayProjection,self.transformWgs84);
         var se = new OpenLayers.LonLat(east,south).transform(self.map.displayProjection,self.transformWgs84);
         mljs.defaultconnection.logger.debug("GEOBOX: EPSG4326: north: " + nw.lat + ", south: " + se.lat + ", west: " + nw.lon + ", east: " + se.lon);
-        
+
         self._geoSelectionPublisher.publish({
           type: "box", contributor: self.container,
           "constraint-name": self._config["constraint-name"],
@@ -664,8 +714,8 @@ com.marklogic.widgets.openlayers.prototype._refresh = function() {
     };
     self._polyControl.featureAdded = featureFunc;
     self._polygonControl.featureAdded = featureFunc;
-    
-    
+
+
     // try cache before loading from remote resource
     cacheRead1 = new OpenLayers.Control.CacheRead({ // auto activated (this default) - cache local first, then online
         eventListeners: {
@@ -699,8 +749,8 @@ com.marklogic.widgets.openlayers.prototype._refresh = function() {
     map.addControls([cacheRead1, cacheRead2, cacheWrite, layerSwitcher]);
     //layerSwitcher.maximizeControl();
 
-    
-    
+
+
     // detect what the browser supports
     function detect(evt) {
         // detection is only done once, so we remove the listener.
@@ -738,7 +788,7 @@ com.marklogic.widgets.openlayers.prototype._refresh = function() {
         //hits.innerHTML = cacheHits + " cache hits.";
     };
     this.__updateStatus = function(evt) {updateStatus(evt);};
-    
+
     // turn the cacheRead controls on and off
     function toggleRead() {
         //if (!this.checked) {
@@ -748,18 +798,18 @@ com.marklogic.widgets.openlayers.prototype._refresh = function() {
             setType();
         //}
     };
-    
+
     // turn the cacheWrite control on and off
     function toggleWrite() {
         cacheWrite[cacheWrite.active ? "deactivate" : "activate"]();
     };
-    
+
     // clear all tiles from the cache
     function clearCache() {
         OpenLayers.Control.CacheWrite.clearCache();
         updateStatus();
     };
-    
+
     // activate the cacheRead control that matches the desired fetch strategy
     function setType() {
         //if (tileloadstart.checked) {
@@ -768,7 +818,7 @@ com.marklogic.widgets.openlayers.prototype._refresh = function() {
         //    cacheRead2.activate(); // online first
         //}
     };
-    
+
     // start seeding the cache
     function startSeeding() {
         var layer = map.baseLayer,
@@ -788,13 +838,13 @@ com.marklogic.widgets.openlayers.prototype._refresh = function() {
         // turn off cache reading
         cacheRead1.deactivate();
         cacheRead2.deactivate();
-        
+
         layer.events.register("loadend", null, seed);
-        
+
         // start seeding
         map.setCenter(seeding.center, zoom);
     };
-    
+
     // seed a zoom level based on the extent at the time startSeeding was called
     function seed() {
         var layer = seeding.layer;
@@ -808,7 +858,7 @@ com.marklogic.widgets.openlayers.prototype._refresh = function() {
             stopSeeding();
         }
     };
-    
+
     // stop seeding (when done or when cache is full)
     function stopSeeding() {
         // we're done - restore previous settings
@@ -824,19 +874,19 @@ com.marklogic.widgets.openlayers.prototype._refresh = function() {
         seeding = false;
     };
   };
-  
+
   init();
 };
 
 com.marklogic.widgets.openlayers.prototype.eightDecPlaces = function(val) {
   var str = "" + val;
   var pos = str.indexOf(".");
-  return 1.0 * (str.substring(0,pos + 1) + str.substring(pos + 1,pos + 9));
+  return 1.0 * (str.substring(0,pos + 1) + str.substring(pos + 1,pos + 9)); // TODO check for bug if no decimal place exists
 };
 
 /**
  * Helper function to center and zoom the map. Note that zoom levels are OpenLayers zoom levels, not necessarily the zoom level of the layer you are using.
- * 
+ *
  * @param {float} lat - Latitude
  * @param {float} lon - Longitude
  * @param {integer} zoom - Zoom level (OpenLayers zoom level, not necessarily the mapping layer's own internal level)
@@ -848,7 +898,7 @@ com.marklogic.widgets.openlayers.prototype.go = function(lat,lon,zoom) {
 /**
  * Response to a geo context's locale being updated. Currently only supports center, but in future will supports bounds, zooming to the right level to
  * show the entire area required
- * 
+ *
  * @param {JSON} locale - The geo context local definition. Has center(longitude,latitude), bounds (n,e,s,w) and area(Array of points/circle/box/polygon) properties
  */
 com.marklogic.widgets.openlayers.prototype.updateLocale = function(locale) {
@@ -859,10 +909,10 @@ com.marklogic.widgets.openlayers.prototype.updateLocale = function(locale) {
 
 /**
  * Adds a series of Feature (Marker) icons on to the map when the specified searchcontext fires an updateResults event.
- * 
+ *
  * NB This method fetches longitude, latitude, summary and title information from within the result document (result[i].content).
  * This means the searchcontext must be configured to return RAW (full document) results, or use a transform to extract the relevant portion of the document.
- * 
+ *
  * @param {string} title - The title (and reference name) of the series to add. This is shown in the Layer selection area
  * @param {mljs.searchcontext} searchcontext - The searchcontext that this widget should listen to and generate markers in this series for
  * @param {string} latsrc - The JSON path (E.g. "location.lat") of the property to extract from the JSON or XML document to use as the latitude
@@ -874,17 +924,17 @@ com.marklogic.widgets.openlayers.prototype.updateLocale = function(locale) {
  */
 com.marklogic.widgets.openlayers.prototype.addSeries = function(title,searchcontext,latsrc,lonsrc,titlesrc,summarysrc,icon_source_opt,heatmap_constraint) {
   this.series[name] = {title: title, context: searchcontext,latsource:latsrc,lonsource:lonsrc,titlesource:titlesrc,summarysource:summarysrc,constraint: heatmap_constraint};
-  
+
   // add new layer
   var layer = new OpenLayers.Layer.Markers(title); // TODO other layer configuration - e.g. icon, selectable handler, etc.
-  
+
   var size = new OpenLayers.Size(21,25);
   var offset = new OpenLayers.Pixel(-(size.w/2), -size.h);
   var icon = new OpenLayers.Icon('/js/OpenLayers-2.13.1/img/marker-blue.png', size, offset);
 
-  
+
   this.series[name].layer = layer;
-  this.map.addLayer(layer); 
+  this.map.addLayer(layer);
   /*
   // selection/hover support for this layer
   var selectControl = new OpenLayers.Control.SelectFeature(layer, {
@@ -892,7 +942,7 @@ com.marklogic.widgets.openlayers.prototype.addSeries = function(title,searchcont
   });
   selectControl.events.register('featurehighlighted', null, featureHighlighted);
   this.map.addControl(selectControl);
-  
+
   var featureHighlighted = function(evt) {
     // Needed only for interaction, not for the display.
     var onPopupClose = function (evt) {
@@ -900,7 +950,7 @@ com.marklogic.widgets.openlayers.prototype.addSeries = function(title,searchcont
         var feature = this.feature;
         if (feature.layer) {
             selectControl.unselect(feature);
-        }  
+        }
         this.destroy();
     };
 
@@ -916,10 +966,10 @@ com.marklogic.widgets.openlayers.prototype.addSeries = function(title,searchcont
     popup.feature = feature;
     this.map.addPopup(popup, true);
   };*/
-  
-        
+
+
   var popup; // global reference
-  
+
   // add updateResults wrapper function
   var self = this;
   var lisfunc = function(results) {
@@ -934,24 +984,24 @@ com.marklogic.widgets.openlayers.prototype.addSeries = function(title,searchcont
       self.heatmap.setDataSet({data: [], max: 0});
       return;
     }
-    
+
         mljs.defaultconnection.logger.debug("openlayers.addSeries.listfunc: Deleting results markers in layer: " + title);
         // remove all markers
         var oldm = layer.markers;
         for (var i = 0;i < oldm.length;i++) {
           var mark = oldm[i];
           mark.erase();
-          layer.removeMarker(mark); 
+          layer.removeMarker(mark);
           mark.destroy();
         }
         layer.clearMarkers();
-    
+
     mljs.defaultconnection.logger.debug("openlayers.addSeries.listfunc: Processing results");
     // add each marker in new result set
     for (var i = 0,max = results.results.length,r;i < max;i++) {
       r = results.results[i];
       //mljs.defaultconnection.logger.debug("openlayers.addSeries.listfunc: Processing result: " + JSON.stringify(r));
-      
+
       var thedoc = jsonOrXml(r.content);
       // support metadata extraction too
       var lat = null;
@@ -990,11 +1040,11 @@ com.marklogic.widgets.openlayers.prototype.addSeries = function(title,searchcont
       }
       mljs.defaultconnection.logger.debug("openlayers.addSeries.listfunc: lat: " + lat + ", lon: " + lon);
       var m = new OpenLayers.Marker(new OpenLayers.LonLat(lon,lat).transform(self.transformWgs84,self.map.displayProjection),icon.clone());
-      
+
       // TODO popup/infobox based on search result, extract title and summary
       layer.addMarker(m);
-      
-      
+
+
       var addEvents = function(m,uri) {
         // add hover handlers
         m.events.register('mouseover', m, function(evt) {
@@ -1018,11 +1068,11 @@ com.marklogic.widgets.openlayers.prototype.addSeries = function(title,searchcont
           }
         });
       };
-      
+
       addEvents(m,r.uri);
     }
     mljs.defaultconnection.logger.debug("openlayers.addSeries.listfunc: Finished adding all results");
-    
+
     // Now add heatmap information, if it exists
     if (undefined != results.facets[heatmap_constraint] && undefined != results.facets[heatmap_constraint].boxes) {
       // create heatmap box overlays - but they're based on points, not boxes, so how is this done in AppBuilder?
@@ -1030,7 +1080,7 @@ com.marklogic.widgets.openlayers.prototype.addSeries = function(title,searchcont
       //  - How does AppBuilder 5's heatmaps work? Do they use *all* results? If so, how is this accomplished? (normally there's a limit)
       // AppBuilder uses the center points of the boxes for points with scores
       // Convert to heatmap points
-      // in order to use the OpenLayers Heatmap Layer we have to transform our data into 
+      // in order to use the OpenLayers Heatmap Layer we have to transform our data into
       // { max: , data: [{lonlat: , count: },...]}
       var boxes = results.facets[heatmap_constraint].boxes;
       var data = []; // not an array object
@@ -1047,40 +1097,39 @@ com.marklogic.widgets.openlayers.prototype.addSeries = function(title,searchcont
       }
       // Do we need to create blank boxes too?
       mljs.defaultconnection.logger.debug("Heatmap MAX: " + boxes.length);
-      
+
       self.heatmap.setDataSet({data: data, max: boxes.length});
     }
-    
-    
+
+
   };
   searchcontext.addResultsListener(lisfunc);
   this.series[name].listener = lisfunc;
-  
+
   // contribute our heatmap query if required
   if (undefined != this.series[name].constraint) {
     this.ensureHeatmap();
     var self = this;
-    
+
     var updateHeatmap = function() {
       var ex = self.map.getExtent().transform(self.map.displayProjection,self.transformWgs84); // Bounds object
-      var amount = self.heatmapGranularity;
+      var amount = self._config.heatmapGranularity;
       var ratio = Math.sqrt(amount / (self.height*self.width));
       var up = Math.ceil(ratio*self.height);
       var across = Math.ceil(ratio*self.width);
       mljs.defaultconnection.logger.debug("Heatmap Amount: " + amount + ", ratio: " + ratio + ", up: " + up + ", across: " + across);
       mljs.defaultconnection.logger.debug("Heatmap Bounds: N: " + ex.top + ", South: " + ex.bottom + ", West: " + ex.left + ", East: " + ex.right);
       var heatmap = {n: ex.top,s: ex.bottom,w: ex.left,e: ex.right,latdivs:up,londivs:across};
-        
+
       searchcontext.updateGeoHeatmap(heatmap_constraint,heatmap);
     };
-    
+
     // TODO also add map zoom event handler to update this on the fly too
     this.map.events.register("moveend",this.map,function() {
       updateHeatmap();
     });
-    
+
     updateHeatmap();
   }
-  
-};
 
+};

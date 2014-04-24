@@ -25,23 +25,50 @@ com.marklogic.widgets = window.com.marklogic.widgets || {};
  */
 com.marklogic.widgets.cooccurence = function(container) {
   this.container = container;
-  this.errorPublisher = new com.marklogic.events.Publisher(); 
+  this.errorPublisher = new com.marklogic.events.Publisher();
   this.selectionPublisher = new com.marklogic.events.Publisher();
-  
-  this.title = "Co-occurence";
-  
+
+  this._config = {
+    title: "Co-occurence"
+  };
+
   this.values = null;
-  
+
   this.constraintArray = null;
-  
+
   this._displayTuple = null;
-  
+
+  this._refresh();
+};
+
+/**
+ * Returns the MLJS Workplace configuration definition listing config properties supported by this widget
+ *
+ * @static
+ */
+com.marklogic.widgets.cooccurence.getConfigurationDefinition = function() {
+  var self = this;
+  return {
+    title: {type: "string", default: "Co-occurence", title: "Title",description: "Title for this widget."}
+  };
+};
+
+/**
+ * Sets the configuration for this instance of a widget in an MLJS Workplace
+ *
+ * @param {json} config - The JSON Workplace widget configuration to apply
+ */
+com.marklogic.widgets.cooccurence.prototype.setConfiguration = function(config) {
+  for (var prop in config) {
+    this._config[prop] = config[prop];
+  }
+
   this._refresh();
 };
 
 /**
  * Specifies that this widget should only display a named tuple result, not any tuple to come back from an updateValues call
- * 
+ *
  * @param {string} tuplename - The name of the tuple to only respond to
  */
 com.marklogic.widgets.cooccurence.prototype.displayTuple = function(tuplename) {
@@ -50,7 +77,7 @@ com.marklogic.widgets.cooccurence.prototype.displayTuple = function(tuplename) {
 
 /**
  * Adds an error listener to this widget
- * 
+ *
  * @param {function(error)} fl - The error listener to add
  */
 com.marklogic.widgets.cooccurence.prototype.addErrorListener = function(fl) {
@@ -59,7 +86,7 @@ com.marklogic.widgets.cooccurence.prototype.addErrorListener = function(fl) {
 
 /**
  * Removes an error listener
- * 
+ *
  * @param {function(error)} fl - The error listener to remove
  */
 com.marklogic.widgets.cooccurence.prototype.removeErrorListener = function(fl) {
@@ -68,7 +95,7 @@ com.marklogic.widgets.cooccurence.prototype.removeErrorListener = function(fl) {
 
 /**
  * Adds a facet selection listener to this widget
- * 
+ *
  * @param {function(error)} fl - The facet selection listener to add
  */
 com.marklogic.widgets.cooccurence.prototype.addFacetSelectionListener = function(fl) {
@@ -77,7 +104,7 @@ com.marklogic.widgets.cooccurence.prototype.addFacetSelectionListener = function
 
 /**
  * Removes a facet selection listener
- * 
+ *
  * @param {function(error)} fl - The facet selection listener to remove
  */
 com.marklogic.widgets.cooccurence.prototype.removeFacetSelectionListener = function(fl) {
@@ -85,9 +112,9 @@ com.marklogic.widgets.cooccurence.prototype.removeFacetSelectionListener = funct
 };
 
 /**
- * Updates the widget with the specified values JSON object. (top level element is "values-response"). 
+ * Updates the widget with the specified values JSON object. (top level element is "values-response").
  * See GET /v1/values
- * 
+ *
  * @param {JSON} values - the values returned as a values response JSON object.
  */
 com.marklogic.widgets.cooccurence.prototype.updateValues = function(values) {
@@ -96,7 +123,7 @@ com.marklogic.widgets.cooccurence.prototype.updateValues = function(values) {
   }
   if (null == this._displayTuple || (undefined != values["values-response"] && this._displayTuple == values["values-response"].name)) {
     this.values = values;
-    
+
     this._refresh();
   }
 };
@@ -107,13 +134,13 @@ com.marklogic.widgets.cooccurence.prototype._refresh = function() {
   // {"frequency":8, "distinct-value":[{"type":"xs:string", "_value":"Jim Carrey"},{"type":"xs:string", "_value":"Comedy"}]},
   // {"frequency":1, "distinct-value":[{"type":"xs:string", "_value":"Sean Astin"},{"type":"xs:string", "_value":"Adventure"}]},
   // {"frequency":4, "distinct-value":[{"type":"xs:string", "_value":"Sean Astin"},{"type":"xs:string", "_value":"Comedy"}]},
-  // {"frequency":4, "distinct-value":[{"type":"xs:string", "_value":"Sean Astin"},{"type":"xs:string", "_value":"Fantasy"}]}  ], 
+  // {"frequency":4, "distinct-value":[{"type":"xs:string", "_value":"Sean Astin"},{"type":"xs:string", "_value":"Fantasy"}]}  ],
   // "metrics":{"values-resolution-time":"PT0.153351S", "total-time":"PT0.174207S"}}}
   if (null == this.values || undefined == typeof this.values) {
     return; // draw nothing
   }
   mljs.defaultconnection.logger.debug("cooccurence.refresh: got results");
-  var str = "<div class='cooccurence-title'>" + this.title + "</div>";
+  var str = "<div class='cooccurence-title'>" + this._config.title + "</div>";
   var tuples = null;
   if (undefined != this.values["values-response"] && undefined != this.values["values-response"].tuple) {
     var tuplesOriginal = this.values["values-response"].tuple;
@@ -135,10 +162,10 @@ com.marklogic.widgets.cooccurence.prototype._refresh = function() {
     }
   }
   document.getElementById(this.container).innerHTML = str;
-  
+
   // add click handlers
   var addHandler = function(el,val,i,v) {
-    
+
         el.onclick = function (e) {
           mljs.defaultconnection.logger.debug("cooccurence.refresh: facet selected: " + self.constraintArray[v] + "=" + val["_value"]);
           self._select(self.constraintArray[v],val["_value"]);
@@ -168,7 +195,7 @@ com.marklogic.widgets.cooccurence.prototype._refresh = function() {
 
 /**
  * Sets the names of the constraints in the right order to display and use to restrict queries on upon selection.
- * 
+ *
  * @param {Array} constraintArray - The ordered names of constraints
  */
 com.marklogic.widgets.cooccurence.prototype.setTupleConstraints = function(constraintArray) {
@@ -178,7 +205,7 @@ com.marklogic.widgets.cooccurence.prototype.setTupleConstraints = function(const
 com.marklogic.widgets.cooccurence.prototype._select = function(facet,value) {
   // fire selection event
   var sel = {name: facet,value: value};
-  
+
   // fire event to handlers
   this.selectionPublisher.publish([sel]);
 };
