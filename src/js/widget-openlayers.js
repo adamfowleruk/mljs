@@ -78,7 +78,7 @@ com.marklogic.widgets.openlayers.getConfigurationDefinition = function() {
     showArcGISOnline: {type: "boolean", default: false, title: "Show Arc GIS Online Layer",description: "Show the Arc GIS Online layer."},
     showAllBing: {type: "boolean", default: false, title: "Show All Bing Maps Layers",description: "Show all Bing Maps layers."},
     "constraint-name": {type: "string", default: null, title: "Selection Constraint Name", description: "The name of the search options constraint to use for selection."},
-    heatmapGranularity: {type:enum, default: self.HIGH, title: " Heat Map Granularity", description: "How detailed a heatmap to calculate in MarkLogic Server.",
+    heatmapGranularity: {type: "enum", default: self.HIGH, title: " Heat Map Granularity", description: "How detailed a heatmap to calculate in MarkLogic Server.",
       options: [
         {value: self.HIGH, title: "High", description: "Many heatmap areas(" + self.HIGH + ")."},
         {value: self.MEDIUM, title: "Medium", description: "Several heatmap areas(" + self.MEDIUM + ")."},
@@ -541,13 +541,19 @@ com.marklogic.widgets.openlayers.prototype._refresh = function() {
   this.width = actualWidth;
   this.height = actualHeight;
 
-  var str = "<div class='openlayers-content'><div id='" + this.container + "-map' class='openlayers-map' style='height:" + actualHeight + "px;width:" + actualWidth + "px;'></div>";
+  var str = "<div class='mljswidget panel panel-info openlayers'>";
+  str += "<div class='panel-body openlayers-content'>";
+  str += "<div id='" + this.container + "-map' class='openlayers-map' style='height:" + (actualHeight-55) + "px;width:" + (actualWidth-30) + "px;'></div>";
 
+  str += "<div class='openlayers-controls'>";
   // mode selection
   str += "<div class='openlayers-mode'>Mode: <select id='" + this.container + "-mode'><option value='none'>Move</option><option value='circle'>Circle Radius Select</option>";
   str += "<option value='box'>Bounding Box Select</option><option value='polygon'>Polygon Select</option></select>";
   str += " <a href='#' id='" + this.container + "-clear' class='openalyers-clear'>Clear Selection</a>  ";
-  str += " | <i>Hint: Hold down shift and drag the mouse to draw a freehand polygon. Double click to complete. </i></div></div>";
+  str += " | <span class='small'>Hint: Hold down shift and drag to draw a freehand polygon. Double click to complete. </span></div></div>";
+  str += "</div>";
+
+  str += "</div>";
 
   p.innerHTML = str;
 

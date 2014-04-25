@@ -25,40 +25,40 @@ com.marklogic.widgets = window.com.marklogic.widgets || {};
  */
 com.marklogic.widgets.create = function(container) {
   this.container = container;
-  this.errorPublisher = new com.marklogic.events.Publisher(); 
-  
+  this.errorPublisher = new com.marklogic.events.Publisher();
+
   this.vertical = true; // vertical or horizontal first rendering
-  
+
   this._collections = new Array();
   this._permissions = new Array(); // ?
-  
+
   this.currentRow = 0;
   this.currentColumn = 0;
-  
+
   this.completePublisher = new com.marklogic.events.Publisher();
-  
+
   this.controlCount = 0;
   this.fileDrops = new Array();
   this.fileDropFiles = new Array();
-  
+
   this.override = false;
   this.overrideEndManual = false;
   this.overrideElementId = "";
-  
-  
+
+
   this._uriprefix = "/";
-  
+
   this.controls = new Array();
   this.controlData = new Array();
-  
+
   this._mode = "upload"; // upload or json or xml
-  
+
   this._init();
 };
 
 /**
  * Adds an error listener to this widget
- * 
+ *
  * @param {function(error)} fl - The error listener to add
  */
 com.marklogic.widgets.create.prototype.addErrorListener = function(fl) {
@@ -67,7 +67,7 @@ com.marklogic.widgets.create.prototype.addErrorListener = function(fl) {
 
 /**
  * Removes an error listener
- * 
+ *
  * @param {function(error)} fl - The error listener to remove
  */
 com.marklogic.widgets.create.prototype.removeErrorListener = function(fl) {
@@ -76,10 +76,10 @@ com.marklogic.widgets.create.prototype.removeErrorListener = function(fl) {
 
 com.marklogic.widgets.create.prototype._init = function() {
   var parentel = document.getElementById(this.container);
-  parentel.innerHTML = 
-    "<div id='" + this.container + "-create'>" +
-      "<div class='create-title'>Create a new Document</div>" +
-      "<form id='" + this.container + "-create-form' class='create-form'>" + 
+  parentel.innerHTML =
+    "<div id='" + this.container + "-create' class='mljswidget panel panel-info create'>" +
+      "<div class='panel-heading create-title'>Create a new Document</div>" +
+      "<form id='" + this.container + "-create-form' class='panel-body create-form' role='form'>" +
         "<div class='create-row' id='" + this.container + "-create-row-0'>" +
           "<div class='create-col' id='" + this.container + "-create-row-0-col-0' style='float:left;'></div>" +
         "</div>" +
@@ -108,7 +108,7 @@ com.marklogic.widgets.create.prototype._place = function(html,type,id) {
       com.marklogic.widgets.appendHTML(document.getElementById(this.container + "-create-row-" + this.currentRow),h);
     }
   }
-  
+
   // add the control definition to our form references link - so save can process the form
   if (undefined != type && undefined != id) {
     this.controls.push({type: type,id: id});
@@ -121,18 +121,18 @@ com.marklogic.widgets.create.prototype._place = function(html,type,id) {
 com.marklogic.widgets.create.prototype.endRow = function() {
   // clear previous row
   com.marklogic.widgets.appendHTML(document.getElementById(this.container + "-create-row-" + this.currentRow),"<div style='clear:both'></div>");
-  
+
     // create new row
     this.currentRow++;
     // reset column counter
     this.currentColumn = 0;
     // append div to form element
-    var h = 
+    var h =
         "<div class='create-row' id='" + this.container + "-create-row-" + this.currentRow + "'>" +
           "<div class='create-col' id='" + this.container + "-create-row-" + this.currentRow + "-col-" + this.currentColumn + "' style='float:left;'></div>" +
         "</div>";
-    com.marklogic.widgets.appendHTML(document.getElementById(this.container + "-create-form").innerHTML,h);
-    
+    com.marklogic.widgets.appendHTML(document.getElementById(this.container + "-create-form"),h);
+
   return this;
 };
 
@@ -140,23 +140,23 @@ com.marklogic.widgets.create.prototype.endRow = function() {
 
 /**
  * Specifies the creation mode for the widget. Can be "upload", "json" or "xml". If upload, the underlying browser's mime type support determines the type to send the document to MarkLogic as.
- * 
+ *
  * @param {string} newMode - The new mode to use
  */
 com.marklogic.widgets.create.prototype.mode = function(newMode) {
   this._mode = newMode;
-  
+
   return this;
 };
 
 /**
  * Specifies the URI prefix of the newly generated document.
- * 
+ *
  * @param {string} prefix - The document URI prefix to use.
  */
 com.marklogic.widgets.create.prototype.uriPrefix = function(prefix) {
   this._uriprefix = prefix;
-  
+
   return this;
 };
 com.marklogic.widgets.create.prototype.uriprefix = com.marklogic.widgets.create.prototype.uriPrefix; // backwards compatibility
@@ -168,7 +168,7 @@ com.marklogic.widgets.create.prototype.uriprefix = com.marklogic.widgets.create.
 com.marklogic.widgets.create.prototype.horizontal = function() {
   // draw new controls horizontally, not vertically
   this.vertical = false;
-  
+
   return this;
 };
 
@@ -178,18 +178,18 @@ com.marklogic.widgets.create.prototype.horizontal = function() {
  */
 com.marklogic.widgets.create.prototype.collectionUser = function() {
   // add user- and this user's id to the collection list
-  
+
   return this;
 };
 
 /**
  * Adds the resultant document(s) to the specified collection. May be called multiple times if multiple collections are required.
- * 
+ *
  * @param {string} col - Collection name to add the new document(s) to.
  */
 com.marklogic.widgets.create.prototype.collection = function(col) {
   this._collections.push(col);
-  
+
   return this;
 };
 
@@ -206,18 +206,18 @@ com.marklogic.widgets.create.prototype.dnd = function() {
   } else {
     console.log('The File APIs are not fully supported in this browser.');
   }
-  
+
   // create a drag and drop widget
   var id = this.container + "-dnd-" + ++this.controlCount;
   /*
   var html = "<div id='" + id + "' class='create-dnd'></div>";
-  
+
   this._place(html,"dnd",id);
-  
+
   var fd = new FileDrop(id,{dragOverClass: "create-dnd-hover"});
   this.fileDrops[id] = fd;
   this.fileDropFiles[id] = new Array();
-  
+
   var self = this;
   fd.on.send = function (files) {
     // store file objects until user clicks save
@@ -225,37 +225,37 @@ com.marklogic.widgets.create.prototype.dnd = function() {
       self.fileDropFiles[id].push(files[f]);
     }
   };
-  
+
   this.controlData[id] = {filedrop: fd};
   */
-  
-  var html = "<input type='file' id='" + id + "'/>";
+
+  var html = "<input type='file' id='" + id + "' class='span2 form-control btn btn-default create-file' />";
   this._place(html,"dnd",id);
-  
+
   var self = this;
   document.getElementById(id).onchange = function(evt) {
     console.log("file onchange fired");
     self.controlData[id] = {files: evt.target.files};
     console.log("Saved file data");
   };
-  
+
   return this;
 };
 
 /**
  * Ensures that the resultant document has the specified permission object applied, in addition to those from any embedded permissions widgets.
- * 
+ *
  * @param {JSON} permObject - The permission specification to use. E.g. {role: "topsecret", permission: "read"}
  */
 com.marklogic.widgets.create.prototype.forcePermission = function(permObject) {
   this._permissions.push(permObject);
-  
+
   return this;
 };
 
 /**
  * Adds a permissions drop down widget to the current cell, and creates a new cell.
- * 
+ *
  * @param {boolean} allowMultiple - Whether to allow multiple roles to be selected. NOT SUPPORTED (i.e. always false)
  * @param {string[]} firstRoleArray - The lists of roles to allow selection of. Lowest access first. Normally all are in the same security compartment.
  * @param {string} title_opt - The optional title text to show next to the control. E.g. 'Role for Read'
@@ -266,21 +266,21 @@ com.marklogic.widgets.create.prototype.permissions = function(allowMultiple,firs
     privilege = title_opt;
     title_opt = undefined;
   }
-  
+
   // add permissions control
   var id = this.container + "-permissions-" + (++this.controlCount);
-  var html = "<div id='" + id + "' class='create-permissions'>";
+  var html = "<div id='" + id + "' class='input-prepend create-permissions'>";
   if (undefined != title_opt) {
-    html += "<label for='" + id + "'>" + title_opt + "</label> ";
+    html += "<span for='" + id + "' class='create-select-title'>" + title_opt + "</label> ";
   }
-  html += "<select id='" + id + "-select'>";
-    
+  html += "<select id='" + id + "-select' class='form-control create-select'>";
+
   for (var i = 0;i < firstRoleArray.length;i++) {
     html += "<option value='" + firstRoleArray[i] + "'>" + firstRoleArray[i] + "</option>";
   }
-  
+
   html += "</select></div>";
-  
+
   this._place(html,"permissions",id);
   this.controlData[id] = {privilege:privilege};
   return this;
@@ -293,12 +293,12 @@ com.marklogic.widgets.create.prototype.bar = function() {
   var id = this.container + "-bar-" + ++this.controlCount;
   var html = "<div id='" + id + "' class='create-bar'></div>";
   this._place(html,"bar",id);
-  
+
   // override placement strategy
   this.override = true;
   this.overrideElementId = id;
   this.overrideEndManual = true;
-  
+
   return this;
 };
 
@@ -309,15 +309,15 @@ com.marklogic.widgets.create.prototype.endBar = function() {
   this.override = false;
   this.overrideEndManual = false;
   this.overrideElementId = "";
-  
+
   //this._place("");
-  
+
   return this;
 };
 
 /**
  * Generates a save button control at the current position.
- * 
+ *
  * @param {string} title_opt - Optional string title to show on the button. (Defaults to 'Save')
  */
 com.marklogic.widgets.create.prototype.save = function(title_opt) {
@@ -326,10 +326,10 @@ com.marklogic.widgets.create.prototype.save = function(title_opt) {
   if (undefined != title_opt) {
     title = title_opt;
   }
-  
-  var html = "<input class='create-save' type='submit' id='" + id + "' value='" + title + "' />";
+
+  var html = "<button class='btn btn-primary create-save' type='submit' id='" + id + "'>" + title + "</button>";
   this._place(html,"save",id);
-  
+
   var self = this;
   //document.getElementById(id).onclick = function(e) {console.log("got onclick");self._onSave(self);console.log("done onsave");e.stopPropagation();console.log("done stop prop");return false;}; // TODO Check this is valid
   document.getElementById(this.container + "-create-form").onsubmit = function() {
@@ -341,7 +341,7 @@ com.marklogic.widgets.create.prototype.save = function(title_opt) {
     return false;
   };
   // TODO find a way to do this without working at the form level
-  
+
   return this;
 };
 
@@ -350,7 +350,7 @@ com.marklogic.widgets.create.prototype.save = function(title_opt) {
 
 /**
  * Adds a function as a listener to be called when this widget successfully generates a new document, passing in the new document's URI. If multiple documents are created, passes an array of string uris.
- * 
+ *
  * @param {function} lis - The listener function to add. Function should accept a string uri
  */
 com.marklogic.widgets.create.prototype.addCompleteListener = function(lis) {
@@ -359,7 +359,7 @@ com.marklogic.widgets.create.prototype.addCompleteListener = function(lis) {
 
 /**
  * Removes a completion listener from this widget.
- * 
+ *
  * @param {function} lis - The listener function to remove. Function should accept a string uri
  */
 com.marklogic.widgets.create.prototype.removeCompleteListener = function(lis) {
@@ -396,16 +396,16 @@ com.marklogic.widgets.create.prototype._onSave = function() {
         //perms.push({role: "can-read", permission: "read"});
       }
     }
-    
+
     // add forced permissions
     for (var p = 0;p < this._permissions.length;p++) {
       perms.push(this._permissions[p]);
     }
-    
+
     if (null != uploadCtl) {
       console.log("got uploadCtl");
-      
-      
+
+
       /*
       // get file info for upload
       var reader = new FileReader();
@@ -415,15 +415,15 @@ com.marklogic.widgets.create.prototype._onSave = function() {
       var fileel = document.getElementById(uploadCtl.id);
       var file = fileel.files[0];
       console.log("reading file");
-      
+
       var self = this;
-      
+
       reader.onload = (function(theFile) {
-      
+
       var bin = reader.readAsArrayBuffer(theFile);
       console.log("BIN RESULT: " + bin);
       console.log("Reader info: " + JSON.stringify(reader));
-      
+
         return function(e) {
           var res = e.target.result; // WRONG - THIS IS SENDING BYTE LENGTH ONLY
           console.log("TARGET JSON: " + JSON.stringify(e));
@@ -459,13 +459,13 @@ com.marklogic.widgets.create.prototype._onSave = function() {
           });
         }
       })(file);
-      
+
       */
-      
-      
-      
-      
-      
+
+
+
+
+
     var files = document.getElementById(uploadCtl.id).files;
     if (!files.length) {
       alert('Please select a file!');
@@ -476,7 +476,7 @@ com.marklogic.widgets.create.prototype._onSave = function() {
     var start = 0;
     var stop = file.size - 1;
 
-    
+
           var cols = "";
           for (var i = 0;i < this._collections.length;i++) {
             if (0 != i) {
@@ -484,7 +484,7 @@ com.marklogic.widgets.create.prototype._onSave = function() {
             }
             cols += this._collections[i];
           }
-          
+
           var props = {
             contentType: file.type,
             //contentType: false,
@@ -494,7 +494,7 @@ com.marklogic.widgets.create.prototype._onSave = function() {
           }
           console.log("mime type: " + file.type);
           console.log("Request properties: " + JSON.stringify(props));
-          
+
     var reader = new FileReader();
     var self = this;
 
@@ -502,11 +502,11 @@ com.marklogic.widgets.create.prototype._onSave = function() {
     reader.onloadend = function(evt) {
       if (evt.target.readyState == FileReader.DONE) { // DONE == 2
         //document.getElementById('byte_content').textContent = evt.target.result;
-        
+
         console.log("file content: " + evt.target.result);
-        
+
         // save to ML
-        
+
         console.log("calling mljs save");
           /*
           var arrBuff = new ArrayBuffer(evt.target.result.length);
@@ -514,7 +514,7 @@ com.marklogic.widgets.create.prototype._onSave = function() {
           for (var i = 0, len = evt.target.result.length; i < len; i++) {
               writer[i] = evt.target.result.charCodeAt(i);
           }*/
-          
+
           mljs.defaultconnection.save(file,self._uriprefix + file.name,props,function(result) {
             if (result.inError) {
               console.log("ERROR: " + result.doc);
@@ -523,11 +523,11 @@ com.marklogic.widgets.create.prototype._onSave = function() {
               self.completePublisher.publish(result.docuri);
             }
           });
-        
-        
-        
-        
-        /*document.getElementById('byte_range').textContent = 
+
+
+
+
+        /*document.getElementById('byte_range').textContent =
             ['Read bytes: ', start + 1, ' - ', stop + 1,
              ' of ', file.size, ' byte file'].join('');*/
       }
@@ -542,7 +542,7 @@ com.marklogic.widgets.create.prototype._onSave = function() {
     //reader.readAsBinaryString(blob);
     reader.readAsArrayBuffer(blob);
     //reader.readAsText(file);
-      
+
     } else {
       // TODO
       console.log("upload ctl null");

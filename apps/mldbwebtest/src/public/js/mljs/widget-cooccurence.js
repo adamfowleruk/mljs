@@ -140,7 +140,9 @@ com.marklogic.widgets.cooccurence.prototype._refresh = function() {
     return; // draw nothing
   }
   mljs.defaultconnection.logger.debug("cooccurence.refresh: got results");
-  var str = "<div class='cooccurence-title'>" + this._config.title + "</div>";
+  var str = "<div class='mljswidget panel panel-info'>";
+  str += "<div class='panel-heading cooccurence-title'>" + this._config.title + "</div>";
+  str += "<div class='panel-body cooccurence-content'>";
   var tuples = null;
   if (undefined != this.values["values-response"] && undefined != this.values["values-response"].tuple) {
     var tuplesOriginal = this.values["values-response"].tuple;
@@ -158,9 +160,10 @@ com.marklogic.widgets.cooccurence.prototype._refresh = function() {
         }
       }
       // now show frequency
-      str += " <span class='cooccurence-count'>(" + t.frequency + ")</span></div>";
+      str += " <span class='badge cooccurence-count'>" + t.frequency + "</span></div>";
     }
   }
+  str += "</div></div>";
   document.getElementById(this.container).innerHTML = str;
 
   // add click handlers

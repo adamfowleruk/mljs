@@ -320,7 +320,7 @@ com.marklogic.widgets.sparqlbar.prototype.refresh = function() {
       s += ">" + ent.title + "</option>";
     }
   }
-  s += "</select> which <span class='sparqlbar-add'>[<a class='sparqlbar-add-link' id='" + this.container + "-sparqlbar-add-link' href='#'>+ Child</a>]</span></div>";
+  s += "</select> which <a class='sparqlbar-add-link' id='" + this.container + "-sparqlbar-add-link' href='#'><span title='Add child term' class='glyphicon glyphicon-plus sparqlbar-add'> </span></a></div>";
 
   // criteria
   //  - predicate list
@@ -329,7 +329,7 @@ com.marklogic.widgets.sparqlbar.prototype.refresh = function() {
 
   s += "<div id='" + this.container + "-sparqlbar-terms' class='sparqlbar-terms'></div>";
 
-  s += "<div><input type='submit' value='Search'  class='btn btn-primary sparqlbar-button' id='" + this.container + "-sparqlbar-button'/></div>";
+  s += "<div><button type='submit' class='btn btn-primary sparqlbar-button' id='" + this.container + "-sparqlbar-button'>Search</button></div>";
 
   /*
   s += "<div class='sparqlbar-results' id='" + this.container + "-sparqlbar-results'><i>No results</i></div>";
@@ -444,8 +444,8 @@ com.marklogic.widgets.sparqlbar.prototype._addTerm = function(parentid) {
   s += "<input type='text' length='20'  class='sparqlbar-term-value hidden' id='" + this.container + "-sparqlbar-term-value-" + tid  + "'/>";
 
   s += "<span class='sparlbar-term-and hidden' id='" + this.container + "-sparqlbar-term-" + tid + "-and'>; AND</span>";
-  s += " [<a href='#' id='" + this.container + "-sparqlbar-term-" + tid + "-remove'>-</a>] ";
-  s += "<span id='" + this.container + "-sparqlbar-term-" + tid + "-addspan'>[<a href='#' id='" + this.container + "-sparqlbar-term-" + tid + "-addchild'>+ Child</a>]</span>";
+  s += " <a href='#' id='" + this.container + "-sparqlbar-term-" + tid + "-remove'><span class='glyphicon glyphicon-minus sparqlbar-term-remove' title='Remove term'> </span></a> ";
+  s += "<a href='#' id='" + this.container + "-sparqlbar-term-" + tid + "-addchild'><span title='Add child term' id='" + this.container + "-sparqlbar-term-" + tid + "-addspan' class='glyphicon glyphicon-plus sparqlbar-term-addchild'> </span></a>";
   s += "<div id='" + this.container + "-sparqlbar-term-" + tid + "-children' class='sparqlbar-term'></div>";
   s += "</div>";
 
@@ -1007,7 +1007,7 @@ com.marklogic.widgets.sparqlresults = function(container) {
  */
 com.marklogic.widgets.sparqlresults.getConfigurationDefinition = function() {
   return {
-    mode: {type: "enum", default: "none", title: "Mode", description: "What mode are we in? Determines next action/links on page."
+    mode: {type: "enum", default: "none", title: "Mode", description: "What mode are we in? Determines next action/links on page.",
       options: [
         {value: "none", title: "None", description: "No links shown."},
         {value: "mentioned", title: "Mentioned In", description: "Show link to documents where this Subject was mentioned in."},
@@ -1049,8 +1049,9 @@ com.marklogic.widgets.sparqlresults.prototype.explore = function(link) {
 };
 
 com.marklogic.widgets.sparqlresults.prototype._refresh = function() {
-  var s = "<div id='" + this.container + "-sparqlresults' class='mljswidget sparqlresults'>";
-  s += "<h2 class='title sparqlresults-title'>Subject Search Results</h2>";
+  var s = "<div id='" + this.container + "-sparqlresults' class='mljswidget panel panel-info sparqlresults'>";
+  s += "<div class='title panel-heading sparqlresults-title'>Subject Search Results</div>";
+  s += "<div class='panel-body sparqlresults-content'>";
 
   var irilinks = new Array();
 
@@ -1081,7 +1082,7 @@ com.marklogic.widgets.sparqlresults.prototype._refresh = function() {
       var bindings = this.results.results.bindings;
       for (var b = 0,max = bindings.length, binding;b < max;b++) {
         binding = this.results.results.bindings[b];
-        s += "<div id='" + this.container + "-sparqlresults-result-" + b + "' class='sparqlresults";
+        s += "<div id='" + this.container + "-sparqlresults-result-" + b + "' class='sparqlresults-result";
         if (null != this._iriHandler) {
           s += " sparqlresults-navigable";
         }
@@ -1100,7 +1101,7 @@ com.marklogic.widgets.sparqlresults.prototype._refresh = function() {
     s += "<i>No results</i>";
   }
 
-  s += "</div>";
+  s += "</div></div>";
 
   document.getElementById(this.container).innerHTML = s;
 
@@ -1355,13 +1356,13 @@ com.marklogic.widgets.entityfacts.prototype._toggle = function() {
 };
 
 com.marklogic.widgets.entityfacts.prototype._refresh = function() {
-  var s = "<div id='" + this.container + "-entityfacts' class='mljswidget entityfacts'>";
+  var s = "<div id='" + this.container + "-entityfacts' class='mljswidget panel panel-info entityfacts'>";
   if (this.reverse) {
-    s += "<h2 class='title entityfacts-title'>Entity Links</h2>";
-    s += "<div id='" + this.container + "-entityfacts-facts'>";
+    s += "<div class='title panel-heading entityfacts-title'>Entity Links</div>";
+    s += "<div id='" + this.container + "-entityfacts-facts' class='panel-body entityfacts-content'>";
   } else {
-    s += "<h2 class='title entityfacts-title'>Entity Facts</h2>";
-    s += "<div id='" + this.container + "-entityfacts-facts'>";
+    s += "<div class='title panel-heading entityfacts-title'>Entity Facts</div>";
+    s += "<div id='" + this.container + "-entityfacts-facts' class='panel-body entityfacts-content'>";
   }
   if (this.loading == true) {
     //s += com.marklogic.widgets.bits.loading(this.container + "-loading");
@@ -1412,11 +1413,12 @@ com.marklogic.widgets.entityfacts.prototype._refresh = function() {
     mljs.defaultconnection.logger.debug("Got name value: " + namevalue);
 
     //var objectinfo = this._config.getEntityFromIRI(type);
-    s += "<h3>" + entityInfo.title + ": " + namevalue + "</h3>";
+    s += "<div class='h4'>" + namevalue + " <span class='small'>" + entityInfo.title + "</span>";
 
     if (this.semanticcontext.hasContentContext()) {
-      s += "<p><a href='#' id='" + this.container + "-contentlink'>Load related content</a></p>";
+      s += " <a href='#' id='" + this.container + "-contentlink'><span class='glyphicon glyphicon-file' title='Load related content'> </span></a>";
     }
+    s += "</div>";
 
     // TODO publish non IRIs first
     // TODO publish IRIs as links

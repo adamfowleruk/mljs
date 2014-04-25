@@ -6,35 +6,63 @@
   display: none;
 }
 
+.bg-gray-darker {
+  background-color: #222;
+}
+
+.bg-gray-dark {
+  background-color: #333;
+}
+
+.bg-gray {
+  background-color: #555;
+}
+
+.bg-gray-light {
+  background-color: #999;
+}
+
+.bg-gray-lighter {
+  background-color: #eee;
+}
+
 /****
  * General widgets - e.g. error
  ****/
 
 .error-inner {
+  /*
   background-color: red;
   color: white;
   padding: 10px;
+  */ /* uncomment if not using bootstrap */
 }
 
 .error-title {
+  /*
   font-size: +1;
   font-weight: bold;
+  */ /* uncomment if not using bootstrap */
 }
 
 .error-pointer {
-  
+
 }
 
 .error-details {
-  
+
 }
 
 .error-show, .error-hide {
+  /*
   color: white;
+  */ /* uncomment if not using bootstrap */
 }
 
 .error-details-frame-details a:visited {
+  /*
   color: white;
+  */ /* uncomment if not using bootstrap */
 }
 
 .error-details-frames {
@@ -42,7 +70,16 @@
 }
 
 .error-frame {
-  
+
+}
+
+/****
+ * Create docbuilder widget
+ ****/
+.create {
+}
+.create-select {
+  display:inline;
 }
 
 
@@ -124,14 +161,20 @@
 }
 
 .searchpage-bar {
+  /*
   width: auto;
   background-color: #D2D2D2;
   color: #4B4B4B;
+  */ /* uncomment when not using bootstrap */
 }
 
 .searchpage-controls {
+  /*
   padding-top: 10px;
   padding-bottom: 10px;
+  */
+  margin-bottom: 20px;
+  height: 34px; /* innder height is 34px */
 }
 
 .searchpage-controls-inner {
@@ -143,7 +186,10 @@
 /** searchbar internal **/
 
 .searchbar-inner {
+  /*
   padding: 10px;
+  */ /* uncomment when not using bootstrap */
+  /*margin-bottom: 0px;*/
 }
 
 .searchbar-query {
@@ -176,7 +222,6 @@
 }
 
 .searchpager-button {
-  width: 100px;
 }
 
 .searchpager-page {
@@ -197,29 +242,37 @@
 
 /** facets area **/
 
+.searchfacets {
+  /*margin-bottom: 0px;*/
+}
+
 .searchfacets-title {
+  display: none; /* looks nicer in bootstrap css */
   background-color: #D2D2D2;
   color: #4B4B4B;
   padding: 2px 10px 0px 10px;
   height: 31px;
   line-height: 31px;
+  margin-top: 0px;
 }
 
 .searchfacets-facet-title {
+  /*
   font-weight: bold;
   margin-top: 5px;
   background-color: #323231;
   color: #E6E6E6;
   height: 22px;
   padding: 2px 10px 0;
+  */ /* uncomment if not using bootstrap */
 }
 
 .searchfacets-facet-values {
-  padding-left: 10px;
+  /*padding-left: 10px;*/ /* uncomment when not using bootstrap */
 }
 
 .searchfacets-facet-value {
-  
+
 }
 
 .searchfacets-facet-value:hover {
@@ -245,21 +298,28 @@
 }
 
 .searchresults-title {
+  /*
   font-weight: bold;
   font-size: 1.2em;
   color: #4B4B4B;
-  margin-bottom: 15px;
+  */
+  margin-top: 0px;
+  margin-bottom: 0px;
+  /* margin-bottom: 15px; */ /* uncomment when not using bootstrap */
 }
 
 .searchresults-results {
-  
+
 }
 
 .searchresults-result {
+  /*
   padding-bottom: 0px;
   padding-left: 10px;
   padding-right: 10px;
   padding-top: 0px;
+  */ /* uncomment when not using bootstrap */
+  width: 100%;
 }
 
 .searchresults-result h3 {
@@ -272,7 +332,7 @@
 }
 
 .searchresults-wrapper {
-  
+
 }
 
 .searchresults-navigable {
@@ -280,25 +340,46 @@
 }
 
 .searchresults-snippet {
-  
+  padding-left: 15px;
 }
 
 .searchresults-snippet-highlight {
   font-weight: bold;
 }
 
+.searchselection {
+}
+.searchselection-select {
+  display:inline;
+}
+
+.searchsort-text {
+  width: 20%;
+}
+
+.searchsort-select {
+  width: 80%;
+  display: inline;
+}
+
+.selection-title {
+  margin-bottom: 0px;
+}
 
 /****
  * Co-occurence widget
  ****/
- 
+
 .cooccurence-title {
+  /*
   font-weight: bold;
   margin-top: 5px;
   background-color: #323231;
   color: #E6E6E6;
   height: 22px;
   padding: 2px 10px 0;
+  */ /* uncomment when not using bootstrap */
+  margin-top: 0px;
 }
 
 .cooccurence-values {
@@ -323,13 +404,17 @@
 /****
  * Document widgets
  ****/
- 
+
 .docproperties {
-  
+
+}
+
+.docproperties-title {
+  margin-bottom: 0px;
 }
 
 .docproperties-editor {
-  
+
 }
 
 .docproperties-editor-values {
@@ -365,14 +450,15 @@
 
 
 .docheadviewer {
-  
+
 }
 
 .docheadviewer-properties {
-  
+
 }
 
 .docheadviewer-title {
+  /*
   font-weight: bold;
   margin-top: 5px;
   background-color: #323231;
@@ -380,21 +466,25 @@
   line-height: 22px;
   height: auto;
   padding: 2px 10px 0;
+  */ /* uncomment when not using bootstrap */
 }
 
 .docheadviewer-meta-table {
-  border: none; 
+  border: none;
   width: 100%;
+  margin-bottom: 0px;
 }
 
 .docheadviewer-meta-title {
+  /*
   font-weight: bold;
   margin-top: 5px;
   background-color: #323231;
   color: #E6E6E6;
   height: 22px;
   padding: 2px 10px 0;
-  
+  */ /* uncomment when not using bootstrap */
+
   /*
   font-size: 1.1em;
   font-weight: bold;
@@ -403,21 +493,23 @@
 }
 
 .docviewer {
-  
+
 }
 
 .docviewer-content {
-  
+
 }
 
 .docviewer-content-title {
+  /*
   font-weight: bold;
   margin-top: 5px;
   background-color: #323231;
   color: #E6E6E6;
   height: 22px;
   padding: 2px 10px 0;
-  
+  */ /* uncomment when not using bootstrap */
+  margin-bottom: 0px;
   /*
   font-size: 1.1em;
   font-weight: bold;
@@ -445,7 +537,7 @@
 }
 
 .markings-meta-table {
-  border: none; 
+  border: none;
   width: 100%;
 }
 
@@ -456,7 +548,7 @@
   color: #E6E6E6;
   height: 22px;
   padding: 8px 10px 0;
-  
+
   /*
   font-size: 1.1em;
   font-weight: bold;
@@ -471,7 +563,7 @@
   color: #E6E6E6;
   height: 22px;
   padding: 8px 10px 0;
-  
+
   /*
   font-size: 1.1em;
   font-weight: bold;
@@ -488,7 +580,7 @@
   color: #E6E6E6;
   height: 22px;
   padding: 8px 10px 0;
-  
+
   /*
   font-size: 1.1em;
   font-weight: bold;
@@ -616,23 +708,40 @@ span.person {
 }
 
 .sparqlresults-title {
+  /*
   font-weight: bold;
   font-size: 1.2em;
   color: #4B4B4B;
   margin-bottom: 15px;
+  */ /* uncomment when not using bootstrap */
+  margin-bottom: 0px;
+}
+
+.sparqlresults-result {
+  width: 100%;
+  margin-bottom: 10px;
+  /*border: 2px solid red;*/
+  border-bottom: 1px solid #eee;
+  padding: 5px;
 }
 
 .entityfacts-title {
+  /*
   font-weight: bold;
   font-size: 1.2em;
   color: #4B4B4B;
   margin-bottom: 15px;
+  */ /* uncomment when not using bootstrap */
+  margin-bottom: 0px;
 }
 
 
 /** Graph explorer **/
-.graphexplorer .highcharts-container {
-  border: 1px solid lightgrey;
+.graphexplorer{
+}
+.graphexplorer-title {
+}
+.graphexplorer-content .highcharts-container {
   overflow: scroll;
 }
 
@@ -708,11 +817,11 @@ span.person {
 }
 
 .jsonproperty {
-  
+
 }
 
 .jsonpropertytitlewrapper {
-  
+
 }
 
 .jsonpropertytitle {
@@ -721,7 +830,7 @@ span.person {
 }
 
 .jsonpropertyvalue {
-  
+
 }
 
 
@@ -760,7 +869,7 @@ span.person {
     display: table-cell;
     vertical-align: middle;
     z-index: auto;
-    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#00ececec, endColorstr=#00ececec); 
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#00ececec, endColorstr=#00ececec);
 }
 .modalcontent
 {
@@ -808,7 +917,7 @@ div.log {
 
 /** Workplace **/
 .workplace {
-  
+
 }
 
 .workplace-container {
@@ -817,7 +926,7 @@ div.log {
 }
 
 .workplace-layout {
-  
+
 }
 
 .workplace-mask {
@@ -849,11 +958,11 @@ div.log {
 
 /** Workplace admin **/
 #workplaceeditormain {
-  z-order: 999999999; 
-  position:absolute; 
-  top: 0px; 
+  z-order: 999999999;
+  position:absolute;
+  top: 0px;
   left: 0px;
-  width: 100%; 
+  width: 100%;
   height: 100%;
   margin-top: 100px;
 }
@@ -889,15 +998,15 @@ div.log {
 }
 
 .workplaceadmin-page-content {
-  
+
 }
 
 .workplaceadmin-widgets-heading {
-  
+
 }
 
 .workplaceadmin-widgets-content {
-  
+
 }
 
 .workplaceadmin-widgets-list {
@@ -905,19 +1014,19 @@ div.log {
 }
 
 .workplaceadmin-contexts-heading {
-  
+
 }
 
 .workplaceadmin-contexts-content {
-  
+
 }
 
 .workplaceadmin-actions-heading {
-  
+
 }
 
 .workplaceadmin-actions-content {
-  
+
 }
 
 .workplaceadmin-buttonbar {
@@ -931,11 +1040,11 @@ div.log {
 }
 
 .workplaceadmin-widgets-list-img {
-  width: 100px; 
-  height:100px; 
+  width: 100px;
+  height:100px;
   background-image: url(/images/mljs/question-mark.png);
   text-align: center;
-} 
+}
 
 .workplaceadmin-widgets-list-span {
   font-size: 12pt;
@@ -960,7 +1069,7 @@ div.log {
 }
 
 .mljswidget .configwrapper .configwrapper-multiple-table {
-  border:none; 
+  border:none;
   width: 100%;
 }
 
@@ -982,7 +1091,7 @@ div.log {
   height: 20px;
   background-image: url(/images/mljs/add-vsmall.png);
   background-repeat:no-repeat;
-  background-position:center center; 
+  background-position:center center;
 }
 
 .mljswidget .configwrapper .configwrapper-delmultiple {
@@ -991,7 +1100,7 @@ div.log {
   height: 32px;
   background-image: url(/images/mljs/delete-vsmall.png);
   background-repeat:no-repeat;
-  background-position:center center; 
+  background-position:center center;
 }
 
 .mljswidget .configwrapper .subtitle {
@@ -1000,10 +1109,18 @@ div.log {
 
 /** OpenLayers modifications **/
 .openlayers {
+  margin-bottom: 20px;
+}
+
+.openlayers {
+  /*border: 1px solid gray;*/ /* uncomment when not using bootstrap */
 }
 
 .openlayers-content {
-  border: 1px solid gray;
+  margin-bottom: 0px;
+}
+
+.openlayers-controls {
 }
 
 .openlayers-map {
@@ -1049,7 +1166,7 @@ div.log {
   text-align: right;
   background-image: url(/images/mljs/add-small.png);
   background-repeat:no-repeat;
-  background-position:left center; 
+  background-position:left center;
 }
 
 
@@ -1059,16 +1176,19 @@ div.log {
 /* FROM WIDGET-SEARCH.CSS :- */
 /* Search specific CSS. E.g. google example CSS */
 .mljsResultDefaultOuter {
-  margin: 5px;
+  /*margin: 5px; */ /* uncomment when not using bootstrap */
   width: 100%;
 }
 .mljsResultDefaultInner {
   width: 100%;
+  padding: 15px;
 }
 .mljsResultDefaultResult {
   width: 100%;
   margin-bottom: 10px;
   /*border: 2px solid red;*/
+  border-bottom: 1px solid #eee;
+  padding: 5px;
 }
 .mljsResultDefaultTopRow {
   /*border: 1px solid blue;*/
@@ -1108,7 +1228,7 @@ div.log {
 }
 .mljsResultDefaultMetadata {
   width: 100%;
-  
+
 }
 .mljsResultDefaultActions {
   width: 100%;
@@ -1125,24 +1245,22 @@ div.log {
 }
 .mljsResultDefaultThumbnail {
   /*border: 1px solid red;*/
-  
+
 }
 .mljsResultDefaultBottomRow {
   /*border: 1px solid green;*/
   width: 100%;
-  
+
 }
 .mljsResultDefaultDetail {
   /*background-color: lightblue;*/
 }
 .mljsResultDefaultRelated {
-  
+
 }
 .mljsResultDefaultSimilar {
-  
+
 }
 .mljsResultDefaultFacts {
-  
+
 }
-
-

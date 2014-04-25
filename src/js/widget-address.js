@@ -54,7 +54,7 @@ com.marklogic.widgets.addressbar.getConfigurationDefinition = function() {
   var self = this;
   return {
     radius: {type: "positiveInteger", default: 5, title: "Radius",description: "Radius from point to contribute to query."},
-    radiusMeasure: {type:enum, default: "mi", title: "Radius Measure", description: "Measuring unit used for radius",
+    radiusMeasure: {type:"enum", default: "mi", title: "Radius Measure", description: "Measuring unit used for radius",
       options: [
         {value: "mi", title: "Statute Miles", description: "Standard (statute) miles."},
         {value: "nm", title: "Nautical Miles", description: "Nautical Miles."},
@@ -88,8 +88,11 @@ com.marklogic.widgets.addressbar.prototype.setGeoContext = function(ctx) {
 
 com.marklogic.widgets.addressbar.prototype._init = function() {
   // draw initial html
-  var s = "Address: <input id='" + this.container + "-address' class='addressbar-address' type='text' size='20' />";
-  s += "<input class='btn btn-primary addressbar-submit' type='submit' id='" + this.container + "-submit' value='Search' />";
+  var s = "<div class='mljswidget well address'>";
+  s += "<div class='input-append input-prepend'>";
+  s += "<span class='address-text'>Address: </span><input id='" + this.container + "-address' class='span2 addressbar-address' type='text' size='20' />";
+  s += "<button class='btn btn-primary addressbar-submit' type='submit' id='" + this.container + "-submit'>Search</button>";
+  s += "</div></div>";
   document.getElementById(this.container).innerHTML = s;
 
   var button = document.getElementById(this.container + "-submit");

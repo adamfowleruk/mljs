@@ -44,31 +44,31 @@ com.marklogic.widgets.semantichelper.summariseInto = function(ctx,iri,type,elid,
   if (useSubjectAngle) {
     ts += ">";
   }
-                    var addClickHandler = function(el,chiri) {
-                 mljs.defaultconnection.logger.debug("chel: " + el);
-                 mljs.defaultconnection.logger.debug("chiri: " + chiri);
-                      el.onclick = function(event) {
-                        iriHandler(chiri);
-                      };
-                    };
+  var addClickHandler = function(el,chiri) {
+    mljs.defaultconnection.logger.debug("chel: " + el);
+    mljs.defaultconnection.logger.debug("chiri: " + chiri);
+    el.onclick = function(event) {
+      iriHandler(chiri);
+    };
+  };
 
   var sumsimple = function(subjectIri) {
     var theel = document.getElementById(elid);
     if (undefined != theel) {
       var s = "";
-	                  if (null != iriHandler) {
-	                    s += "<a href='#' id='" + elid + "-link'>";
-	                  }
-	                  s += subjectIri;
-	                  if (null != iriHandler) {
-	                    s += "</a>";
-	                  }
-                 theel.innerHTML = s;
-                 var el = document.getElementById(elid + "-link");
-                 mljs.defaultconnection.logger.debug("elid: " + elid);
-                 mljs.defaultconnection.logger.debug("el: " + el);
-                 mljs.defaultconnection.logger.debug("subjectIri: " + subjectIri);
-                 addClickHandler(el,subjectIri);
+  	  if (null != iriHandler) {
+  	    s += "<a href='#' id='" + elid + "-link'>";
+  	  }
+  	  s += subjectIri;
+  	  if (null != iriHandler) {
+  	    s += "</a>";
+  	  }
+      theel.innerHTML = s;
+      var el = document.getElementById(elid + "-link");
+      mljs.defaultconnection.logger.debug("elid: " + elid);
+      mljs.defaultconnection.logger.debug("el: " + el);
+      mljs.defaultconnection.logger.debug("subjectIri: " + subjectIri);
+      addClickHandler(el,subjectIri);
     }
   };
 
@@ -90,7 +90,7 @@ com.marklogic.widgets.semantichelper.summariseInto = function(ctx,iri,type,elid,
         var nameprop = ctx.getConfiguration().getNameProperty(entityinfo.iri).iri;
         mljs.defaultconnection.logger.debug("semantichelper.summariseInto: nameprop: " + nameprop);
         if (undefined == nameprop) {
-      sumsimple(lookupIri);
+          sumsimple(lookupIri);
         } else {
           // load common name for this type
           var ns = "SELECT ?name WHERE {";
@@ -107,7 +107,7 @@ com.marklogic.widgets.semantichelper.summariseInto = function(ctx,iri,type,elid,
           mljs.defaultconnection.sparql(ns,function(result2) {
             if (result2.inError) {
               // TODO publish error
-      sumsimple(lookupIri);
+              sumsimple(lookupIri);
             } else {
               if (undefined != result2.doc.results && undefined != result2.doc.results.bindings && result2.doc.results.bindings.length > 0) {
                 var el = document.getElementById(elid);
@@ -131,18 +131,18 @@ com.marklogic.widgets.semantichelper.summariseInto = function(ctx,iri,type,elid,
                     addClickHandler(el,lookupIri);
                   }
                 } else {
-      sumsimple(lookupIri);
+                  sumsimple(lookupIri);
                 }
               } else {
                 mljs.defaultconnection.logger.debug("This query returns no bindings (results): " + ts);
                 mljs.defaultconnection.logger.debug("Result instead: " + JSON.stringify(result2.doc));
-      sumsimple(lookupIri);
+                sumsimple(lookupIri);
               } // end if bindings undefined / empty
             }
           });
         } // end if else nameprop has property map
       } else {
-      sumsimple(lookupIri);
+        sumsimple(lookupIri);
       }
     }// error if
   });
@@ -169,16 +169,17 @@ com.marklogic.widgets.sparqlbar = function(container) {
 
   this.semanticcontext = mljs.defaultconnection.createSemanticContext();
 
-  // These are so we only update with the suggestions we care about
-  this._suggestionsEnabled = true;
-  this._suggestionMinimumCharacters = 3;
-  this._suggestionRdfTypeIri = null;
-  this._suggestionPredicateIri = null;
-  this._suggestionDestinationElementId = null;
+  this._config = {
+    // These are so we only update with the suggestions we care about
+    suggestionsEnabled: true,
+    uggestionMinimumCharacters: 3,
+    suggestionRdfTypeIri: null,
+    suggestionPredicateIri: null,
+    suggestionDestinationElementId: null,
+    lang: "en"
+  };
 
   this.terms = 0;
-
-  this._lang = "en";
 
   //this._config = this.db.createSemanticConfig();
 
@@ -189,6 +190,35 @@ com.marklogic.widgets.sparqlbar = function(container) {
   //this.resultsPublisher = new com.marklogic.events.Publisher();
   this.errorPublisher = new com.marklogic.events.Publisher();
 
+  this.refresh();
+};
+
+/**
+ * Returns the MLJS Workplace configuration definition listing config properties supported by this widget
+ *
+ * @static
+ */
+com.marklogic.widgets.sparqlbar.getConfigurationDefinition = function() {
+  return {
+    suggestionsEnabled: {type: "boolean", default: "true", title: "Enabled", description: "Do we lookup suggestions for intrinsic fields?"},
+    suggestionRdfTypeIri: {type: "string", default: null, title: "RDF Type IRI", description: "RDF Type to lookup suggestions from."},
+    suggestionPredicateIri: {type: "string", default: null, title: "Predicate IRI", description: "Suggestion full predicate Iri."},
+    suggestionDestinationElementId: {type: "string", default: null, title: "Destination Element Id", description: "Which element, if any, to send suggestion outputs to."},
+    lang: {type: "string", default: "en", title: "Language", description: "Default 2 character language for string elements."}
+  };
+};
+
+/**
+ * Sets the configuration for this instance of a widget in an MLJS Workplace
+ *
+ * @param {json} config - The JSON Workplace widget configuration to apply
+ */
+com.marklogic.widgets.sparqlbar.prototype.setConfiguration = function(config) {
+  for (var prop in config) {
+    this._config[prop] = config[prop];
+  }
+
+  // refresh display
   this.refresh();
 };
 
@@ -203,7 +233,7 @@ com.marklogic.widgets.sparqlbar.prototype.setSemanticContext = function(sc) {
 };
 
 com.marklogic.widgets.sparqlbar.prototype.updateSuggestions = function(suggestions) {
-  if (undefined != suggestions && suggestions.rdfTypeIri == this._suggestionRdfTypeIri && suggestions.predicate == this._suggestionPredicateIri) {
+  if (undefined != suggestions && suggestions.rdfTypeIri == this._config.suggestionRdfTypeIri && suggestions.predicate == this._config.suggestionPredicateIri) {
     // We need to show these suggestions
     var elss = document.getElementById(this.container + "-sparqlbar-suggestions");
     var arr = suggestions.suggestions.results.bindings;
@@ -225,14 +255,16 @@ com.marklogic.widgets.sparqlbar.prototype.updateSuggestions = function(suggestio
     var self = this;
     var addClickHandler = function(el,suggestion) {
       el.onclick = function(event) {
-        document.getElementById(self._suggestionDestinationElementId).value = suggestion;
+        if (null != self._config.suggestionDestinationElementId && ""!=self._config.suggestionDestinationElementId) {
+          document.getElementById(self._config.suggestionDestinationElementId).value = suggestion;
+        }
         // hide suggestions box
         self._hidden(elss,true);
 
         // disable suggestions
-        self._suggestionRdfTypeIri = null;
-        self._suggestionPredicateIri = null;
-        self._suggestionDestinationElementId = null;
+        self._config.suggestionRdfTypeIri = null;
+        self._config.suggestionPredicateIri = null;
+        self._config.suggestionDestinationElementId = null;
 
         e.stopPropagation();
         return false;
@@ -248,9 +280,9 @@ com.marklogic.widgets.sparqlbar.prototype.updateSuggestions = function(suggestio
         self._hidden(elss,true);
 
         // disable suggestions
-        self._suggestionRdfTypeIri = null;
-        self._suggestionPredicateIri = null;
-        self._suggestionDestinationElementId = null;
+        self._config.suggestionRdfTypeIri = null;
+        self._config.suggestionPredicateIri = null;
+        self._config.suggestionDestinationElementId = null;
 
         e.stopPropagation();
         return false;
@@ -288,7 +320,7 @@ com.marklogic.widgets.sparqlbar.prototype.refresh = function() {
       s += ">" + ent.title + "</option>";
     }
   }
-  s += "</select> which <span class='sparqlbar-add'>[<a class='sparqlbar-add-link' id='" + this.container + "-sparqlbar-add-link' href='#'>+ Child</a>]</span></div>";
+  s += "</select> which <a class='sparqlbar-add-link' id='" + this.container + "-sparqlbar-add-link' href='#'><span title='Add child term' class='glyphicon glyphicon-plus sparqlbar-add'> </span></a></div>";
 
   // criteria
   //  - predicate list
@@ -297,7 +329,7 @@ com.marklogic.widgets.sparqlbar.prototype.refresh = function() {
 
   s += "<div id='" + this.container + "-sparqlbar-terms' class='sparqlbar-terms'></div>";
 
-  s += "<div><input type='submit' value='Search'  class='btn btn-primary sparqlbar-button' id='" + this.container + "-sparqlbar-button'/></div>";
+  s += "<div><button type='submit' class='btn btn-primary sparqlbar-button' id='" + this.container + "-sparqlbar-button'>Search</button></div>";
 
   /*
   s += "<div class='sparqlbar-results' id='" + this.container + "-sparqlbar-results'><i>No results</i></div>";
@@ -412,8 +444,8 @@ com.marklogic.widgets.sparqlbar.prototype._addTerm = function(parentid) {
   s += "<input type='text' length='20'  class='sparqlbar-term-value hidden' id='" + this.container + "-sparqlbar-term-value-" + tid  + "'/>";
 
   s += "<span class='sparlbar-term-and hidden' id='" + this.container + "-sparqlbar-term-" + tid + "-and'>; AND</span>";
-  s += " [<a href='#' id='" + this.container + "-sparqlbar-term-" + tid + "-remove'>-</a>] ";
-  s += "<span id='" + this.container + "-sparqlbar-term-" + tid + "-addspan'>[<a href='#' id='" + this.container + "-sparqlbar-term-" + tid + "-addchild'>+ Child</a>]</span>";
+  s += " <a href='#' id='" + this.container + "-sparqlbar-term-" + tid + "-remove'><span class='glyphicon glyphicon-minus sparqlbar-term-remove' title='Remove term'> </span></a> ";
+  s += "<a href='#' id='" + this.container + "-sparqlbar-term-" + tid + "-addchild'><span title='Add child term' id='" + this.container + "-sparqlbar-term-" + tid + "-addspan' class='glyphicon glyphicon-plus sparqlbar-term-addchild'> </span></a>";
   s += "<div id='" + this.container + "-sparqlbar-term-" + tid + "-children' class='sparqlbar-term'></div>";
   s += "</div>";
 
@@ -841,8 +873,8 @@ com.marklogic.widgets.sparqlbar.prototype._buildTerms = function(what,termArray,
 
           s += padding + "    ?" + what + " <" + propinfo.iri + "> \"" + propvalue + "\"";
           if ("xs:string" == proptype) {
-            if (undefined != this._lang) {
-              s += "@" + this._lang; // TODO support I18N on string properties
+            if (undefined != this._config.lang) {
+              s += "@" + this._config.lang; // TODO support I18N on string properties
             }
           } else {
             s += "^^<" + proptype + ">";
@@ -930,6 +962,13 @@ com.marklogic.widgets.sparqlbar.prototype.removeErrorListener = function(lis) {
 
 
 
+
+
+
+
+
+
+
 // SPARQL RESULTS widget
 /**
  * Lists results from a SPARQL results JSON object.
@@ -952,11 +991,44 @@ com.marklogic.widgets.sparqlresults = function(container) {
 
   this._iriHandler = null;
 
-  this._mode = "none";
+  this._config = {
+    mode: "none"
+  };
 
   //this._config = this.db.createSemanticConfig();
 
   this._refresh();
+};
+
+/**
+ * Returns the MLJS Workplace configuration definition listing config properties supported by this widget
+ *
+ * @static
+ */
+com.marklogic.widgets.sparqlresults.getConfigurationDefinition = function() {
+  return {
+    mode: {type: "enum", default: "none", title: "Mode", description: "What mode are we in? Determines next action/links on page.",
+      options: [
+        {value: "none", title: "None", description: "No links shown."},
+        {value: "mentioned", title: "Mentioned In", description: "Show link to documents where this Subject was mentioned in."},
+        {value: "versionRendered", title: "Rendered Version", description: "Show link to versioned rendered documents where this Subject was mentioned in."}
+      ]
+    }
+  };
+};
+
+/**
+ * Sets the configuration for this instance of a widget in an MLJS Workplace
+ *
+ * @param {json} config - The JSON Workplace widget configuration to apply
+ */
+com.marklogic.widgets.sparqlresults.prototype.setConfiguration = function(config) {
+  for (var prop in config) {
+    this._config[prop] = config[prop];
+  }
+
+  // refresh display
+  this.refresh();
 };
 
 com.marklogic.widgets.sparqlresults.prototype.setSemanticContext = function(sc) {
@@ -977,8 +1049,9 @@ com.marklogic.widgets.sparqlresults.prototype.explore = function(link) {
 };
 
 com.marklogic.widgets.sparqlresults.prototype._refresh = function() {
-  var s = "<div id='" + this.container + "-sparqlresults' class='mljswidget sparqlresults'>";
-  s += "<h2 class='title sparqlresults-title'>Subject Search Results</h2>";
+  var s = "<div id='" + this.container + "-sparqlresults' class='mljswidget panel panel-info sparqlresults'>";
+  s += "<div class='title panel-heading sparqlresults-title'>Subject Search Results</div>";
+  s += "<div class='panel-body sparqlresults-content'>";
 
   var irilinks = new Array();
 
@@ -997,7 +1070,7 @@ com.marklogic.widgets.sparqlresults.prototype._refresh = function() {
     // get list of entities returned in search
     var entities = this.results.head.vars; // E.g. person, organisation - these are the returned variable bindings from the query
 
-    if (this._mode != "none") {
+    if (this._config.mode != "none") {
       s += "<div><a href='#' id='" + this.container + "-loadContent'>Load related content</a></div>";
     }
     if (this._exploreLink != null) {
@@ -1009,7 +1082,7 @@ com.marklogic.widgets.sparqlresults.prototype._refresh = function() {
       var bindings = this.results.results.bindings;
       for (var b = 0,max = bindings.length, binding;b < max;b++) {
         binding = this.results.results.bindings[b];
-        s += "<div id='" + this.container + "-sparqlresults-result-" + b + "' class='sparqlresults";
+        s += "<div id='" + this.container + "-sparqlresults-result-" + b + "' class='sparqlresults-result";
         if (null != this._iriHandler) {
           s += " sparqlresults-navigable";
         }
@@ -1028,7 +1101,7 @@ com.marklogic.widgets.sparqlresults.prototype._refresh = function() {
     s += "<i>No results</i>";
   }
 
-  s += "</div>";
+  s += "</div></div>";
 
   document.getElementById(this.container).innerHTML = s;
 
@@ -1040,7 +1113,7 @@ com.marklogic.widgets.sparqlresults.prototype._refresh = function() {
     sh.summariseInto(this.semanticcontext,link.iri,link.type,link.elid,this._iriHandler);
   }
 
-  if (this._mode != "none") {
+  if (this._config.mode != "none") {
     var contentLink = document.getElementById(this.container + "-loadContent");
     if (null != contentLink) {
       var self = this;
@@ -1087,11 +1160,18 @@ com.marklogic.widgets.sparqlresults.prototype.removeErrorListener = function(fl)
 
 
 com.marklogic.widgets.sparqlresults.prototype.setProvenanceSparqlMentioned = function() {
-  this._mode = "mentioned";
+  this._config.mode = "mentioned";
+  this._refresh();
 };
 
-com.marklogic.widgets.sparqlresults.prototype.setProvenanceGD = function() {
-  this._mode = "gd";
+com.marklogic.widgets.sparqlresults.prototype.setProvenanceVersionRendered = function() {
+  this._config.mode = "versionRendered";
+  this._refresh();
+};
+
+com.marklogic.widgets.sparqlresults.prototype.setProvenanceNone = function() {
+  this._config.mode = "none";
+  this._refresh();
 };
 
 com.marklogic.widgets.sparqlresults.prototype._provenance = function() {
@@ -1126,7 +1206,7 @@ com.marklogic.widgets.sparqlresults.prototype._provenance = function() {
           }
 
           sparql += "}";
-        } else if ("gd"==this._mode) {
+        } else if ("versionRendered"==this._mode) {
           sparql = "SELECT ?docuri WHERE {\n";
           // get list of entities returned in search
           var entities = this.results.head.vars; // E.g. person, organisation - these are the returned variable bindings from the query
@@ -1144,13 +1224,13 @@ com.marklogic.widgets.sparqlresults.prototype._provenance = function() {
               } else {
                 sparql += " UNION ";
               }
-              sparql += " {<" + entityValue.value + "> <http://www.generaldynamics.com/ontology/edge/projects/document/has_version> ?ver . \n";
+              sparql += " {<" + entityValue.value + "> <http://marklogic.com/ontology/has_version> ?ver . \n";
               sparql += "?ver <http://marklogic.com/ontology/xmlRendering> ?docuri . } \n";
             }
           }
 
           sparql += "}";
-		}
+		    } // TODO ADD W3C PROVO PROVENANCE AS A SOURCE - derivedFrom
 
         /*
         var sparql = this.provenanceSparql;
@@ -1189,6 +1269,10 @@ com.marklogic.widgets.entityfacts = function(container) {
 
   this.semanticcontext = mljs.defaultconnection.createSemanticContext(); // TODO lazy load if setSemanticContext not called
 
+  this._config = {
+    iriHandler: null
+  };
+
   this.loading = false;
 
   this.facts = null;
@@ -1197,8 +1281,6 @@ com.marklogic.widgets.entityfacts = function(container) {
 
   //this._config = this.db.createSemanticConfig();
 
-  this._iriHandler = null;
-  
   this._customIriHandlers = new Array(); // IRI -> urlspec #IRI#
 
   //this._contentWidget = null; // JS content results widget to update with fact provenance content
@@ -1206,6 +1288,33 @@ com.marklogic.widgets.entityfacts = function(container) {
   this.reverse = false;
 
   this._refresh();
+};
+
+/**
+ * Returns the MLJS Workplace configuration definition listing config properties supported by this widget
+ *
+ * @static
+ */
+com.marklogic.widgets.entityfacts.getConfigurationDefinition = function() {
+  return {
+    iriHandler: {type:"string", default:null,title:"IRI Handler",
+      description:"The IRI Click handler. Use #IRI# in the URL to open that page with a IRI link when clicked."
+    }
+  };
+};
+
+/**
+ * Sets the configuration for this instance of a widget in an MLJS Workplace
+ *
+ * @param {json} config - The JSON Workplace widget configuration to apply
+ */
+com.marklogic.widgets.entityfacts.prototype.setConfiguration = function(config) {
+  for (var prop in config) {
+    this._config[prop] = config[prop];
+  }
+
+  // refresh display
+  this.refresh();
 };
 
 com.marklogic.widgets.entityfacts.prototype.setSemanticContext = function(sc) {
@@ -1238,7 +1347,7 @@ com.marklogic.widgets.entityfacts.prototype.updateSubjectFacts = function(factsJ
  * @param {function} handler - The event handler function
  **/
 com.marklogic.widgets.entityfacts.prototype.iriHandler = function(handler) {
-  this._iriHandler = handler;
+  this._config.iriHandler = handler;
 };
 
 com.marklogic.widgets.entityfacts.prototype._toggle = function() {
@@ -1247,13 +1356,13 @@ com.marklogic.widgets.entityfacts.prototype._toggle = function() {
 };
 
 com.marklogic.widgets.entityfacts.prototype._refresh = function() {
-  var s = "<div id='" + this.container + "-entityfacts' class='mljswidget entityfacts'>";
+  var s = "<div id='" + this.container + "-entityfacts' class='mljswidget panel panel-info entityfacts'>";
   if (this.reverse) {
-    s += "<h2 class='title entityfacts-title'>Entity Links</h2>";
-    s += "<div id='" + this.container + "-entityfacts-facts'>";
+    s += "<div class='title panel-heading entityfacts-title'>Entity Links</div>";
+    s += "<div id='" + this.container + "-entityfacts-facts' class='panel-body entityfacts-content'>";
   } else {
-    s += "<h2 class='title entityfacts-title'>Entity Facts</h2>";
-    s += "<div id='" + this.container + "-entityfacts-facts'>";
+    s += "<div class='title panel-heading entityfacts-title'>Entity Facts</div>";
+    s += "<div id='" + this.container + "-entityfacts-facts' class='panel-body entityfacts-content'>";
   }
   if (this.loading == true) {
     //s += com.marklogic.widgets.bits.loading(this.container + "-loading");
@@ -1304,11 +1413,12 @@ com.marklogic.widgets.entityfacts.prototype._refresh = function() {
     mljs.defaultconnection.logger.debug("Got name value: " + namevalue);
 
     //var objectinfo = this._config.getEntityFromIRI(type);
-    s += "<h3>" + entityInfo.title + ": " + namevalue + "</h3>";
+    s += "<div class='h4'>" + namevalue + " <span class='small'>" + entityInfo.title + "</span>";
 
     if (this.semanticcontext.hasContentContext()) {
-      s += "<p><a href='#' id='" + this.container + "-contentlink'>Load related content</a></p>";
+      s += " <a href='#' id='" + this.container + "-contentlink'><span class='glyphicon glyphicon-file' title='Load related content'> </span></a>";
     }
+    s += "</div>";
 
     // TODO publish non IRIs first
     // TODO publish IRIs as links
@@ -1368,7 +1478,7 @@ com.marklogic.widgets.entityfacts.prototype._refresh = function() {
 
 com.marklogic.widgets.entityfacts.prototype._summariseInto = function(iri,elid) {
   //this.semanticcontext.getConfiguration().summariseInto(iri,elid,this._iriHandler);
-  com.marklogic.widgets.semantichelper.summariseInto(this.semanticcontext,iri,"uri",elid,this._iriHandler);
+  com.marklogic.widgets.semantichelper.summariseInto(this.semanticcontext,iri,"uri",elid,this._config.iriHandler);
 };
 
 /**
@@ -1445,4 +1555,3 @@ com.marklogic.widgets.entityfacts.prototype._provenance = function() {
   }
   this.semanticcontext.subjectContent(this.iri,sparql);
 };
-

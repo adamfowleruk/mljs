@@ -22,13 +22,13 @@ com.marklogic.widgets = window.com.marklogic.widgets || {};
 /*
  * This file contains widgets that enable address lookups and other anciliary, non MarkLogic specific functionality.
  */
- 
+
 // TODO determine if we need a geocontext to handle point locations and associated operations
- 
+
 // Requires this script:<script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script>
 /**
  * Looks up a lon/lat pair based on an entered address. Uses google maps v3 geocoder code (thus requires google maps JS to be loaded)
- * 
+ *
  * @constructor
  */
 com.marklogic.widgets.addressbar = function(container) {
@@ -36,16 +36,50 @@ com.marklogic.widgets.addressbar = function(container) {
   this._geo = mljs.defaultconnection.createGeoContext();
   this._qb = mljs.defaultconnection.createQuery();
   this._geocoder = new google.maps.Geocoder();
-  
-  this._radius = 5;
-  this._radiusMeasure = "mi";
-  
+
+  this._config = {
+    radius: 5,
+    radiusMeasure: "mi"
+  };
+
   this._init();
 };
 
 /**
+ * Returns the MLJS Workplace configuration definition listing config properties supported by this widget
+ *
+ * @static
+ */
+com.marklogic.widgets.addressbar.getConfigurationDefinition = function() {
+  var self = this;
+  return {
+    radius: {type: "positiveInteger", default: 5, title: "Radius",description: "Radius from point to contribute to query."},
+    radiusMeasure: {type:"enum", default: "mi", title: "Radius Measure", description: "Measuring unit used for radius",
+      options: [
+        {value: "mi", title: "Statute Miles", description: "Standard (statute) miles."},
+        {value: "nm", title: "Nautical Miles", description: "Nautical Miles."},
+        {value: "km", title: "Kilometres", description: "Kilometres."},
+        {value: "m", title: "Metres", description: "Metres."},
+        {value: "degrees", title: "Degrees", description: "Degrees of Arc. 1 degree = 60nm."}
+      ]
+    }
+  };
+};
+
+/**
+ * Sets the configuration for this instance of a widget in an MLJS Workplace
+ *
+ * @param {json} config - The JSON Workplace widget configuration to apply
+ */
+com.marklogic.widgets.addressbar.prototype.setConfiguration = function(config) {
+  for (var prop in config) {
+    this._config[prop] = config[prop];
+  }
+};
+
+/**
  * Sets the geocontext to update when a new location is submitted
- * 
+ *
  * @param {geocontext} ctx - The GeoContext to update
  */
 com.marklogic.widgets.addressbar.prototype.setGeoContext = function(ctx) {
@@ -54,10 +88,13 @@ com.marklogic.widgets.addressbar.prototype.setGeoContext = function(ctx) {
 
 com.marklogic.widgets.addressbar.prototype._init = function() {
   // draw initial html
-  var s = "Address: <input id='" + this.container + "-address' class='addressbar-address' type='text' size='20' />";
-  s += "<input class='btn btn-primary addressbar-submit' type='submit' id='" + this.container + "-submit' value='Search' />";
+  var s = "<div class='mljswidget well address'>";
+  s += "<div class='input-append input-prepend'>";
+  s += "<span class='address-text'>Address: </span><input id='" + this.container + "-address' class='span2 addressbar-address' type='text' size='20' />";
+  s += "<button class='btn btn-primary addressbar-submit' type='submit' id='" + this.container + "-submit'>Search</button>";
+  s += "</div></div>";
   document.getElementById(this.container).innerHTML = s;
-  
+
   var button = document.getElementById(this.container + "-submit");
   var self = this;
   button.onclick = function(evt) {
@@ -65,12 +102,12 @@ com.marklogic.widgets.addressbar.prototype._init = function() {
     evt.stopPropagation();
     return false;
   };
-  
+
   // now do enter click handler
   var searchKeyPress = function(e) {
     // look for window.event in case event isn't passed in
-    if (typeof e == 'undefined' && window.event) { 
-      e = window.event; 
+    if (typeof e == 'undefined' && window.event) {
+      e = window.event;
     }
     if (e.keyCode == 13) {
       button.click();
@@ -81,9 +118,9 @@ com.marklogic.widgets.addressbar.prototype._init = function() {
 
 /**
  * The radius to pass to the geocontext for a new location.
- * 
+ *
  * TODO when not specified, default to a point instead of a circle being contributed to the geocontext
- * 
+ *
  * @param {double} radius - The radius
  * @param {string} radiusMeasure - The unit of the radius. "miles", "m", "km", "nm" or "degrees"
  */
@@ -109,7 +146,7 @@ com.marklogic.widgets.addressbar.prototype._dosearch = function() {
       var lat = pos.d || pos.k;
       var lon = pos.e || pos.A;
       console.log("Results: pos: " + JSON.stringify(pos) + " := lat: " + lat + ", lon: " + lon);
-      
+
       // contribute ourselves to the search context
       // TODO CONVERT FROM EPSG900913 LatLng to EPSG4326/WGS84
       var circle = self._qb.circleDef(lat,lon,self._radius,self._radiusMeasure);

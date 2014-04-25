@@ -79,7 +79,7 @@ com.marklogic.widgets.docproperties.prototype.getDocumentContext = function() {
 
 com.marklogic.widgets.docproperties.prototype._init = function() {
   var id = this.container + "-docproperties";
-  var html = "<div id='" + id + "' class='mljswidget docproperties'>" +
+  var html = "<div id='" + id + "' class='mljswidget panel panel-info docproperties'>" +
   // TODO action button bar
   // TODO allow iriHandler for inline editing
       "<div id='" + id + "-properties' class='docproperties-properties'></div>" +
@@ -114,10 +114,11 @@ com.marklogic.widgets.docproperties.prototype.updateDocumentProperties = functio
   var props = result.properties.properties;
   this._properties = props;
 
-    s = "<h2 class='docheadviewer-title'>Document Properties</h2>";
+    s = "<div class='title panel-heading docproperties-title'>Document Properties</div>";
+    s += "<div class='panel-body docproperties-content'>";
 
   // Show meta information
-    s += "<table class='docheadviewer-meta-table'>";
+    s += "<table class='table table-striped docproperties-meta-table'>";
     var columns = 2;
     var count = 0;
     var propcount = 0;
@@ -212,7 +213,9 @@ com.marklogic.widgets.docproperties.prototype.updateDocumentProperties = functio
     mljs.defaultconnection.logger.debug("docproperties._init: Evaluating missing property: " + JSON.stringify(prop));
     s += "<option value='" + prop.name + "'>" + prop.title + "</option>";
   }
-  s += "</select><input type='button' class='btn btn-primary' id='" + this.container + "-docproperties-addprop-button' value='Add' /></div>";
+  s += "</select><input type='button' class='btn btn-primary' id='" + this.container + "-docproperties-addprop-button' value='Add' />";
+
+  s += "</div></div>";
 
 
   var el = document.getElementById(this.container + "-docproperties-properties");
@@ -525,10 +528,10 @@ com.marklogic.widgets.docheadviewer.prototype.getDocumentContext = function() {
 
 com.marklogic.widgets.docheadviewer.prototype._init = function() {
   var id = this.container + "-docheadviewer";
-  var html = "<div id='" + id + "' class='mljswidget docheadviewer'>" +
+  var html = "<div id='" + id + "' class='mljswidget panel panel-info docheadviewer'>" +
   // TODO action button bar
   // TODO allow iriHandler for inline editing
-      "<div id='" + id + "-properties' class='docheadviewer-properties'>&nbsp;</div>" +
+  //    "<div id='" + id + "-properties' class='docheadviewer-properties'>&nbsp;</div>" +
     "</div>";
   document.getElementById(this.container).innerHTML = html;
 };
@@ -543,7 +546,7 @@ com.marklogic.widgets.docheadviewer.prototype.updateDocumentContent = function(r
   // If not XHTML or not head element, hide ourselves
 
 
-  var hid = this.container + "-docheadviewer-properties";
+  var hid = this.container + "-docheadviewer";
   var headel = document.getElementById(hid);
 
   var dohide = function() {
@@ -584,10 +587,11 @@ com.marklogic.widgets.docheadviewer.prototype.updateDocumentContent = function(r
     if (subjectEl.length > 0 && null != subjectEl[0] && null != subjectEl[0].nodeValue) {
       title = subjectEl[0].nodeValue;
     }
-    s += "<h2 class='docheadviewer-title'>" + title + "</h2>";
+    s += "<div class='title panel-heading docheadviewer-title'>" + title + " <span class='small docheadviewer-meta-title'>Document Extracted Metadata</span> </div>";
+    s += "<div class='panel-body docheadviewer-content'>";
 
   // Show meta information
-    s += "<h2 class='docheadviewer-meta-title'>Document Extracted Metadata</h2> <table class='docheadviewer-meta-table'><tr>";
+    s += "<table class='table table-striped docheadviewer-meta-table'><tr>";
     var metas = head.getElementsByTagName("meta");
     var columns = 2;
     var width = 100 / (2 * columns);
@@ -630,6 +634,8 @@ com.marklogic.widgets.docheadviewer.prototype.updateDocumentContent = function(r
       s+= ">&nbsp;</td>";
     }
     s += "</tr></table>";
+
+    s += "</div>";
 
     /*
 
@@ -772,9 +778,9 @@ com.marklogic.widgets.docviewer.prototype.removeErrorListener = function(fl) {
 
 com.marklogic.widgets.docviewer.prototype._init = function() {
   var id = this.container + "-docviewer";
-  var html = "<div id='" + id + "' class='mljswidget docviewer'>" +
+  var html = "<div id='" + id + "' class='mljswidget panel panel-info docviewer'>" +
   // TODO action button bar
-      "<div id='" + id + "-doccontent' class='docviewer-doccontent'>&nbsp;</div>" +
+  //    "<div id='" + id + "-doccontent' class='docviewer-doccontent'>&nbsp;</div>" +
     "</div>";
   document.getElementById(this.container).innerHTML = html;
 };
@@ -793,7 +799,7 @@ com.marklogic.widgets.docviewer.prototype.updateDocumentContent = function(resul
   // XHTML - view body inline
 
   // show loading messages
-  var cid = this.container + "-docviewer-doccontent";
+  var cid = this.container + "-docviewer";
 
   var xml = result.doc;
 
@@ -808,7 +814,8 @@ com.marklogic.widgets.docviewer.prototype.updateDocumentContent = function(resul
 
 
   var divs = null;
-  var content = "<h2 class='docviewer-content-title'>Document Content</h2>";
+  var content = "<div class='title panel-heading docviewer-content-title'>Document Content</div>";
+  content += "<div class='panel-body docviewer-content'>";
 
   if (undefined == body) {
     content += "<p><b>Document has no content</b></p>";
@@ -818,6 +825,7 @@ com.marklogic.widgets.docviewer.prototype.updateDocumentContent = function(resul
     content += (new XMLSerializer()).serializeToString(body);
     content += "</div>";
   }
+  content += "</div>";
   document.getElementById(cid).innerHTML = content;
 
 };

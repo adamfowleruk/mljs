@@ -131,7 +131,7 @@ function merge_inplace(array, begin, begin_right, end, comparisonValue)
 	    rightValue = array[begin_right];
 	  }
     console.log("merge_inplace(): left value: " + leftValue + ", rightValue: " + rightValue);
-	  
+
 		if(leftValue < rightValue) {
 			var v=array[begin];
 			array[begin]=array[begin_right];
@@ -197,7 +197,7 @@ function xmlExtractValue(xmldoc,namePath) {
   var xpath = namePath;
   //xpath = xpath.replace(/\/.*:/g,"/*:"); // replace all namespaces with global namespace - temporary hack
   console.log("Final XPath now: " + xpath);
-  
+
   // TODO apply xpath to extract document value
   var myfunc = function(prefix) {
 	      if (prefix === "jb") {
@@ -210,9 +210,9 @@ function xmlExtractValue(xmldoc,namePath) {
     //return null; // assume always default namespace
     // TODO support namespaces globally somehow - global context? page context?
   };
-  
+
   var evalResult = xmldoc.evaluate(xpath,xmldoc,myfunc,2,null); // 2=string
-  
+
   if (null == evalResult) {
     return null;
   }
@@ -240,7 +240,7 @@ function jsonOrXml(jsonOrXmlOrString) {
   } else if ('string' == typeof(jsonOrXmlOrString)) {
     if (jsonOrXmlOrString.substring(0,1) == "{") {
       return JSON.parse(jsonOrXmlOrString);
-    } else { 
+    } else {
       return textToXML(jsonOrXmlOrString);
     }
   } else if (undefined == jsonOrXmlOrString) {
@@ -342,17 +342,17 @@ com.marklogic.widgets.removeClass = function(el,classname) {
 // our own global widgets here
 /**
  * An error display wrapper widget
- * 
+ *
  * @constructor
  */
 com.marklogic.widgets.error = function(container) {
   this.container = container;
-  
+
   this.error = null;
-  
+
   this.allowDetails = false; // shows 'show details' button
   this.showFirstCodefile = false; // shows first file name,line number and column
-  
+
   this._refresh();
 };
 
@@ -376,7 +376,7 @@ com.marklogic.widgets.error.prototype._isJSError = function() {
   //console.log("_isJSError: typeof: " + typeof this.error);
   //console.log("_isJSError: content: " + JSON.stringify(this.error));
   if (null == this.error) { return false; }
-  
+
   var jserr = false;
   this.jserrortype = null;
   if (this.error instanceof EvalError) {
@@ -410,14 +410,14 @@ com.marklogic.widgets.error.prototype._isJSError = function() {
 
 com.marklogic.widgets.error.prototype._refresh = function() {
   //if (null == this.error || undefined == this.error) { return; }
-  
+
   if (this._isJSError()) {
     // gen JS html error message
     this._genjshtml();
   } else
   if (null != this.error && "object" == typeof this.error) {
     // check if a result object or a error frame set, or an XML document
-    if (undefined != this.error.inError) { // an operation response from MLJS 
+    if (undefined != this.error.inError) { // an operation response from MLJS
       // mljs results object
       if (this.error.inError) { // an operation response from MLJS that IS in error
         if (this.error.format == "json") {
@@ -449,7 +449,8 @@ com.marklogic.widgets.error.prototype._refresh = function() {
     mljs.defaultconnection.logger.debug("Error object is simple string");
     // assume string
     if (null != this.error && undefined != this.error) {
-      var str = "<div class='error-inner' id='" + this.container + "-error-inner'><div class='error-message'>" + this.error + "</div>";
+      var str = "<div class='mljswidget panel panel-danger error-inner' id='" + this.container + "-error-inner'>"
+      str += "<div class='panel-heading error-message'>" + this.error + "</div>";
       str += "</div>";
       var el = document.getElementById(this.container);
       el.innerHTML = str;
@@ -464,18 +465,19 @@ com.marklogic.widgets.error.prototype._genjshtml = function() {
   var e = this.error;
   var t = this.jserrortype;
   mljs.defaultconnection.logger.debug("_genjshtml: error type: " + t);
-  
+
   // Standard fields: message, name
   // MS fields: description, number
   // Firefox fields: fileName, lineNumber, columnName, stack (object)
-  
-  var str = "<div class='error-inner' id='" + this.container + "-error-inner'>";
+
+  var str = "<div class='mljswidget panel panel-danger error-inner' id='" + this.container + "-error-inner'>";
   // do header
-  str += "<div class='error-title'>" + e.name + ": " + e.message + "</div>";
-  
-  mljs.defaultconnection.logger.debug("_genjshtml: e info: " + e); 
-  mljs.defaultconnection.logger.debug("_genjshtml: e info json: " + JSON.stringify(e)); 
-  
+  str += "<div class='panel-heading error-title'>" + e.name + ": " + e.message + "</div>";
+  str += "<div class='panel-body error-content'>";
+
+  mljs.defaultconnection.logger.debug("_genjshtml: e info: " + e);
+  mljs.defaultconnection.logger.debug("_genjshtml: e info json: " + JSON.stringify(e));
+
   // further details, line num, etc
   if (this.showFirstCodefile) {
     // FIREFOX SPECIFIC
@@ -491,12 +493,12 @@ com.marklogic.widgets.error.prototype._genjshtml = function() {
       str += "</div>";
     }
   }
-  
+
   if (this.allowDetails && undefined != e.stack) {
     str += "<div id='" + this.container + "-frame-details'><a class='error-show' id='" + this.container + "-frame-show' href='#'>Show Details</a><a class='hidden error-hide' id='" + this.container + "-frame-hide' href='#'>Hide Details</a></div><div id='" + this.container + "-error-details-frames' class='hidden'></div>";
   }
-  
-  str += "</div>";
+
+  str += "</div></div>";
   document.getElementById(this.container).innerHTML = str;
   var self = this;
   if (this.allowDetails) {
@@ -508,21 +510,21 @@ com.marklogic.widgets.error.prototype._genjshtml = function() {
 
 com.marklogic.widgets.error.prototype._showJSDetails = function() {
   var details = document.getElementById(this.container + "-error-details-frames");
-  
+
   var e = this.error;
-  
+
   var str = "";
   //str += "<div>Stack info: " + JSON.stringify(e.stack) + "</div>";
   //for (var i = 0;i < e.stack.length;i++) {
   //  str += e.stack[i] + "<br/>";
   //}
   str = e.stack.replace(/$/mg,"<br/>");
-  
+
   details.innerHTML = str;
-  
+
   console.log("setting details class");
   details.setAttribute("class","error-details-frames");
-  
+
   console.log("setting show to invisible")
   var show = document.getElementById(this.container + "-frame-show");
   show.setAttribute("class","error-show hidden");
@@ -535,7 +537,7 @@ com.marklogic.widgets.error.prototype._showJSDetails = function() {
     self._hideDetails(); // same hide function as normal details box
     console.log("hide clicked complete");
   };
-  
+
 };
 
 /**
@@ -544,7 +546,7 @@ com.marklogic.widgets.error.prototype._showJSDetails = function() {
  */
 com.marklogic.widgets.error.prototype._genhtml = function(obj) {
   mljs.defaultconnection.logger.debug("_genhtml: Called with: " + JSON.stringify(obj));
-  
+
   var str = "<div class='error-inner' id='" + this.container + "-error-inner'>";
   // do header
   str += "<div class='error-title'>" + obj.error["format-string"] + "</div>";
@@ -586,25 +588,25 @@ com.marklogic.widgets.error.prototype._showDetails = function() {
       for (var f = 0;f < this.error.error.error.stack.frame.length;f++) {
         var frame = this.error.error.error.stack.frame[f];
         str += "<div class='error-frame'>";
-        
+
         // show frame details
         str += frame.uri + ":" + frame.line + "." + frame.column;
         if (undefined != frame.operation) {
-          str += " " + frame.operation; 
+          str += " " + frame.operation;
         }
-        
+
         str += "</div>";
       }
     }
     str += "</div>";
     var parent = document.getElementById(this.container + "-frame-details");
     parent.innerHTML = parent.innerHTML + str; // TODO REPLACE THIS AS BAD PRACTICE
-    
+
     details = document.getElementById(this.container + "-error-details-frames");
   }
   console.log("setting details class");
   details.setAttribute("class","error-details-frames");
-  
+
   console.log("setting show to invisible")
   var show = document.getElementById(this.container + "-frame-show");
   show.setAttribute("class","error-show hidden");
@@ -626,7 +628,7 @@ com.marklogic.widgets.error.prototype._showDetails = function() {
 com.marklogic.widgets.error.prototype._hideDetails = function() {
   var details = document.getElementById(this.container + "-error-details-frames");
   details.setAttribute("class","error-details-frames hidden");
-  
+
   var show = document.getElementById(this.container + "-frame-show");
   show.setAttribute("class","error-show");
   var hide = document.getElementById(this.container + "-frame-hide");
@@ -660,29 +662,29 @@ com.marklogic.widgets.bits.base = function(newbase) {
 
 /**
  * Creates a loading message or image
- * 
+ *
  * @param {string} elid - The element for this widget's top level container
  */
 com.marklogic.widgets.bits.loading = function(elid) {
   var s = "<img id='" + elid + "' class='bits-loading' src='" + com.marklogic.widgets.bits._base + "/mljs/loading.gif' style='width: 30px; height: 30px;' alt='Loading...' title='Loading...' />";
-  
+
   return s;
 };
 
 /**
  * Creates a failure message or image
- * 
+ *
  * @param {string} elid - The element for this widget's top level container
  */
 com.marklogic.widgets.bits.failure = function(elid) {
   var s = "<img id='" + elid + "' class='bits-failure' src='" + com.marklogic.widgets.bits._base + "/mljs/failure.png' alt='Failed to complete operation' title='Failed to complete operation' /> Failed to complete operation";
-  
+
   return s;
 };
 
 /**
  * Creates a complete message
- * 
+ *
  * @param {string} elid - The element for this widget's top level container
  */
 com.marklogic.widgets.bits.done = function(elid,message_opt) {
@@ -704,7 +706,7 @@ com.marklogic.widgets.bits.done = function(elid,message_opt) {
 com.marklogic.widgets.appendHTML = function(el,s) {
   var newcontent = document.createElement('div');
   newcontent.innerHTML = s;
-  
+
   while (newcontent.firstChild) {
     el.appendChild(newcontent.firstChild);
   }
@@ -828,4 +830,3 @@ com.marklogic.widgets.dnd._draggableCompatible = function(el,elid,draggable,drop
   }
   return false;
 };
-

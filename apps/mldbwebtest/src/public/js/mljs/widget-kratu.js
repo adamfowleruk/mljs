@@ -49,7 +49,7 @@ com.marklogic.widgets.kratu = function(container) {
 com.marklogic.widgets.kratu.getConfigurationDefinition = function() {
   var self = this;
   return {
-    render: {type:enum, default: "content", title: "Render", description: "Whether to render the document content or the search result summary.",
+    render: {type:"enum", default: "content", title: "Render", description: "Whether to render the document content or the search result summary.",
       options: [
         {value: "content", title: "Content", description: "Content of the result document."},
         {value: "summary", title: "Summary", description: "Summary of the search result metadata."}

@@ -71,6 +71,7 @@ com.marklogic.widgets.tagcloud.prototype.setFacet = function(f) {
 
 com.marklogic.widgets.tagcloud.prototype._refresh = function() {
   var str = "";
+  str += "<div class='mljswidget panel panel-info widget-tagcloud'>";
   if (null == this.facet) {
     str += "<p>No Facet specified. Use wgt.setFacet(name) to specify which facet to display as a tag cloud.</p>";
   } else {
@@ -112,6 +113,7 @@ com.marklogic.widgets.tagcloud.prototype._refresh = function() {
       } // end if facets null
     } // end if results null
   } // end if no facet specified
+  str += "</div>";
 
   document.getElementById(this.container).innerHTML = str;
 };

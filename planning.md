@@ -4,6 +4,7 @@
 
 Targets for 1.6 (Apr 2014) - Theme: MLJS Ease of Use in the Browser
  - DONE BUG mljs.returnFacets returns true instead of this, breaking chaining
+ - BUG Docs: Openlayers demo page hovering over marker causes null reference looking for result area by id to change css classes
  - Widgets: Workplace completion
   - Basics
    - DONE drag/drop reordering of widgets working
@@ -77,24 +78,29 @@ Targets for 1.6 (Apr 2014) - Theme: MLJS Ease of Use in the Browser
    - Docs: OOTB Workplace demo app - no data
  - Widgets: UI Consistency
   - Widgets: Update all for Bootstrap CSS support
-   - searchbar
-   - searchselect
-   - searchfacets
-   - searchsort
-   - searchresults
-   - searchpager
-   - searchpage
-   - searchselection
-   - sparqlbar
-   - entityfacts
-   - tagcloud
-   - openlayers
-   - kratu
-   - address lookup
-   - co-occurence
-   - docviewer
-   - docproperties
-   - docheadproperties
+   - DONE searchbar
+   - DONE searchfacets
+   - DONE searchsort
+   - DONE searchresults
+   - DONE searchpager
+   - DONE searchpage
+   - NA highcharts
+   - DONE error
+   - DONE sparqlbar (drop downs etc too)
+   - DONE sparqlresults
+   - DONE entityfacts
+    - NOT DOING Does XHTML 1.1 support dl/dt/dd elements? Or just a HTML5 thing?
+   - DONE graphexplorer
+   - DONE tagcloud
+   - DONE openlayers
+   - DONE address lookup
+   - DONE searchselection
+   - NA kratu
+   - DONE co-occurence
+   - DONE docviewer
+   - DONE docproperties
+   - DONE docheadproperties
+   - DONE search result select
    - Workplace
    - thin thick layout
    - thick thin layout
@@ -105,13 +111,16 @@ Targets for 1.6 (Apr 2014) - Theme: MLJS Ease of Use in the Browser
    - new workplace page dialogue
    - options builder widget
    - query builder widget
-   - DEFERRED create
+   - IN PROGRESS create
+    - Can't style file upload button or input file name box
    - DEFERRED markings (non prod)
    - DEFERRED rdb2rdf (non prod)
-   - Bootstrap CSS toggles/options in Workplace configuration?
-  - Docs: Update MLJSREST app framework for bootstrap support
+   - DEFERRED Bootstrap CSS toggles/options in Workplace configuration?
+   - IN PROGRESS Hints at top of test pages in mljsrest
+  - IN PROGRESS Docs: Update MLJSREST app framework for bootstrap support
   - Docs: Get hold of MarkLogic bootstrap theme CSS from MY (License?)
   - Get MY to review app, workplace and widget UX
+   - Ask about info panel headings on interaction vs. results panels
  - DONE Docs: Deprecate mldbwebtest app as primary source of widget files in build, remove app itself
  - DONE BUG Widgets: searchbar - When contributing query as term query for structured search, if text blank need to send and-query not term-query("") - else nothing is returned!
  - DONE BUG Core: version being called multiple times per page (when version endpoint doesn't exist)
@@ -123,8 +132,8 @@ Targets for 1.6 (Apr 2014) - Theme: MLJS Ease of Use in the Browser
   - youtube videos
   - blog (news) items
   - latest tutorials
- - Docs: Various doc issues
-  - Docs: Wiki: Image previews of all widgets, linking to pages with code examples (Like d3.js' home page)
+ - IN PROGRESS Docs: Various doc issues
+  - IN PROGRESS Docs: Wiki: Image previews of all widgets, linking to pages with code examples (Like d3.js' home page)
   - DEFERRED Workplace page configuration JSON download/upload too?
   - DEFERRED Sample content for testing bundle too? (MLCP archive? Version dependent?)
   - DEFERRED Workplace page search and share app (hosting?)
