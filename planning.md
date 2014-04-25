@@ -76,8 +76,8 @@ Targets for 1.6 (Apr 2014) - Theme: MLJS Ease of Use in the Browser
    - Options builder UI widget - read from ML if possible
    - Query builder UI widget (base query for search, default query for page load)
    - Docs: OOTB Workplace demo app - no data
- - Widgets: UI Consistency
-  - Widgets: Update all for Bootstrap CSS support
+ - IN PROGRESS Widgets: UI Consistency
+  - IN PROGRESS Widgets: Update all for Bootstrap CSS support
    - DONE searchbar
    - DONE searchfacets
    - DONE searchsort
