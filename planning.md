@@ -60,18 +60,13 @@ Targets for 1.6 (Apr 2014) - Theme: MLJS Ease of Use in the Browser
     - Transition between different selected layouts (widgets moved on to zones)
    - Page load actions
    - Icons for widgets
-  - Widgets: Application Navigation widget
-   - One tab per Workplace in current app, sends to appropriate URL
-   - Share workplace via permissions
-   - Share workplace via URL
-    - Add this to My Workplaces option on non-owned workplace page load
-   - Edit limited to owner of workplace
+  - TEST Widgets: Application Navigation widget
+   - TEST One tab per Workplace in current app, sends to appropriate URL
    - DEFERRED Allow workplaces to be kept instead in a drop down menu
    - DEFERRED Menu Editor
     - DEFERRED Also allow fixed tabs at start and end (list for each). E.g. Settings, Home, etc. for non-workplace dynamic pages - display text, url
    - Create new Workplace page dialogue - name, based on - then load in page editor
-   - New workplace page button on end of nav widget
-   - Powered by MarkLogic image (license?)
+   - DONE via app configure link on navbar New workplace page button on end of nav widget
   - Practicality updates
    - Options builder UI widget - read from ML if possible
    - Query builder UI widget (base query for search, default query for page load)
@@ -121,6 +116,45 @@ Targets for 1.6 (Apr 2014) - Theme: MLJS Ease of Use in the Browser
   - Docs: Get hold of MarkLogic bootstrap theme CSS from MY (License?)
   - Get MY to review app, workplace and widget UX
    - Ask about info panel headings on interaction vs. results panels
+ - Advanced workplace functionality
+  - application wide settings
+   - Widget: list/create/remove search options
+   - Widget: edit search options
+    - handle basic search options
+     - options name
+     - number of results per page
+     - document transform
+     - additionalQuery
+    - list available indexes for constraints/facets (possible without priviliges or admin port?)
+    - search for a document and introspect to identify facets/constraints
+     - element value constraint
+     - indexed constraints
+     - validation feedback on the fly of indexed constraints
+     - allow specification of extracted metadata
+     - allow co-occurence specification
+  - Allow using other existing pages as template
+   - template search well and results
+   - workplace page preview?
+ - Workplace Security review
+  - Ensure all documents are created such that all app users can read them
+  - Ensure users can specify sharing constraints for workplace pages
+   - Private (only I can read and edit)
+   - Shared (Only I can edit, others can read/open page)
+   - Public (any valid user can edit or read the workplace page)
+  - Special role/privilige for editing workplace app documents?
+  - Workplace wide defaults for hiding Workplace config documents from all search results (How does REST API do this?)
+  - Share workplace via permissions
+  - Share workplace via URL
+   - Add this to My Workplaces option on non-owned workplace page load
+  - Edit limited to owner of workplace
+ - Docs: Workplace standalone app
+  - DONE Roxy base rest only project
+  - DONE Update build scripts to send latest files in to project
+  - Special security roles for application, and app wide security settings
+  - IN PROGRESS Generic page template
+  - IN PROGRESS Logged out page (with login area)
+  - logged in welcome page, with logout button
+  - Special re-writer for security and workplace pages
  - DONE Docs: Deprecate mldbwebtest app as primary source of widget files in build, remove app itself
  - DONE BUG Widgets: searchbar - When contributing query as term query for structured search, if text blank need to send and-query not term-query("") - else nothing is returned!
  - DONE BUG Core: version being called multiple times per page (when version endpoint doesn't exist)
@@ -188,7 +222,6 @@ Targets for 1.8 (May 2014) - Theme: Visualisations
    - fire series update event for individual series (need depends upon widget)
    - fire all series update event for overall results (need depends upon widget)
  - Widgets: Workplace
-  - Use Bootstrap CSS throughout
   - Allow user personalisation for widgets on a page (auto save and load via workplace context)
   - Allow showing of live data against configuration options (E.g. list the facets from options that are selectable for a highchart)
  - Widgets: Highcharts

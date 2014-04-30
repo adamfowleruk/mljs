@@ -931,9 +931,56 @@ com.marklogic.widgets.workplacecontext = function() {
 
   this.db = mljs.defaultconnection;
 
+  this._cachedPages = new Array();
+  this._cached = false;
+
   this._instanceNames = {}; // [shortname] -> next available instance id or null
 
   this.updatePublisher = new com.marklogic.events.Publisher(); // page loaded from server
+  this._myPagesPublisher = new com.marklogic.events.Publisher(); // fires my pages updated event updateMyPages(pageArray)
+};
+
+/**
+ * Instructs this workplace context to load all workplace page definitions accessible for read by the current user.
+ * Fires updateMyPages event handlers on registered widgets.
+ */
+com.marklogic.widgets.workplacecontext.prototype.loadMyPages = function() {
+  // fetch available workplace pages asyncrhonously
+  var self = this;
+  var ob = this.db.createOptions();
+  ob.collectionConstraint()
+    .returnFacets(false)
+    .returnResults(true)
+    .pageLength(1000)
+    .raw();
+  var qb = this.db.createQuery();
+  qb.query(qb.collection("/config/workplace/page"));
+  var sc = this.db.createSearchContext();
+  sc.setOptions("mljsMyWorkplacePages",ob); // will fail on multi user system - need to use combined query dynamically
+  sc.addResultsListener(function(results) {
+    if (true === results || false === results) {
+      return;
+    }
+    var pages = new Array();
+    for (var i = 0, maxi = results.results.length,page;i < maxi;i++) {
+      page = results.results[i].content;
+      pages.push(page);
+    }
+    // fire update event on return
+    self._myPagesPublisher.publish(pages);
+  });
+  sc.doStructuredQuery(qb.toJson());
+};
+
+/**
+ * Returns the currently readable workplace pages for this user, cached from previous calls.
+ * If the cache is empty, returns an empty array and loads readable pages in to cache asynchronously (via loadMyPages()).
+ */
+com.marklogic.widgets.workplacecontext.prototype.getCachedPages = function() {
+  if (false === this._cached) {
+    this.loadMyPages();
+  }
+  return this._cachedPages;
 };
 
 /**
@@ -1034,7 +1081,7 @@ com.marklogic.widgets.workplacecontext.prototype.saveWorkplace = function(json,u
   if (undefined != props_opt) {
     col = props_opt.collection;
   }
-  var wpcols = "mljsInternalData,mljsWorkplacePages";
+  var wpcols = "mljsInternalData,mljsWorkplacePages,/config/workplace/page";
   if (undefined == col) {
     col = wpcols;
   } else {
@@ -1407,6 +1454,9 @@ com.marklogic.widgets.workplacecontext.prototype.register = function(widget) {
   }
   if (undefined != widget.updateWorkplace) {
     this.addWorkplaceUpdateListener(function(wp) {widget.updateWorkplace(wp);});
+  }
+  if (undefined != widget.updateMyPages) {
+    this._myPagesPublisher.subscribe(function(pages) {widget.updateMyPages(pages);});
   }
 };
 
@@ -2327,4 +2377,147 @@ com.marklogic.widgets.actionconfig.prototype.wrap = function(config) {
 com.marklogic.widgets.actionconfig.prototype.getConfig = function() {
   // TODO return updated config
   return this._config;
+};
+
+
+
+
+
+
+
+
+
+
+
+/**
+ * Provides a bootstrap compatible navigation bar widget for use in Workplace powered applications.
+ * @constructor
+ * @param {string} container - The HTML ID of the element to render this widget within
+ */
+com.marklogic.widgets.workplacenavbar = function(container) {
+  this.container = container;
+  this._workplaceContext = null;
+  this._config = {
+    appName: "Workplace", homeUrl: "/index.html5", homeText: "Home", showAppConfigureLink: true,
+    appConfigureLinkText: "Configure App", appConfigureUrl: "/application.html5", showPageConfigureLink: true,
+    pageConfigureLinkText: "Configure Page", showLogoutLink: false, logoutLinkText: "Logout", logoutUrl: "/logout"
+  };
+  this._refresh();
+};
+
+/**
+ * Sets the workplace context for this widget
+ * @param {com.marklogic.widgets.workplacecontext} ctx - Workplace context instance
+ */
+com.marklogic.widgets.workplacenavbar.prototype.setWorkplaceContext = function(ctx) {
+  mljs.defaultconnection.logger.debug("workplacenavbar.setWorkplaceContext: called.");
+  this._workplaceContext = ctx;
+};
+
+/**
+ * Returns the workplace context used by this widget
+ * @return {com.marklogic.widgets.workplacecontext} ctx - The Workplace context instance
+ */
+com.marklogic.widgets.workplacenavbar.prototype.getWorkplaceContext = function() {
+  return this._workplaceContext;
+};
+
+/**
+ * Returns the MLJS Workplace configuration definition listing config properties supported by this widget
+ *
+ * @static
+ */
+com.marklogic.widgets.workplacenavbar.getConfigurationDefinition = function() {
+  return {
+    appName: {type:"string", default:"Workplace",title:"Application name", description: "Default application name (normally read from workplace app JSON)"},
+    homeUrl: {type:"string",default: "/index.html5", title: "Home link URL", description: "Absolute URL of the home page. Blank for no home page link"},
+    homeText: {type:"string", default:"Home",title:"Home link text", description: "The display text for the link"},
+    showAppConfigureLink: {type:"boolean", default:true,title:"Show App Configure Link", description: "Show application configuration link"},
+    appConfigureLinkText: {type:"string", default:"Configure App",title:"App Configure Link Text", description: "The display text for the link"},
+    appConfigureUrl: {type:"string", default:"/application.html5",title:"Configure App Url", description: "The URL of the page managing app wide configuration"},
+    showPageConfigureLink: {type:"boolean", default:true,title:"Show Page Configure Link", description: "Whether to show the link for this page's configuration"},
+    pageConfigureLinkText: {type:"string", default:"Configure Page",title:"Page Configure Link Text", description: "The display text for the link"},
+    showLogoutLink: {type:"boolean", default:false,title:"Show Logout Link", description: "Whether to show a link to the logout page"},
+    logoutLinkText: {type:"string", default:"Logout",title:"Logout Link Text", description: "The display text for the link"},
+    logoutUrl: {type:"string", default:"/logout",title:"Logout Link Url", description: "The URL for the logout handling server side process"}
+  }
+};
+
+/**
+ * Sets the configuration for this instance of a widget in an MLJS Workplace
+ *
+ * @param {json} config - The JSON Workplace widget configuration to apply
+ */
+com.marklogic.widgets.workplacenavbar.prototype.setConfiguration = function(config) {
+  for (var prop in config) {
+    this._config[prop] = config[prop];
+  }
+
+  // refresh display
+  this._refresh();
+};
+
+com.marklogic.widgets.workplacenavbar.prototype._refresh = function() {
+  var s = "<div class='mljswidget navbar navbar-default workplacenavbar' role='navigation'>";
+
+  if (null != this._config.homeUrl && "" != this._config.homeUrl.trim()) {
+    s += "<div class='container-fluid'>"
+    s +=    "<div class='navbar-header'>"
+    s +=      "<button type='button' class='navbar-toggle' data-toggle='collapse' data-target='.navbar-collapse'>"
+    s +=        "<span class='sr-only'>Toggle navigation</span>"
+    s +=        "<span class='icon-bar'></span>"
+    s +=        "<span class='icon-bar'></span>"
+    s +=        "<span class='icon-bar'></span>"
+    s +=      "</button>"
+    s +=      "<a class='navbar-brand' href='" + this._config.homeUrl + "'>" + this._config.appName + "</a>"
+    s +=    "</div>";
+  }
+  s += "<div class='navbar-collapse collapse'><ul class='nav navbar-nav'>";
+
+  if (null != this._config.homeUrl && "" != this._config.homeUrl.trim()) {
+    s += "<li class='active'><a href='" + this._config.homeUrl + "'>" + this._config.homeText + "</a></li>";
+  }
+
+  if (null != this._workplaceContext) {
+    var pages = this._workplaceContext.getCachedPages();
+    for (var i = 0, maxi = pages.length, page;i < maxi;i++) {
+      page = pages[i];
+      s += "<li><a href='" + page.url + "'>" + page.title + "</a></li>";
+    }
+  }
+  // TODO support embedded pages in dropdown navigation
+  /*
+  s += "
+  <!--
+                <li><a href='#'>Link</a></li>
+                <li class='dropdown'>
+                  <a href='#' class='dropdown-toggle' data-toggle='dropdown'>Dropdown <b class='caret'></b></a>
+                  <ul class='dropdown-menu'>
+                    <li><a href='#'>Action</a></li>
+                    <li><a href='#'>Another action</a></li>
+                    <li><a href='#'>Something else here</a></li>
+                    <li class='divider'></li>
+                    <li class='dropdown-header'>Nav header</li>
+                    <li><a href='#'>Separated link</a></li>
+                    <li><a href='#'>Other</a></li>
+                  </ul>
+                </li>
+  -->
+  */
+
+  s += "</ul><ul class='nav navbar-nav navbar-right'>";
+  if (true === this._config.showAppConfigureLink) {
+    s += "<li><a id=" + this.container + "-workplacenavbar-configureapp' href='" + this._config.appConfigureUrl +
+         "'>" + this._config.appConfigureLinkText + "</a></li>";
+  }
+  s += "<li><a href='#'>" + this._config.pageConfigureLinkText + "</a></li>";
+  if (true === this._config.showLogoutLink) {
+    s += "<li><a href='" + this._config.logoutUrl + "'>" + this._config.logoutLinkText + "</a></li>";
+  }
+  s += "</ul></div><!--/.nav-collapse --></div><!--/.container-fluid --></div>";
+  document.getElementById(this.container).innerHTML = s;
+
+  // TODO click event handlers
+  // TODO Just the edit page link required - the rest are URL based
+
 };
