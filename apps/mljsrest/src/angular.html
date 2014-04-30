@@ -9,6 +9,7 @@
     <link href="/css/960/960.css" type="text/css" rel="stylesheet"/>
 
     <link href="/css/one-column.css" rel="stylesheet"/>
+    <script src="/js/angular.min.js"></script>
 
 </head>
 <body>
@@ -60,7 +61,8 @@
 <script type="text/javascript" src="/js/mljs/widgets.js"></script>
 <script type="text/javascript" src="/js/mljs/widget-search.js"></script>
 
-<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.9/angular.min.js"></script>
+<script type="text/javascript" src="/js/mljs/mljs-angular.js"></script>
+
 
 <script type="text/javascript" src="/js/mljstest/page-mljstest-angular.js"></script>
 
@@ -70,13 +72,13 @@
   <div id="errors" class="grid_12"></div>
  </div>
  <div class="container_12">
-  <div id="searchbar" class="grid_12">search bar</div>
+<searchbar id="searchbar" ng-model="primaryModel"></searchbar>
  </div>
 
  <metrics id="metrics" ng-model="results"></metrics>
 
  <div class="container_12">
-  <div id="searchresults" class="grid_6">results</div>
+  <searchresults id="searchresults" ng-model="primaryModel"></searchresults>
  </div>
 </div>
 </div>

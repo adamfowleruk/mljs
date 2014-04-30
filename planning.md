@@ -174,7 +174,9 @@ Targets for 1.6 (Apr 2014) - Theme: MLJS Ease of Use in the Browser
   - DEFERRED Workplace widget NPM like search and install app (hosting?)
  - DONE Bower support
   - DONE Add bower repo support for PH
-  - IN PROGRESS Fixed bower repo for new mljs repo foldering layout
+  - IN PROGRESS Fix bower repo for new mljs repo foldering layout
+   - DONE foldering fix
+   - IN PROGRESS re-register mljs-bower with bower guys
 
 Targets for 1.8 (May 2014) - Theme: Visualisations
  - BUG Widgets: combined query - test against latest MarkLogic 7 build
