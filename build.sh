@@ -124,6 +124,9 @@ zip -vr ./dist/mljs-browser-prod.zip $D
 zip -vr ./dist/mljs-node-dev.zip $N
 zip -vr ./dist/mljs-nodejs-prod.zip $NM
 
+# Create bower output
+cp -R ./dist/browser-prod/* ../mljs-bower/
+
 
 # cleanup
 #rm -rf dist/mljs

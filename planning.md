@@ -167,11 +167,14 @@ Targets for 1.6 (Apr 2014) - Theme: MLJS Ease of Use in the Browser
   - blog (news) items
   - latest tutorials
  - IN PROGRESS Docs: Various doc issues
-  - IN PROGRESS Docs: Wiki: Image previews of all widgets, linking to pages with code examples (Like d3.js' home page)
+  - DONE Docs: Wiki: Image previews of all widgets, linking to pages with code examples (Like d3.js' home page)
   - DEFERRED Workplace page configuration JSON download/upload too?
   - DEFERRED Sample content for testing bundle too? (MLCP archive? Version dependent?)
   - DEFERRED Workplace page search and share app (hosting?)
   - DEFERRED Workplace widget NPM like search and install app (hosting?)
+ - DONE Bower support
+  - DONE Add bower repo support for PH
+  - IN PROGRESS Fixed bower repo for new mljs repo foldering layout
 
 Targets for 1.8 (May 2014) - Theme: Visualisations
  - BUG Widgets: combined query - test against latest MarkLogic 7 build
