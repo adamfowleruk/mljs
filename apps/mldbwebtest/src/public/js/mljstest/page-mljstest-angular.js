@@ -22,7 +22,7 @@
   */
 
   // extend angular
-  angular.module('myApp', [])
+  angular.module('myApp', ["mljs"])
     // directives are like creating widgets - TODO need to wrap this and externalise somehow...
     .directive('metrics', function() {
         var link = function(scope, element, attrs, model) {
@@ -41,70 +41,7 @@
             link: link
         }
     })
-      .directive('searchbar', function() {
-        console.log("MA: searchbar directive called");
-
-        var searchContext = null;
-
-        function link(scope, element, attrs,model) {
-
-          console.log("MA: searchbar directive link function called");
-          var wgt = new com.marklogic.widgets.searchbar(element[0]);
-
-          var register = function() {
-            searchContext = model.$modelValue.searchContext;
-            searchContext.register(wgt);
-          };
-          scope.$watch(attrs['ngModel'], register);
-
-          // TODO other widget configuration
-
-          // register widget
-          //$searchContext.register(wgt); // equivalent of searchContext.register(wgt);
-        };
-
-        return {
-            restrict: 'E',
-            require: 'ngModel',
-          link: link
-        };
-      })
-
-
-      .directive('searchresults', function() {
-        console.log("MA: searchresults directive called");
-
-        var searchContext = null;
-
-        function link(scope, element, attrs, model) {
-          console.log("MA: searchresults directive link function called");
-
-          var wgt = new com.marklogic.widgets.searchresults(element[0]);
-
-          var register = function() {
-            searchContext = model.$modelValue.searchContext;
-            searchContext.register(wgt);
-          };
-          scope.$watch(attrs['ngModel'], register);
-
-          // TODO other widget configuration
-          // register widget
-          //$searchContext.register(wgt); // equivalent of searchContext.register(wgt);
-        }
-
-        return {
-            restrict: 'E',
-            require: 'ngModel',
-          link: link
-        };
-      })
-/*
-        .factory('searchContext', function() {
-          console.log("MA: searchcontext factory function called");
-          var db = new mljs();
-          var ctx = db.createSearchContext();
-          return ctx;
-        })
+    /*
 
     .service("mySearchContext",function(searchContext) {
       var db = new mljs();

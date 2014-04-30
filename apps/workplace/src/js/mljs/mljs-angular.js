@@ -4,48 +4,70 @@
  */
 
 angular.module('mljs', [])
-  .factory('searchContext', function() {
-    console.log("MA: searchcontext factory function called");
-    var db = new mljs();
-    var ctx = db.createSearchContext();
-    return ctx;
-  })
+    .directive('searchbar', function() {
+      console.log("MA: searchbar directive called");
 
-  .directive('searchbar', ['$searchContext',function($searchContext) {
-    console.log("MA: searchbar directive called");
+      var searchContext = null;
 
-    function link(scope, element, attrs) {
+      function link(scope, element, attrs,model) {
 
-      console.log("MA: searchbar directive link function called");
+        console.log("MA: searchbar directive link function called");
+        var wgt = new com.marklogic.widgets.searchbar(element[0]);
 
-      var wgt = new com.marklogic.widgets.searchbar(element);
-      // TODO other widget configuration
+        var register = function() {
+          searchContext = model.$modelValue.searchContext;
+          searchContext.register(wgt);
+        };
+        scope.$watch(attrs['ngModel'], register);
 
-      // register widget
-      $searchContext.register(wgt); // equivalent of searchContext.register(wgt);
-    }
+        // TODO other widget configuration
 
-    return {
-      link: link
-    };
-  }])
+        // register widget
+        //$searchContext.register(wgt); // equivalent of searchContext.register(wgt);
+      };
 
-  .directive('searchresults', ['$searchContext',function($searchContext) {
-    console.log("MA: searchresults directive called");
+      return {
+          restrict: 'E',
+          require: 'ngModel',
+        link: link
+      };
+    })
 
-    function link(scope, element, attrs) {
-      console.log("MA: searchresults directive link function called");
 
-      var wgt = new com.marklogic.widgets.searchresults(element);
-      // TODO other widget configuration
-      // register widget
-      $searchContext.register(wgt); // equivalent of searchContext.register(wgt);
-    }
+    .directive('searchresults', function() {
+      console.log("MA: searchresults directive called");
 
-    return {
-      link: link
-    };
-  }])
+      var searchContext = null;
+
+      function link(scope, element, attrs, model) {
+        console.log("MA: searchresults directive link function called");
+
+        var wgt = new com.marklogic.widgets.searchresults(element[0]);
+
+        var register = function() {
+          searchContext = model.$modelValue.searchContext;
+          searchContext.register(wgt);
+        };
+        scope.$watch(attrs['ngModel'], register);
+
+        // TODO other widget configuration
+        // register widget
+        //$searchContext.register(wgt); // equivalent of searchContext.register(wgt);
+      }
+
+      return {
+          restrict: 'E',
+          require: 'ngModel',
+        link: link
+      };
+    })
+/*
+      .factory('searchContext', function() {
+        console.log("MA: searchcontext factory function called");
+        var db = new mljs();
+        var ctx = db.createSearchContext();
+        return ctx;
+      })*/
 
   ;
 })();
