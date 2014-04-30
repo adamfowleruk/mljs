@@ -811,10 +811,22 @@ com.marklogic.widgets.advancedsearch.prototype.render = function() {
  * @param {string} container - The ID of the HTML element to render this widget within
  */
 com.marklogic.widgets.searchbar = function(container) {
+  console.log("MA: IN SEARCH BAR");
   if (undefined == com.marklogic.widgets.searchbar.list) {
     com.marklogic.widgets.searchbar.list = new Array(); // [containerID] -> searchbar widget
   }
   this.container = container;
+  this.containerElement = container;
+  if ("string"==typeof(container)) {
+    this.containerElement = document.getElementById(container);
+  }
+  if (undefined != this.containerElement.id) {
+    this.container = this.containerElement.id;
+  } else {
+    this.container = "somerandomsearchbarname";
+  }
+  console.log("MA: type: " + typeof(this.containerElement));
+  console.log("MA: id: " + this.container);
 
   this.ctx = new mljs.prototype.searchcontext();
 
@@ -822,22 +834,22 @@ com.marklogic.widgets.searchbar = function(container) {
 
   // draw widget within container
   mljs.defaultconnection.logger.debug("adding search bar html");
-  document.getElementById(container).innerHTML =
+  this.containerElement.innerHTML =
     "&lt;div class='mljswidget well searchbar-inner'>" +
       "&lt;div class='input-append input-prepend searchbar-queryrow'>" +
-        "&lt;span class='searchbar-label' for='" + container + "-searchinput'>Search: &lt;/span>" +
-        "&lt;input class='span2 searchbar-query' type='text' id='" + container + "-searchinput' value='' placeholder='Enter query' />" +
-        "&lt;button class='btn btn-primary searchbar-submit' type='button' id='" + container + "-submit'>Search&lt;/button>" +
+        "&lt;span class='searchbar-label' for='" + this.container + "-searchinput'>Search: &lt;/span>" +
+        "&lt;input class='span2 searchbar-query' type='text' id='" + this.container + "-searchinput' value='' placeholder='Enter query' />" +
+        "&lt;button class='btn btn-primary searchbar-submit' type='button' id='" + this.container + "-submit'>Search&lt;/button>" +
       "&lt;/div>" +
-      "&lt;ul class='list-unstyled searchbar-autocomplete hidden' id='" + container + "-ac' tabindex='0'>&lt;/ul>" +
+      "&lt;ul class='list-unstyled searchbar-autocomplete hidden' id='" + this.container + "-ac' tabindex='0'>&lt;/ul>" +
       "&lt;div class='searchbar-errorrow hidden'>&lt;/div>";
     "&lt;/div>";
   mljs.defaultconnection.logger.debug("adding submit click handler");
   var self = this;
-  document.getElementById(container + "-submit").onclick = function() {self._dosearch(self);}; // TODO Check this is valid
+  document.getElementById(this.container + "-submit").onclick = function() {self._dosearch(self);}; // TODO Check this is valid
   mljs.defaultconnection.logger.debug("added submit click handler");
 
-  var input = document.getElementById(container + "-searchinput");
+  var input = document.getElementById(this.container + "-searchinput");
 
   // now do enter click handler
   var searchKeyPress = function(e)
@@ -847,7 +859,7 @@ com.marklogic.widgets.searchbar = function(container) {
         if (e.keyCode == 13)
         {
           self.updateSuggestions(null);
-            document.getElementById(container + "-submit").click();
+            document.getElementById(self.container + "-submit").click();
         } else {
           // update suggestions
           self.ctx.doSuggest(input.value);
@@ -911,7 +923,7 @@ com.marklogic.widgets.searchbar.prototype.updateSuggestions = function(suggestio
     com.marklogic.widgets.hide(ul,true);
   } else {
     // TODO show a drop down just below the search bar, but higher Z order (on top) that is selectable to complete the query
-    var cont = document.getElementById(this.container);
+    var cont = this.containerElement; // OLD - document.getElementById(this.container);
     var input = document.getElementById(this.container + "-searchinput");
 
     // draw items
@@ -1517,6 +1529,15 @@ com.marklogic.widgets.searchfacets.prototype.updateSelectedFacets = function(fac
  */
 com.marklogic.widgets.searchresults = function(container) {
   this.container = container;
+  this.containerElement = container;
+  if ("string"==typeof(container)) {
+    this.containerElement = document.getElementById(container);
+  }
+  if (undefined != this.containerElement.id) {
+    this.container = this.containerElement.id;
+  } else {
+    this.container = "somerandomsearchresultsname";
+  }
 
   this.ctx = mljs.defaultconnection.createSearchContext();
 
@@ -1797,6 +1818,15 @@ com.marklogic.widgets.searchlayouts = {};
 com.marklogic.widgets.searchlayouts.default = function(container) {
   // initialisation
   this.container = container;
+  this.containerElement = container;
+  if ("string"==typeof(container)) {
+    this.containerElement = document.getElementById(container);
+  }
+  if (undefined != this.containerElement.id) {
+    this.container = this.containerElement.id;
+  } else {
+    this.container = "somerandomsearchresultsname";
+  }
 
   this._areas = {};
   this._hasMessage = false;
@@ -1809,7 +1839,7 @@ com.marklogic.widgets.searchlayouts.default.prototype._init = function() {
   s += "&lt;div class='title panel-heading searchresults-title'>Results&lt;/div>";
   s += "&lt;div id='" + this.container + "-inner' class='searchresults-results mljsResultDefaultInner'>&lt;/div>";
   s += "&lt;/div>";
-  document.getElementById(this.container).innerHTML = s;
+  this.containerElement.innerHTML = s;
 };
 com.marklogic.widgets.searchlayouts.default.prototype.reset = function() {
   // strip out all current content areas
@@ -3580,7 +3610,7 @@ com.marklogic.widgets.searchmetrics.prototype.updateResults = function(results) 
 					
 		<span class="jsdoc-message">
 		Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.3-dev</a>
-		on Wed Apr 30 2014 11:05:39 GMT+0100 (BST) using the <a href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
+		on Wed Apr 30 2014 22:15:01 GMT+0100 (BST) using the <a href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
 		</span>
 				</footer>
 			</div>
