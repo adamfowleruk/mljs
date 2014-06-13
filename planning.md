@@ -13,23 +13,44 @@ Targets for 1.6 (Apr 2014) - Theme: MLJS Ease of Use in the Browser
     - DONE BUG Not allowing existing last widget to be dropped on last widget dropzone, also handle not last existing re-ordering
     - DONE BUG dragging new class mid zone now breaks -> places new widget in last element of array, doesn't reshuffle undefined elements
     - DONE BUG multiple drops of new widgets on to end of same zone causes errors due to blanks between elements - added self._eliminateBlanks(z); call at start and end
-   - TEST Save function working
-    - TEST workplacecontext.prototype.save
-     - TEST Get assignments from layout - self.generateAssignments()
+   - DONE Save function working
+    - DONE workplacecontext.prototype.save
+     - DONE Get assignments from layout - self.generateAssignments()
       - DONE prune assignments (remove admin widgets)
-     - TEST call mljs.saveWorkplace function
-    - TEST (this.container + "-save").onclick - show message that save was successful in error/notification area
-    - TEST ensure configwrapper event handlers are running even when moved around in HTML (via drag/drop)
-    - BUG widget edit page on initial load does not give accurate order values for widgets laid out there
-    - BUG on save, widget config loses type (class name) values
-   - TEST findWorkplace working
-    - TEST need to add valueConstraint support to options builder
-    - TEST need to add value query to query builder
-    - TEST move *Workplace functions from MLJS in to Workplace Context (they use structured search)
-   - Context configuration for Workplace
-    - Search context
-    - semantic context
-    - document context
+     - DONE call mljs.saveWorkplace function
+    - DONE (this.container + "-save").onclick - show message that save was successful in error/notification area
+    - DONE ensure configwrapper event handlers are running even when moved around in HTML (via drag/drop)
+    - NA BUG widget edit page on initial load does not give accurate order values for widgets laid out there (not one based, but that's not a problem)
+    - DONE BUG on save, widget config loses type (class name) values
+    - DONE BUG Save not updating json - only updates if you switch left hand side tabs first
+    - DONE BUG Forced reload on save TEST Save errors after json updated (does save correctly to server) - page reload fails on widget line 201 (type not defined)
+   - DONE findWorkplace working
+    - DONE need to add valueConstraint support to options builder
+    - DONE need to add value query to query builder
+    - DONE move *Workplace functions from MLJS in to Workplace Context (they use structured search)
+   - DONE MLJS Core modifications
+    - DONE Added element, json key container, element container constraints to options builder
+    - DONE Added element, container, queries to query builder
+   - Page Settings tab
+    - Change of layout working, updating on screen live
+     - Check for unknown zone names, and move to last zone in widget
+   - Widgets tab
+    - Add layouts to widgets list in own section at top
+    - Make widget list scroll internally (so it doesn't distort lower tabs' positions)
+    - Validate new Config wrapper instances
+     - Add/remove multiple sub configs (highcharts especially)
+     - Validate for context config too
+   - IN PROGRESS Context configuration for Workplace
+    - IN PROGRESS left hand side add, list contexts
+    - Search context config
+     - TEST blank getConfigurationDefinition, setConfiguration
+     - linked widget list
+    - semantic context config
+     - TEST blank getConfigurationDefinition, setConfiguration
+     - linked widget list
+    - document context config
+     - TEST blank getConfigurationDefinition, setConfiguration
+     - linked widget list
     - DEFERRED alert context
    - TEST Enable all widgets for Workplace
     - DONE searchbar

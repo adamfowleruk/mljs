@@ -501,12 +501,14 @@ com.marklogic.widgets.layouts.helper.extendLayout = function(layoutInstance,cont
     for (var i = 1, max = arr.length, ass;i < max;i++) {
       mljs.defaultconnection.logger.debug("layout<class>._genZones: zone: " + zone + " index: " + i);
       ass = arr[i];
-      // create PlaceHolder HTML
-      var elid = self.createPlaceholder(zone);
-      // draw widget now? - NO (can be done afterwards safely as part of full page load)
-      var newAss = self.registerAssignment(elid,ass);
+      if (undefined != ass) {
+        // create PlaceHolder HTML
+        var elid = self.createPlaceholder(zone);
+        // draw widget now? - NO (can be done afterwards safely as part of full page load)
+        var newAss = self.registerAssignment(elid,ass);
 
-      //s += self._ass(zone,ass);
+        //s += self._ass(zone,ass);
+      }
     }
     //self._replaceZone(zone,s);
   };
@@ -936,6 +938,7 @@ com.marklogic.widgets.workplacecontext = function() {
 
   this._instanceNames = {}; // [shortname] -> next available instance id or null
 
+  this._linker = new com.marklogic.events.Linker();
   this.updatePublisher = new com.marklogic.events.Publisher(); // page loaded from server
   this._myPagesPublisher = new com.marklogic.events.Publisher(); // fires my pages updated event updateMyPages(pageArray)
 };
@@ -1057,7 +1060,8 @@ com.marklogic.widgets.workplacecontext.prototype.save = function(callback) { // 
   var self = this;
   this.saveWorkplace(this._json,this._uri,null,function(result) {
     console.log("WORKPLACE SAVED");
-    self._fireUpdate();
+    self.loadPage(self._uri); // tries to remove all internal config and reload
+    //self._fireUpdate();
     callback();
   });
 };
@@ -1104,12 +1108,13 @@ com.marklogic.widgets.workplacecontext.prototype.findWorkplace = function(pageur
   // TODO ensure we ask for RAW results, limit 1
   // TODO support multiple users (ASSUME: security handling visibility for same url, different config)
   var ob = this.db.createOptions();
-  ob.valueConstraint("pageurl","pageurl",ob.JSON)
+  ob.valueConstraint("item","item",ob.JSON)
+    .jsonContainerConstraint("urls","urls")
     .returnFacets(false)
     .returnResults(true)
     .raw();
   var qb = this.db.createQuery();
-  qb.query(qb.value("pageurl",pageurl));
+  qb.query(qb.container("urls",qb.value("item",pageurl)));
   var sc = this.db.createSearchContext();
   sc.setOptions("mljsFindWorkplace",ob); // will fail on multi user system - need to use combined query dynamically
   sc.addResultsListener(function(results) {
@@ -1390,21 +1395,25 @@ com.marklogic.widgets.workplacecontext.prototype.loadPage = function(jsonOrStrin
     var self = this;
     this.findWorkplace(jsonOrString,function(result) {
       if (result.inError && undefined != json_opt) {
+        mljs.defaultconnection.logger.debug("workplacecontext.loadPage: findWorkplace call resulted in error: " + result.detail);
         // fall back to default
         self._uri = jsonOrString;
         self._json = json_opt;
       } else {
         // could have succeeded, but found none!
         if (undefined != result.doc) {
+          mljs.defaultconnection.logger.debug("workplacecontext.loadPage: Found workplace with uri: " + result.doc.uri);
           // assume just one
           self._uri = result.doc.uri;
           self._json = result.doc.content;
         } else {
+          mljs.defaultconnection.logger.debug("workplacecontext.loadPage: findWorkplace worked, but with no result");
           self._uri = jsonOrString;
           self._json = json_opt;
         }
       }
       if (undefined != self._json) {
+        mljs.defaultconnection.logger.debug("workplacecontext.loadPage: Processing page JSON");
         if ("string" == typeof (self._json)) {
           self._json = JSON.parse(self._json);
         }
@@ -1453,10 +1462,31 @@ com.marklogic.widgets.workplacecontext.prototype.register = function(widget) {
     widget.setWorkplaceContext(this);
   }
   if (undefined != widget.updateWorkplace) {
-    this.addWorkplaceUpdateListener(function(wp) {widget.updateWorkplace(wp);});
+    var func = function(wp) {widget.updateWorkplace(wp);};
+    this._linker.link(widget,"WorkplaceUpdateListener",func);
+    this.addWorkplaceUpdateListener(func);
   }
   if (undefined != widget.updateMyPages) {
-    this._myPagesPublisher.subscribe(function(pages) {widget.updateMyPages(pages);});
+    var func = function(pages) {widget.updateMyPages(pages);};
+    this._linker.link(widget,"myPagesPublisher",func);
+    this._myPagesPublisher.subscribe(func);
+  }
+};
+
+/**
+ * Unregisters a workplace admin widget with this context
+ *
+ * @param {object} widget - The widget to unregister
+ */
+com.marklogic.widgets.workplacecontext.prototype.unregister = function(widget) {
+
+  if (undefined != widget.updateWorkplace) {
+    var func = this._linker.find(widget,"WorkplaceUpdateListener");
+    this.removeWorkplaceUpdateListener(func);
+  }
+  if (undefined != widget.updateMyPages) {
+    var func = this._linker.find(widget,"myPagesPublisher");
+    this._myPagesPublisher.unsubscribe(func);
   }
 };
 
@@ -1482,7 +1512,7 @@ com.marklogic.widgets.workplacecontext.prototype.addWorkplaceUpdateListener = fu
  *
  * @param {function} lis - The listener function to invoke
  */
-com.marklogic.widgets.workplacecontext.prototype.removeWorkplaceUpdatelistener = function(lis) {
+com.marklogic.widgets.workplacecontext.prototype.removeWorkplaceUpdateListener = function(lis) {
   this.updatePublisher.unsubscribe(lis);
 };
 
@@ -1711,7 +1741,20 @@ com.marklogic.widgets.workplaceadmin.prototype._refresh = function() {
   str += "  </div>";
 
   str += "  <div id='" + this.container + "-contexts-heading' class='workplaceadmin-contexts-heading subtitle active'>Contexts</div>";
-  str += "  <div id='" + this.container + "-contexts-content' class='workplaceadmin-contexts-content hidden'>TODO</div>";
+  str += "  <div id='" + this.container + "-contexts-content' class='workplaceadmin-contexts-content hidden'>";
+  str += "   <div id='" + this.container + "-contexts-list' class='workplaceadmin-contexts-list'><i>None</i></div>";
+  str += "   <div id='" + this.container + "-contexts-add' class='workplaceadmin-contexts-add'>";
+  str += "<table class='mljstable'>";
+  str += "<tr><td>Add:</td><td>";
+  str += "<select id='" + this.container + "-contexts-add-dropdown'>";
+  str += "  <option value='SearchContext' title='Search Context' id='" + this.container + "-contextselect-searchcontext'>Search Context</option>";
+  str += "  <option value='SemanticContext' title='Semantic Context' id='" + this.container + "-contextselect-semanticcontext'>Semantic Context</option>";
+  str += "  <option value='DocumentContext' title='Document Context' id='" + this.container + "-contextselect-searchcontext'>Document Context</option>";
+  str += "</select>";
+  str += "</td></tr>";
+  str += "</table>";
+  str += "   </div>";
+  str += "  </div>";
   str += "  <div id='" + this.container + "-actions-heading' class='workplaceadmin-actions-heading subtitle active'>Actions</div>";
   str += "  <div id='" + this.container + "-actions-content' class='workplaceadmin-actions-content hidden'>TODO</div>";
   str += "  <div class='workplaceadmin-buttonbar'>";
@@ -1720,6 +1763,8 @@ com.marklogic.widgets.workplaceadmin.prototype._refresh = function() {
   str += "  </div>";
   str += " </div>";
   str += " <div id='" + this.container + "-config' class='workplaceadmin-config container_12'>";
+  str += "  <div id='" + this.container + "-config-layout'></div>";
+  str += "  <div id='" + this.container + "-config-contexts'></div>";
   str += " </div>";
   str += "</div>";
 
@@ -1754,6 +1799,10 @@ com.marklogic.widgets.workplaceadmin.prototype._refresh = function() {
   };
   document.getElementById(this.container + "-save").onclick = function(evt) {
     self._persistTabChanges();
+
+    // Remove our listeners (so we can kill their UI safely)
+    self._workplaceContext.unregister(self); // TODO widget config wrappers too (if applicable?)
+
     self._workplaceContext.save(function(result) {
       // TODO do something like show a save message
       self.closePublisher.publish(true);
@@ -1769,10 +1818,11 @@ com.marklogic.widgets.workplaceadmin.prototype._persistTabChanges = function() {
       document.getElementById(this.container + "-page-urls").innerHTML.split(","),
       document.getElementById(this.container + "-page-layout").value,
       false); // TODO get shared status from checkbox
-  } else if ("widgets" == this._currentTab) {
+  }
+  //if ("widgets" == this._currentTab) { // Can be adjusted whilst on page, widgets and contexts tab too
     // save layout
     this._saveLayout();
-  }
+  //}
 };
 
 com.marklogic.widgets.workplaceadmin.prototype._showTab = function(tab) {
@@ -1839,7 +1889,7 @@ com.marklogic.widgets.workplaceadmin.prototype._addClassToZone = function(widget
   } else {
     cls = {};
   }
-  wgt.wrap(widget.widget,cls,cfg.config);
+  wgt.wrap(widget.widget,widgetclass,cls,cfg.config);
 
   // now move new widget up one (so it's before the drop zone it was dropped on to)
   //if (undefined == order) {
@@ -1899,7 +1949,9 @@ com.marklogic.widgets.workplaceadmin.prototype.updateWorkplace = function(ctx) {
   // load top level layout for this page (or panel we are managing, at least)
   mljs.defaultconnection.logger.debug("workplaceadmin.updateWorkplace: Creating layout");
   mljs.defaultconnection.logger.debug("workplaceadmin.updateWorkplace: Got JSON: " + JSON.stringify(json));
-  this._layout = new (com.marklogic.widgets.layouts[json.layout])(this.container + "-config");
+  this._layout = new (com.marklogic.widgets.layouts[json.layout])(this.container + "-config-layout");
+  com.marklogic.widgets.hide(document.getElementById(this.container + "-config-layout"),false);
+  com.marklogic.widgets.hide(document.getElementById(this.container + "-config-contexts"),true);
 
   // Go through assignments, generate IDs for each widget in each area
   var zones = this._layout.getZoneList();
@@ -1981,7 +2033,7 @@ com.marklogic.widgets.workplaceadmin.prototype.updateWorkplace = function(ctx) {
       } else {
         cls = {};
       }
-      wgt.wrap(widget.widget,cls,cfg.config);
+      wgt.wrap(widget.widget,cfg.type,cls,cfg.config);
     }
 
     // now add 'add to zone' widget
@@ -2001,7 +2053,51 @@ com.marklogic.widgets.workplaceadmin.prototype.updateWorkplace = function(ctx) {
   //document.getElementById(this.container + "-layoutselect-" + json.layout).selected = "selected"; // TODO check this works when switching pages
   document.getElementById(this.container + "-page-layout").value = json.layout;
 
+
+  // CONTEXT CONFIGURATION AREA
+  var contextListEl = document.getElementById(this.container + "-contexts-list");
+  var ctxStr = "";
+  for (var c = 0, maxc = json.contexts.length,ctx;c < maxc;c++) {
+    ctx = json.contexts[c];
+    ctxStr += "<div id='" + this.container + "-context-" + ctx.context + "' class='workplaceadmin-contexts-listitem'>" + ctx.context + "</div>";
+  }
+  contextListEl.innerHTML = ctxStr;
+
+  // Add click handlers for contexts
+  var addCtxHandler = function(ctxEl,json) {
+    ctxEl.onclick = function(event) {
+      // Show context configuration in RHS pane
+      // load content
+      var wrapper = new com.marklogic.widgets.configwrapper(self.container + "-config-contexts");
+      var classConfig = null;
+      if ("SearchContext" == json.type) {
+        classConfig = mljs.defaultconnection.searchcontext.getConfigurationDefinition();
+      } else if ("SemanticContext" == json.type) {
+        classConfig = mljs.defaultconnection.semanticcontext.getConfigurationDefinition();
+      } else if ("DocumentContext" == json.type) {
+        classConfig = mljs.defaultconnection.documentcontext.getConfigurationDefinition();
+      }
+      wrapper.wrap(json.context,json.type,classConfig,json.config);
+
+      // make visible
+      com.marklogic.widgets.hide(document.getElementById(self.container + "-config-layout"),true);
+      com.marklogic.widgets.hide(document.getElementById(self.container + "-config-contexts"),false);
+
+      // stop event propagation
+      event.stopPropagation();
+      return false;
+    };
+  };
+  for (var c = 0, maxc = json.contexts.length,ctx;c < maxc;c++) {
+    ctx = json.contexts[c];
+    var ctxEl = document.getElementById(this.container + "-context-" + ctx.context);
+    addCtxHandler(ctxEl,ctx);
+  }
+
+
   // TODO load other state information shown in left bar from JSON (is there any? Actions?)
+
+
 
   this._layout.printZoneInfo();
 
@@ -2072,6 +2168,7 @@ com.marklogic.widgets.configwrapper = function(container) {
   this._widgetName = "";
   this._configDescription = null;
   this._config = null;
+  this._type = null;
 
   this._workplaceContext = null;
   this.__nextID = 1;
@@ -2090,7 +2187,7 @@ com.marklogic.widgets.configwrapper.prototype.getWidgetName = function() {
  * Returns the fully qualified widget class
  */
 com.marklogic.widgets.configwrapper.prototype.getWidgetType = function() {
-  return this._configDescription.type;
+  return this._type;
 };
 
 /**
@@ -2131,10 +2228,11 @@ com.marklogic.widgets.configwrapper.prototype.onto = function(draggableClass,dro
  * @param {json} configDescription - The description (types, default value, legal config elements) for this widget's configuration
  * @param {json} currentConfig - The current JSON configuration object values
  */
-com.marklogic.widgets.configwrapper.prototype.wrap = function(widgetName,configDescription,currentConfig) {
+com.marklogic.widgets.configwrapper.prototype.wrap = function(widgetName,classname,configDescription,currentConfig) {
   this._widgetName = widgetName;
   this._configDescription = configDescription;
   this._config = currentConfig;
+  this._type = classname;
 
   this._updateWidgetConfig();
 };

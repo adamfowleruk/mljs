@@ -3644,6 +3644,8 @@ mljs.prototype.options.prototype.extractAttributeMetadata = function(elementname
 /**
  * Restricts all search parameters to the specified element.
  *
+ * @deprecated See {@see #elementContainerConstraint} .
+ *
  * {@link http://docs.marklogic.com/guide/rest-dev/appendixa#id_62771}
  *
  * @param {string} constraint_name - The name of the constraint to create
@@ -3651,9 +3653,9 @@ mljs.prototype.options.prototype.extractAttributeMetadata = function(elementname
  * @param {string} elementns - The namespace of the element to match
  * @param {string|Array} annotation_opt - The annotation to add to the constraint. MLJS uses annotation[0] as the display title, falling back to camel case constraint name if not specified
  */
-mljs.prototype.options.prototype.elementQuery = function(constraint_name,elementname,elementns,annotation_opt) {
+mljs.prototype.options.prototype.elementConstraint = function(constraint_name,elementname,elementns,annotation_opt) {
   this._includeSearchDefaults();
-  var con = {name: constraint_name, "element-query": {name: elementname, ns: elementns}};
+  var con = {name: constraint_name, "element": {name: elementname, ns: elementns}};
   if (undefined != annotation_opt) {
     if ("string" == typeof(annotation_opt)) {
       annotation_opt = [annotation_opt];
@@ -3663,6 +3665,64 @@ mljs.prototype.options.prototype.elementQuery = function(constraint_name,element
   this.addConstraint(con);
   return this;
 };
+mljs.prototype.options.prototype.elementQuery = mljs.prototype.options.prototype.elementConstraint;
+
+/**
+ * Restricts all search parameters to the specified json key.
+ *
+ * {@link http://docs.marklogic.com/guide/rest-dev/appendixa#id_62771}
+ *
+ * @param {string} constraint_name - The name of the constraint to create
+ * @param {string} jsonkey - The name of the json property (key) to match
+ * @param {string|Array} annotation_opt - The annotation to add to the constraint. MLJS uses annotation[0] as the display title, falling back to camel case constraint name if not specified
+ */
+mljs.prototype.options.prototype.jsonContainerConstraint = function(constraint_name,jsonkey,annotation_opt) {
+  this._includeSearchDefaults();
+  var con = {
+        "name": constraint_name,
+        "container": {
+          "json-key": jsonkey
+        }
+      };
+  if (undefined != annotation_opt) {
+    if ("string" == typeof(annotation_opt)) {
+      annotation_opt = [annotation_opt];
+    }
+    con.annotation = annotation_opt;
+  }
+  this.addConstraint(con);
+  return this;
+};
+
+/**
+ * Restricts all search parameters to the specified element.
+ *
+ * {@link http://docs.marklogic.com/guide/rest-dev/appendixa#id_62771}
+ *
+ * @param {string} constraint_name - The name of the constraint to create
+ * @param {string} elementname - The name of the element to match
+ * @param {string} elementns - The namespace of the element to match
+ * @param {string|Array} annotation_opt - The annotation to add to the constraint. MLJS uses annotation[0] as the display title, falling back to camel case constraint name if not specified
+ */
+mljs.prototype.options.prototype.elementContainerConstraint = function(constraint_name,elementname,elementns,annotation_opt) {
+  this._includeSearchDefaults();
+  var con = {
+        "name": constraint_name,
+        "container": {
+          "element": {name: elementname, ns: elementns}
+        }
+      };
+  if (undefined != annotation_opt) {
+    if ("string" == typeof(annotation_opt)) {
+      annotation_opt = [annotation_opt];
+    }
+    con.annotation = annotation_opt;
+  }
+  this.addConstraint(con);
+  return this;
+};
+
+
 
 /**
  * Defines a custom constraint. To skip one of parse, start or finish, set the function parameter to null.
@@ -4954,6 +5014,38 @@ mljs.prototype.query.prototype.or = function(query_opt) {
   }
 };
 
+
+/**
+ * Creates an element constraint query, with optional query to be applied to the contents of that element.
+ *
+ * @param {string} constraint_name - The name of the constraint configured in the search options for this element.
+ * @param {JSON} query - The query, or array of queries, to use within the constructed or query
+ */
+mljs.prototype.query.prototype.element = function(constraint_name,query_opt) {
+  if (Array.isArray(query_opt)) {
+    return { "element-constraint-query": {"constraint-name": constraint_name,"and-query": query_opt}};
+  } else {
+    // object
+    return { "element-constraint-query": {"constraint-name": constraint_name,"and-query": [query_opt]}};
+  }
+};
+
+
+/**
+ * Creates an container (element or JSON key) constraint query, with optional query to be applied to the contents of that element.
+ *
+ * @param {string} constraint_name - The name of the constraint configured in the search options for this container.
+ * @param {JSON} query - The query, or array of queries, to use within the constructed or query
+ */
+mljs.prototype.query.prototype.container = function(constraint_name,query_opt) {
+  if (Array.isArray(query_opt)) {
+    return { "container-constraint-query": {"constraint-name": constraint_name,"and-query": query_opt}};
+  } else {
+    // object
+    return { "container-constraint-query": {"constraint-name": constraint_name,"and-query": [query_opt]}};
+  }
+};
+
 /**
  * Creates a collection query, and returns it
  *
@@ -5334,6 +5426,38 @@ com.marklogic.events.Event = function(type,data) {
   this.data = data;
 };
 
+// LINKER
+com.marklogic.events.Linker = function() {
+  this._links = new Array();
+};
+
+com.marklogic.events.Linker.prototype.link = function(widget,funcname,func) {
+  var instance = this._find(widget,funcname);
+  if (null == instance) {
+    instance = {widget:widget,funcname:funcname,func:func};
+    this._links.push(instance);
+  }
+};
+
+com.marklogic.events.Linker.prototype._find = function(widget,funcname) {
+    var instance = null;
+    for (var i = 0, maxi = this._links.length;null == instance && i < maxi;i++) {
+      var candidate = this._links[i];
+      if (funcname == candidate.funcname && widget == candidate.widget) {
+        instance = candidate;
+      }
+    }
+    return instance;
+};
+
+com.marklogic.events.Linker.prototype.find = function(widget,funcname) {
+  var instance = this._find(widget,funcname);
+  if (null != instance) {
+    return instance.func;
+  }
+  return null;
+};
+
 // PUBLISHER
 
 /**
@@ -5477,6 +5601,8 @@ mljs.prototype.searchcontext = function() {
  */
 mljs.prototype.searchcontext.getConfigurationDefinition = function() {
   // TODO searchcontext config definition
+    return {
+    };
 };
 
 /**
@@ -7506,6 +7632,25 @@ mljs.prototype.semanticcontext = function() {
 };
 
 /**
+ * Returns the MLJS Workplace Context Configuration definition JSON object
+ */
+mljs.prototype.semanticcontext.getConfigurationDefinition = function() {
+  return {
+
+  };
+};
+
+
+/**
+ * Sets the configuration of this context using the MLJS Workplace JSON format.
+ *
+ * @param {JSON} config - The JSON configuration of this context.
+ */
+mljs.prototype.semanticcontext.prototype.setConfiguration = function(config) {
+  // TODO set configuration
+};
+
+/**
  * Sets the mode for this context. This affects how this context updates a searhcontext's content search when it finds Subjects related to a MarkLogicDocument.
  * See details on the MarkLogic sample ontology for details. This context will take the #uri value of a subject(or subjects) and generate an or-query of
  * document-query(uri) within the target search context.
@@ -7557,7 +7702,7 @@ mljs.prototype.semanticcontext.prototype.hasContentContext = function() {
  *
  * @return {tripleconfig} config - The tripleconfig being used to generate SPARQL by this semanticcontext
  */
-mljs.prototype.semanticcontext.prototype.getConfiguration = function() {
+mljs.prototype.semanticcontext.prototype.getTripleConfiguration = function() {
   if (null == this._tripleconfig) {
     this._tripleconfig = this.db.createTripleConfig();
   }
@@ -7569,7 +7714,7 @@ mljs.prototype.semanticcontext.prototype.getConfiguration = function() {
  *
  * @return {tripleconfig} config - The triple config instance used
  */
-mljs.prototype.semanticcontext.prototype.setConfiguration = function(conf) {
+mljs.prototype.semanticcontext.prototype.setTripleConfiguration = function(conf) {
   this._tripleconfig = conf;
 };
 
@@ -7927,6 +8072,24 @@ mljs.prototype.documentcontext = function() {
   this._errorPublisher = new com.marklogic.events.Publisher();
   this._confirmationPublisher = new com.marklogic.events.Publisher();
   this._facetsPublisher = new com.marklogic.events.Publisher();
+};
+
+/**
+ * Returns the MLJS Workplace Context Configuration definition JSON object
+ */
+mljs.prototype.documentcontext.getConfigurationDefinition = function() {
+  return {
+  };
+};
+
+
+/**
+ * Sets the configuration of this context using the MLJS Workplace JSON format.
+ *
+ * @param {JSON} config - The JSON configuration of this context.
+ */
+mljs.prototype.documentcontext.prototype.setConfiguration = function(config) {
+  // TODO set widget configuration
 };
 
 /**
