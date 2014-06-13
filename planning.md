@@ -2,7 +2,7 @@
 
 ## Upcoming releases
 
-Targets for 1.6 (Apr 2014) - Theme: MLJS Ease of Use in the Browser
+Targets for 1.6 (Jun 2014) - Theme: MLJS Ease of Use in the Browser
  - DONE BUG mljs.returnFacets returns true instead of this, breaking chaining
  - BUG Docs: Openlayers demo page hovering over marker causes null reference looking for result area by id to change css classes
  - Widgets: Workplace completion
@@ -40,16 +40,22 @@ Targets for 1.6 (Apr 2014) - Theme: MLJS Ease of Use in the Browser
     - Validate new Config wrapper instances
      - Add/remove multiple sub configs (highcharts especially)
      - Validate for context config too
+     - Check numeric/text field saving is working (appears to be ignored)
+    - Link new widgets to existing contexts automatically
+    - Automatically add one context of each type per page (new or existing)
    - IN PROGRESS Context configuration for Workplace
     - IN PROGRESS left hand side add, list contexts
     - Search context config
      - TEST blank getConfigurationDefinition, setConfiguration
+     - Basic context config settings
      - linked widget list
     - semantic context config
      - TEST blank getConfigurationDefinition, setConfiguration
+     - Basic context config settings
      - linked widget list
     - document context config
      - TEST blank getConfigurationDefinition, setConfiguration
+     - Basic context config settings
      - linked widget list
     - DEFERRED alert context
    - TEST Enable all widgets for Workplace
@@ -199,7 +205,7 @@ Targets for 1.6 (Apr 2014) - Theme: MLJS Ease of Use in the Browser
    - DONE foldering fix
    - IN PROGRESS re-register mljs-bower with bower guys
 
-Targets for 1.8 (May 2014) - Theme: Visualisations
+Targets for 1.8 (Aug 2014) - Theme: Visualisations
  - BUG Widgets: combined query - test against latest MarkLogic 7 build
  - BUG Widgets: Address Lookup: Google geocoder needs to fail gracefully if google libraries not available (offline mode)
  - Core: Search Context: Search context chaining
@@ -474,7 +480,7 @@ Floating Targets
     - Default REST Server search options set up (constraints)
    - Refactor: Move widgets' use of 960.css out in to a Layout instance, as config options on the assignment itself (not widget or layout)
 
-Targets for 1.9 (Jun 2014) Interim Release - Theme: Documentation
+Targets for 1.9 (Sep 2014) Interim Release - Theme: Documentation
  - Missed 1.2 (Dec 2013) - Medium Priority - targets
   - Docs: Tutorials
    - (Emil Zegers) RDB2RDF quick start tutorial
@@ -603,7 +609,7 @@ Targets for 1.9 (Jun 2014) Interim Release - Theme: Documentation
    - Widgets: DLS add retention rule widget
    - DONE Widgets: DLS declare search results as record widget
 
-Targets for 2.0 (Jul 2014) - Theme: Lifecycle
+Targets for 2.0 (Oct 2014) - Theme: Lifecycle
  - MarkLogic version 8 support completed
  - Widgets: HTML content editing widget (new doc, and existing document with specified element (E.g. body, comments) and configuration for what is permissable as content)
  - Widgets: Situational awareness and search renderer app (from BF sim)
@@ -619,7 +625,7 @@ Targets for 2.0 (Jul 2014) - Theme: Lifecycle
   - Refactor logging to make it less typing
   - Allow general logging configuration so as to hide/show messages easily for particular actions (for easier debugging)
 
-Targets for 2.1 (Aug 2014) Interim Release - Theme: Ease of migration to MLJS
+Targets for 2.1 (Nov 2014) Interim Release - Theme: Ease of migration to MLJS
  - MarkLogic version 8 fixes and additions
  - IN PROGRESS NodeJS: Node.js tests for all functionality now in core MLJS
   - DONE Convert all assert usage to  assert = require('chai').assert (better exception handling)
