@@ -1052,6 +1052,12 @@ div.log {
   font-weight: bold;
 }
 
+.mljswidget .config-context-links {
+  border: 1px solid grey;
+  padding: 2px;
+  margin-bottom: 5px;
+}
+
 /** Config wrapper widget - used by workplace admin **/
 .mljswidget .configwrapper {
   border: 1px solid grey;
