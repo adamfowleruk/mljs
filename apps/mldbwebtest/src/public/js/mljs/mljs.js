@@ -5600,9 +5600,16 @@ mljs.prototype.searchcontext = function() {
  * Returns the MLJS Workplace Context Configuration definition JSON object
  */
 mljs.prototype.searchcontext.getConfigurationDefinition = function() {
-  // TODO searchcontext config definition
-    return {
-    };
+  return {
+    options: {type: "string", default: "{}", title: "Options", description: "MarkLogic search options object."}, // TODO make this a JSON object
+    optionsName: {type: "string", default: "my-search-options", title: "Options Name", description: "Name of your search options."},
+    sortWord: {type: "string", default: "sort", title: "Sort Word", description: "The keyword in your search options for sorting."},
+    defaultQuery: {type: "string", default: "", title: "Default Query", description: "Default text query to use."},
+    collection: {type: "string", default: "", title: "Collection", description: "Collection to restrict results to."},
+    directory: {type: "string", default: "", title: "Directory", description: "Directory (URI path) to restrict results to."},
+    transform: {type: "string", default: "", title: "Transform", description: "Transform to apply to the search results object."},
+    format: {type: "string", default: "", title: "Format", description: "Format of the result."} // TODO enum for format
+  };
 };
 
 /**
@@ -7636,7 +7643,14 @@ mljs.prototype.semanticcontext = function() {
  */
 mljs.prototype.semanticcontext.getConfigurationDefinition = function() {
   return {
-
+    limit: {type: "positiveInteger", minimum: 1, default: 10, title: "Page size", description: "How many results to display (fetch) per page."},
+    contentMode: {type: "enum", default: "full", title: "Content Mode", description: "How to contribute a document-query to a search context.",
+      options: [
+        {value: "full", title: "Replace", description: "Replace the search with this document (uri) query."},
+        {value: "contribute", title: "Contribute", description: "Contribute this document (uri) query to the search."}
+      ]
+    } /*,
+    tripleConfig: {} // TODO serialization of the ontology configuration */
   };
 };
 
@@ -7647,7 +7661,8 @@ mljs.prototype.semanticcontext.getConfigurationDefinition = function() {
  * @param {JSON} config - The JSON configuration of this context.
  */
 mljs.prototype.semanticcontext.prototype.setConfiguration = function(config) {
-  // TODO set configuration
+  this._limit = config.limit;
+  this._contentMode = config.contentMode;
 };
 
 /**
@@ -8079,6 +8094,19 @@ mljs.prototype.documentcontext = function() {
  */
 mljs.prototype.documentcontext.getConfigurationDefinition = function() {
   return {
+    allowableProperties: {type: "multiple", minimum: 0, default: [], title: "Allowable Properties", description: "Properties to allow (none listed means all allowed)",
+      childDefinitions: {
+        name: {type: "string", default: "", title: "Property Name", description: "RDF full name of the property"},
+        title: {type: "string", default: "", title: "Property Title", description: "Human readable property title"},
+        cardinality: {type: "enum", default: "1", title: "Cardinality", description: "How many instances are possible",
+          options: [
+            {value: "1", title: "One", description: "Maximum of a single instance only"},
+            {value: "*", title: "Many", description: "No maximum"}
+          ]
+        }
+
+      }
+    }
   };
 };
 
@@ -8089,7 +8117,16 @@ mljs.prototype.documentcontext.getConfigurationDefinition = function() {
  * @param {JSON} config - The JSON configuration of this context.
  */
 mljs.prototype.documentcontext.prototype.setConfiguration = function(config) {
-  // TODO set widget configuration
+  this._allowableProperties = new Array();
+  var props = config.allowableProperties;
+  if (null != props) {
+    for (var p, maxp = props.legth,prop;p < maxp;p++) {
+      prop = props[p];
+      if (undefined != prop) { // array could have been modified. Sanity check only.
+        this._allowableProperties.push(prop);
+      }
+    }
+  }
 };
 
 /**

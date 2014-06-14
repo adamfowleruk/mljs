@@ -311,6 +311,21 @@ com.marklogic.widgets.hide = function(el,isHidden) {
   }
 };
 
+com.marklogic.widgets.getSelectValues = function(select) {
+  var result = new Array();
+  var options = select && select.options;
+  var opt;
+
+  for (var i=0, iLen=options.length; i<iLen; i++) {
+    opt = options[i];
+
+    if (opt.selected) {
+      result.push(opt.value || opt.text);
+    }
+  }
+  return result;
+};
+
 com.marklogic.widgets.addClass = function(el,classname) {
     var found = false;
     var attr = el.getAttribute("class");

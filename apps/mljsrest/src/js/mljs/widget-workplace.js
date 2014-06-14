@@ -1764,7 +1764,10 @@ com.marklogic.widgets.workplaceadmin.prototype._refresh = function() {
   str += " </div>";
   str += " <div id='" + this.container + "-config' class='workplaceadmin-config container_12'>";
   str += "  <div id='" + this.container + "-config-layout'></div>";
-  str += "  <div id='" + this.container + "-config-contexts'></div>";
+  str += "  <div id='" + this.container + "-config-contexts' class='container_12'>";
+  str += "   <div id='" + this.container + "-config-contexts-context' class='grid_6'></div>";
+  str += "   <div id='" + this.container + "-config-contexts-links' class='grid_6'></div>";
+  str += "  </div>";
   str += " </div>";
   str += "</div>";
 
@@ -1830,6 +1833,13 @@ com.marklogic.widgets.workplaceadmin.prototype._showTab = function(tab) {
   mljs.defaultconnection.logger.debug("workplaceadmin._showTab: Showing " + tab);
   com.marklogic.widgets.hide(document.getElementById(this.container + "-page-content"),("page" != tab));
   com.marklogic.widgets.hide(document.getElementById(this.container + "-widgets-content"),("widgets" != tab));
+  if ("page" == tab || "widgets" == tab) {
+    com.marklogic.widgets.hide(document.getElementById(this.container + "-config-layout"),false);
+    com.marklogic.widgets.hide(document.getElementById(this.container + "-config-contexts"),true);
+  } else {
+    com.marklogic.widgets.hide(document.getElementById(this.container + "-config-layout"),true);
+    com.marklogic.widgets.hide(document.getElementById(this.container + "-config-contexts"),false);
+  }
   com.marklogic.widgets.hide(document.getElementById(this.container + "-contexts-content"),("contexts" != tab));
   com.marklogic.widgets.hide(document.getElementById(this.container + "-actions-content"),("actions" != tab));
   this._currentTab = tab;
@@ -2057,27 +2067,51 @@ com.marklogic.widgets.workplaceadmin.prototype.updateWorkplace = function(ctx) {
   // CONTEXT CONFIGURATION AREA
   var contextListEl = document.getElementById(this.container + "-contexts-list");
   var ctxStr = "";
+  // TODO any need to save existing one, if shown? - NO? ConfigWrapper handles this live?
   for (var c = 0, maxc = json.contexts.length,ctx;c < maxc;c++) {
     ctx = json.contexts[c];
     ctxStr += "<div id='" + this.container + "-context-" + ctx.context + "' class='workplaceadmin-contexts-listitem'>" + ctx.context + "</div>";
   }
+
+  // Set output html
   contextListEl.innerHTML = ctxStr;
 
   // Add click handlers for contexts
-  var addCtxHandler = function(ctxEl,json) {
+  var addCtxHandler = function(ctxEl,ctxjson) {
     ctxEl.onclick = function(event) {
       // Show context configuration in RHS pane
       // load content
-      var wrapper = new com.marklogic.widgets.configwrapper(self.container + "-config-contexts");
+      var wrapper = new com.marklogic.widgets.configwrapper(self.container + "-config-contexts-context");
       var classConfig = null;
-      if ("SearchContext" == json.type) {
+      if ("SearchContext" == ctxjson.type) {
         classConfig = mljs.defaultconnection.searchcontext.getConfigurationDefinition();
-      } else if ("SemanticContext" == json.type) {
+      } else if ("SemanticContext" == ctxjson.type) {
         classConfig = mljs.defaultconnection.semanticcontext.getConfigurationDefinition();
-      } else if ("DocumentContext" == json.type) {
+      } else if ("DocumentContext" == ctxjson.type) {
         classConfig = mljs.defaultconnection.documentcontext.getConfigurationDefinition();
       }
-      wrapper.wrap(json.context,json.type,classConfig,json.config);
+      wrapper.wrap(ctxjson.context,ctxjson.type,classConfig,ctxjson.config);
+
+      // NOW LINKED WIDGETS LIST
+      var mine = new Array();
+      var str = "<div class='mljswidget config-context-links'><h3 class='subtitle'>Widgets to Register</h3>";
+      str += "<select size='10' multiple='multiple' id='" + self.container + "-config-contexts-links-link'>";
+      for (var w = 0, maxw = json.widgets.length,wgt;w < maxw;w++) {
+        wgt = json.widgets[w];
+        str += "<option ";
+        if (ctxjson.register.contains(wgt.widget)) {
+          str += "selected='selected' ";
+        }
+        str += "value='" + wgt.widget + "'>" + wgt.widget + "</widget>";
+      }
+      str += "</select></div>";
+      document.getElementById(self.container + "-config-contexts-links").innerHTML = str;
+
+      // action handlers
+      var selEl = document.getElementById(self.container + "-config-contexts-links-link");
+      selEl.onchange = function(evt) {
+        ctxjson.register = com.marklogic.widgets.getSelectValues(selEl);
+      };
 
       // make visible
       com.marklogic.widgets.hide(document.getElementById(self.container + "-config-layout"),true);
@@ -2265,6 +2299,10 @@ com.marklogic.widgets.configwrapper.prototype._genConfigHTML = function(json,def
     if ("string" == d.type) {
       addtitle();
       var val = c || d.default;
+      if ("object" == typeof(val)) {
+        // json string
+        val = JSON.stringify(val);
+      }
       str += "<input type='text' id='" + this.container + "-" + conf.id + "' value='" + val.htmlEscape() + "' />";
       conf.addhandler = function() {
         var el = document.getElementById(this.container + "-" + conf.id);

@@ -5,8 +5,8 @@
 Targets for 1.6 (Jun 2014) - Theme: MLJS Ease of Use in the Browser
  - DONE BUG mljs.returnFacets returns true instead of this, breaking chaining
  - BUG Docs: Openlayers demo page hovering over marker causes null reference looking for result area by id to change css classes
- - Widgets: Workplace completion
-  - Basics
+ - IN PROGRESS Widgets: Workplace completion
+  - IN PROGRESS Basics
    - DONE drag/drop reordering of widgets working
     - DONE Re-order existing ones on to each other's DZ
      - DONE Reverse change of order doesn't move the DZ too
@@ -24,6 +24,7 @@ Targets for 1.6 (Jun 2014) - Theme: MLJS Ease of Use in the Browser
     - DONE BUG on save, widget config loses type (class name) values
     - DONE BUG Save not updating json - only updates if you switch left hand side tabs first
     - DONE BUG Forced reload on save TEST Save errors after json updated (does save correctly to server) - page reload fails on widget line 201 (type not defined)
+    - BUG Drag & Drop of widgets not working now, either new classes or existing - no drop event?
    - DONE findWorkplace working
     - DONE need to add valueConstraint support to options builder
     - DONE need to add value query to query builder
@@ -35,7 +36,7 @@ Targets for 1.6 (Jun 2014) - Theme: MLJS Ease of Use in the Browser
     - Change of layout working, updating on screen live
      - Check for unknown zone names, and move to last zone in widget
    - Widgets tab
-    - Add layouts to widgets list in own section at top
+    - Add layouts to widgets class list in own section at top
     - Make widget list scroll internally (so it doesn't distort lower tabs' positions)
     - Validate new Config wrapper instances
      - Add/remove multiple sub configs (highcharts especially)
@@ -43,20 +44,20 @@ Targets for 1.6 (Jun 2014) - Theme: MLJS Ease of Use in the Browser
      - Check numeric/text field saving is working (appears to be ignored)
     - Link new widgets to existing contexts automatically
     - Automatically add one context of each type per page (new or existing)
-   - IN PROGRESS Context configuration for Workplace
-    - IN PROGRESS left hand side add, list contexts
-    - Search context config
+   - TEST Context configuration for Workplace
+    - TEST left hand side add, list contexts
+    - DONE Search context config
+     - DONE blank getConfigurationDefinition, setConfiguration
+     - DONE Basic context config settings
+     - DONE linked widget list
+    - TEST semantic context config
      - TEST blank getConfigurationDefinition, setConfiguration
-     - Basic context config settings
-     - linked widget list
-    - semantic context config
+     - TEST Basic context config settings
+     - DONE linked widget list
+    - TEST document context config
      - TEST blank getConfigurationDefinition, setConfiguration
-     - Basic context config settings
-     - linked widget list
-    - document context config
-     - TEST blank getConfigurationDefinition, setConfiguration
-     - Basic context config settings
-     - linked widget list
+     - TEST Basic context config settings
+     - DONE linked widget list
     - DEFERRED alert context
    - TEST Enable all widgets for Workplace
     - DONE searchbar
