@@ -5627,6 +5627,19 @@ mljs.prototype.searchcontext.prototype.setConfiguration = function(config) {
   this.transform = config.transform;
   this.transformParameters = config.transformParameters || {};
   this.format = config.format;
+
+  if (this.format == "") {
+    this.format = null;
+  }
+  if ("" == this.directory) {
+    this.directory = null;
+  }
+  if ("" == this.transform) {
+    this.transform = null;
+  }
+  if ("" == this.sortWord) {
+    this.transform = "sort";
+  }
 };
 
 /**

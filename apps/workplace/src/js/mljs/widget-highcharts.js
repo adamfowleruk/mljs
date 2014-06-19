@@ -113,7 +113,7 @@ com.marklogic.widgets.highcharts.getConfigurationDefinition = function() {
           ]
         },
         nameSource: {type: "string", default: "title", title: "Name Source", description: "The element, JSON key, facet or hardcoded value to use to find the series name (dot delimited)."},
-        autoCategories: {type: "boolean", default: false, title: "Auto Categories", description: "Whether to replace the default categories (month names) with values automatically calculated from the Category Source definition."},
+        autoCategories: {type: "boolean", default: true, title: "Auto Categories", description: "Whether to replace the default categories (month names) with values automatically calculated from the Category Source definition."},
         categorySourceType: {type: "enum", default: "element", title: "Category Source Type", description: "Where to get the Category from",
           options: [
             {value: "element", title: "Element or JSON key", description: "XML Element value or JSON key value"},

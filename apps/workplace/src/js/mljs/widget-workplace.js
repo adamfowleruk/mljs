@@ -996,10 +996,13 @@ com.marklogic.widgets.workplacecontext.prototype.resetWidgetConfig = function() 
 
 /**
  * Returns the next instance name for a class. E.g. com.marklogic.widgets.searchbar may return searchbar2
+ *
+ * @param {string} classname - The class of the next widget or context to create a numeric index for.
+ * @return {string} instanceName - The next available instance name, including number
  */
 com.marklogic.widgets.workplacecontext.prototype.nextWidgetName = function(classname) {
   // get last . character
-  var classString = classname.split(".").pop(); // TODO check this works on all browsers
+  var classString = classname.split(".").pop().toLowerCase(); // TODO check this works on all browsers
 
   var next = this._instanceNames[classString];
   if (undefined == next) {
@@ -1023,7 +1026,7 @@ com.marklogic.widgets.workplacecontext.prototype._addWidgetName = function(short
     if (undefined == next) {
       next = 0;
     }
-    if (next < number) {
+    if (next <= number) {
       this._instanceNames[classString] = number + 1;
     }
   } else {
@@ -1167,6 +1170,15 @@ com.marklogic.widgets.workplacecontext.prototype.setSummary = function(title, ur
 };
 
 /**
+ * Changes layout to that now specified. Does NOT update zone placements (done by workplace admin widget or your code)
+ *
+ * @param {string} newLayout - new layout class abbreviation (E.g. 'thinthick')
+ */
+com.marklogic.widgets.workplacecontext.prototype.setLayout = function(newLayout) {
+  this._json.layout = newLayout;
+};
+
+/**
  * Returns all widget configuration
  */
 com.marklogic.widgets.workplacecontext.prototype.getWidgets = function() {
@@ -1279,6 +1291,23 @@ com.marklogic.widgets.workplacecontext.prototype.addContext = function(name,type
 };
 
 /**
+ * Removes a context from this configuration
+ * @param {string} context - The context name (E.g. "searchcontext1")
+ */
+com.marklogic.widgets.workplacecontext.prototype.removeContext = function(context) {
+  var pos = -1;
+  for (var c = 0,maxc = this._json.contexts.length,ctx;c < maxc && (-1==pos);c++) {
+    ctx = this._json.contexts[c];
+    if (ctx.context == context) {
+      pos = c;
+    }
+  }
+  if (-1 != pos) {
+    this._json.contexts.splice(pos,1);
+  }
+};
+
+/**
  * Links a widget to a context (will invoke the register function on page loading)
  *
  * @param {string} widgetName - The configuration widget name. E.g. searchbar1
@@ -1378,6 +1407,10 @@ com.marklogic.widgets.workplacecontext.prototype._processConfig = function() {
   for (var i = 0, max = this._json.widgets.length,wgt;i < max;i++) {
     wgt = this._json.widgets[i];
     this._addWidgetName(wgt.widget);
+  }
+  for (var i = 0, max = this._json.contexts.length,ctx;i < max;i++) {
+    ctx = this._json.contexts[i];
+    this._addWidgetName(ctx.context);
   }
 };
 
@@ -1549,7 +1582,7 @@ com.marklogic.widgets.workplaceadmin = function(container) {
       {title: "Document Properties", classname: "com.marklogic.widgets.docproperties", description: "Shows the MarkLogic Properties of a Document."},
       {title: "XHTML Head Viewer", classname: "com.marklogic.widgets.docheadviewer", description: "Shows the Meta data elements within an XHTML document."},
       {title: "XHTML Content Viewer", classname: "com.marklogic.widgets.docviewer", description: "Displays XHTML content inline within a page."},
-      {title: "Data Explorer", classname: "com.marklogic.widgets.explorer", description: "HighCharts powered node diagram to explore semantic subjects and related document facets."},
+      {title: "Data Explorer", classname: "com.marklogic.widgets.graphexplorer", description: "HighCharts powered node diagram to explore semantic subjects and related document facets."},
       {title: "HighCharts", classname: "com.marklogic.widgets.highcharts", description: "HighCharts powered charting."},
       {title: "Google Kratu", classname: "com.marklogic.widgets.kratu", description: "Google Kratu tabular display of content and semantic search results."},
       /*
@@ -1746,11 +1779,12 @@ com.marklogic.widgets.workplaceadmin.prototype._refresh = function() {
   str += "   <div id='" + this.container + "-contexts-add' class='workplaceadmin-contexts-add'>";
   str += "<table class='mljstable'>";
   str += "<tr><td>Add:</td><td>";
-  str += "<select id='" + this.container + "-contexts-add-dropdown'>";
+  str += "<select id='" + this.container + "-contexts-add-dropdown' class='workplaceadmin-contexts-add-dropdown'>";
   str += "  <option value='SearchContext' title='Search Context' id='" + this.container + "-contextselect-searchcontext'>Search Context</option>";
   str += "  <option value='SemanticContext' title='Semantic Context' id='" + this.container + "-contextselect-semanticcontext'>Semantic Context</option>";
   str += "  <option value='DocumentContext' title='Document Context' id='" + this.container + "-contextselect-searchcontext'>Document Context</option>";
   str += "</select>";
+  str += "<span class='workplaceadmin-contexts-addcontext' id='" + this.container + "-contexts-add-button'>&nbsp;</span>";
   str += "</td></tr>";
   str += "</table>";
   str += "   </div>";
@@ -1794,6 +1828,62 @@ com.marklogic.widgets.workplaceadmin.prototype._refresh = function() {
   };
   document.getElementById(this.container + "-actions-heading").onclick = function(evt) {
     self._showTab("actions");
+  };
+  document.getElementById(this.container + "-contexts-add-button").onclick = function(evt) {
+    // add new context instance
+    var json = self._workplaceContext.getJson();
+    var className = document.getElementById(self.container + "-contexts-add-dropdown").value;
+    var ctxName = self._workplaceContext.nextWidgetName(className);
+    self._workplaceContext._addWidgetName(ctxName); // internal function call hackery - not nice
+    json.contexts.push({
+      context: ctxName, type: className, register:[], config: {}
+    });
+    // refresh contexts list
+    self._updateContextsList();
+  };
+
+  var layoutEl = document.getElementById(this.container + "-page-layout");
+  layoutEl.onchange = function() {
+    var val = layoutEl.value;
+
+    // update layout
+    // get new layout zones supported
+    var newLayout = new (com.marklogic.widgets.layouts[val])(self.container + "-config-layout");
+    var newZoneList = newLayout.getZoneList();
+    var lastZone = newZoneList[newZoneList.length - 1];
+
+    var json = self._workplaceContext.getJson();
+    var lastZoneIndex = 1;
+    for (var a = 0, maxa = json.assignments.length, ass;a < maxa;a++) {
+      ass = json.assignments[a];
+      if (ass.zone == lastZone && ass.index >= lastZoneIndex) {
+        lastZoneIndex = ass.index + 2; // 2 because of config wrapper widgets
+      }
+    }
+
+    var zoneList = self._layout.getZoneList();
+    // check existing assignments
+    var missingZones = new Array();
+    for (var z = 0,maxz = zoneList.length,zone;z < maxz;z++) {
+      zone = zoneList[z];
+      if (!newZoneList.contains(zone)) {
+        missingZones.push(zone);
+      }
+    }
+    for (var a = 0, maxa = json.assignments.length, ass;a < maxa;a++) {
+      ass = json.assignments[a];
+      if (missingZones.contains(ass.zone)) {
+        // if zone now doesn't exist, move widgets to last other zone
+        ass.zone = lastZone;
+        ass.index = lastZoneIndex++;
+      }
+    }
+    // TODO remove last zone drop zone from new zone, move new zones below widgets before each move
+
+    // update json.layout
+    self._workplaceContext.setLayout(val);
+    // fire workplace update event (refreshes entire admin interface - loses changes?)
+    self.updateWorkplace(self._workplaceContext);
   };
 
   document.getElementById(this.container + "-cancel").onclick = function(evt) {
@@ -1908,6 +1998,14 @@ com.marklogic.widgets.workplaceadmin.prototype._addClassToZone = function(widget
   //}
   this._layout.moveToPosition(widget.widget,zone,order); // should move it's spacer too
   // TODO move spacer and config wrapper widget independantly (don't rely on layout doing this for us - creates logical dependency)
+
+  // Auto register widget with all contexts present
+  var json = this._workplaceContext.getJson();
+  for (var c = 0,maxc = json.contexts.length,ctx;c < maxc;c++) {
+    ctx = json.contexts[c];
+    ctx.register.push(widget.widget);
+    // should auto update UI when switch to context config tab
+  }
 
   return widget;
 };
@@ -2065,16 +2163,54 @@ com.marklogic.widgets.workplaceadmin.prototype.updateWorkplace = function(ctx) {
 
 
   // CONTEXT CONFIGURATION AREA
+  this._updateContextsList();
+
+
+  // TODO load other state information shown in left bar from JSON (is there any? Actions?)
+
+
+
+  this._layout.printZoneInfo();
+
+  mljs.defaultconnection.logger.debug("workplaceadmin.updateWorkplace: Finished creating layout");
+};
+
+
+com.marklogic.widgets.workplaceadmin.prototype._updateContextsList = function() {
+  var self = this;
+  var json = this._workplaceContext.getJson();
+  var contexts = json.contexts;
+
   var contextListEl = document.getElementById(this.container + "-contexts-list");
   var ctxStr = "";
   // TODO any need to save existing one, if shown? - NO? ConfigWrapper handles this live?
-  for (var c = 0, maxc = json.contexts.length,ctx;c < maxc;c++) {
-    ctx = json.contexts[c];
-    ctxStr += "<div id='" + this.container + "-context-" + ctx.context + "' class='workplaceadmin-contexts-listitem'>" + ctx.context + "</div>";
+  for (var c = 0, maxc = contexts.length,ctx;c < maxc;c++) {
+    ctx = contexts[c];
+    ctxStr += "<div id='" + this.container + "-context-" + ctx.context + "' class='workplaceadmin-contexts-listitem'>";
+    ctxStr += "<span class='workplaceadmin-contexts-delcontext' id='" + this.container + "-context-name-" + ctx.context + "-del'>&nbsp;</span>";
+    ctxStr += "<span class='workplaceadmin-contexts-listitem-text'>" + ctx.context + " (" + ctx.type + ")</span> ";
+    ctxStr += "</div>";
   }
 
   // Set output html
   contextListEl.innerHTML = ctxStr;
+
+  var addDelHandler = function(ctx) {
+    var divelid = self.container + "-context-" + ctx.context;
+
+    var elid = self.container + "-context-name-" + ctx.context + "-del";
+    var delel = document.getElementById(elid);
+    delel.onclick = function(evt) {
+      // TODO if this deleted context is showing on the RHS at the moment, change to blank 'select a context' pane
+
+      // delete context from workplace context
+      self._workplaceContext.removeContext(ctx.context);
+
+      // delete html
+      var thediv = document.getElementById(divelid);
+      thediv.parentNode.removeChild(thediv);
+    };
+  };
 
   // Add click handlers for contexts
   var addCtxHandler = function(ctxEl,ctxjson) {
@@ -2122,24 +2258,13 @@ com.marklogic.widgets.workplaceadmin.prototype.updateWorkplace = function(ctx) {
       return false;
     };
   };
-  for (var c = 0, maxc = json.contexts.length,ctx;c < maxc;c++) {
-    ctx = json.contexts[c];
-    var ctxEl = document.getElementById(this.container + "-context-" + ctx.context);
+  for (var c = 0, maxc = contexts.length,ctx;c < maxc;c++) {
+    ctx = contexts[c];
+    var ctxEl = document.getElementById(self.container + "-context-" + ctx.context);
     addCtxHandler(ctxEl,ctx);
+    addDelHandler(ctx);
   }
-
-
-  // TODO load other state information shown in left bar from JSON (is there any? Actions?)
-
-
-
-  this._layout.printZoneInfo();
-
-  mljs.defaultconnection.logger.debug("workplaceadmin.updateWorkplace: Finished creating layout");
 };
-
-
-
 
 
 
@@ -2305,6 +2430,11 @@ com.marklogic.widgets.configwrapper.prototype._genConfigHTMLConf = function(json
     if (undefined == c) {
       val = d.default;
       usedDefault = true;
+    }
+    if (null == c) {
+      val = "";
+      json[name] = "";
+      usedDefault = false; // stops overriding with null default value
     }
     if ("object" == typeof(val)) {
       // json string

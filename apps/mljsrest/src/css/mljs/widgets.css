@@ -909,7 +909,7 @@ div.log {
   display: inline-block;
 }
 
-.tagcloud-value #hover {
+.tagcloud-value:hover {
   background-color: #D2D2D2;
   cursor: pointer;
 }
@@ -1006,7 +1006,9 @@ div.log {
 }
 
 .workplaceadmin-widgets-content {
-
+  overflow-y: scroll;
+  height: 572px;
+  overflow-x: visible;
 }
 
 .workplaceadmin-widgets-list {
@@ -1019,6 +1021,36 @@ div.log {
 
 .workplaceadmin-contexts-content {
 
+}
+
+.workplaceadmin .workplaceadmin-contexts-add-dropdown {
+  float:left;
+}
+
+.workplaceadmin .workplaceadmin-contexts-addcontext {
+  width: 23px;
+  height: 23px;
+  background-image: url(/images/mljs/add-vsmall.png);
+  background-repeat:no-repeat;
+  background-position:center center;
+  display:inline-block;
+}
+
+.workplaceadmin .workplaceadmin-contexts-listitem-text {
+  cursor: pointer;
+}
+
+.workplaceadmin .workplaceadmin-contexts-listitem-text:hover {
+  text-decoration: underline;
+}
+
+.workplaceadmin .workplaceadmin-contexts-delcontext {
+  width: 21px;
+  height: 21px;
+  background-image: url(/images/mljs/delete-vsmall.png);
+  background-repeat:no-repeat;
+  background-position:center center;
+  display:inline-block;
 }
 
 .workplaceadmin-actions-heading {
@@ -1040,15 +1072,15 @@ div.log {
 }
 
 .workplaceadmin-widgets-list-img {
-  width: 100px;
-  height:100px;
+  width: 95px;
+  height:95px;
   background-image: url(/images/mljs/question-mark.png);
   text-align: center;
 }
 
 .workplaceadmin-widgets-list-span {
-  font-size: 12pt;
-  padding-top: 35px;
+  font-size: 10pt;
+  padding-top: 30px;
   font-weight: bold;
 }
 

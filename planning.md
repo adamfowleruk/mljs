@@ -4,16 +4,19 @@
 
 Targets for 1.6 (Jun 2014) - Theme: MLJS Ease of Use in the Browser
  - Docs: Remove all uses of the searchpage widget in demos
-  - Ensure thinthick layout with embedded column layout works
-   - create columns layout for workplace
-   - Double check in Workplace app (uses Bootstrap only, not 960.css, unlike mljsrest test app)
+  - DEFERRED Ensure thinthick layout with embedded column layout works
+   - DEFERRED create columns layout for workplace
   - mljsrest - search.html
   - mljsrest - snippets.html
   - mldbwebtest - search
   - mldbwebtest - snippets
+ - Double check in Workplace app (uses Bootstrap only, not 960.css, unlike mljsrest test app)
  - Widgets: Various Widget Bugs
   - BUG Clicking on Bar chart value gives: Point clicked: x:0, series name:'animal', y:3 data: undefined
   - BUG highcharts configuration in Workplace 'thin' column overflows container
+  - BUG add data series button not working on newly dragged instance of highcharts widget
+  - DONE BUG empty strings in widget context config for directory, format, transform results in invalid searches
+  - DONE BUG autoCategories on highcharts was false by default, should be true
  - DEFERRED Widgets: Workplace UI feedback
   - DEFERRED auto expand/collapse drop zones on widget page
   - DEFERRED 'preview' settings from page edit overlay (perhaps by collapsing overlay to just a bar 25 px high)
@@ -57,42 +60,44 @@ Targets for 1.6 (Jun 2014) - Theme: MLJS Ease of Use in the Browser
    - DONE MLJS Core modifications
     - DONE Added element, json key container, element container constraints to options builder
     - DONE Added element, container, queries to query builder
-   - Page Settings tab
-    - Change of layout working, updating on screen live
-     - Check for unknown zone names, and move to last zone in widget
-   - IN PROGRESS Widgets tab
-    - Add layouts to widgets class list in own section at top
-    - Make widget list scroll internally (so it doesn't distort lower tabs' positions)
+   - DONE Page Settings tab
+    - DONE Change of layout working, updating on screen live
+     - DONE Check for unknown zone names, and move to last zone in widget
+   - DONE Widgets tab
+    - DONE Make widget list scroll internally (so it doesn't distort lower tabs' positions)
     - DONE Validate new Config wrapper instances
      - DONE Add/remove multiple sub configs (highcharts especially)
       - DONE BUG adding new multiple element for highcharts shows "cannot configure this widget" rather than config details
      - DONE Validate for context config too
      - DONE Check numeric/text field saving is working (appears to be ignored)
      - DONE BUG HighCharts ignoring configuration
-    - Link new widgets to existing contexts automatically
+    - DONE Link new widgets to existing contexts automatically
      - NA Does each widget definition require a supportedContexts array option? -> No, just add in Workplace by default
-     - Link to all contexts in this release
+     - DONE Link to all contexts in this release
      - DEFERRED come up with sensible auto registration for widgets with contexts on page (for multi contexts)
-    - Automatically add one context of each type per page (new or existing)
-   - IN PROGRESS Context configuration for Workplace
-    - TEST left hand side add, list contexts
+    - NA Automatically add one context of each type per page (new or existing)
+   - DONE Context configuration for Workplace
+    - DONE left hand side list contexts
     - DONE Search context config
      - DONE blank getConfigurationDefinition, setConfiguration
      - DONE Basic context config settings
      - DONE linked widget list
-    - TEST semantic context config
-     - TEST blank getConfigurationDefinition, setConfiguration
-     - TEST Basic context config settings
+    - DONE semantic context config
+     - DONE blank getConfigurationDefinition, setConfiguration
+     - DONE Basic context config settings
      - DONE linked widget list
-    - TEST document context config
-     - TEST blank getConfigurationDefinition, setConfiguration
-     - TEST Basic context config settings
+    - DONE document context config
+     - DONE blank getConfigurationDefinition, setConfiguration
+     - DONE Basic context config settings
      - DONE linked widget list
     - DEFERRED alert context
-    - Delete context button
-    - Show context type next to name
-    - Different cursor on context name
-    - make obvious that context name is a link
+    - DONE Create add context button and make it work
+    - DONE Delete context button
+    - DONE Show context type next to name
+    - DONE Different cursor on context name
+    - DONE make obvious that context name is a link
+    - DONE BUG buttons for add/remove contexts not lined up - use float:left on select/spans
+    - DONE BUG adding new context causes all context click and remove actions to fail
    - TEST Enable all widgets for Workplace
     - DONE searchbar
     - DONE searchselect
@@ -116,12 +121,17 @@ Targets for 1.6 (Jun 2014) - Theme: MLJS Ease of Use in the Browser
     - DEFERRED markings (non prod)
     - DEFERRED rdb2rdf (non prod)
     - TEST Add all production ready widgets as admissable in the Workplace widget's default configuration
+     - NA Files not included in Workplace demo - BUG cooccurence has no getConfigurationDefinition function
+    - DONE BUG null appearing as text when used as default value for string fields
+    - BUG repeatedly dragging new widget classes on to layout causes top widget only to be rendered, to first two parts of zone
    - remove widget button on heading for each widget on UI
-   - TEST multiple layouts working
-    - Each individually selected
-    - Transition between different selected layouts (widgets moved on to zones)
    - Page load actions
-   - Icons for widgets
+    - searchcontext.doSimpleQuery(string)
+   - Usefulness fixes - without which widgets are pointless
+    - Configure tripleconfig in semanticcontext
+    - Link semantic context to document context for MarkLogic Document ontology links
+    - search results: Ability to specify list of custom renderer objects by classname
+   - DEFERRED Icons for widgets
   - TEST Widgets: Application Navigation widget
    - TEST One tab per Workplace in current app, sends to appropriate URL
    - DEFERRED Allow workplaces to be kept instead in a drop down menu
@@ -180,7 +190,9 @@ Targets for 1.6 (Jun 2014) - Theme: MLJS Ease of Use in the Browser
    - Ask about info panel headings on interaction vs. results panels
  - Advanced workplace functionality
   - application wide settings
+   - By default exclude all workplace admin collection documents from search (additionalProperties, searchoptions, in searchcontext)
    - Widget: list/create/remove search options
+    - automatically used a textarea instead of an input box if large string used
    - Widget: edit search options
     - handle basic search options
      - options name
@@ -241,6 +253,10 @@ Targets for 1.6 (Jun 2014) - Theme: MLJS Ease of Use in the Browser
    - IN PROGRESS re-register mljs-bower with bower guys
 
 Targets for 1.8 (Aug 2014) - Theme: Visualisations
+ - Workplace additions
+  - Allow sublayouts
+   - Have all layouts mixin getConfigurationDefinition and setConfiguration functions
+   - Add layouts to widgets class list in own section at top
  - Track code commented TODOs in this document
  - BUG Widgets: combined query - test against latest MarkLogic 7 build
  - BUG Widgets: Address Lookup: Google geocoder needs to fail gracefully if google libraries not available (offline mode)
