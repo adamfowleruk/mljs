@@ -2274,129 +2274,277 @@ com.marklogic.widgets.configwrapper.prototype.wrap = function(widgetName,classna
 com.marklogic.widgets.configwrapper.prototype._updateWidgetConfig = function() {
   // update UI for this configuration
   document.getElementById(this.container + "-name").innerHTML = this._widgetName;
-  document.getElementById(this.container + "-cfg").innerHTML = this._genConfigHTML(this._config,this._configDescription,0);
+  this._genConfigHTML(this._config,this._configDescription,0,this.container + "-cfg");
 };
 
-com.marklogic.widgets.configwrapper.prototype._genConfigHTML = function(json,def,level) {
-  var gotConfig = false;
-  var str = "<table class='configwrapper-table'>";
-  for (var name in json) {
-    gotConfig = true;
 
-    // get actual current config values (if specified, if not use defaults from definition)
-    var c = json[name];
-    // get config descriptor for this element - get type from there, not introspection (more exacting)
-    var d = def[name];
+com.marklogic.widgets.configwrapper.prototype._genConfigHTMLConf = function(json,def,level,name,confslist) {
+  var str = "";
 
-    str += "<tr>";
-    var addtitle = function() {
-      str += "<td title='" + d.description + "'>" + d.title + "</td><td>";
+  // get actual current config values (if specified, if not use defaults from definition)
+  var c = undefined;
+  if (undefined != json) {
+    c = json[name];
+  }
+  // get config descriptor for this element - get type from there, not introspection (more exacting)
+  var d = def[name];
+
+  str += "<tr>";
+  var addtitle = function() {
+    str += "<td title='" + d.description + "'>" + d.title + "</td><td>";
+  };
+
+  var conf = {id: this.__nextID++, json: c, def: d,str: ""};
+  var self = this;
+
+  var usedDefault = false;
+
+  if ("string" == d.type) {
+    addtitle();
+    var val = c;
+    if (undefined == c) {
+      val = d.default;
+      usedDefault = true;
+    }
+    if ("object" == typeof(val)) {
+      // json string
+      val = JSON.stringify(val);
+    }
+    str += "<input type='text' id='" + this.container + "-" + conf.id + "' value='" + val.htmlEscape() + "' />";
+    conf.addhandler = function() {
+      var el = document.getElementById(self.container + "-" + conf.id);
+      el.onchange = function() {
+        json[name] = el.value;
+      };
     };
-
-    var conf = {id: this.__nextID++, json: c, def: d};
-    var self = this;
-
-    if ("string" == d.type) {
-      addtitle();
-      var val = c || d.default;
-      if ("object" == typeof(val)) {
-        // json string
-        val = JSON.stringify(val);
+  } else if ("enum" == d.type) {
+    addtitle();
+    var val = c;
+    if (undefined == c) {
+      val = d.default;
+      usedDefault = true;
+    }
+    str += "<select id='" + this.container + "-" + conf.id + "'>";
+    for (var i = 0,opt,max=d.options.length; i < max;i++) {
+      opt = d.options[i];
+      str += "<option value='" + opt.value + "' title='" + opt.description + "' ";
+      if (opt.value === val) {
+        str += "selected='selected' ";
       }
-      str += "<input type='text' id='" + this.container + "-" + conf.id + "' value='" + val.htmlEscape() + "' />";
-      conf.addhandler = function() {
-        var el = document.getElementById(this.container + "-" + conf.id);
-        el.onchange = function() {
-          json[name] = el.value;
-        };
+      str += ">" + opt.title + "</option>"; // TODO selected=selected if select.value doesn't work
+    }
+    str += "</select>";
+    conf.addhandler = function() {
+      var el = document.getElementById(self.container + "-" + conf.id);
+      el.onchange = function() {
+        json[name] = el.value;
       };
-    } else if ("enum" == d.type) {
-      addtitle();
-      var val = c || d.default;
-      str += "<select id='" + this.container + "-" + conf.id + "' value='" + val.htmlEscape() + "'>"; // TODO check setting value here works
-      for (var i = 0,opt,max=d.options.length; i < max;i++) {
-        opt = d.options[i];
-        str += "<option value='" + opt.value + "' title='" + opt.description + "' ";
-        if (opt.value == val) {
-          str += "selected='selected' ";
-        }
-        str += ">" + opt.title + "</option>"; // TODO selected=selected if select.value doesn't work
-      }
-      str += "</select>";
-      conf.addhandler = function() {
-        var el = document.getElementById(this.container + "-" + conf.id);
-        el.onchange = function() {
-          json[name] = el.value;
-        };
-      };
-    } else if ("positiveInteger" == d.type) {
-      addtitle();
-      var val = "" + (c || d.default);
-      // handle min/max - via event handlers on +/- and manual changing
-      // handle invalid (E.g. text) values - try { 1* val} catch (oopsie) and ""+floor(val) == ""+val (integer not float)
-      str += "<input type='text' id='" + conf.id + "' value='" + val.htmlEscape() + "' />";
-      str += "<span class='configwrapper-increment' id='" + this.container + "-" + conf.id + "-increment'>&nbsp;</span>";
-      str += "<span class='configwrapper-decrement' id='" + this.container + "-" + conf.id + "-decrement'>&nbsp;</span>";
-      conf.addhandler = function() {
-        var el = document.getElementById(this.container + "-" + conf.id);
-        el.onchange = function() {
-          // validate value. If crap, use current value
-          var val = el.value;
-          try {
-            if ( (("" + val) == ("" + Math.floor(val))) &&
-                 ((undefined == d.minimum) || (undefined != d.minimum && val >= d.minimum)) &&
-                 ((undefined == d.maximum) || (undefined != d.maximum && val <= d.maximum)) ) {
-              // valid value;
-              json[name] = val;
-            } else {
-              el.value = json[name];
-            }
-          } catch (numberex) {
-            // invalid value = reset
+    };
+  } else if ("positiveInteger" == d.type) {
+    addtitle();
+    var val = c;
+    if (undefined == c) {
+      val = "" + d.default;
+      usedDefault = true;
+    } else {
+      val = "" + val;
+    }
+    // handle min/max - via event handlers on +/- and manual changing
+    // handle invalid (E.g. text) values - try { 1* val} catch (oopsie) and ""+floor(val) == ""+val (integer not float)
+    str += "<input type='text' id='" + self.container + "-" + conf.id + "' value='" + val.htmlEscape() + "' />";
+    str += "<span class='configwrapper-increment' id='" + self.container + "-" + conf.id + "-increment'>&nbsp;</span>";
+    str += "<span class='configwrapper-decrement' id='" + self.container + "-" + conf.id + "-decrement'>&nbsp;</span>";
+    conf.addhandler = function() {
+      var el = document.getElementById(self.container + "-" + conf.id);
+      el.onchange = function() {
+        // validate value. If crap, use current value
+        var val = el.value;
+        try {
+          if ( (("" + val) == ("" + Math.floor(val))) &&
+               ((undefined == d.minimum) || (undefined != d.minimum && val >= d.minimum)) &&
+               ((undefined == d.maximum) || (undefined != d.maximum && val <= d.maximum)) ) {
+            // valid value;
+            mljs.defaultconnection.logger.debug("configwrapper: positiveInteger.onchange: Valid valud: " + val + " for " + name);
+            json[name] = val;
+          } else {
+            mljs.defaultconnection.logger.debug("configwrapper: positiveInteger.onchange: Invalid valid: " + val + " for " + name + ", resetting to: " + json[name]);
             el.value = json[name];
           }
-        };
+        } catch (numberex) {
+          // invalid value = reset
+          mljs.defaultconnection.logger.debug("configwrapper: positiveInteger.onchange: Number exception: " + numberex + " for " + name);
+          el.value = json[name];
+        }
       };
-    } else if ("boolean" == d.type) {
-      addtitle();
-      var val =  c || d.default;
-      str += "<input type='checkbox' name='" + this.container + "-" + conf.id + "' id='" + this.container + "-" + conf.id + "' ";
-      if (true === val) {
-        str += "checked='checked' ";
+    };
+  } else if ("boolean" == d.type) {
+    addtitle();
+    var val = c;
+    if (undefined == c) {
+      val = d.default;
+      usedDefault = true;
+    }
+    str += "<input type='checkbox' name='" + this.container + "-" + conf.id + "' id='" + this.container + "-" + conf.id + "' ";
+    if (true === val) {
+      str += "checked='checked' ";
+    }
+    str += "/>"; // TODO verify true and false work as expected
+    conf.addhandler = function() {
+      var el = document.getElementById(self.container + "-" + conf.id);
+      el.onchange = function() {
+        json[name] = el.checked;
+      };
+    };
+  } else if ("multiple" == d.type) {
+    str += "<td colspan='2'><div class='configwrapper-multiple-firstrow'>";
+
+    // TODO handle min/max - via event handlers
+
+    str += "<span>" + d.title + ":-</span>&nbsp;&nbsp;&nbsp;&nbsp;";
+    str += "<span class='configwrapper-addmultiple' id='" + this.container + "-" + conf.id + "-add'>&nbsp;</span></div>";
+    str += "<div class='configwrapper-multiple-indent'>";
+    str += "<table class='configwrapper-multiple-table' id='" + this.container + "-" + conf.id + "-table'>";
+
+    var dels = new Array();
+
+    if (Array.isArray(c)) {
+      var gotrows = false;
+      for (var i = 0; i < c.length;i++) {
+        gotrows = true;
+        str += "<tr id='" + this.container + "-" + conf.id + "-row-" + i + "'><td>" + (i + 1) +
+          ":&nbsp;<br/><span class='configwrapper-delmultiple' id='" + this.container + "-" + conf.id + "-del-" + i +
+          "'>&nbsp;</span></td><td>";
+        str += this._genConfigHTMLInner(c[i],d.childDefinitions,level + 1,confslist);
+        dels.push({
+          elid: this.container + "-" + conf.id + "-del-" + i,
+          json: c[i],
+          def: d.childDefinitions,
+          parentJson: c,
+          index: i,
+          id: conf.id
+        });
+        str += "</td></tr>";
       }
-      str += ">" + "</input>"; // TODO verify true and false work as expected
-      conf.addhandler = function() {
-        var el = document.getElementById(this.container + "-" + conf.id);
-        el.onchange = function() {
-          json[name] = el.checked;
-        };
-      };
-    } else if ("multiple" == d.type) {
-      str += "<td colspan='2'><div class='configwrapper-multiple-firstrow'>";
-      // TODO handle min/max - via event handlers
-      str += "<span>" + d.title + ":-</span>&nbsp;&nbsp;&nbsp;&nbsp;";
-      str += "<span class='configwrapper-addmultiple' id='" + this.container + "-" + conf.id + "-add'>&nbsp;</span></div>";
-      str += "<div class='configwrapper-multiple-indent'>";
-      str += "<table class='configwrapper-multiple-table' id='" + this.container + "-" + conf.id + "-table'>";
-      if (Array.isArray(c)) {
-        var gotrows = false;
-        for (var i = 0; i < c.length;i++) {
-          gotrows = true;
-          str += "<tr><td>" + (i + 1) + ":&nbsp;<br/><span class='configwrapper-delmultiple' id='" + this.container + "-" + conf.id + "-del'>&nbsp;</span></td><td>";
-          str += this._genConfigHTML(c[i],d.childDefinitions,level + 1);
-          str += "</td></tr>";
-        }
-        if (!gotrows) {
-          // show empty row, +/- buttons only
-        }
-      } else {
+      if (!gotrows) {
+        // empty series array
         // show empty row, +/- buttons only
       }
-      str += "</table>";
-      str += "</div>";
+
+      self._addMultiHandler(c,d,conf,level,dels);
+
+
+    } else {
+      // no config value present (new widget?)
+      // show empty row, +/- buttons only
+      json[name] = [];
+    }
+    str += "</table>";
+    str += "</div>";
+  }
+  if (usedDefault) {
+    json[name] = d.default;
+  }
+  str += "</td></tr>";
+  confslist.push(conf);
+  return str;
+};
+
+com.marklogic.widgets.configwrapper.prototype._addDelHandler = function(del,c) {
+  var self = this;
+
+  mljs.defaultconnection.logger.debug("In addDelHandler");
+  var delEl = document.getElementById(del.elid);
+  delEl.onclick = function(evt) {
+    // delete instance in array (splice)
+    c.splice(del.index,1);
+    // update UI (delete row element)
+    var row = document.getElementById(self.container + "-" + del.id + "-row-" + del.index);
+    row.parentNode.removeChild(row);
+  };
+  mljs.defaultconnection.logger.debug("End addDelHandler");
+
+};
+
+com.marklogic.widgets.configwrapper.prototype._addMultiHandler = function(c,d,conf,level,dels) {
+  var self = this;
+
+
+  conf.addhandler = function() {
+    mljs.defaultconnection.logger.debug("In multiple.addhandler");
+    var addEl = document.getElementById(self.container + "-" + conf.id + "-add");
+    addEl.onclick = function(evt) {
+      // add element to array
+      c.push({});
+
+      // create element for row first
+      var parentEl = document.getElementById(self.container + "-" + conf.id + "-table");
+
+      // TODO Do we need to sanity check firefox editing table to include tbody element?
+
+      var rowElId = self.container + "-" + conf.id + "-row-" + (c.length - 1);
+      var elid = rowElId + "-content";
+      var newStr = "<td>" + (c.length) +
+        ":&nbsp;<br/><span class='configwrapper-delmultiple' id='" + self.container + "-" + conf.id + "-del-" + (c.length - 1) +
+        "'>&nbsp;</span></td><td id='" + elid + "'></td>";
+      var tr = document.createElement("tr");
+      tr.setAttribute("id",rowElId);
+      parentEl.appendChild(tr);
+      tr.innerHTML = newStr;
+
+      // add delete handler here
+      self._addDelHandler({
+        elid: self.container + "-" + conf.id + "-del-" + (c.length - 1),
+        json: c[c.length - 1],
+        def: d.childDefinitions,
+        parentJson: c,
+        index: c.length - 1,
+        id: conf.id
+      },c);
+      mljs.defaultconnection.logger.debug("calling genconfightml with c: " + JSON.stringify(c[c.length - 1]) + ", d.childDefinitions: " +
+        JSON.stringify(d.childDefinitions) + ", level: " + (level + 1) + ", elid: " + elid + ", d: " + JSON.stringify(d));
+
+
+      // add new instance
+      self._genConfigHTML(c[c.length - 1],d.childDefinitions,level + 1,elid);
+    };
+
+
+    // now do each delete
+    for (var de = 0, maxd = dels.length,del;de < maxd;de++) {
+      del = dels[de];
+      self._addDelHandler(del,c);
     }
 
-    str += "</td></tr>";
+
+    mljs.defaultconnection.logger.debug("End multiple.addhandler");
+  };
+};
+
+com.marklogic.widgets.configwrapper.prototype._genConfigHTML = function(json,def,level,elid) {
+
+  var confslist = new Array();
+
+  document.getElementById(elid).innerHTML = this._genConfigHTMLInner(json,def,level,confslist);
+
+  // event handlers
+  for (var c = 0,maxc = confslist.length,conf;c < maxc;c++) {
+    conf = confslist[c];
+    if (undefined != conf.addhandler) {
+      conf.addhandler();
+    }
+  }
+
+};
+
+com.marklogic.widgets.configwrapper.prototype._genConfigHTMLInner = function(json,def,level,confslist) {
+  var gotConfig = false;
+
+  var str = "<table class='configwrapper-table'>";
+  for (var name in def) {
+    gotConfig = true;
+
+    str += this._genConfigHTMLConf(json,def,level,name,confslist);
+
   }
   if (!gotConfig) {
     str += "<tr><td><i>This widget cannot be configured</i></td></tr>";
@@ -2411,12 +2559,13 @@ com.marklogic.widgets.configwrapper.prototype._init = function() {
   str += " <h3 class='subtitle' draggable='true' id='" + this.container + "-name'>" + this._widgetName + "</h3>"; // TODO show widget type title here too
   // show config elements on page
   str += "<div id='" + this.container + "-cfg'>";
-  str += this._genConfigHTML(this._config,this._configDescription,0);
   str += "</div>";
 
   str += "</div>";
 
   document.getElementById(this.container).innerHTML = str;
+
+  this._genConfigHTML(this._config,this._configDescription,0,this.container + "-cfg");
 };
 
 /**

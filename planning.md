@@ -3,6 +3,29 @@
 ## Upcoming releases
 
 Targets for 1.6 (Jun 2014) - Theme: MLJS Ease of Use in the Browser
+ - Docs: Remove all uses of the searchpage widget in demos
+  - Ensure thinthick layout with embedded column layout works
+   - create columns layout for workplace
+   - Double check in Workplace app (uses Bootstrap only, not 960.css, unlike mljsrest test app)
+  - mljsrest - search.html
+  - mljsrest - snippets.html
+  - mldbwebtest - search
+  - mldbwebtest - snippets
+ - Widgets: Various Widget Bugs
+  - BUG Clicking on Bar chart value gives: Point clicked: x:0, series name:'animal', y:3 data: undefined
+  - BUG highcharts configuration in Workplace 'thin' column overflows container
+ - DEFERRED Widgets: Workplace UI feedback
+  - DEFERRED auto expand/collapse drop zones on widget page
+  - DEFERRED 'preview' settings from page edit overlay (perhaps by collapsing overlay to just a bar 25 px high)
+ - DEFERRED Widgets: Future Workplace enhancement
+  - DEFERRED Lookup/drop down of highcharts facets from linked searchcontext(s) and their associated options
+  - DEFERRED Saved introspection of content for content value fields in highcharts configuration
+  - DEFERRED Allow specification of hard coded categories when not using auto categories
+  - DEFERRED Make hard coded categories driven from introspection of that field (lexicon or just range index required?)
+  - DEFERRED Visual configuration of search options
+   - DEFERRED List all available range indexes to make in to facets/sort ordering
+  - DEFERRED Visual configuration of extracted metadata for search results, with boolean logic for matches
+  - DEFERRED Allow XSLT specification for individual search result custom rendering
  - DONE BUG mljs.returnFacets returns true instead of this, breaking chaining
  - BUG Docs: Openlayers demo page hovering over marker causes null reference looking for result area by id to change css classes
  - IN PROGRESS Widgets: Workplace completion
@@ -24,7 +47,9 @@ Targets for 1.6 (Jun 2014) - Theme: MLJS Ease of Use in the Browser
     - DONE BUG on save, widget config loses type (class name) values
     - DONE BUG Save not updating json - only updates if you switch left hand side tabs first
     - DONE BUG Forced reload on save TEST Save errors after json updated (does save correctly to server) - page reload fails on widget line 201 (type not defined)
-    - BUG Drag & Drop of widgets not working now, either new classes or existing - no drop event?
+    - NA CANNOT REPRODUCE BUG Drag & Drop of widgets not working now, either new classes or existing - no drop event?
+    - DONE BUG dragging new highcharts widget on to page doesn't show any configuration items available
+    - DONE CONFIG - BUG config.series is undefined in highcharts when no series configured in workplace
    - DONE findWorkplace working
     - DONE need to add valueConstraint support to options builder
     - DONE need to add value query to query builder
@@ -35,16 +60,21 @@ Targets for 1.6 (Jun 2014) - Theme: MLJS Ease of Use in the Browser
    - Page Settings tab
     - Change of layout working, updating on screen live
      - Check for unknown zone names, and move to last zone in widget
-   - Widgets tab
+   - IN PROGRESS Widgets tab
     - Add layouts to widgets class list in own section at top
     - Make widget list scroll internally (so it doesn't distort lower tabs' positions)
-    - Validate new Config wrapper instances
-     - Add/remove multiple sub configs (highcharts especially)
-     - Validate for context config too
-     - Check numeric/text field saving is working (appears to be ignored)
+    - DONE Validate new Config wrapper instances
+     - DONE Add/remove multiple sub configs (highcharts especially)
+      - DONE BUG adding new multiple element for highcharts shows "cannot configure this widget" rather than config details
+     - DONE Validate for context config too
+     - DONE Check numeric/text field saving is working (appears to be ignored)
+     - DONE BUG HighCharts ignoring configuration
     - Link new widgets to existing contexts automatically
+     - NA Does each widget definition require a supportedContexts array option? -> No, just add in Workplace by default
+     - Link to all contexts in this release
+     - DEFERRED come up with sensible auto registration for widgets with contexts on page (for multi contexts)
     - Automatically add one context of each type per page (new or existing)
-   - TEST Context configuration for Workplace
+   - IN PROGRESS Context configuration for Workplace
     - TEST left hand side add, list contexts
     - DONE Search context config
      - DONE blank getConfigurationDefinition, setConfiguration
@@ -59,6 +89,10 @@ Targets for 1.6 (Jun 2014) - Theme: MLJS Ease of Use in the Browser
      - TEST Basic context config settings
      - DONE linked widget list
     - DEFERRED alert context
+    - Delete context button
+    - Show context type next to name
+    - Different cursor on context name
+    - make obvious that context name is a link
    - TEST Enable all widgets for Workplace
     - DONE searchbar
     - DONE searchselect
@@ -207,6 +241,7 @@ Targets for 1.6 (Jun 2014) - Theme: MLJS Ease of Use in the Browser
    - IN PROGRESS re-register mljs-bower with bower guys
 
 Targets for 1.8 (Aug 2014) - Theme: Visualisations
+ - Track code commented TODOs in this document
  - BUG Widgets: combined query - test against latest MarkLogic 7 build
  - BUG Widgets: Address Lookup: Google geocoder needs to fail gracefully if google libraries not available (offline mode)
  - Core: Search Context: Search context chaining
