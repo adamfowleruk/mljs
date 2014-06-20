@@ -14,9 +14,14 @@ Targets for 1.6 (Jun 2014) - Theme: MLJS Ease of Use in the Browser
  - Widgets: Various Widget Bugs
   - BUG Clicking on Bar chart value gives: Point clicked: x:0, series name:'animal', y:3 data: undefined
   - BUG highcharts configuration in Workplace 'thin' column overflows container
-  - BUG add data series button not working on newly dragged instance of highcharts widget
+  - DONE BUG add data series button not working on newly dragged instance of highcharts widget
   - DONE BUG empty strings in widget context config for directory, format, transform results in invalid searches
   - DONE BUG autoCategories on highcharts was false by default, should be true
+  - BUG widget-search.js line 560 - suggestions.suggestions is undefined (not a snippeting search)
+  - BUG clicking on contexts results in js error
+  - BUG Docs: Openlayers demo page hovering over marker causes null reference looking for result area by id to change css classes
+  - BUG workplace load executing two searches on single searchcontext (hence slow page load)
+  - BUG Need scroll bar adding to main widget layout area so it doesn't overflow
  - DEFERRED Widgets: Workplace UI feedback
   - DEFERRED auto expand/collapse drop zones on widget page
   - DEFERRED 'preview' settings from page edit overlay (perhaps by collapsing overlay to just a bar 25 px high)
@@ -30,7 +35,6 @@ Targets for 1.6 (Jun 2014) - Theme: MLJS Ease of Use in the Browser
   - DEFERRED Visual configuration of extracted metadata for search results, with boolean logic for matches
   - DEFERRED Allow XSLT specification for individual search result custom rendering
  - DONE BUG mljs.returnFacets returns true instead of this, breaking chaining
- - BUG Docs: Openlayers demo page hovering over marker causes null reference looking for result area by id to change css classes
  - IN PROGRESS Widgets: Workplace completion
   - IN PROGRESS Basics
    - DONE drag/drop reordering of widgets working
@@ -98,7 +102,7 @@ Targets for 1.6 (Jun 2014) - Theme: MLJS Ease of Use in the Browser
     - DONE make obvious that context name is a link
     - DONE BUG buttons for add/remove contexts not lined up - use float:left on select/spans
     - DONE BUG adding new context causes all context click and remove actions to fail
-   - TEST Enable all widgets for Workplace
+   - DONE Enable all widgets for Workplace
     - DONE searchbar
     - DONE searchselect
     - DONE searchfacets
@@ -120,18 +124,18 @@ Targets for 1.6 (Jun 2014) - Theme: MLJS Ease of Use in the Browser
     - DEFERRED create
     - DEFERRED markings (non prod)
     - DEFERRED rdb2rdf (non prod)
-    - TEST Add all production ready widgets as admissable in the Workplace widget's default configuration
+    - DEFERRED TEST Add all production ready widgets as admissable in the Workplace widget's default configuration
      - NA Files not included in Workplace demo - BUG cooccurence has no getConfigurationDefinition function
     - DONE BUG null appearing as text when used as default value for string fields
-    - BUG repeatedly dragging new widget classes on to layout causes top widget only to be rendered, to first two parts of zone
-   - remove widget button on heading for each widget on UI
+    - DEFERRED BUG repeatedly dragging new widget classes on to layout causes top widget only to be rendered, to first two parts of zone
+   - DONE remove widget button on heading for each widget on UI
    - Page load actions
     - searchcontext.doSimpleQuery(string)
-   - Usefulness fixes - without which widgets are pointless
-    - Configure tripleconfig in semanticcontext
-    - Link semantic context to document context for MarkLogic Document ontology links
-    - search results: Ability to specify list of custom renderer objects by classname
    - DEFERRED Icons for widgets
+  - Usefulness fixes - without which widgets are pointless
+   - Configure tripleconfig in semanticcontext
+   - Link semantic context to document context for MarkLogic Document ontology links
+   - search results: Ability to specify list of custom renderer objects by classname
   - TEST Widgets: Application Navigation widget
    - TEST One tab per Workplace in current app, sends to appropriate URL
    - DEFERRED Allow workplaces to be kept instead in a drop down menu
@@ -139,6 +143,7 @@ Targets for 1.6 (Jun 2014) - Theme: MLJS Ease of Use in the Browser
     - DEFERRED Also allow fixed tabs at start and end (list for each). E.g. Settings, Home, etc. for non-workplace dynamic pages - display text, url
    - Create new Workplace page dialogue - name, based on - then load in page editor
    - DONE via app configure link on navbar New workplace page button on end of nav widget
+   - ?q parameter for search context query
   - Practicality updates
    - Options builder UI widget - read from ML if possible
    - Query builder UI widget (base query for search, default query for page load)

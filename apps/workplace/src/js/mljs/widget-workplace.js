@@ -604,6 +604,35 @@ com.marklogic.widgets.layouts.helper.extendLayout = function(layoutInstance,cont
 
     }
   };*/
+  self.remove = function(widgetName) {
+    // remove widget and its drop zone
+    var me = self.getAssignmentByWidgetName(widgetName).item;
+    var spacer = self._elementAt(me.zone,me.order - 1); // TODO detect spacer
+    // decrement by two each wiget after this in same zone
+    var z = self.zones[me.zone];
+    // remove widget and drop zone html elements
+    for (var w = 1, maxw = z.length,moveme; w < z.length;w++) {
+      moveme = z[w];
+      if (moveme.order > me.order) {
+        z[w-2] = moveme;
+        moveme.order = w - 2;
+        //z[w] = undefined;
+      }
+    }
+    // sanity check fix if widget being removed is last one in zone
+    z[z.length - 2] = undefined;
+    z[z.length - 1] = undefined;
+    self._eliminateBlanks(z);
+    // remove html
+    var meel = document.getElementById(me.elementid);
+    meel.parentNode.removeChild(meel);
+    if (undefined != spacer) {
+      var spacerel = document.getElementById(spacer.elementid);
+      if (undefined != spacerel) {
+        spacerel.parentNode.removeChild(spacerel);
+      }
+    }
+  };
   // TODO make this not dependant upon spacers as per workplaceadmin
   self.moveToPosition = function(widgetName,newZone,newIndexOneBased) {
     // get element currently at position
@@ -1953,6 +1982,70 @@ com.marklogic.widgets.workplaceadmin.prototype._saveLayout = function() {
   this._workplaceContext.setAssignments(assignments);
 };
 
+com.marklogic.widgets.workplaceadmin.prototype._widgetRemoved = function(data) {
+  // data = {widget: name, configwrapper: obj}
+  this._layout.remove(data.widget);
+  var pos = -1;
+  for (var cw = 0,maxcw = this._configWrappers.length,wrapper;cw < maxcw && (-1 == pos);cw++) {
+    wrapper = this._configWrappers[cw];
+    if (wrapper.equals(data.configwrapper)) {
+      pos = cw;
+    }
+  }
+  if (-1 != pos) {
+    this._configWrappers.splice(pos,1);
+  }
+
+  var json = this._workplaceContext.getJson();
+
+  // remove widget from assignments
+  pos = -1;
+  for (var a = 0,maxa = json.assignments.length,ass;a < maxa && (-1 == pos);a++) {
+    ass = json.assignments[a];
+    if (ass.widget == data.widget) {
+      pos = a;
+    }
+  }
+  if (-1 != pos) {
+    json.assignments.splice(pos,1);
+  }
+  /*
+
+  // remove from zone wigets
+  pos = -1;
+  var thezone = null;
+  for (var z = 0;maxz = this.zoneWidgets.length,zone;z < maxz && (-1==pos);z++) {
+    zone = this.zoneWidgets[z];
+    for (var w = 0,maxw = zone.length,wgt;w < maxw && (-1==pos);w++) {
+      wgt = zone[w];
+      if (wgt == data.widget) {
+        pos = w;
+        thezone = zone;
+      }
+    }
+  }
+  zone.splice(pos,1);
+  */
+
+  // remove widget from config
+  pos = -1;
+  for (var w = 0,maxw = json.widgets.length,wgt;w < maxw && -1 == pos;w++) {
+    wgt = json.widgets[w];
+    if (wgt.widget == data.widget) {
+      pos = w;
+    }
+  }
+  json.widgets.splice(pos,1);
+  // remove widget from context registers
+  for (var c = 0,maxc = json.contexts.length,ctx;c < maxc;c++) {
+    ctx = json.contexts[c];
+    pos = ctx.register.indexOf(data.widget);
+    if (-1 != pos) {
+      ctx.register.splice(pos,1);
+    }
+  }
+};
+
 // Adds a new widget instance to the specified zone
 com.marklogic.widgets.workplaceadmin.prototype._addClassToZone = function(widgetclass,zone,order) {
   var self = this;
@@ -1975,6 +2068,7 @@ com.marklogic.widgets.workplaceadmin.prototype._addClassToZone = function(widget
   var wgt = new com.marklogic.widgets.configwrapper(wgtElid);
   var wAss = this._layout.registerAssignment(wgtElid,instanceName);
   this._configWrappers.push(wgt);
+  wgt.addWidgetRemovedListener(function(data){self._widgetRemoved(data);});
 
   // update workplace config and register event handlers
 
@@ -2123,6 +2217,7 @@ com.marklogic.widgets.workplaceadmin.prototype.updateWorkplace = function(ctx) {
       var wgtElid = this._layout.createPlaceholder(zone);
       var wgt = new com.marklogic.widgets.configwrapper(wgtElid);
       var wgtAss = this._layout.registerAssignment(wgtElid,widget.widget);
+      wgt.addWidgetRemovedListener(function(data){self._widgetRemoved(data);});
 
       // now reposition (not required - appending in order)
 
@@ -2218,6 +2313,7 @@ com.marklogic.widgets.workplaceadmin.prototype._updateContextsList = function() 
       // Show context configuration in RHS pane
       // load content
       var wrapper = new com.marklogic.widgets.configwrapper(self.container + "-config-contexts-context");
+      wrapper.hideRemoveButton();
       var classConfig = null;
       if ("SearchContext" == ctxjson.type) {
         classConfig = mljs.defaultconnection.searchcontext.getConfigurationDefinition();
@@ -2328,12 +2424,36 @@ com.marklogic.widgets.configwrapper = function(container) {
   this._configDescription = null;
   this._config = null;
   this._type = null;
+  this._deleteHidden = false;
 
   this._workplaceContext = null;
   this.__nextID = 1;
 
+  this._removedPublisher = new com.marklogic.events.Publisher();
+
   this._init();
 };
+
+com.marklogic.widgets.configwrapper.prototype.equals = function(otherconfigwrapper) {
+  return (this._widgetName == otherconfigwrapper._widgetName);
+};
+
+/**
+ * Adds a listener for when the remove button is clicked
+ * @param {function} func - The listener to add
+ */
+com.marklogic.widgets.configwrapper.prototype.addWidgetRemovedListener = function(func) {
+  this._removedPublisher.subscribe(func);
+};
+
+/**
+ * Removes a listener for when the remove button is clicked
+ * @param {function} func - The listener to remove
+ */
+com.marklogic.widgets.configwrapper.prototype.removeWidgetRemovedListener = function(func) {
+  this._removedPublisher.unsubscribe(func);
+};
+
 
 /**
  * Returns the human readable name for this widget
@@ -2683,10 +2803,19 @@ com.marklogic.widgets.configwrapper.prototype._genConfigHTMLInner = function(jso
   return str;
 };
 
+/**
+ * Whether to hide the delete button
+ * @param {boolean} hideme - Optional. Whether to hide the button. If not specified, will be true (i.e. hide the button)
+ */
+com.marklogic.widgets.configwrapper.prototype.hideRemoveButton = function(hideme) {
+  com.marklogic.widgets.hide(document.getElementById(this.container + "-name-" + this._widgetName + "-del"),hideme || true);
+};
+
 com.marklogic.widgets.configwrapper.prototype._init = function() {
   var str = "<div class='mljswidget configwrapper'>";
 
-  str += " <h3 class='subtitle' draggable='true' id='" + this.container + "-name'>" + this._widgetName + "</h3>"; // TODO show widget type title here too
+  str += " <span class='configwrapper-delete' id='" + this.container + "-name-del'>&nbsp;</span>";
+  str += " <span class='subtitle' draggable='true' id='" + this.container + "-name'>" + this._widgetName + "</span>"; // TODO show widget type title here too
   // show config elements on page
   str += "<div id='" + this.container + "-cfg'>";
   str += "</div>";
@@ -2694,6 +2823,13 @@ com.marklogic.widgets.configwrapper.prototype._init = function() {
   str += "</div>";
 
   document.getElementById(this.container).innerHTML = str;
+
+  // action handler for delete button
+  var delEl = document.getElementById(this.container + "-name-del");
+  var self = this;
+  delEl.onclick = function(evt) {
+    self._removedPublisher.publish({widget: self._widgetName, configwrapper: self});
+  };
 
   this._genConfigHTML(this._config,this._configDescription,0,this.container + "-cfg");
 };

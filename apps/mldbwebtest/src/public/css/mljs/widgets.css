@@ -1141,6 +1141,15 @@ div.log {
   background-position:center center;
 }
 
+.mljswidget .configwrapper .configwrapper-delete {
+  display: inline-block;
+  width: 21px;
+  height: 21px;
+  background-image: url(/images/mljs/delete-vsmall.png);
+  background-repeat:no-repeat;
+  background-position:center center;
+}
+
 .mljswidget .configwrapper .subtitle {
   cursor: pointer;
 }
