@@ -22,6 +22,7 @@ Targets for 1.6 (Jun 2014) - Theme: MLJS Ease of Use in the Browser
   - BUG Docs: Openlayers demo page hovering over marker causes null reference looking for result area by id to change css classes
   - BUG workplace load executing two searches on single searchcontext (hence slow page load)
   - BUG Need scroll bar adding to main widget layout area so it doesn't overflow
+  - BUG repeatedly dragging new widget classes on to layout causes top widget only to be rendered, to first two parts of zone
  - DEFERRED Widgets: Workplace UI feedback
   - DEFERRED auto expand/collapse drop zones on widget page
   - DEFERRED 'preview' settings from page edit overlay (perhaps by collapsing overlay to just a bar 25 px high)
@@ -127,15 +128,51 @@ Targets for 1.6 (Jun 2014) - Theme: MLJS Ease of Use in the Browser
     - DEFERRED TEST Add all production ready widgets as admissable in the Workplace widget's default configuration
      - NA Files not included in Workplace demo - BUG cooccurence has no getConfigurationDefinition function
     - DONE BUG null appearing as text when used as default value for string fields
-    - DEFERRED BUG repeatedly dragging new widget classes on to layout causes top widget only to be rendered, to first two parts of zone
    - DONE remove widget button on heading for each widget on UI
    - Page load actions
+    - Hard coded ones in this edition (use JSON config object array though so later it can be easily added)
     - searchcontext.doSimpleQuery(string)
+     - input from hard coded string, or from page query string parameter
+    - searchcontext.doStructuredQuery(query)
+     - query builder construction of query
+    - semanticcontext.?
+    - documentcontext.?
+    - geocontext.go (lon,lat, zoom)
+    - dynamic structured queries
+     - see openlayers page with byDistance and byRating
+    - graphexplorer.drawSubject(iri,null,1,1)
+    - doccontext.getContent
+    - doccontext.getProperty
+    - Arbitrary code object variable and method
    - DEFERRED Icons for widgets
   - Usefulness fixes - without which widgets are pointless
-   - Configure tripleconfig in semanticcontext
-   - Link semantic context to document context for MarkLogic Document ontology links
-   - search results: Ability to specify list of custom renderer objects by classname
+   - Global widget and context extension auto detection by classes
+    - tripleconfig and ontologies
+    - searchresults and custom renderers
+    - semanticcontext.setContentContext(searchcontext)
+   - Missing basics
+    - geocontext
+   - Context extra config parameters
+    - geocontext.home
+    - geocontext.inform
+    - doccontext.addAllowableProperty
+    - Configure tripleconfig in semanticcontext
+    - contributeQuery mode for custom page query in to searchcontext (base query)
+    - Link semantic context to document context for MarkLogic Document ontology links
+   - Widget extra configuration parameters
+    - sparqlresults.iriHandler(pattern)
+    - tagcloud.setFacet(facetName)
+    - how to handle create (upload) forms widget?
+    - addressbar.radius
+    - openlayers.setGeoSelectionConstraint
+    - openlayers.go (lon,lat, zoom)
+    - openlayers.setHeatmapGranularity(number)
+    - searchselection.setMode
+    - searchselection.addQuery
+    - openlayers.addSeries
+    - co-occurence - title, displayTuple, setTupleConstraints
+    - entityfacts.iriHandler(pattern)
+   - Copy query URL for searchbar widget to clipboard (deep link to searchcontext page config)
   - TEST Widgets: Application Navigation widget
    - TEST One tab per Workplace in current app, sends to appropriate URL
    - DEFERRED Allow workplaces to be kept instead in a drop down menu
