@@ -2895,7 +2895,149 @@ com.marklogic.widgets.actionorderer.prototype.getActions = function() {
 
 
 
-// REPLACE THE BELOW WITH A REFACTORED CONFIG WRAPPER???
+
+com.marklogic.widgets.actioncreator = function(container) {
+  this.container = container;
+
+  this._workplaceContext = null;
+
+  this._currentObject = null;
+  this._currentFunction = null;
+
+  this._objectTypeMap = {};
+
+  this._actions = [
+    {targetClass: "SearchContext", methodName: "doSimpleQuery", parameters: [
+      {title: "query", type: "string", default:"", description: "The query string for the current grammar."}
+    ]},
+    {targetClass: "SearchContext", methodName: "doStructuredQuery", parameters: [
+      {title: "structuredQuery", type: "string",default:{"and-query": []}, description: "The structured query JSON."}
+    ]},
+    {targetClass: "com.marklogic.widgets.graphexplorer", methodName: "drawSubject", parameters: [
+      {title: "subjectIri", type: "string",default:"", description: "The IRI of the subject to render."
+    ]},
+    {targetClass: "SemanticContext", methodName: "subjectQuery", parameters: [
+      {title: "sparql", type: "string", default: "SELECT ?s WHERE {}", description: "The SPARQL that returns a ?subject value."},
+      {title: "offset", type: "integer", default: 0, description: "Which result to start at (for multi page results)."},
+      {title: "limit", type: "integer", default: 10, description: "The number to return per page of results."}
+    ]},
+    {targetClass: "SemanticContext", methodName: "subjectFacts", parameters: [
+      {title: "iri", type: "string", default: "", description: "The IRI of the subject to fetch facts for."}
+    ]},
+    {targetClass: "SemanticContext", methodName: "queryFacts", parameters: [
+      {title: "sparql", type: "string", default:"SELECT ?s ?p ?o WHERE {}", description: "The SPARQL which returns the list of facts of interest."}
+    ]},
+    {targetClass: "GeoContext", methodName: "go", parameters: [
+      {title: "lon", type: "decimal", minimum: -180, maximum: +180, default:"0", description: "The Longitude (East-West) of the point of interest in WGS84/EPSG4326 format."},
+      {title: "lat", type: "decimal", minimum: -90, maximum: +90, default:"52", description: "The Latitude (North-South) of the point of interest in WGS84/EPSG4326 format."},
+      {title: "zoom", type: "positiveInteger", minimum: -1, maximum: +15, default:"13", description: "Zoom level to use (13 is urban area)."}
+    ]},
+    {targetClass: "DocumentContext", methodName: "getContent", parameters: [
+      {title: "docuri", type: "string", default:"", description: "The MarkLogic document URI to fetch content for."}
+    ]},
+    {targetClass: "DocumentContext", methodName: "getProperties", parameters: [
+      {title: "docuri", type: "string", default:"", description: "The MarkLogic document URI to fetch properties for."}
+    ]},
+    {targetClass: "DocumentContext", methodName: "getFacets", parameters: [
+      {title: "docuri", type: "string", default:"", description: "The MarkLogic document URI to fetch facets for."},
+      {title: "optionsName", type: "string", default:"all", description: "The MarkLogic search options that specify the facets to load."},
+    ]}
+
+  ]; // TODO read this on instance creation from extensions library(ies)
+
+  this._init();
+
+  this._newActionPublisher = new com.marklogic.events.Publisher();
+};
+
+com.marklogic.widgets.actioncreator.prototype._init = function() {
+  var str = "<div class='mljswidget actioncreator' id='" + this.container + "-actioncreator'>";
+  str += "    Object: <select class='actioncreator-object' id='" + this.container + "-object'></select> ";
+  str += "    Function: <select class='actioncreator-function' id='" + this.container + "-function'></select> ";
+  str += "    <span class='button actioncreator-add'>ADD</span>";
+  str += "   </div>";
+
+  document.getElementById(this.container).innerHTML = str;
+
+  // event handlers
+  var self = this;
+  var objEl = document.getElementById(this.container + "-object");
+  objEl.onchange = function(evt) {
+    // TODO if 'Other...' selected, show text popup for free text object value
+
+    // else...
+    self._currentObject = objEl.value;
+    // refresh function options from actions list
+    // set current function to <none selected>
+    self._refreshFunctionList(self._currentFunction);
+  };
+  var funcEl = document.getElementById(this.container + "-function");
+  funcEl.onchange = function(evt) {
+    self._currentFunction = funcEl.value;
+  }
+
+  // TODO button click handler - with sanity check for blank object or function
+};
+
+com.marklogic.widgets.actioncreator.prototype._refreshObjectList = function(toHighlight) {
+  // NB add 'Other...' option to select
+  var str = "";
+  var json = this._workplaceContext.getJson();
+  this._objectTypeMap = {};
+  for (var i = 0,maxi = json.widgets.length,wgt;i < maxi;i++) {
+    wgt = json.widgets[i];
+    this._objectTypeMap.push({name: wgt.widget,type: wgt.type});
+  }
+  i = 0;
+  maxi = json.contexts.length;
+  for (var ctx;i < maxi;i++) {
+    ctx = json.contexts[i];
+    this._objectTypeMap.push({name: ctx.context,type:ctx.type});
+  }
+  // order object map
+  bubbleSort(this._objectTypeMap,"name"); // sorts by name value
+  // draw object options
+  for (var o = 0,maxo = this._objectTypeMap.length,obj;o < maxo;o++) {
+    obj = this._objectTypeMap[o];
+    str += "<option value='" + obj.name + "'";
+    if (obj.name == toHighlight) {
+      str += " selected='selected'";
+    }
+    str += ">" + obj.name + "</option>";
+  }
+  str == "<option value='__other'>Other...</option>";
+  document.getElementById(this.container + "-object").innerHTML = str;
+};
+
+com.marklogic.widgets.actioncreator.prototype._refreshFunctionList = function(toHighlight) {
+
+};
+
+com.marklogic.widgets.actioncreator.prototype.updateWorkplace = function(ctx) {
+  this._workplaceContext = ctx;
+
+  // TODO update list of type to widget/context variable name
+
+  this._refreshObjectList(this._currentObject);
+  this._refreshFunctionList(this._currentFunction);
+};
+
+com.marklogic.widgets.actioncreator.prototype.addActionCreatedListener = function(lisfunc) {
+  this._newActionPublisher.subscribe(lisfunc);
+};
+
+com.marklogic.widgets.actioncreator.prototype.removeActionCreatedListener = function(lisfunc) {
+  this._newActionPublisher.unsubscribe(lisfunc);
+};
+
+
+
+
+
+
+// NO NEED FOR THE BELOW NOW - USE CONFIG WRAPPER INSTEAD
+
+
 
 /**
  * An individual action configuration wrapper widget
@@ -2905,11 +3047,27 @@ com.marklogic.widgets.actionorderer.prototype.getActions = function() {
 com.marklogic.widgets.actionconfig = function(container) {
   this.container = container;
   this._config = null;
+  this._type = null;
+
+  //  {type: "javascript", config: {targetObject: "searchcontext1", methodName: "doSimpleQuery", parameters: []}}
+
   this._init();
 };
 
 com.marklogic.widgets.actionconfig.prototype._init = function() {
+  var str = "<div class='mljswidget actionconfig' id='" + this.container + "-actionconfig'>";
+  str +=    " <div class='actionconfig-header'>";
+  str +=    "  <span>DEL</span>";
+  str +=    "  <span class='subtitle' id='" + this.container + "-actionconfig-title'></span>";
+  str +=    " </div>";
+  str +=    " <div class='actionconfig-params'>";
+  str +=    "  <i>No Parameters</i> <span>ADD</span>";
+  str +=    " </div>";
+  str +=    "</div>";
 
+  document.getElementById(this.container).innerHTML = str;
+
+  // TODO event handlers
 };
 
 /**
@@ -2926,7 +3084,7 @@ com.marklogic.widgets.actionconfig.prototype.wrap = function(config) {
  * Returns this individual action's configuration
  */
 com.marklogic.widgets.actionconfig.prototype.getConfig = function() {
-  // TODO return updated config
+  // return updated config
   return this._config;
 };
 

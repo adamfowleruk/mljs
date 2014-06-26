@@ -365,6 +365,12 @@ com.marklogic.widgets.graphexplorer.prototype._getColumnCount = function(column)
  * @param {integer} row - The row to draw this subject in
  */
 com.marklogic.widgets.graphexplorer.prototype.drawSubject = function(subjectIri,parentIri,column,row) {
+  if (undefined == column) {
+    column = 1;
+  }
+  if (undefined == row) {
+    row = 1;
+  }
     if (1 == column && 1 == row) {
       this._incrementColumnCount(1);
     }

@@ -4877,10 +4877,27 @@ mljs.prototype.options.prototype._quickRange = function(el) {
 };
 
 /**
+ * Returns a constraint definition based on constraint name.
+ * @param {string} name - Constraint name for already defined constraint to return
+ */
+mljs.prototype.options.prototype.getConstraint = function(name) {
+  var cons = this.options.constraint;
+  if (undefined == cons) {
+    return null;
+  }
+  for (var c = 0,maxc = cons.length,con;c < maxc;c++) {
+    con = cons[c];
+    if (con.name == name) {
+      return con;
+    }
+  }
+};
+
+/**
  * Creates a tuples definition for returning co-occurence values
  *
  * @param {string} name - The name of the tuples configuration to create
- * @param {string|JSON} el - The json element for a co-occurence. Either an element/json key name (string) or a full REST API range type object (JSON). You can specify any number of these as required (minimum 2)
+ * @param {string|JSON} el - The json element for a co-occurence. Either a range constraint name, element/json key name (string) or a full REST API range type object (JSON). You can specify any number of these as required (minimum 2)
  */
 mljs.prototype.options.prototype.tuples = function(name) { // TODO handle infinite tuple definitions (think /v1/ only does 2 at the moment anyway)
   var tuples = {name: name,range: new Array()};
@@ -4893,7 +4910,12 @@ mljs.prototype.options.prototype.tuples = function(name) { // TODO handle infini
   //  tuples.range.push(this._quickRange(el3));
   //}
   for (var i = 1;i < arguments.length;i++) {
-    tuples.range.push(this._quickRange(arguments[i]));
+    var con = this.getConstraint(arguments[i]);
+    if (null == con || undefined == con.range) {
+      tuples.range.push(this._quickRange(arguments[i]));
+    } else {
+      tuples.range.push(con.range);
+    }
   }
   this.options.tuples.push(tuples);
   return this;
@@ -4903,7 +4925,7 @@ mljs.prototype.options.prototype.tuples = function(name) { // TODO handle infini
  * Creates a values definition for returning lexicon values
  *
  * @param {string} name - The name of the values configuration to create
- * @param {string|JSON} el - The json element for a co-occurence. Either an element/json key name (string) or a full REST API range type object (JSON). You can specify any number of these as required
+ * @param {string|JSON} el - The json element for a co-occurence. Either a range constraint name, element/json key name (string) or a full REST API range type object (JSON). You can specify any number of these as required
  */
 mljs.prototype.options.prototype.values = function(name) {
   var values = {name: name,range: new Array()};
@@ -4912,7 +4934,12 @@ mljs.prototype.options.prototype.values = function(name) {
     this.options.values = new Array();
   }
   for (var i = 1;i < arguments.length;i++) {
-    values.range.push(this._quickRange(arguments[i]));
+    var con = this.getConstraint(arguments[i]);
+    if (null == con || undefined == con.range) {
+      values.range.push(this._quickRange(arguments[i]));
+    } else {
+      values.range.push(con.range);
+    }
   }
   this.options.values.push(values);
   return this;

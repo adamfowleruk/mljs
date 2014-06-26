@@ -10,6 +10,10 @@ Targets for 1.6 (Jun 2014) - Theme: MLJS Ease of Use in the Browser
   - mljsrest - snippets.html
   - mldbwebtest - search
   - mldbwebtest - snippets
+ - Semantics
+  - Add mentions triple to MarkLogic Document Ontology in mljs.js line 7430
+ - Widget: InfoBox
+  - Link to triple explorer and document view page
  - Double check in Workplace app (uses Bootstrap only, not 960.css, unlike mljsrest test app)
  - Widgets: Various Widget Bugs
   - BUG Clicking on Bar chart value gives: Point clicked: x:0, series name:'animal', y:3 data: undefined
@@ -129,20 +133,22 @@ Targets for 1.6 (Jun 2014) - Theme: MLJS Ease of Use in the Browser
      - NA Files not included in Workplace demo - BUG cooccurence has no getConfigurationDefinition function
     - DONE BUG null appearing as text when used as default value for string fields
    - DONE remove widget button on heading for each widget on UI
-   - Page load actions
-    - Hard coded ones in this edition (use JSON config object array though so later it can be easily added)
-    - searchcontext.doSimpleQuery(string)
+   - IN PROGRESS Page load actions
+    - IN PROGRESS Hard coded ones in this edition (use JSON config object array though so later it can be easily added)
+    - TEST searchcontext.doSimpleQuery(string)
      - input from hard coded string, or from page query string parameter
-    - searchcontext.doStructuredQuery(query)
+    - TEST searchcontext.doStructuredQuery(query)
      - query builder construction of query
-    - semanticcontext.?
-    - documentcontext.?
-    - geocontext.go (lon,lat, zoom)
-    - dynamic structured queries
-     - see openlayers page with byDistance and byRating
-    - graphexplorer.drawSubject(iri,null,1,1)
-    - doccontext.getContent
-    - doccontext.getProperty
+    - TEST graphexplorer.drawSubject(iri,null,1,1)
+    - TEST semanticcontext.subjectQuery(sparql,offset,limit)
+    - TEST semanticcontext.subjectFacts(iri)
+    - TEST semanticcontext.queryFacts(sparql)
+    - TEST geocontext.go (lon,lat, zoom)
+    - DEFERRED dynamic structured queries
+     - DEFERRED see openlayers page with byDistance and byRating
+    - TEST doccontext.getContent(docuri)
+    - TEST doccontext.getProperties(docuri)
+    - TEST doccontext.getFacts(docuri,optionsName)
     - Arbitrary code object variable and method
    - DEFERRED Icons for widgets
   - Usefulness fixes - without which widgets are pointless
@@ -152,6 +158,9 @@ Targets for 1.6 (Jun 2014) - Theme: MLJS Ease of Use in the Browser
     - semanticcontext.setContentContext(searchcontext)
    - Missing basics
     - geocontext
+    - Support other basic types in widget/context config
+     - decimal
+     - integer
    - Context extra config parameters
     - geocontext.home
     - geocontext.inform
@@ -179,11 +188,10 @@ Targets for 1.6 (Jun 2014) - Theme: MLJS Ease of Use in the Browser
    - DEFERRED Menu Editor
     - DEFERRED Also allow fixed tabs at start and end (list for each). E.g. Settings, Home, etc. for non-workplace dynamic pages - display text, url
    - Create new Workplace page dialogue - name, based on - then load in page editor
-   - DONE via app configure link on navbar New workplace page button on end of nav widget
-   - ?q parameter for search context query
+   - DONE via app configure link on navbar - New workplace page button on end of nav widget
   - Practicality updates
-   - Options builder UI widget - read from ML if possible
-   - Query builder UI widget (base query for search, default query for page load)
+   - DEFERRED Options builder UI widget - read from ML if possible
+   - DEFERRED Query builder UI widget (base query for search, default query for page load)
    - Docs: OOTB Workplace demo app - no data
  - IN PROGRESS Widgets: UI Consistency
   - IN PROGRESS Widgets: Update all for Bootstrap CSS support
