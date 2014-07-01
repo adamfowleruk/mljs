@@ -7073,6 +7073,7 @@ com.marklogic.semantic.tripleconfig = function() {
   this.addMarkLogic();
   this.addPlaces();
   this.addFoafPlaces();
+  this.addOpenCalais();
   //this.addTest();
   this.addMovies();
 };
@@ -7455,12 +7456,15 @@ com.marklogic.semantic.tripleconfig.prototype.addMarkLogic = function() {
 
   //this._newPredicates["uri"] = {name: "uri", title: "URI", iri: "http://marklogic.com/semantics/ontology/Document#uri", shortiri: "ml:uri"};
 
-  var doc = this.rdftype("http://marklogic.com/semantics/ontology/Document","http://marklogic.com/semantics/ontology/Document#uri").title("MarkLogic Document")
-    .prefix("http://marklogic.com/semantics/ontology/Document").pattern("http://marklogic.com/semantics/ontology/Document/#VALUE#")
+  var doc = this.rdftype("http://marklogic.com/semantics/ontology/Document",
+      "http://marklogic.com/semantics/ontology/Document#uri").title("MarkLogic Document")
+    .prefix("http://marklogic.com/semantics/ontology/Document")
+    .pattern("http://marklogic.com/semantics/ontology/Document/#VALUE#")
     .from("*","http://marklogic.com/semantics/ontology/Document#uri")
     .from("*","http://www.w3.org/ns/prov#wasDerivedFrom")
     .from("*","http://marklogic.com/semantics/ontology/mentioned_in")
-    .to("http://marklogic.com/semantics/ontology/Document",["http://www.w3.org/ns/prov#wasDerivedFrom","http://marklogic.com/semantics/ontology/mentioned_in"])
+    .to("http://marklogic.com/semantics/ontology/Document",["http://www.w3.org/ns/prov#wasDerivedFrom",
+      "http://marklogic.com/semantics/ontology/mentioned_in"])
     .to("*",["http://marklogic.com/semantics/ontology/mentions"])
     ;
   doc.predicate("http://marklogic.com/semantics/ontology/Document#uri").title("URI");
@@ -7468,6 +7472,47 @@ com.marklogic.semantic.tripleconfig.prototype.addMarkLogic = function() {
   doc.predicate("http://marklogic.com/semantics/ontology/mentions").title("Mentions");
   doc.predicate("http://marklogic.com/semantics/ontology/mentioned_in").title("Mentioned In");
   this.include(doc);
+};
+
+/**
+ * Adds common OpenCalais RDF types and their common names to the triple config.
+ * (Organization, Person, City, Country, Continent, Province or State, Region, Facility)
+ */
+com.marklogic.semantic.tripleconfig.prototype.addOpenCalais = function() {
+  //var cfg = semctx.getTripleConfiguration(); // used to be getConfiguration()
+  var cfg = this;
+  var org = cfg.rdftype("http://s.opencalais.com/1/type/em/e/Organization",
+      "http://s.opencalais.com/1/pred/organization").title("Extracted Organisation");
+  this.include(org);
+
+  var person = cfg.rdftype("http://s.opencalais.com/1/type/em/e/Person",
+      "http://s.opencalais.com/1/pred/person").title("Extracted Person");
+  this.include(person);
+
+  var city = cfg.rdftype("http://s.opencalais.com/1/type/em/e/City",
+      "http://s.opencalais.com/1/pred/city").title("Extracted City");
+  this.include(city);
+
+  var country = cfg.rdftype("http://s.opencalais.com/1/type/em/e/Country",
+      "http://s.opencalais.com/1/pred/country").title("Extracted Country");
+  this.include(city);
+
+  var continent = cfg.rdftype("http://s.opencalais.com/1/type/em/e/Continent",
+      "http://s.opencalais.com/1/pred/continent").title("Extracted Continent");
+  this.include(continent);
+
+  var province = cfg.rdftype("http://s.opencalais.com/1/type/em/e/ProvinceOrState",
+      "http://s.opencalais.com/1/pred/provinceorstate").title("Extracted Province/State");
+  this.include(province);
+
+  var region = cfg.rdftype("http://s.opencalais.com/1/type/em/e/Region",
+      "http://s.opencalais.com/1/pred/region").title("Extracted Region");
+  this.include(region);
+
+  var facility = cfg.rdftype("http://s.opencalais.com/1/type/em/e/Facility",
+      "http://s.opencalais.com/1/pred/facility").title("Extracted Facility");
+  this.include(facility);
+
 };
 
 /**
