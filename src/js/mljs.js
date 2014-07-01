@@ -4007,6 +4007,8 @@ mljs.prototype.options.prototype.rangeConstraint = function(constraint_name_opt,
   }
   if ((undefined != facet_opt && true===facet_opt) || undefined != facet_options_opt) {
     range.range.facet = true;
+  } else {
+    range.range.facet = false;
   }
   if (undefined != facet_options_opt) {
     range.range["facet-option"] = facet_options_opt;
