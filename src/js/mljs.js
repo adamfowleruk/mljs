@@ -7477,6 +7477,8 @@ com.marklogic.semantic.tripleconfig.prototype.addMarkLogic = function() {
 /**
  * Adds common OpenCalais RDF types and their common names to the triple config.
  * (Organization, Person, City, Country, Continent, Province or State, Region, Facility)
+ *
+ * {@link http://www.opencalais.com/files/owl.opencalais-4.3a.xml}
  */
 com.marklogic.semantic.tripleconfig.prototype.addOpenCalais = function() {
   //var cfg = semctx.getTripleConfiguration(); // used to be getConfiguration()
