@@ -10,12 +10,16 @@ Targets for 1.6 (Jun 2014) - Theme: MLJS Ease of Use in the Browser
   - mljsrest - snippets.html
   - mldbwebtest - search
   - mldbwebtest - snippets
- - Semantics
-  - Add mentions triple to MarkLogic Document Ontology in mljs.js line 7430
- - Widget: InfoBox
+ - DONE Semantics
+  - DONE Add mentions triple to MarkLogic Document Ontology in mljs.js line 7430
+ - IN PROGRESS Widget: InfoBox - just using EntityFacts widget
+  - TEST Lookup MLDocument based on docuri
+  - TEST Display list of facts (like in triple explorer)
   - Link to triple explorer and document view page
+  - URGENT Make entityfacts aware that a single document may pull back multiple subjects with facts - render them separately
+   - E.g. with line break separator between subjects
  - Double check in Workplace app (uses Bootstrap only, not 960.css, unlike mljsrest test app)
- - Widgets: Various Widget Bugs
+ - IN PROGRESS Widgets: Various Widget Bugs
   - BUG Clicking on Bar chart value gives: Point clicked: x:0, series name:'animal', y:3 data: undefined
   - BUG highcharts configuration in Workplace 'thin' column overflows container
   - DONE BUG add data series button not working on newly dragged instance of highcharts widget
@@ -27,6 +31,14 @@ Targets for 1.6 (Jun 2014) - Theme: MLJS Ease of Use in the Browser
   - BUG workplace load executing two searches on single searchcontext (hence slow page load)
   - BUG Need scroll bar adding to main widget layout area so it doesn't overflow
   - BUG repeatedly dragging new widget classes on to layout causes top widget only to be rendered, to first two parts of zone
+  - DONE BUG Sparqlbar and graphexplorer widgets no longer work
+  - BUG no empty results message in sparqlresults
+  - BUG no empty results message in entityfacts
+  - DONE BUG GraphExplorer not showing document facets
+  - DONE BUG explorer.js line 848 - using iri + uri instead of looking up subject in cache
+  - BUG null when selecting Document as first subject in sparqlbar
+  - BUG search auto complete totally broke on infobox page
+  - BUG GET /v1/graph should be /v1/graphs
  - DEFERRED Widgets: Workplace UI feedback
   - DEFERRED auto expand/collapse drop zones on widget page
   - DEFERRED 'preview' settings from page edit overlay (perhaps by collapsing overlay to just a bar 25 px high)
@@ -65,7 +77,7 @@ Targets for 1.6 (Jun 2014) - Theme: MLJS Ease of Use in the Browser
    - DONE findWorkplace working
     - DONE need to add valueConstraint support to options builder
     - DONE need to add value query to query builder
-    - DONE move *Workplace functions from MLJS in to Workplace Context (they use structured search)
+    - DONE move Workplace functions from MLJS in to Workplace Context (they use structured search)
    - DONE MLJS Core modifications
     - DONE Added element, json key container, element container constraints to options builder
     - DONE Added element, container, queries to query builder

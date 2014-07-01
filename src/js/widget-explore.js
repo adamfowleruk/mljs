@@ -45,7 +45,7 @@ com.marklogic.widgets.graphexplorer = function(container) {
   this.properties = new Array(); // {htmlid: "span3456", parentid: "div1234", predicate: ""}
 
   this.propertyCache = new Array(); // subjectiri -> facts json
-  this.facetCache = new Array(); // subjectIri -> facets json
+  this.facetCache = new Array(); // documentUri -> facets json
 
   this.drawWhenComplete = new Array(); // JSON object {subject: iri, dependencies: [string dep iri]}
 
@@ -313,6 +313,16 @@ com.marklogic.widgets.graphexplorer.prototype._entityFromIRI = function(iri) {
   return null;
 };
 
+com.marklogic.widgets.graphexplorer.prototype._iriFromUri = function(uri) {
+  for (var i = 0, max = this.entities.length, ent;i < max;i++) {
+    ent = this.entities[i];
+    if (ent.docuri == uri) {
+      return ent.subjectiri;
+    }
+  }
+  return null;
+};
+
 com.marklogic.widgets.graphexplorer.prototype._propertyFromUI = function(elid) {
   for (var i = 0, max = this.properties.length, prop;i < max;i++) {
     prop = this.properties[i];
@@ -447,7 +457,7 @@ com.marklogic.widgets.graphexplorer.prototype._drawSubjectDetail = function(subj
   // draw subject box itself
 
   // use semantic config to find common name and type (use summarise into code)
-  var scfg = this.semanticContext.getConfiguration();
+  var scfg = this.semanticContext.getTripleConfiguration();
 
 
   var propValues = new Array();
@@ -522,6 +532,7 @@ com.marklogic.widgets.graphexplorer.prototype._drawSubjectDetail = function(subj
 
   if ("http://marklogic.com/semantics/ontology/Document" == baseType) {
     var uri = docuri; // SEE EARLIER CODE - OLD: //subjectIri.substring(48);
+    ent.docuri = uri;
 
     // check the subject cache for this IRI (done earlier in function)
     // <http://marklogic.com/semantics/ontology/Document#uri>
@@ -753,7 +764,7 @@ com.marklogic.widgets.graphexplorer.prototype._getSubjectName = function(subject
     return this._shortenSubjectIri(subjectIri);
   }
 
-  var scfg = this.semanticContext.getConfiguration();
+  var scfg = this.semanticContext.getTripleConfiguration();
 
   var predEntity = scfg.getEntityFromIRI(type);
   if (undefined == predEntity || undefined == predEntity.name) {
@@ -845,7 +856,8 @@ com.marklogic.widgets.graphexplorer.prototype.updateDocumentFacets = function(re
   console.log("graphexplorer.updateDocumentFacets: URI: " + uri);
   this.facetCache[uri] = result.facets;
 
-  var iri = "http://marklogic.com/semantics/ontology/Document" + uri; // TODO replace with URI -> subject cache
+  //var iri = "http://marklogic.com/semantics/ontology/Document" + uri; // TODO replace with URI -> subject cache
+  var iri = this._iriFromUri(uri);
   var flen = 0;
   if (undefined != result.facets) {
     flen = result.facets.length;
@@ -864,7 +876,7 @@ com.marklogic.widgets.graphexplorer.prototype._dropped = function(propelid) {
   var entity = this._entityFromUI(prop.parentid);
 
   // get predicate info from semantic configuration object
-  var scfg = this.semanticContext.getConfiguration();
+  var scfg = this.semanticContext.getTripleConfiguration();
   var predicate = scfg.getPredicateInfo(prop.predicate); // TODO verify this call is correct name
 
   // add predicate to our built SPARQL query

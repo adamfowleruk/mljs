@@ -1233,6 +1233,13 @@ com.marklogic.widgets.searchresults.prototype.setConfiguration = function(config
 };
 
 /**
+ * Programmatically overrides the selection mode to be replace.
+ */
+com.marklogic.widgets.searchresults.prototype.setSelectionModeReplace = function() {
+  this.selectionMode = "replace";
+};
+
+/**
  * Set the search context object to use for operations
  *
  * @param {mljs.searchcontext} ctx - The search context instance to invoke

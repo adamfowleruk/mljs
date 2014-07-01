@@ -1819,7 +1819,9 @@ com.marklogic.widgets.workplaceadmin.prototype._refresh = function() {
   str += "   </div>";
   str += "  </div>";
   str += "  <div id='" + this.container + "-actions-heading' class='workplaceadmin-actions-heading subtitle active'>Actions</div>";
-  str += "  <div id='" + this.container + "-actions-content' class='workplaceadmin-actions-content hidden'>TODO</div>";
+  str += "  <div id='" + this.container + "-actions-content' class='workplaceadmin-actions-content hidden'>";
+  str += "   <div id='" + this.container + "-actions-onload' class='workplaceadmin-actions-onload'>On page load</div>";
+  str += "  </div>";
   str += "  <div class='workplaceadmin-buttonbar'>";
   str += "   <input class='btn btn-primary' id='" + this.container + "-save' value='Save' type='submit' />";
   str += "   <input class='btn btn-secondary' id='" + this.container + "-cancel' value='Cancel' type='submit' />";
@@ -1831,6 +1833,7 @@ com.marklogic.widgets.workplaceadmin.prototype._refresh = function() {
   str += "   <div id='" + this.container + "-config-contexts-context' class='grid_6'></div>";
   str += "   <div id='" + this.container + "-config-contexts-links' class='grid_6'></div>";
   str += "  </div>";
+  str += "  <div id='" + this.container + "-config-actions'></div>";
   str += " </div>";
   str += "</div>";
 
@@ -1857,6 +1860,13 @@ com.marklogic.widgets.workplaceadmin.prototype._refresh = function() {
   };
   document.getElementById(this.container + "-actions-heading").onclick = function(evt) {
     self._showTab("actions");
+  };
+  document.getElementById(this.container + "-actions-onload").onclick = function(evt) {
+    // show onload action list
+    // get onload action list
+    var actions = self._workplaceContext.getJson().actions.onload;
+    // call action drawing code
+    self._drawActions("onload",actions);
   };
   document.getElementById(this.container + "-contexts-add-button").onclick = function(evt) {
     // add new context instance
@@ -2362,6 +2372,80 @@ com.marklogic.widgets.workplaceadmin.prototype._updateContextsList = function() 
   }
 };
 
+com.marklogic.widgets.workplaceadmin.prototype._drawActions = function(actionListName,actions) {
+  // Create action orderer widget (includes action adding bar)
+  var creator = new com.marklogic.widgets.actioncreator(this.container + "-config-actions-new");
+
+  // create configwrapper set for actions
+  var orderedconfig = new com.marklogic.widgets.orderedconfig(this.container + "-config-actions-list");
+  var self = this;
+  orderedconfig.addOrderChangeListener(function(orderedconfig) {
+    // do something with new order (E.g. update workplaceContext)
+    self._workplaceContext.getJson().actions[actionListName] = orderedconfig;
+  });
+  // ensure the target and method and other such parameters managed by creator are not editable by hand
+  orderedconfig.readOnly([{type: "javascript", readonly:["target","method"]}]);
+  // no drop zone for new elements
+  orderedconfig.dropzones(true,false); // first is re-arrange zones, second is append zone (last zone)
+  // give array of items to draw, and json dot delimited path to id field
+  orderedconfig.configure(actions,"action");
+};
+
+
+
+
+
+
+
+/**
+ * Generic ordered config widget. Takes an array of config description objects (widgets, action list, etc) and
+ * renders that list, with drop zones for re-ordering and new items.
+ * @param {string} container - HTML id of the element this widget should be rendered within.
+ */
+com.marklogic.widgets.orderedconfig = function(container) {
+  this.container = container;
+  this._configs = new Array();
+  this._readonly = new Array(); // [{type: "objType", readonly:["item1","item2.path", ...]}, ...]
+  this._drawOrderDropzones = true;
+  this._drawNewDropzones = true;
+  this._allowRemoval = true;
+  this._nameJsonPath = "name";
+
+  this._orderChangePublisher = new com.marklogic.events.Publisher();
+};
+
+com.marklogic.widgets.orderedconfig.prototype.addOrderChangeListener = function(func) {
+  this._orderChangePublisher.subscribe(func);
+};
+
+com.marklogic.widgets.orderedconfig.prototype.removeOrderChangeListener = function(func) {
+  this._orderChangePublisher.unsubscribe(func);
+};
+
+com.marklogic.widgets.orderedconfig.prototype.readOnly = function(roArray) {
+  this._readonly = roArray;
+};
+
+com.marklogic.widgets.orderedconfig.prototype.dropzones = function(drawOrderDropzones,drawNewDropzone) {
+  this._drawOrderDropzones = drawOrderDropzones;
+  this._drawNewDropzones = drawNewDropzones;
+};
+
+com.marklogic.widgets.orderedconfig.prototype.configure = function(configList,nameJsonPath) {
+  this._configs = configList;
+  this._nameJsonPath = nameJsonPath;
+
+  this._refresh();
+};
+
+com.marklogic.widgets.orderedconfig.prototype._refresh = function() {
+  // create outer div
+  // create parent for each dropzone AND config PAIR
+  // draw current order and dropzones
+  // save html
+  // set up event handlers
+  // render configs within their divs
+};
 
 
 
@@ -2402,6 +2486,15 @@ com.marklogic.widgets.dropzone.prototype._init = function() {
 com.marklogic.widgets.dropzone.prototype.accept = function(dropzoneClass,draggableTypeAcceptArray,callback) {
   com.marklogic.widgets.dnd.accept(this.container + "-target",dropzoneClass,draggableTypeAcceptArray,callback);
 };
+
+
+
+
+
+
+
+
+
 
 
 

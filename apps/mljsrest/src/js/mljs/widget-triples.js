@@ -85,9 +85,9 @@ com.marklogic.widgets.semantichelper.summariseInto = function(ctx,iri,type,elid,
       if (undefined != firstbinding) {
 
 
-        var entityinfo = ctx.getConfiguration().getEntityFromIRI(firstbinding.rdftype.value);
+        var entityinfo = ctx.getTripleConfiguration().getEntityFromIRI(firstbinding.rdftype.value);
         mljs.defaultconnection.logger.debug("semantichelper.summariseInto: entityInfo: " + JSON.stringify(entityinfo));
-        var nameprop = ctx.getConfiguration().getNameProperty(entityinfo.iri).iri;
+        var nameprop = ctx.getTripleConfiguration().getNameProperty(entityinfo.iri).iri;
         mljs.defaultconnection.logger.debug("semantichelper.summariseInto: nameprop: " + nameprop);
         if (undefined == nameprop) {
           sumsimple(lookupIri);
@@ -308,7 +308,7 @@ com.marklogic.widgets.sparqlbar.prototype.refresh = function() {
   //s += "      <option value='_facts'>All Facts</option>";
   //s += "      <option value='_graphs'>All Graphs</option>";
   var first = true;
-  var ents = this.semanticcontext.getConfiguration()._newentities;
+  var ents = this.semanticcontext.getTripleConfiguration()._newentities;
   for (var nom in ents) {
     var ent = ents[nom];
     if (undefined != ent && "function" != typeof ent) { // fix for array function members
@@ -381,7 +381,7 @@ com.marklogic.widgets.sparqlbar.prototype._addTerm = function(parentid) {
   s += "<select class='sparqlbar-term-relatedtype' id='" + this.container + "-sparqlbar-term-relatedtype-" + tid + "'>";
   // generate related object options
   var first = true;
-  var ents = this.semanticcontext.getConfiguration()._newentities
+  var ents = this.semanticcontext.getTripleConfiguration()._newentities
   for (var nom in ents) {
     var ent = ents[nom];
     if (undefined != ent && "function" !== typeof ent) { // fix for array function members
@@ -508,7 +508,7 @@ com.marklogic.widgets.sparqlbar.prototype._suggest = function(tid) {
     mljs.defaultconnection.logger.debug("sparqlbar._suggest: predicateName: " + predicateName);
 
     var parentType = this._getParentType(tid);
-    var scfg = this.semanticcontext.getConfiguration();
+    var scfg = this.semanticcontext.getTripleConfiguration();
     mljs.defaultconnection.logger.debug("sparqlbar._suggest: parentType: " + parentType);
     var parentInfo = scfg.getEntityFromName(parentType);
     mljs.defaultconnection.logger.debug("sparqlbar._suggest: parentInfo: " + JSON.stringify(parentInfo));
@@ -588,7 +588,7 @@ com.marklogic.widgets.sparqlbar.prototype._updateRelationships = function(tid) {
   var s = "";
   var me = document.getElementById(this.container + "-sparqlbar-term-relatedtype-" + tid).value;
   mljs.defaultconnection.logger.debug("_updateRelationships: RELATING PARENT: " + parentType + " TO ME: " + me);
-  var config = this.semanticcontext.getConfiguration();
+  var config = this.semanticcontext.getTripleConfiguration();
   var rels = config.getValidPredicates(parentType,me);
   for (var i = 0, max = rels.length, rel; i < max;i++) {
     rel = rels[i];
@@ -613,7 +613,7 @@ com.marklogic.widgets.sparqlbar.prototype._updateProperties = function(tid) {
     // no search output selected
     return;
   }
-  var parentInfo = this.semanticcontext.getConfiguration().getEntityFromName(parentType);
+  var parentInfo = this.semanticcontext.getTripleConfiguration().getEntityFromName(parentType);
   mljs.defaultconnection.logger.debug("_updateProperties: from PARENT: " + parentType);
 
   var s = "";
@@ -755,7 +755,7 @@ com.marklogic.widgets.sparqlbar.prototype._refreshOperation = function(termid) {
 
     mljs.defaultconnection.logger.debug("Property Info: propvalue: " + propvalue + ", parentid: " + parentid + ", parententityname: " + parententityname);
 
-    var scfg = this.semanticcontext.getConfiguration();
+    var scfg = this.semanticcontext.getTripleConfiguration();
 
     // lookup predicate for property
     var entity = scfg.getEntityFromName(parententityname);
@@ -807,7 +807,7 @@ com.marklogic.widgets.sparqlbar.prototype._buildQuery = function() {
     s += "SELECT distinct ?g { GRAPH ?g {}}";
 
   } else {
-    var entity = this.semanticcontext.getConfiguration().getEntityFromIRI(what);
+    var entity = this.semanticcontext.getTripleConfiguration().getEntityFromIRI(what);
     s += "SELECT distinct ?" + entity.variable + " WHERE {\n" + "  ?" + entity.variable + " rdfs:type <" + entity.iri + "> .\n";
 
     // build out top level terms
@@ -822,7 +822,7 @@ com.marklogic.widgets.sparqlbar.prototype._buildQuery = function() {
 
 com.marklogic.widgets.sparqlbar.prototype._buildTerms = function(what,termArray,padding,counterObject) {
   var s = "";
-  var scfg = this.semanticcontext.getConfiguration();
+  var scfg = this.semanticcontext.getTripleConfiguration();
   for (var i = 0, max = termArray.length, tjson, twel, termWhat,termType,termRel,termPref,c,propentity,propname,propvalue,propinfo,termTypeObject;i < max;i++) {
     tjson = termArray[i];
     mljs.defaultconnection.logger.debug("_buildTerms: Got term json: " + JSON.stringify(tjson));
@@ -1107,7 +1107,7 @@ com.marklogic.widgets.sparqlresults.prototype._refresh = function() {
 
   // click handlers
   var sh = com.marklogic.widgets.semantichelper;
-  //var scfg = this.semanticcontext.getConfiguration();
+  //var scfg = this.semanticcontext.getTripleConfiguration();
   for (var i = 0, max = irilinks.length,link; i < max;i++) {
     link = irilinks[i];
     sh.summariseInto(this.semanticcontext,link.iri,link.type,link.elid,this._iriHandler);
@@ -1321,6 +1321,47 @@ com.marklogic.widgets.entityfacts.prototype.setSemanticContext = function(sc) {
   this.semanticcontext = sc;
 };
 
+com.marklogic.widgets.entityfacts.prototype.updateResults = function(results) {
+  if (true === results || false === results) {
+    return;
+  }
+  if (undefined != results && undefined != results.results) {
+    this._lookupDocumentFacts(results.results[0].uri); // first uri
+  }
+};
+
+com.marklogic.widgets.entityfacts.prototype.updateResultSelection = function(newsel) {
+  this._lookupDocumentFacts(newsel[0]); // first uri
+};
+
+com.marklogic.widgets.entityfacts.prototype.updateResultHighlight = function(newsel) {
+  this._lookupDocumentFacts(newsel[0]); // first uri
+};
+
+com.marklogic.widgets.entityfacts.prototype.updateDocumentSelection = function(newsel) {
+  this._lookupDocumentFacts(newsel[0]); // first uri
+};
+
+com.marklogic.widgets.entityfacts.prototype._lookupDocumentFacts = function(docuri) {
+
+  // TODO MAKE THIS THE SUBJECT MENTIONED IN THE DOCUMENT, NOT THE DOCUMENT ITSELF
+
+  //var where = "select ?subject ?predicate ?object where {";
+  //where = "     ?subject ?predicate ?object .";
+  var where = "     ?d <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://marklogic.com/semantics/ontology/Document> . ";
+  where += "     ?d <http://marklogic.com/semantics/ontology/Document#uri> \"" + docuri + "\"@en . ";
+  where += "     ?d <http://marklogic.com/semantics/ontology/mentions> ?subject .";
+  //sparql += "   }";
+
+  //var sparql = "select ?p ?o where {";
+  //sparql += "     ?s a <http://marklogic.com/semantics/ontology/Document> . ";
+  //sparql += "     ?s <http://marklogic.com/semantics/ontology/Document#uri> '" + docuri + "'@en . ";
+  //sparql += "     ?s ?p ?o .";
+  //sparql += "   }";
+
+  this.semanticcontext.getFactsWhere(where);
+};
+
 com.marklogic.widgets.entityfacts.prototype.updateSubjectFacts = function(factsJson) {
   if ("object" == typeof factsJson) {
     mljs.defaultconnection.logger.debug("entityfacts.updateSubjectFacts: Facts: " + JSON.stringify(factsJson));
@@ -1369,7 +1410,7 @@ com.marklogic.widgets.entityfacts.prototype._refresh = function() {
   }
 
   var irilinks = new Array();
-  var scfg = this.semanticcontext.getConfiguration();
+  var scfg = this.semanticcontext.getTripleConfiguration();
 
   if (this.facts != null && this.facts != undefined) {
     // get type: http://www.w3.org/1999/02/22-rdf-syntax-ns#type
@@ -1477,7 +1518,7 @@ com.marklogic.widgets.entityfacts.prototype._refresh = function() {
 };
 
 com.marklogic.widgets.entityfacts.prototype._summariseInto = function(iri,elid) {
-  //this.semanticcontext.getConfiguration().summariseInto(iri,elid,this._iriHandler);
+  //this.semanticcontext.getTripleConfiguration().summariseInto(iri,elid,this._iriHandler);
   com.marklogic.widgets.semantichelper.summariseInto(this.semanticcontext,iri,"uri",elid,this._config.iriHandler);
 };
 

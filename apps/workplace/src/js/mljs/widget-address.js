@@ -130,6 +130,16 @@ com.marklogic.widgets.addressbar.prototype.radius = function(radius,radiusMeasur
   return this;
 };
 
+/**
+ * Sets the address in the widget and does a lookup
+ * @param {string} address - The plain text address to lookup
+ */
+com.marklogic.widgets.addressbar.prototype.setAddress = function(address) {
+  document.getElementById(this.container + "-address").value = address;
+  // TODO test this fires an update. If not, uncomment the below line
+  //this._dosearch();
+};
+
 com.marklogic.widgets.addressbar.prototype._dosearch = function() {
   // perform lookup
   var self = this;

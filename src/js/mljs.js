@@ -7458,9 +7458,13 @@ com.marklogic.semantic.tripleconfig.prototype.addMarkLogic = function() {
     .from("*","http://marklogic.com/semantics/ontology/Document#uri")
     .from("*","http://www.w3.org/ns/prov#wasDerivedFrom")
     .from("*","http://marklogic.com/semantics/ontology/mentioned_in")
-    .to("http://marklogic.com/semantics/ontology/Document",["http://www.w3.org/ns/prov#wasDerivedFrom","http://marklogic.com/semantics/ontology/mentioned_in"]);
+    .to("http://marklogic.com/semantics/ontology/Document",["http://www.w3.org/ns/prov#wasDerivedFrom","http://marklogic.com/semantics/ontology/mentioned_in"])
+    .to("*",["http://marklogic.com/semantics/ontology/mentions"])
+    ;
   doc.predicate("http://marklogic.com/semantics/ontology/Document#uri").title("URI");
   doc.predicate("http://www.w3.org/ns/prov#wasDerivedFrom").title("Derived From");
+  doc.predicate("http://marklogic.com/semantics/ontology/mentions").title("Mentions");
+  doc.predicate("http://marklogic.com/semantics/ontology/mentioned_in").title("Mentioned In");
   this.include(doc);
 };
 
@@ -7991,7 +7995,6 @@ mljs.prototype.semanticcontext.prototype.getFact = function(subjectIri,predicate
  * @param {string} reload_opt - Whether to reload the fact, or use the cached value (if it exists) - defaults to false (use cache)
  */
 mljs.prototype.semanticcontext.prototype.getFacts = function(subjectIri,reload_opt) {
-  var self = this;
   var facts = this._subjectFacts[subjectIri];
   if ((true==reload_opt) || undefined == facts) {
     var sparql = "SELECT * WHERE {";
@@ -8006,20 +8009,38 @@ mljs.prototype.semanticcontext.prototype.getFacts = function(subjectIri,reload_o
     }
     sparql += " ?predicate ?object .}";
 
-    // fetch info and refresh again
-    self.db.sparql(sparql,function(result) {
-      self.__d("RESPONSE: " + JSON.stringify(result.doc));
-      if (result.inError) {
-        self._subjectFactsPublisher.publish(false);
-        self._errorPublisher.publish(result.error);
-      } else {
-        self._subjectFacts[subjectIri] = result.doc;
-        self._subjectFactsPublisher.publish({subject: subjectIri,facts: result.doc});
-      }
-    });
+    this._getFacts(sparql);
   } else {
-    self._subjectFactsPublisher.publish({subject: subjectIri,facts: facts});
+    this._subjectFactsPublisher.publish({subject: subjectIri,facts: facts});
   }
+};
+
+mljs.prototype.semanticcontext.prototype._getFacts = function(sparql,subjectIriOpt) {
+  var self = this;
+  // fetch info and refresh again
+  self.db.sparql(sparql,function(result) {
+    self.__d("RESPONSE: " + JSON.stringify(result.doc));
+    if (result.inError) {
+      self._subjectFactsPublisher.publish(false);
+      self._errorPublisher.publish(result.error);
+    } else {
+      var res = {facts: result.doc};
+      if (undefined != subjectIriOpt) {
+        self._subjectFacts[subjectIriOpt] = result.doc;
+        res.subject = subjectIriOpt;
+      }
+      self._subjectFactsPublisher.publish(res);
+    }
+  });
+};
+
+/**
+ * Get facts for the Subject where the given condition matches. MUST use ?subject for the subject of interest.
+ * @param {string} whereSparql - The Sparql to embed within the where clause using ?subject
+ */
+mljs.prototype.semanticcontext.prototype.getFactsWhere = function(whereSparql) {
+  var sparql = "select * where {" + whereSparql + " ?subject ?predicate ?object .}"
+  this._getFacts(sparql);
 };
 
 /**

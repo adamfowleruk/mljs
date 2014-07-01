@@ -55,7 +55,7 @@ window.onload = function() {
       {context: "documentcontext1", type: "DocumentContext", register: [], config: {}}
     ], actions: {
       onload: [
-        {type: "javascript", config: {targetObject: "searchcontext1", methodName: "doSimpleQuery", parameters: []}}
+        {action: "searchcontext1.doSimpleQuery",type: "javascript", config: {target: "searchcontext1", method: "doSimpleQuery"}}
       ]
     }};
 
