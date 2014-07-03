@@ -8049,14 +8049,14 @@ mljs.prototype.semanticcontext.prototype.getFacts = function(subjectIri,reload_o
     var sparql = "SELECT * WHERE {";
 
     // check for bnodes
-    if (!(subjectIri.indexOf("_:") == 0)) {
+    /*if (!(subjectIri.indexOf("_:") == 0)) {
       sparql += "<";
     }
     sparql += subjectIri;
     if (!(subjectIri.indexOf("_:") == 0)) {
       sparql += ">";
-    }
-    sparql += " ?predicate ?object .}";
+    }*/
+    sparql += " ?subject ?predicate ?object . FILTER (?subject = <" + subjectIri + "> ) .}";
 
     this._getFacts(sparql);
   } else {

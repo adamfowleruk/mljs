@@ -20,6 +20,8 @@ window.onload = function() {
 
   var searchcontext = db.createSearchContext();
   var semanticcontext = db.createSemanticContext();
+  semanticcontext.getTripleConfiguration().addTest();
+  semanticcontext.setContentContext(searchcontext);
   //semanticcontext.addDocument(); // done auto by tripleconfig
 
   var bar = new com.marklogic.widgets.searchbar("cs-bar");
@@ -27,6 +29,8 @@ window.onload = function() {
   results.setSelectionModeReplace();
 
   var facts = new com.marklogic.widgets.entityfacts("infobox");
+  facts.setModeAllMentioned();
+  facts.explorerLink("/explorer.html?iri=#IRI#");
 
   semanticcontext.register(facts);
 

@@ -57,6 +57,11 @@ window.onload = function() {
           {subject: "http://marklogic.com/semantic/targets/people/wendy", predicate: "likes", object: "http://marklogic.com/semantic/targets/foodstuffs/cheese"},
           {subject: "http://marklogic.com/semantic/targets/people/wendy", predicate: "http://marklogic.com/semantics/ontology/mentioned_in", object: "/mixed/4"},
           {subject: "/mixed/4", predicate: "http://marklogic.com/semantics/ontology/mentions", object: "http://marklogic.com/semantic/targets/people/wendy"},
+          {subject: "/mixed/4", predicate: "http://marklogic.com/semantics/ontology/mentions", object: "http://marklogic.com/semantic/targets/people/adam"},
+          {subject: "/mixed/4", predicate: "http://marklogic.com/semantics/ontology/mentions", object: "http://marklogic.com/semantic/targets/foodstuffs/cheese"},
+          {subject: "http://marklogic.com/semantic/targets/people/wendy", predicate: "http://marklogic.com/semantics/ontology/mentioned_in", object: "/mixed/4"},
+          {subject: "http://marklogic.com/semantic/targets/people/adam", predicate: "http://marklogic.com/semantics/ontology/mentioned_in", object: "/mixed/4"},
+          {subject: "http://marklogic.com/semantic/targets/foodstuffs/cheese", predicate: "http://marklogic.com/semantics/ontology/mentioned_in", object: "/mixed/4"},
           {subject: "http://marklogic.com/semantic/targets/foodstuffs/cheese", predicate: "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", object: "http://marklogic.com/semantic/rdfTypes/foodstuff"},
           {subject: "http://marklogic.com/semantic/targets/foodstuffs/cheese", predicate: "foodname", string: "Cheese", locale: "en"}
         ];
@@ -368,7 +373,7 @@ window.onload = function() {
                     textToXML("<documentelement><title>I am an XML file</title><summary>Some XML summary</summary><dt:datereceived xmlns:dt='http://marklogic.com/ns/dt'>2013-01-25</dt:datereceived></documentelement>"),
                     textToXML("<documentelement2><name>I am a generic XML file</name><desc>Generic XML description</desc><dt:datereceived xmlns:dt='http://marklogic.com/ns/dt'>2013-01-18</dt:datereceived></documentelement2>"),
                     textToXML("<documentelement3><wibble>Generic XML wibble file</wibble><flibble>Generic XML flibble element</flibble><dt:datereceived xmlns:dt='http://marklogic.com/ns/dt'>2013-02-14</dt:datereceived></documentelement3>"),
-                    textToXML("<html xmlns='http://www.w3.org/1999/xhtml'><head><title>XHTML test doc</title><meta name='Author' content='Adam Fowler'/></head><body><h1>XHTML doc h1</h1><p>Lorem ipsum dolar sit amet</p><h2>Consecutor</h2><p>Wibble de flibble</p></body></html>"),
+                    textToXML("<html xmlns='http://www.w3.org/1999/xhtml'><head><title>XHTML test doc</title><meta name='Author' content='Adam Fowler'/></head><body><h1>XHTML doc h1</h1><p>Lorem ipsum dolar sit amet</p><h2>Consecutor</h2><p>Wibble de flibble</p><h2>Facts for triples</h2><p>Adam likes Cheese</p><p>Wendy likes Cheese lots</p><p>Adam is married to Wendy</p></body></html>"),
                     {title: "Some JSON title", summary: "Some JSON summary"},
                     {name: "Generic JSON name", desc: "Generic JSON description"}
                   ];

@@ -3,6 +3,12 @@
 ## Upcoming releases
 
 Targets for 1.6 (Jun 2014) - Theme: MLJS Ease of Use in the Browser
+ - Node: Write a frickin' auto app deploy directory watching app
+ - Docs: Demo app improvements
+  - sparqlbar page: add explorer link to entityfacts config
+  - sparqlbar page: make document links use mentioned_in link with correct IRI for search results rendering
+  - explorer page: accept incoming IRI link in url ?iri=, where not specified use existing default
+  - remove extraneous entity facts rendering logging code
  - Docs: Remove all uses of the searchpage widget in demos
   - DEFERRED Ensure thinthick layout with embedded column layout works
    - DEFERRED create columns layout for workplace
@@ -12,12 +18,17 @@ Targets for 1.6 (Jun 2014) - Theme: MLJS Ease of Use in the Browser
   - mldbwebtest - snippets
  - DONE Semantics
   - DONE Add mentions triple to MarkLogic Document Ontology in mljs.js line 7430
+  - TEST Added OpenCalais types to tripleconfig (addOpenCalais), and is added by default
  - IN PROGRESS Widget: InfoBox - just using EntityFacts widget
-  - TEST Lookup MLDocument based on docuri
-  - TEST Display list of facts (like in triple explorer)
-  - Link to triple explorer and document view page
-  - URGENT Make entityfacts aware that a single document may pull back multiple subjects with facts - render them separately
-   - E.g. with line break separator between subjects
+  - DONE Lookup MLDocument based on docuri
+  - DONE Display list of facts (like in triple explorer)
+  - DONE Link to triple explorer and document view page
+  - IN PROGRESS Make entityfacts aware that a single document may pull back multiple subjects with facts - render them separately
+   - DONE single subject list of facts
+   - DONE Multiple subjects list of facts
+   - DONE test first mentioned mode
+   - DONE test all mentioned mode
+   - Update workplace configuration options
  - Double check in Workplace app (uses Bootstrap only, not 960.css, unlike mljsrest test app)
  - IN PROGRESS Widgets: Various Widget Bugs
   - BUG Clicking on Bar chart value gives: Point clicked: x:0, series name:'animal', y:3 data: undefined
@@ -37,8 +48,11 @@ Targets for 1.6 (Jun 2014) - Theme: MLJS Ease of Use in the Browser
   - DONE BUG GraphExplorer not showing document facets
   - DONE BUG explorer.js line 848 - using iri + uri instead of looking up subject in cache
   - BUG null when selecting Document as first subject in sparqlbar
-  - BUG search auto complete totally broke on infobox page
+  - URGENT BUG search auto complete totally broke on infobox page
   - BUG GET /v1/graph should be /v1/graphs
+  - BUG explorer widget fails when trying to link to subject that has already been drawn
+  - BUG infobox page: empty sparql results does not empty entity facts area of facts
+  - BUG google maps address lookup longitude not working again (check latest social media code for fix - back port)
  - DEFERRED Widgets: Workplace UI feedback
   - DEFERRED auto expand/collapse drop zones on widget page
   - DEFERRED 'preview' settings from page edit overlay (perhaps by collapsing overlay to just a bar 25 px high)

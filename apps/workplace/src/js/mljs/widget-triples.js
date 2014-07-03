@@ -24,6 +24,23 @@ com.marklogic.widgets = window.com.marklogic.widgets || {};
 
 com.marklogic.widgets.semantichelper = {};
 
+
+com.marklogic.widgets.semantichelper.calculateUniqueSubjects = function(results) {
+  mljs.defaultconnection.logger.debug("semantichelper.calculateUniqueSubjects: results: " + JSON.stringify(results));
+  var subjects = new Array();
+  // get list of all subjects (assume DISTINCT was used on subject in query)
+  var bindings = results.results.bindings;
+  mljs.defaultconnection.logger.debug("semantichelper.calculateUniqueSubjects: Bindings: " + JSON.stringify(bindings));
+  for (var b = 0,maxb = bindings.length,bin;b < maxb;b++) {
+    bin = bindings[b];
+    if (undefined != bin.subject && undefined != bin.subject.value && !subjects.contains(bin.subject.value)) {
+      mljs.defaultconnection.logger.debug("semantichelper.calculateUniqueSubjects: Adding new subject: " + bin.subject.value);
+      subjects.push(bin.subject.value);
+    }
+  }
+  return subjects;
+};
+
 com.marklogic.widgets.semantichelper.summariseInto = function(ctx,iri,type,elid,iriHandler) {
   mljs.defaultconnection.logger.debug("semantichelper.summariseInto: IRI: " + iri + ", elid: " + elid + ", ctx: " + ctx + ", type: " + type + ", iriHandler: " + iriHandler);
 
@@ -1270,7 +1287,9 @@ com.marklogic.widgets.entityfacts = function(container) {
   this.semanticcontext = mljs.defaultconnection.createSemanticContext(); // TODO lazy load if setSemanticContext not called
 
   this._config = {
-    iriHandler: null
+    iriHandler: null,
+    mode: "selectedsubject",
+    explorerUrlSpec: null
   };
 
   this.loading = false;
@@ -1325,7 +1344,7 @@ com.marklogic.widgets.entityfacts.prototype.updateResults = function(results) {
   if (true === results || false === results) {
     return;
   }
-  if (undefined != results && undefined != results.results) {
+  if (undefined != results && undefined != results.results && results.results.length > 0) {
     this._lookupDocumentFacts(results.results[0].uri); // first uri
   }
 };
@@ -1342,15 +1361,36 @@ com.marklogic.widgets.entityfacts.prototype.updateDocumentSelection = function(n
   this._lookupDocumentFacts(newsel[0]); // first uri
 };
 
+com.marklogic.widgets.entityfacts.prototype.setModeAllMentioned = function() {
+  this._config.mode = "allsubjects";
+};
+
+com.marklogic.widgets.entityfacts.prototype.setModeFirstMentioned = function() {
+  this._config.mode = "firstsubject";
+};
+
+com.marklogic.widgets.entityfacts.prototype.setModeSelected = function() {
+  this._config.mode = "selectedsubject";
+};
+
 com.marklogic.widgets.entityfacts.prototype._lookupDocumentFacts = function(docuri) {
+  //this._config.mode = "allsubjects"; // or "selectedsubject" or 'firstsubject'
 
   // TODO MAKE THIS THE SUBJECT MENTIONED IN THE DOCUMENT, NOT THE DOCUMENT ITSELF
 
+  // 1. lookup subject list
+  var subjectSparql = "select DISTINCT ?subject where {?d <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://marklogic.com/semantics/ontology/Document> . ";
+  subjectSparql += "     ?d <http://marklogic.com/semantics/ontology/Document#uri> \"" + docuri + "\"@en . ";
+  subjectSparql += "     ?d <http://marklogic.com/semantics/ontology/mentions> ?subject . }";
+  this.semanticcontext.subjectQuery(subjectSparql,0,10);
+
+  // 2. lookup subject facts (for all)
+
   //var where = "select ?subject ?predicate ?object where {";
   //where = "     ?subject ?predicate ?object .";
-  var where = "     ?d <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://marklogic.com/semantics/ontology/Document> . ";
-  where += "     ?d <http://marklogic.com/semantics/ontology/Document#uri> \"" + docuri + "\"@en . ";
-  where += "     ?d <http://marklogic.com/semantics/ontology/mentions> ?subject .";
+  //var where = "     ?d <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://marklogic.com/semantics/ontology/Document> . ";
+  //where += "     ?d <http://marklogic.com/semantics/ontology/Document#uri> \"" + docuri + "\"@en . ";
+  //where += "     ?d <http://marklogic.com/semantics/ontology/mentions> ?subject .";
   //sparql += "   }";
 
   //var sparql = "select ?p ?o where {";
@@ -1359,7 +1399,44 @@ com.marklogic.widgets.entityfacts.prototype._lookupDocumentFacts = function(docu
   //sparql += "     ?s ?p ?o .";
   //sparql += "   }";
 
-  this.semanticcontext.getFactsWhere(where);
+  //this.semanticcontext.getFactsWhere(where);
+};
+
+com.marklogic.widgets.entityfacts.prototype.updateSubjectResults = function(results) {
+  if (false === results || true === results) {
+    // TODO clear list of facts
+    return;
+  }
+  // called when list of subjects returned
+  var subjects = com.marklogic.widgets.semantichelper.calculateUniqueSubjects(results);
+
+  var sparql = null;
+  // loop through results and get unique subject IRIs
+  if (subjects.length > 0) {
+    mljs.defaultconnection.logger.debug("entityfacts.updateSubjectResults: Mode: " + this._config.mode);
+    if ("allsubjects" == this._config.mode) {
+      sparql = " FILTER ("
+      for (var s = 0,maxs = subjects.length,sub;s < maxs;s++) {
+        if (s > 0) {
+          sparql += " || ";
+        }
+        sub = subjects[s];
+        sparql += " (?subject = <" + sub + "> ) ";
+      }
+      sparql += ") .";
+    } else if ("firstsubject" == this._config.mode) {
+      sparql = " FILTER (?subject = <" + subjects[0] + "> ) .";
+    } else {
+      // "selectedsubject" - do nothing until we see a subjectFacts call
+    }
+  }
+  if (null != sparql) {
+    this.semanticcontext.getFactsWhere(sparql);
+  }
+};
+
+com.marklogic.widgets.entityfacts.prototype.explorerLink = function(urlspec) {
+  this._config.explorerUrlSpec = urlspec;
 };
 
 com.marklogic.widgets.entityfacts.prototype.updateSubjectFacts = function(factsJson) {
@@ -1409,14 +1486,57 @@ com.marklogic.widgets.entityfacts.prototype._refresh = function() {
     //s += com.marklogic.widgets.bits.loading(this.container + "-loading");
   }
 
+
   var irilinks = new Array();
-  var scfg = this.semanticcontext.getTripleConfiguration();
+  // LIST SUBJECT(s) FACTS
 
   if (this.facts != null && this.facts != undefined) {
-    // get type: http://www.w3.org/1999/02/22-rdf-syntax-ns#type
-    var type = null;
-    for (var b = 0,bindings = this.facts.facts.results.bindings, max = bindings.length, predicate, object, binding;(null == type) && (b < max);b++) {
-      binding = bindings[b];
+    var subjects = com.marklogic.widgets.semantichelper.calculateUniqueSubjects(this.facts.facts);
+
+
+    for (var su = 0,maxs = subjects.length,sub;su < maxs;su++) {
+      sub = subjects[su];
+      mljs.defaultconnection.logger.debug("entityfacts._refresh: Processing subject facts for: " + sub);
+
+      if (su > 0) {
+        s += "<hr />";
+      }
+
+      s += this._generateSubjectHTML(sub,irilinks);
+    }
+  }
+  s += "</div></div>";
+
+  document.getElementById(this.container).innerHTML = s;
+
+  // event handlers and lazy loading
+  // lazy load related entity summaries
+  for (var i = 0, max = irilinks.length,link;i < max ;i++) {
+    link = irilinks[i];
+    this._summariseInto(link.iri,link.elid);
+  }
+
+  var self = this;
+  if (this.semanticcontext.hasContentContext()) {
+    var el = document.getElementById(this.container + "-contentlink");
+    mljs.defaultconnection.logger.debug("CONTENTLINK: " + el);
+    if (null != el) {
+      mljs.defaultconnection.logger.debug("ADDING CLICK HANDLER TO CONTENTLINK");
+      el.onclick = function() {self._provenance();};
+    }
+  }
+};
+
+
+com.marklogic.widgets.entityfacts.prototype._generateSubjectHTML = function(sub,irilinks) {
+  var scfg = this.semanticcontext.getTripleConfiguration();
+  var s = "";
+
+  // get type: http://www.w3.org/1999/02/22-rdf-syntax-ns#type
+  var type = null;
+  for (var b = 0,bindings = this.facts.facts.results.bindings, max = bindings.length, predicate, object, binding;(null == type) && (b < max);b++) {
+    binding = bindings[b];
+    if (undefined != binding.subject && binding.subject.value == sub) {
       predicate = binding.predicate;
       if (undefined == predicate) {
         predicate = {value: this.facts.predicate};
@@ -1427,44 +1547,57 @@ com.marklogic.widgets.entityfacts.prototype._refresh = function() {
         type = object.value;
       }
     }
-    mljs.defaultconnection.logger.debug("Got type: " + type);
+  }
+  mljs.defaultconnection.logger.debug("Got type: " + type);
 
-    var entityInfo = scfg.getEntityFromIRI(type);
-    mljs.defaultconnection.logger.debug("Got entity info: " + JSON.stringify(entityInfo));
+  var entityInfo = scfg.getEntityFromIRI(type);
+  mljs.defaultconnection.logger.debug("Got entity info: " + JSON.stringify(entityInfo));
 
-    var entityName = entityInfo.name;
-    mljs.defaultconnection.logger.debug("Got entity name: " + entityName);
+  var entityName = entityInfo.name;
+  mljs.defaultconnection.logger.debug("Got entity name: " + entityName);
 
-    // get common name from config
-    var namepredicate = scfg.getNameProperty(entityName).iri;
-    mljs.defaultconnection.logger.debug("Got name predicate: " + namepredicate);
-    var namevalue = null;
-    for (var b = 0,bindings = this.facts.facts.results.bindings, max = bindings.length, predicate, object, binding;(null == namevalue) && (b < max);b++) {
-      binding = bindings[b];
-      predicate = binding.predicate;
-      if (undefined == predicate) {
-        predicate = {value: this.facts.predicate};
-      }
-      object = binding.object;
+  // get common name from config
+  var namepredicate = scfg.getNameProperty(entityName).iri;
+  mljs.defaultconnection.logger.debug("Got name predicate: " + namepredicate);
+  var namevalue = null;
+  for (var b = 0,bindings = this.facts.facts.results.bindings, max = bindings.length, predicate, object, binding;(null == namevalue) && (b < max);b++) {
+    binding = bindings[b];
+    if (undefined != binding.subject) {
+      if (binding.subject.value == sub) {
+        predicate = binding.predicate;
+        if (undefined == predicate) {
+          predicate = {value: this.facts.predicate};
+        }
+        object = binding.object;
 
-      if (predicate.value == namepredicate) {
-        namevalue = object.value;
+        if (predicate.value == namepredicate) {
+          namevalue = object.value;
+        }
       }
     }
-    mljs.defaultconnection.logger.debug("Got name value: " + namevalue);
+  }
+  mljs.defaultconnection.logger.debug("Got name value: " + namevalue);
 
-    //var objectinfo = this._config.getEntityFromIRI(type);
-    s += "<div class='h4'>" + namevalue + " <span class='small'>" + entityInfo.title + "</span>";
+  s += "<div class='mljsResultDefaultResult'>";
+  //var objectinfo = this._config.getEntityFromIRI(type);
+  s += "<div class='h4'>" + namevalue + " <span class='small'>" + entityInfo.title + "</span>";
 
-    if (this.semanticcontext.hasContentContext()) {
-      s += " <a href='#' id='" + this.container + "-contentlink'><span class='glyphicon glyphicon-file' title='Load related content'> </span></a>";
-    }
-    s += "</div>";
+  if (this.semanticcontext.hasContentContext()) {
+    s += " <a href='#' id='" + this.container + "-contentlink'><span class='glyphicon glyphicon-file' title='Load related content'> </span></a>";
+  }
+  if (this._config.explorerUrlSpec != null) {
+    // show facts explorer link with #IRI# in it
+    s += " <a href='";
+    s += this._config.explorerUrlSpec.replace("#IRI#",encodeURI(sub)); // replace #IRI# with THIS subject's IRI
+    s += "' id='" + this.container + "-explorerlink'><span class='glyphicon glyphicon-eye-open' title='Explore Subject links'> </span></a>";
+  }
+  s += "</div>";
 
-    // TODO publish non IRIs first
-    // TODO publish IRIs as links
-    for (var b = 0,bindings = this.facts.facts.results.bindings, max = bindings.length, predicate, obj, binding;(b < max);b++) {
-      binding = bindings[b];
+  // TODO publish non IRIs first
+  // TODO publish IRIs as links
+  for (var b = 0,bindings = this.facts.facts.results.bindings, max = bindings.length, predicate, obj, binding;(b < max);b++) {
+    binding = bindings[b];
+    if (undefined != binding.subject && binding.subject.value == sub) {
       predicate = binding.predicate;
       if (undefined == predicate) {
         predicate = {value: this.facts.predicate};
@@ -1495,26 +1628,8 @@ com.marklogic.widgets.entityfacts.prototype._refresh = function() {
       }
     }
   }
-  s += "</div>";
-
-  document.getElementById(this.container).innerHTML = s;
-
-  // event handlers and lazy loading
-  // lazy load related entity summaries
-  for (var i = 0, max = irilinks.length,link;i < max ;i++) {
-    link = irilinks[i];
-    this._summariseInto(link.iri,link.elid);
-  }
-
-  if (this.semanticcontext.hasContentContext()) {
-    var self = this;
-    var el = document.getElementById(this.container + "-contentlink");
-    mljs.defaultconnection.logger.debug("CONTENTLINK: " + el);
-    if (null != el) {
-      mljs.defaultconnection.logger.debug("ADDING CLICK HANDLER TO CONTENTLINK");
-      el.onclick = function() {self._provenance();};
-    }
-  }
+  s += "</div>"; // result div
+  return s;
 };
 
 com.marklogic.widgets.entityfacts.prototype._summariseInto = function(iri,elid) {

@@ -804,13 +804,17 @@ com.marklogic.widgets.graphexplorer.prototype._getSubjectPredicate = function(ca
  * @param {object} result - The MLJS result wrapper. result.doc contains the SPARQL result in a JSON expression
  */
 com.marklogic.widgets.graphexplorer.prototype.updateSubjectFacts = function(result) {
-  mljs.defaultconnection.logger.debug("graphexplorer.updateSubjectFacts: " + result.subject);
+  if (true === result || false === result) {
+    return; // TODO clear display
+  }
+  mljs.defaultconnection.logger.debug("graphexplorer.updateSubjectFacts: " + JSON.stringify(result));
+  var subjects = com.marklogic.widgets.semantichelper.calculateUniqueSubjects(result.facts);
 
   // get parentiri, subjectiri, rdftype and group facts to these three
   // find relevant parent-subject iri nodes on the display
   // update this particular data node
-  this.propertyCache[result.subject] = result.facts;
-  this._drawSubjectDetail(result.subject,result.facts);
+  this.propertyCache[subjects[0]] = result.facts;
+  this._drawSubjectDetail(subjects[0],result.facts);
 
   // check against draw when complete too
   // TODO make this more efficient by removing subjects that have been complete from dependencies
@@ -835,7 +839,7 @@ com.marklogic.widgets.graphexplorer.prototype.updateSubjectFacts = function(resu
       // redraw subject
       this._drawSubjectDetail(doc.subject,this.propertyCache[doc.subject]);
     } else {
-      mljs.defaultconnection.logger.debug("graphexplorer.updateSubjectFacts: Not got all for: " + doc.subject + " after loading facts for: " + result.subject);
+      mljs.defaultconnection.logger.debug("graphexplorer.updateSubjectFacts: Not got all for: " + doc.subject + " after loading facts for: " + subjects[0]);
       newDrawWhenComplete.push(doc);
     }
   }
