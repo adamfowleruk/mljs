@@ -7724,7 +7724,7 @@ mljs.prototype.semanticcontext = function() {
 
   this._contentMode = "full"; // or "contribute" - whether to executed a structured query (full) or just provide a single term (contribute)
 
-  this._theCache = {}; // subjectIri => {iri: "", typeString: "", typePredicate: "", nameString: "", namePredicate: "", all: false, facts: [{subject,predicate,object}]}
+  this._theCache = {}; // subjectIri => {iri: "", typeNameString: "", nameString: "", namePredicate: "", all: false, facts: [{subject,predicate,object}]}
 
   this._subjectResultsPublisher = new com.marklogic.events.Publisher();
   this._subjectFactsPublisher = new com.marklogic.events.Publisher();

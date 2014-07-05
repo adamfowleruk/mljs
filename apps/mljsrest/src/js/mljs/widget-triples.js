@@ -134,6 +134,8 @@ com.marklogic.widgets.semantichelper._drawSummary = function(irilink,si,iriHandl
     };
   };
 
+  var elid = irilink.elid;
+
   var sumsimple = function(subjectIri) {
     var theel = document.getElementById(elid);
     if (undefined != theel) {
@@ -154,7 +156,6 @@ com.marklogic.widgets.semantichelper._drawSummary = function(irilink,si,iriHandl
     }
   };
 
-  var elid = irilink.elid;
     var el = document.getElementById(elid);
     if (undefined != el && null != si.nameString && null != si.typeNameString) {
       var cn = si.nameString;
@@ -1483,12 +1484,21 @@ com.marklogic.widgets.entityfacts = function(container) {
   this.semanticcontext = mljs.defaultconnection.createSemanticContext(); // TODO lazy load if setSemanticContext not called
 
   this._config = {
-    iriHandler: null, // TODO check if actually used anywhere
     mode: "selectedsubject",
     explorerUrlSpec: null
   };
 
   this.loading = false;
+
+  var self = this;
+
+  this._defaultIriHandler = function(iri) {
+    // show new subject inside this same widget by using subjectQuery
+    self.semanticcontext.subjectQuery(
+      "select * where {?subject ?predicate ?object . FILTER (?subject = <" + iri + ">) . }",0,1000);
+  };
+
+  this._iriHandler = this._defaultIriHandler; // TODO check if actually used anywhere
 
   this.facts = null;
 
@@ -1513,10 +1523,10 @@ com.marklogic.widgets.entityfacts = function(container) {
  * @static
  */
 com.marklogic.widgets.entityfacts.getConfigurationDefinition = function() {
-  return {
+  return {/*
     iriHandler: {type: "string", default:null,title:"IRI Handler",
       description:"The IRI Click handler. Use #IRI# in the URL to open that page with a IRI link when clicked."
-    },
+    },*/
     mode: {type: "enum",default: "selectedsubject", title: "Display Mode",
       options: [
         {value: "selectedsubject", title: "Selected Subject", description: "The current selected subject in the semantic context."},
@@ -1692,7 +1702,7 @@ com.marklogic.widgets.entityfacts.prototype.updateSubjectFacts = function(factsJ
  * @param {function} handler - The event handler function
  **/
 com.marklogic.widgets.entityfacts.prototype.iriHandler = function(handler) {
-  this._config.iriHandler = handler;
+  this._iriHandler = handler;
 };
 
 com.marklogic.widgets.entityfacts.prototype._toggle = function() {

@@ -34,6 +34,7 @@ Targets for 1.6 (Jun 2014) - Theme: MLJS Ease of Use in the Browser
    - DONE Update workplace configuration options
  - IN PROGRESS Widgets: Various Widget Bugs / performance enhancements
   - HIGH
+   - DONE BUG Make links appear for related subjects where iriHandler is set
    - BUG Docs: Openlayers demo page hovering over marker causes null reference looking for result area by id to change css classes
    - BUG google maps address lookup longitude not working again (check latest social media code for fix - back port)
    - Widgets: Gracefully handle RDF types that have not been configured in the triple config
