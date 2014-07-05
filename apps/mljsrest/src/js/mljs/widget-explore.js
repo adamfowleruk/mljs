@@ -58,6 +58,8 @@ com.marklogic.widgets.graphexplorer = function(container) {
 
   this._existingPaths = {}; // this._existingPaths[parentiri][childiri] = path
 
+  this._messageBoxes = new Array(); // list of msgboxes shown, to destroy!!!
+
   this._init();
 };
 
@@ -467,7 +469,7 @@ com.marklogic.widgets.graphexplorer.prototype._drawSubjectDetail = function(subj
   var title = subjectIri;
   var docuri = null; // only applicable to MarkLogic document entities - see later code in this function
   var type = "Unknown";
-    for (var b = 0,bindings = facts.results.bindings, max = bindings.length, predicate, obj, binding;b < max;b++) {
+    for (var b = 0,bindings = facts, max = bindings.length, predicate, obj, binding;b < max;b++) {
       binding = bindings[b];
       predicate = binding.predicate;
       //mljs.defaultconnection.logger.debug("OUR PREDICATE: " + JSON.stringify(predicate));
@@ -570,9 +572,16 @@ com.marklogic.widgets.graphexplorer.prototype._drawSubjectDetail = function(subj
 
   var self = this;
   var addshow = function(relbox,rn,left,top,piri,riri) {
-    var msgbox;
+    var destroyBoxes = function() {
+      for (var bn = 0,maxbn = self._messageBoxes.length,thebox;bn < maxbn;bn++) {
+        thebox = self._messageBoxes[bn];
+        thebox.destroy();
+      }
+      self._messageBoxes = new Array();
+    };
     relbox.on("mouseover",function(){
-      msgbox = ren.label(rn,left+18,top-7).attr({
+      destroyBoxes();
+      var msgbox = ren.label(rn,left+18,top-7).attr({
         fill: "white",
         stroke: colors[4],
         'stroke-width': 4,
@@ -581,8 +590,9 @@ com.marklogic.widgets.graphexplorer.prototype._drawSubjectDetail = function(subj
       }).css({
         color: colors[0]
       }).add().shadow(true);
+      self._messageBoxes.push(msgbox);
     }).on("mouseout",function() {
-      msgbox.destroy();
+      destroyBoxes();
     }).on("click",function() {
       // TODO load related object
       mljs.defaultconnection.logger.debug("RELATION CLICKED: piri: " + piri + ", riri: " + riri);
@@ -601,7 +611,10 @@ com.marklogic.widgets.graphexplorer.prototype._drawSubjectDetail = function(subj
         targetrow = existingent.row;
         targetcol = existingent.column;
 
-        if (undefined != self._existingPaths[piri][riri]) {
+        if (undefined != self._existingPaths[subjectIri] && undefined != self._existingPaths[subjectIri][piri] &&
+            undefined != self._existingPaths[subjectIri][piri][riri]) {
+          // don't redraw existing link
+          // WRONG is showing ANY subject with this path, not OUR subject!
           return;
         }
       }
@@ -637,8 +650,9 @@ com.marklogic.widgets.graphexplorer.prototype._drawSubjectDetail = function(subj
         'stroke-width': 2,stroke: colors[0] }).add();
 
       // add to existing to ensure duplicate paths are not drawn
-      self._existingPaths[piri] = self._existingPaths[piri] || {};
-      self._existingPaths[piri][riri] = pth;
+      self._existingPaths[subjectIri] = self._existingPaths[subjectIri] || {};
+      self._existingPaths[subjectIri][piri] = self._existingPaths[subjectIri][piri] || {};
+      self._existingPaths[subjectIri][piri][riri] = pth;
     });
 
   };
@@ -788,7 +802,7 @@ com.marklogic.widgets.graphexplorer.prototype._getSubjectName = function(subject
 com.marklogic.widgets.graphexplorer.prototype._getSubjectPredicate = function(cache,predIri) {
   mljs.defaultconnection.logger.debug("_getSubjectPredicate: loading predicate from cache. Predicate: " + predIri + " cache:- " + JSON.stringify(cache));
 
-  for (var b = 0,bindings = cache.results.bindings, max = bindings.length, predicate, obj, binding;b < max;b++) {
+  for (var b = 0,bindings = cache, max = bindings.length, predicate, obj, binding;b < max;b++) {
     binding = bindings[b];
     predicate = binding.predicate;
     if (predIri == predicate.value) {
@@ -808,13 +822,14 @@ com.marklogic.widgets.graphexplorer.prototype.updateSubjectFacts = function(resu
     return; // TODO clear display
   }
   mljs.defaultconnection.logger.debug("graphexplorer.updateSubjectFacts: " + JSON.stringify(result));
-  var subjects = com.marklogic.widgets.semantichelper.calculateUniqueSubjects(result.facts);
+  var subjects = com.marklogic.widgets.semantichelper.calculateUniqueSubjects(result);
 
   // get parentiri, subjectiri, rdftype and group facts to these three
   // find relevant parent-subject iri nodes on the display
   // update this particular data node
-  this.propertyCache[subjects[0]] = result.facts;
-  this._drawSubjectDetail(subjects[0],result.facts);
+  var facts = this.semanticContext.getCachedFacts(subjects[0]).facts
+  this.propertyCache[subjects[0]] = facts;
+  this._drawSubjectDetail(subjects[0],facts);
 
   // check against draw when complete too
   // TODO make this more efficient by removing subjects that have been complete from dependencies

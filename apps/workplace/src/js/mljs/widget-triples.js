@@ -24,23 +24,166 @@ com.marklogic.widgets = window.com.marklogic.widgets || {};
 
 com.marklogic.widgets.semantichelper = {};
 
-
+/**
+ * Calculates a list of unique subjects either from a REST sparql response results object, or from an array of s p o facts.
+ * @param {object|Array} results - Either the REST SPARQL response object, or an array of simple subject, predicate, object fact values
+ */
 com.marklogic.widgets.semantichelper.calculateUniqueSubjects = function(results) {
   mljs.defaultconnection.logger.debug("semantichelper.calculateUniqueSubjects: results: " + JSON.stringify(results));
   var subjects = new Array();
+  if (undefined == results) {
+    return subjects;
+  }
   // get list of all subjects (assume DISTINCT was used on subject in query)
-  var bindings = results.results.bindings;
+  var bindings = [];
+  if (undefined != results.results && undefined != results.results.bindings) {
+    bindings = results.results.bindings;
+  } else if (Array.isArray(results)) {
+    // assume just spo
+    bindings = results;
+  }
   mljs.defaultconnection.logger.debug("semantichelper.calculateUniqueSubjects: Bindings: " + JSON.stringify(bindings));
   for (var b = 0,maxb = bindings.length,bin;b < maxb;b++) {
     bin = bindings[b];
-    if (undefined != bin.subject && undefined != bin.subject.value && !subjects.contains(bin.subject.value)) {
-      mljs.defaultconnection.logger.debug("semantichelper.calculateUniqueSubjects: Adding new subject: " + bin.subject.value);
-      subjects.push(bin.subject.value);
+    if (undefined != bin.subject) {
+      var subject = null;
+      if (undefined != bin.subject.value) {
+        subject = bin.subject.value;
+      } else {
+        subject = bin.subject;
+      }
+      if (undefined != subject && !subjects.contains(subject)) {
+        mljs.defaultconnection.logger.debug("semantichelper.calculateUniqueSubjects: Adding new subject: " + bin.subject.value);
+        subjects.push(subject);
+      }
     }
   }
   return subjects;
 };
 
+
+com.marklogic.widgets.semantichelper.summariseAllInto = function(ctx,iriHandler,irilinks) {
+  var required = new Array(); // TODO make more granular - for large subjects
+  // irilinks: [{iri: "", type: "", elid:""},...]
+
+  var self = this;
+
+  var redraw = function() {
+    for (var i = 0, maxi = irilinks.length,link;i < maxi;i++) {
+      link = irilinks[i];
+      var si = ctx.getCachedFacts(link.iri);
+      if (undefined == si) {
+        if (!required.contains(link.iri)) {
+          // add to needed list
+          required.push(link.iri);
+        }
+      } else {
+        var done = self._drawSummary(link,si,iriHandler);
+        // if not done, save until facts arrive, and kick off facts
+        if (!done) {
+          if (!required.contains(link.iri)) {
+            required.push(link.iri);
+          }
+        } else {
+          // do nothing
+        }
+      }
+    }
+  };
+
+  redraw();
+
+  // loop through and get ones without requisite info (?s and ?p but no ?o, or name or type)
+  // for remainder, add to query sparql
+  // upon return, process remainder from cache
+  // kick off sparql for all required
+
+  var updateFactsHandler = {
+    updateFacts: function(results) {
+      // assume last in sequence (so cache filled)
+      redraw();
+
+      //ctx.unregister(updateFactsHandler); // TODO SORT THIS OUT SO WE DONT GET FLOODED BY UPDATES
+    }
+  };
+
+  if (required.length > 0) {
+    // create sparql
+    var sparql = "SELECT DISTINCT ?subject ?predicate ?object WHERE {?subject ?predicate ?object . FILTER (";
+    for (var i = 0,maxi = required.length,linkiri;i < maxi;i++) {
+      linkiri = required[i];
+      if (i > 0) {
+        sparql += " || ";
+      }
+      sparql += " (?subject = <" + linkiri + ">) ";
+    }
+    sparql += " ) . }";
+
+    ctx.register(updateFactsHandler);
+    ctx.queryFacts(sparql);
+  }
+};
+
+com.marklogic.widgets.semantichelper._drawSummary = function(irilink,si,iriHandler) {
+
+  var addClickHandler = function(el,chiri) {
+    mljs.defaultconnection.logger.debug("chel: " + el);
+    mljs.defaultconnection.logger.debug("chiri: " + chiri);
+    el.onclick = function(event) {
+      iriHandler(chiri);
+    };
+  };
+
+  var sumsimple = function(subjectIri) {
+    var theel = document.getElementById(elid);
+    if (undefined != theel) {
+      var s = "";
+      if (null != iriHandler) {
+        s += "<a href='#' id='" + elid + "-link'>";
+      }
+      s += subjectIri;
+      if (null != iriHandler) {
+        s += "</a>";
+      }
+      theel.innerHTML = s;
+      var el = document.getElementById(elid + "-link");
+      mljs.defaultconnection.logger.debug("elid: " + elid);
+      mljs.defaultconnection.logger.debug("el: " + el);
+      mljs.defaultconnection.logger.debug("subjectIri: " + subjectIri);
+      addClickHandler(el,subjectIri);
+    }
+  };
+
+  var elid = irilink.elid;
+    var el = document.getElementById(elid);
+    if (undefined != el && null != si.nameString && null != si.typeNameString) {
+      var cn = si.nameString;
+      // display in appropriate element
+      var s = "";
+      if (null != iriHandler) {
+        s += "<a href='#' id='" + elid + "-link'>";
+      }
+      s += cn + " (" + si.typeNameString + ")";
+
+      if (null != iriHandler) {
+        s += "</a>";
+      }
+      el.innerHTML = s;
+
+      // add click handler function here to elid-link
+      if (null != iriHandler) {
+        var el = document.getElementById(elid + "-link");
+        addClickHandler(el,irilink.iri);
+      }
+
+      return true;
+    } else {
+      sumsimple(irilink.iri);
+    }
+  return false;
+};
+
+/** @deprecated **/
 com.marklogic.widgets.semantichelper.summariseInto = function(ctx,iri,type,elid,iriHandler) {
   mljs.defaultconnection.logger.debug("semantichelper.summariseInto: IRI: " + iri + ", elid: " + elid + ", ctx: " + ctx + ", type: " + type + ", iriHandler: " + iriHandler);
 
@@ -370,13 +513,57 @@ com.marklogic.widgets.sparqlbar.prototype.refresh = function() {
   };
 
   document.getElementById(this.container + "-sparqlbar-what").onchange = function(e) {
-    for (var i = 0;i < self._allterms.length;i++) {
-      self._updateTerm(self._allterms[i].tid);
-    }
+    // remove all children first
+    self._removeChildTerms();
   };
 
   // add first term
   this._addTerm();
+};
+
+com.marklogic.widgets.sparqlbar.prototype._removeChildTerms = function(parentid) {
+  var childTerms = new Array();
+  if (undefined != parentid) {
+    // TODO change childTerms to be more selective
+    var childTermIds = new Array();
+    for (var item in this._parentterms) {
+      if (this._parentterms[item] == parentid) {
+        console.log("adding child id: " + item);
+        childTermIds.push(item);
+      }
+    }
+
+    //childTerms = new Array();
+    for (var i = 0,maxi = childTermIds.length,item;i < maxi;i++) {
+      item = childTermIds[i];
+      for (var ati = 0,maxati = this._allterms.length,atitem;ati < maxati;ati++) {
+        atiitem = this._allterms[ati];
+        if (undefined != atiitem && atiitem.tid == item) {
+          console.log("adding term to remove: " + item);
+          childTerms.push(atiitem);
+        }
+      }
+    }
+  } else {
+    // remove first term - it's invalid! (tis the thing to find, not a term)
+    for (var ati = 1,maxati = this._allterms.length,atitem;ati < maxati;ati++) {
+      atiitem = this._allterms[ati];
+      childTerms.push(atiitem);
+    }
+  }
+
+  for (var i = childTerms.length - 1;i >= 0;i--) {
+    //self._updateTerm(self._allterms[i].tid);
+    var term = childTerms[i];
+    if (undefined != term) {
+      this._removeTerm(term.tid);
+    }
+  }
+
+  // then call addTerm();
+  if (undefined == parentid) {
+    this._addTerm(parentid);
+  }
 };
 
 com.marklogic.widgets.sparqlbar.prototype._addTerm = function(parentid) {
@@ -486,6 +673,7 @@ com.marklogic.widgets.sparqlbar.prototype._addTerm = function(parentid) {
     self._updateProperties(tid);
   };
   document.getElementById(this.container + "-sparqlbar-term-relatedtype-" + tid).onchange = function (el) {
+    self._removeChildTerms(tid);
     self._updateRelationships(tid);
   };
   document.getElementById(this.container + "-sparqlbar-term-value-" + tid).onkeyup = function(el) {
@@ -706,7 +894,11 @@ com.marklogic.widgets.sparqlbar.prototype._removeTerm = function(tid) {
 
 com.marklogic.widgets.sparqlbar.prototype._updateTerm = function(termid) {
   // TODO improve performance of this by checking if new selected value is different from current selected value, returning immediately if they are the same
-  var what = document.getElementById(this.container + "-sparqlbar-term-what-" + termid).value;
+  var el = document.getElementById(this.container + "-sparqlbar-term-what-" + termid);
+  if (undefined == el) {
+    return;
+  }
+  var what = el.value;
   if ("*" == what) {
     // refresh and show relationships
     var rel = document.getElementById(this.container + "-sparqlbar-term-relationship-" + termid);
@@ -1077,7 +1269,7 @@ com.marklogic.widgets.sparqlresults.prototype._refresh = function() {
   if (typeof this.results == "boolean" ) {
     // TODO show/hide refresh image based on value of this.results (true|false)
     if (true == this.results) {
-      //s += com.marklogic.widgets.bits.loading(this.container + "-loading");
+      s += com.marklogic.widgets.bits.loading(this.container + "-loading");
     } else {
       s += com.marklogic.widgets.bits.failure(this.container + "-failure");
     }
@@ -1097,6 +1289,9 @@ com.marklogic.widgets.sparqlresults.prototype._refresh = function() {
     // process results, showing common information where appropriate
       // title - get name eventually
       var bindings = this.results.results.bindings;
+      if (0 == bindings.length) {
+        s += "<div class='sparqlresults-results'>No Results</div>";
+      }
       for (var b = 0,max = bindings.length, binding;b < max;b++) {
         binding = this.results.results.bindings[b];
         s += "<div id='" + this.container + "-sparqlresults-result-" + b + "' class='sparqlresults-result";
@@ -1125,10 +1320,11 @@ com.marklogic.widgets.sparqlresults.prototype._refresh = function() {
   // click handlers
   var sh = com.marklogic.widgets.semantichelper;
   //var scfg = this.semanticcontext.getTripleConfiguration();
-  for (var i = 0, max = irilinks.length,link; i < max;i++) {
-    link = irilinks[i];
-    sh.summariseInto(this.semanticcontext,link.iri,link.type,link.elid,this._iriHandler);
-  }
+  //for (var i = 0, max = irilinks.length,link; i < max;i++) {
+  //  link = irilinks[i];
+  //  sh.summariseInto(this.semanticcontext,link.iri,link.type,link.elid,this._iriHandler);
+  //}
+  sh.summariseAllInto(this.semanticcontext,this._iriHandler,irilinks);
 
   if (this._config.mode != "none") {
     var contentLink = document.getElementById(this.container + "-loadContent");
@@ -1287,7 +1483,7 @@ com.marklogic.widgets.entityfacts = function(container) {
   this.semanticcontext = mljs.defaultconnection.createSemanticContext(); // TODO lazy load if setSemanticContext not called
 
   this._config = {
-    iriHandler: null,
+    iriHandler: null, // TODO check if actually used anywhere
     mode: "selectedsubject",
     explorerUrlSpec: null
   };
@@ -1301,6 +1497,8 @@ com.marklogic.widgets.entityfacts = function(container) {
   //this._config = this.db.createSemanticConfig();
 
   this._customIriHandlers = new Array(); // IRI -> urlspec #IRI#
+
+  this._lastDocumentLookupUri = null; // last document that semantic facts were looked up for - prevents double requests from multiple route to this function
 
   //this._contentWidget = null; // JS content results widget to update with fact provenance content
 
@@ -1316,9 +1514,17 @@ com.marklogic.widgets.entityfacts = function(container) {
  */
 com.marklogic.widgets.entityfacts.getConfigurationDefinition = function() {
   return {
-    iriHandler: {type:"string", default:null,title:"IRI Handler",
+    iriHandler: {type: "string", default:null,title:"IRI Handler",
       description:"The IRI Click handler. Use #IRI# in the URL to open that page with a IRI link when clicked."
-    }
+    },
+    mode: {type: "enum",default: "selectedsubject", title: "Display Mode",
+      options: [
+        {value: "selectedsubject", title: "Selected Subject", description: "The current selected subject in the semantic context."},
+        {value: "firstsubject", title: "First Mentioned", description: "Show facts for first subject mentioned in a document via search context search results."},
+        {value: "allsubjects", title: "All Mentioned", description: "Show facts about all subjects mentioned in a document via search context search results."}
+      ]
+    },
+    explorerUrlSpec: {type: "string",default: null, title:"Explorer IRI Handler"}
   };
 };
 
@@ -1342,10 +1548,18 @@ com.marklogic.widgets.entityfacts.prototype.setSemanticContext = function(sc) {
 
 com.marklogic.widgets.entityfacts.prototype.updateResults = function(results) {
   if (true === results || false === results) {
+    this.loading = results;
+    if (this._config.mode != "selectedsubject") { // hide all facts
+      this.facts = null;
+    }
+    this._refresh();
     return;
   }
+  this.loading = false;
   if (undefined != results && undefined != results.results && results.results.length > 0) {
     this._lookupDocumentFacts(results.results[0].uri); // first uri
+  } else {
+    this._refresh();
   }
 };
 
@@ -1374,6 +1588,11 @@ com.marklogic.widgets.entityfacts.prototype.setModeSelected = function() {
 };
 
 com.marklogic.widgets.entityfacts.prototype._lookupDocumentFacts = function(docuri) {
+  if (docuri == this._lastDocumentLookupUri) {
+    return;
+  }
+  this._lastDocumentLookupUri = docuri;
+
   //this._config.mode = "allsubjects"; // or "selectedsubject" or 'firstsubject'
 
   // TODO MAKE THIS THE SUBJECT MENTIONED IN THE DOCUMENT, NOT THE DOCUMENT ITSELF
@@ -1404,9 +1623,13 @@ com.marklogic.widgets.entityfacts.prototype._lookupDocumentFacts = function(docu
 
 com.marklogic.widgets.entityfacts.prototype.updateSubjectResults = function(results) {
   if (false === results || true === results) {
-    // TODO clear list of facts
+    // clear list of facts
+    this.loading = results;
+    this.facts = null;
+    this._refresh();
     return;
   }
+  this.loading = false;
   // called when list of subjects returned
   var subjects = com.marklogic.widgets.semantichelper.calculateUniqueSubjects(results);
 
@@ -1429,6 +1652,9 @@ com.marklogic.widgets.entityfacts.prototype.updateSubjectResults = function(resu
     } else {
       // "selectedsubject" - do nothing until we see a subjectFacts call
     }
+  } else {
+    this.facts = null;
+    this._refresh();
   }
   if (null != sparql) {
     this.semanticcontext.getFactsWhere(sparql);
@@ -1445,6 +1671,7 @@ com.marklogic.widgets.entityfacts.prototype.updateSubjectFacts = function(factsJ
 
     // list these facts
     this.facts = factsJson;
+    this.loading = false;
     this.iri = this.facts.subject;
 
     // if predicate exists, just update relevant section, otherwise refresh whole widget
@@ -1482,19 +1709,19 @@ com.marklogic.widgets.entityfacts.prototype._refresh = function() {
     s += "<div class='title panel-heading entityfacts-title'>Entity Facts</div>";
     s += "<div id='" + this.container + "-entityfacts-facts' class='panel-body entityfacts-content'>";
   }
-  if (this.loading == true) {
-    //s += com.marklogic.widgets.bits.loading(this.container + "-loading");
-  }
 
 
   var irilinks = new Array();
   // LIST SUBJECT(s) FACTS
 
   if (this.facts != null && this.facts != undefined) {
-    var subjects = com.marklogic.widgets.semantichelper.calculateUniqueSubjects(this.facts.facts);
+    var subjects = com.marklogic.widgets.semantichelper.calculateUniqueSubjects(this.facts);
 
-
-    for (var su = 0,maxs = subjects.length,sub;su < maxs;su++) {
+    var maxs = subjects.length;
+    if (0 == maxs && this.loading === false) {
+      s += "<div class='entityfacts-results'>No Results</div>";
+    }
+    for (var su = 0,sub;su < maxs;su++) {
       sub = subjects[su];
       mljs.defaultconnection.logger.debug("entityfacts._refresh: Processing subject facts for: " + sub);
 
@@ -1504,6 +1731,13 @@ com.marklogic.widgets.entityfacts.prototype._refresh = function() {
 
       s += this._generateSubjectHTML(sub,irilinks);
     }
+  } else {
+    if (this.loading === false) {
+      s += "<div class='entityfacts-results'>No Results</div>";
+    }
+  }
+  if (this.loading === true) {
+    s += com.marklogic.widgets.bits.loading(this.container + "-loading");
   }
   s += "</div></div>";
 
@@ -1511,10 +1745,11 @@ com.marklogic.widgets.entityfacts.prototype._refresh = function() {
 
   // event handlers and lazy loading
   // lazy load related entity summaries
-  for (var i = 0, max = irilinks.length,link;i < max ;i++) {
-    link = irilinks[i];
-    this._summariseInto(link.iri,link.elid);
-  }
+  //for (var i = 0, max = irilinks.length,link;i < max ;i++) {
+  //  link = irilinks[i];
+  //  this._summariseInto(link.iri,link.elid);
+  //}
+  com.marklogic.widgets.semantichelper.summariseAllInto(this.semanticcontext,this._iriHandler,irilinks);
 
   var self = this;
   if (this.semanticcontext.hasContentContext()) {
@@ -1534,7 +1769,7 @@ com.marklogic.widgets.entityfacts.prototype._generateSubjectHTML = function(sub,
 
   // get type: http://www.w3.org/1999/02/22-rdf-syntax-ns#type
   var type = null;
-  for (var b = 0,bindings = this.facts.facts.results.bindings, max = bindings.length, predicate, object, binding;(null == type) && (b < max);b++) {
+  for (var b = 0,bindings = this.facts.results.bindings, max = bindings.length, predicate, object, binding;(null == type) && (b < max);b++) {
     binding = bindings[b];
     if (undefined != binding.subject && binding.subject.value == sub) {
       predicate = binding.predicate;
@@ -1560,7 +1795,7 @@ com.marklogic.widgets.entityfacts.prototype._generateSubjectHTML = function(sub,
   var namepredicate = scfg.getNameProperty(entityName).iri;
   mljs.defaultconnection.logger.debug("Got name predicate: " + namepredicate);
   var namevalue = null;
-  for (var b = 0,bindings = this.facts.facts.results.bindings, max = bindings.length, predicate, object, binding;(null == namevalue) && (b < max);b++) {
+  for (var b = 0,bindings = this.facts.results.bindings, max = bindings.length, predicate, object, binding;(null == namevalue) && (b < max);b++) {
     binding = bindings[b];
     if (undefined != binding.subject) {
       if (binding.subject.value == sub) {
@@ -1595,7 +1830,7 @@ com.marklogic.widgets.entityfacts.prototype._generateSubjectHTML = function(sub,
 
   // TODO publish non IRIs first
   // TODO publish IRIs as links
-  for (var b = 0,bindings = this.facts.facts.results.bindings, max = bindings.length, predicate, obj, binding;(b < max);b++) {
+  for (var b = 0,bindings = this.facts.results.bindings, max = bindings.length, predicate, obj, binding;(b < max);b++) {
     binding = bindings[b];
     if (undefined != binding.subject && binding.subject.value == sub) {
       predicate = binding.predicate;
@@ -1631,11 +1866,11 @@ com.marklogic.widgets.entityfacts.prototype._generateSubjectHTML = function(sub,
   s += "</div>"; // result div
   return s;
 };
-
+/*
 com.marklogic.widgets.entityfacts.prototype._summariseInto = function(iri,elid) {
   //this.semanticcontext.getTripleConfiguration().summariseInto(iri,elid,this._iriHandler);
   com.marklogic.widgets.semantichelper.summariseInto(this.semanticcontext,iri,"uri",elid,this._config.iriHandler);
-};
+};*/
 
 /**
  * Updates the information shown about the entity with the specified IRI (executes a SPARQL query)

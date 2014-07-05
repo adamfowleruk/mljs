@@ -16,43 +16,58 @@ Targets for 1.6 (Jun 2014) - Theme: MLJS Ease of Use in the Browser
   - mljsrest - snippets.html
   - mldbwebtest - search
   - mldbwebtest - snippets
- - DONE Semantics
+ - Docs: Wiki
+  - All entityfacts-3.png (infobox) to gallery list
+ - Double check stylesheet usage in Workplace app (uses Bootstrap only, not 960.css, unlike mljsrest test app)
+ - TEST Semantics
   - DONE Add mentions triple to MarkLogic Document Ontology in mljs.js line 7430
   - TEST Added OpenCalais types to tripleconfig (addOpenCalais), and is added by default
- - IN PROGRESS Widget: InfoBox - just using EntityFacts widget
+ - DONE Widget: InfoBox - just using EntityFacts widget
   - DONE Lookup MLDocument based on docuri
   - DONE Display list of facts (like in triple explorer)
   - DONE Link to triple explorer and document view page
-  - IN PROGRESS Make entityfacts aware that a single document may pull back multiple subjects with facts - render them separately
+  - DONE Make entityfacts aware that a single document may pull back multiple subjects with facts - render them separately
    - DONE single subject list of facts
    - DONE Multiple subjects list of facts
    - DONE test first mentioned mode
    - DONE test all mentioned mode
-   - Update workplace configuration options
- - Double check in Workplace app (uses Bootstrap only, not 960.css, unlike mljsrest test app)
- - IN PROGRESS Widgets: Various Widget Bugs
+   - DONE Update workplace configuration options
+ - IN PROGRESS Widgets: Various Widget Bugs / performance enhancements
+  - HIGH
+   - BUG Docs: Openlayers demo page hovering over marker causes null reference looking for result area by id to change css classes
+   - BUG google maps address lookup longitude not working again (check latest social media code for fix - back port)
+   - Widgets: Gracefully handle RDF types that have not been configured in the triple config
+   - BUG why don't suggestions show facet values, only facet names?
   - BUG Clicking on Bar chart value gives: Point clicked: x:0, series name:'animal', y:3 data: undefined
   - BUG highcharts configuration in Workplace 'thin' column overflows container
+  - Kill suggestions request before issuing another request (one per letter typed)
   - DONE BUG add data series button not working on newly dragged instance of highcharts widget
   - DONE BUG empty strings in widget context config for directory, format, transform results in invalid searches
   - DONE BUG autoCategories on highcharts was false by default, should be true
-  - BUG widget-search.js line 560 - suggestions.suggestions is undefined (not a snippeting search)
+  - DONE BUG widget-search.js line 560 - suggestions.suggestions is undefined (not a snippeting search)
   - BUG clicking on contexts results in js error
-  - BUG Docs: Openlayers demo page hovering over marker causes null reference looking for result area by id to change css classes
   - BUG workplace load executing two searches on single searchcontext (hence slow page load)
   - BUG Need scroll bar adding to main widget layout area so it doesn't overflow
   - BUG repeatedly dragging new widget classes on to layout causes top widget only to be rendered, to first two parts of zone
   - DONE BUG Sparqlbar and graphexplorer widgets no longer work
-  - BUG no empty results message in sparqlresults
-  - BUG no empty results message in entityfacts
+  - DONE BUG no empty results message in sparqlresults
+  - DONE BUG no empty results message in entityfacts
+  - DONE When mode is allsubjects, entityfacts makes a LOT of sparql calls. Try to minimise.
+   - DONE BUG double requests resulted from lookupDocumentFacts being called multiple times for same doc. Added check.
+   - WAS 32 requests for 3 subjects
+   - NOW 3 requests for n subjects (3 lookups per doc - subjects in doc, facts about them, facts about doc subject)
   - DONE BUG GraphExplorer not showing document facets
   - DONE BUG explorer.js line 848 - using iri + uri instead of looking up subject in cache
-  - BUG null when selecting Document as first subject in sparqlbar
-  - URGENT BUG search auto complete totally broke on infobox page
-  - BUG GET /v1/graph should be /v1/graphs
-  - BUG explorer widget fails when trying to link to subject that has already been drawn
-  - BUG infobox page: empty sparql results does not empty entity facts area of facts
-  - BUG google maps address lookup longitude not working again (check latest social media code for fix - back port)
+  - DONE BUG null when selecting Document as first subject in sparqlbar
+  - DONE BUG selecting a reltype causes a child term to be added when there wasn't already one
+  - DONE BUG search auto complete totally broke on infobox page
+  - BUG why aren't there any suggestions on infobox page?
+  - TEST BUG GET /v1/graph should be /v1/graphs
+  - DONE BUG explorer widget fails when trying to link to subject that has already been drawn
+  - DONE BUG explorer widget doesn't always hide hover labels (likely because line drawn over them taking the focus)
+  - BUG explorer widget scroll bar should be at top when needed
+  - BUG explorer widget should respond to swipe gestures
+  - DONE BUG infobox page: empty sparql results does not empty entity facts area of facts
  - DEFERRED Widgets: Workplace UI feedback
   - DEFERRED auto expand/collapse drop zones on widget page
   - DEFERRED 'preview' settings from page edit overlay (perhaps by collapsing overlay to just a bar 25 px high)

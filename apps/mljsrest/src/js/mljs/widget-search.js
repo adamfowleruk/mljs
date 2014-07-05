@@ -557,7 +557,7 @@ com.marklogic.widgets.searchbar.prototype.clear = function() {
 
 com.marklogic.widgets.searchbar.prototype.updateSuggestions = function(suggestions) {
   var ul = document.getElementById(this.container + "-ac");
-  if (undefined == suggestions || suggestions.suggestions.length == 0) {
+  if (undefined == suggestions || undefined == suggestions.suggestions || suggestions.suggestions.length == 0) {
     // hide ul
     com.marklogic.widgets.hide(ul,true);
   } else {

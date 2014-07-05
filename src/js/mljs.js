@@ -2096,7 +2096,7 @@ mljs.prototype.mergeGraph = function(triples,uri_opt,callback_opt) {
   }
 
   var options = {
-    path: "/v1/graph",
+    path: "/v1/graphs",
     contentType: "text/plain",
     method: "POST"
   }
@@ -2133,7 +2133,7 @@ mljs.prototype.graph = function(uri_opt,callback_opt) {
   }
 
   var options = {
-    path: "/v1/graph",
+    path: "/v1/graphs",
     method: "GET"
   }
   if (undefined != uri_opt) {
@@ -2176,7 +2176,7 @@ mljs.prototype.graph = function(uri_opt,callback_opt) {
  */
 mljs.prototype.deleteGraph = function(uri,callback_opt) {
   var options = {
-    path: "/v1/graph?graph=" + encodeURI(uri),
+    path: "/v1/graphs?graph=" + encodeURI(uri),
     method: "DELETE"
   };
 
@@ -7717,18 +7717,91 @@ mljs.prototype.semanticcontext = function() {
   this._subjectResults = null; // SPARQL results JSON
 
   this._selectedSubject = ""; // IRI of selected subject
-  this._subjectFacts = new Array(); // IRI -> JSON SPARQL facts results object
+  //this._subjectFacts = new Array(); // IRI -> JSON SPARQL facts results object
 
   this._restrictSearchContext = null; // the searchcontext instance to update with a cts:triples-range-query when our subjectQuery is updated
   this._contentSearchContext = null; // The search context to replace the query for when finding related content to this SPARQL query (where a result IRI is a document URI)
 
   this._contentMode = "full"; // or "contribute" - whether to executed a structured query (full) or just provide a single term (contribute)
 
+  this._theCache = {}; // subjectIri => {iri: "", typeString: "", typePredicate: "", nameString: "", namePredicate: "", all: false, facts: [{subject,predicate,object}]}
+
   this._subjectResultsPublisher = new com.marklogic.events.Publisher();
   this._subjectFactsPublisher = new com.marklogic.events.Publisher();
   this._suggestionsPublisher = new com.marklogic.events.Publisher();
   this._factsPublisher = new com.marklogic.events.Publisher(); // publish facts that can be associated to many subjects - normally for pulling back a result per subject, with many facts per 'row'
   this._errorPublisher = new com.marklogic.events.Publisher();
+};
+
+/*mljs.prototype.semanticcontext.prototype._checktc = function() {
+  if (null == this._tripleconfig && undefined != this.db) {
+    this._tripleconfig = this.db.createTripleConfig();
+  }
+};*/
+
+mljs.prototype.semanticcontext.prototype._cache = function(results,allFactsForAllSubjects) {
+  //this._checktc();
+
+  var bindings = results.results.bindings;
+  for (var b = 0,maxb = bindings.length,bin,subject,si;b < maxb;b++) {
+    bin = bindings[b];
+    subject = bin.subject.value;
+    si = this.getCachedFacts(subject);
+    if (undefined == si) {
+      si = {iri: subject, typeNameString: null, nameString: null,namePredicate: null, all:allFactsForAllSubjects || false, facts:[]};
+      this._theCache[subject] = si;
+    }
+    //si.facts.push({subject: subject, predicate: bin.predicate.value, object: bin.object.value});
+    si.facts.push(bin); // stay compatible
+
+    // check if this subject has a name triple cached, and populate
+    var type = this._cachedFact(si,"http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
+    if (undefined != type) {
+      // Get the human readable name for this type
+      /*si.typeNamePredicate = type;
+      var typeInfo = this._tripleconfig.getEntityFromIRI(type);
+      var nameprop = this._tripleconfig.getNameProperty(typeInfo.iri).iri;
+      var name = this.getCachedFact(typeInfo.iri,nameprop);
+      if (undefined != name) {
+        si.typeNameString = name.object.value;
+      }*/
+
+
+      // get the human readable name for this type instance
+      //if (null != this._tripleconfig) { // weird, but can happen
+        var typeInfo = this.getTripleConfiguration().getEntityFromIRI(type.object.value);
+        si.typeNameString = typeInfo.title;
+        var subjectNameProp = this._tripleconfig.getNameProperty(typeInfo.iri).iri;
+        if (undefined != subjectNameProp) {
+          si.namePredicate = subjectNameProp;
+          var subName = this._cachedFact(si,subjectNameProp);
+          if (undefined != subName) {
+            si.nameString = subName.object.value;
+          }
+        }
+      //}
+    } // end type undefined if
+  } // end for
+};
+
+mljs.prototype.semanticcontext.prototype._cachedFact = function(si,predicateIri) {
+  for (var f = 0,maxf = si.facts.length,fact;f < maxf;f++) {
+    fact = si.facts[f];
+    if (fact.predicate.value == predicateIri) {
+      return fact;
+    }
+  }
+  return null;
+};
+
+mljs.prototype.semanticcontext.prototype.getCachedFact = function(subjectIri,predicateIri) {
+  var facts = this.getCachedFacts(subjectIri);
+  // loop through facts
+  return this._cachedFact(facts,predicateIri);
+};
+
+mljs.prototype.semanticcontext.prototype.getCachedFacts = function(subjectIri) {
+  return this._theCache[subjectIri];
 };
 
 /**
@@ -7869,6 +7942,7 @@ mljs.prototype.semanticcontext.prototype.register = function(obj) {
   }
 };
 
+
 /**
  * Queries for a subject using the specified SPARQL and paging information. Fires updateSubjectResults.
  *
@@ -8005,21 +8079,31 @@ mljs.prototype.semanticcontext.prototype.subjectContent = function(subjectIri,do
  * @param {string} reload_opt - Whether to reload the fact, or use the cached value (if it exists) - defaults to false (use cache)
  */
 mljs.prototype.semanticcontext.prototype.getFact = function(subjectIri,predicate,reload_opt) {
-  var facts = this._subjectFacts[subjectIri];
-  var bindings
+  if (false === reload_opt) {
+    var facts = this.getCachedFacts(subjectIri);
+    if (undefined != facts) {
+      //self._subjectFactsPublisher.publish({subject: subjectIri,predicate:predicate, facts: [fact]}); // TODO validate this works
+      self._subjectFactsPublisher.publish(
+        {results: {bindings: facts}}
+      );
+      return;
+    }
+  }
   var self = this;
+  /*
   var fireFact = function() {
     var results = [];
     for (var i = 0;i < bindings.length;i++) {
       if (undefined == bindings[i].predicate || predicate == bindings[i].predicate) { // if undefined, its a result of us asking for a specific predicate, and thus a matching predicate
         results.push(bindings[i].predicate); // pushes type, value, xml:lang (if applicable) as JSON object to results array
       }
-    }
+    } // TODO WTF RESULTS DOES ABOVE, AND BINDINGS BELOW
     self._subjectFactsPublisher.publish({subject: subjectIri,predicate: predicate,facts: bindings})
-  };
+  };*/
 
   if ((true==reload_opt) || undefined == facts) {
-    var sparql = "SELECT * WHERE {<" + subjectIri + "> <" + predicate + "> ?object .}";
+    //var sparql = "SELECT * WHERE {<" + subjectIri + "> <" + predicate + "> ?object .}";
+    var sparql = "SELECT * WHERE {?subject ?predicate ?object . FILTER (?subject = <" + subjectIri + "> ) . FILTER (?predicate = <" + predicate + "> ) . }";
 
     // fetch info and refresh again
     self.db.sparql(sparql,function(result) {
@@ -8027,14 +8111,16 @@ mljs.prototype.semanticcontext.prototype.getFact = function(subjectIri,predicate
       if (result.inError) {
         self._errorPublisher.publish(result.error);
       } else {
-        bindings = result.doc.results.bindings;
-        fireFact();
+        self._cache(result.doc);
+        //bindings = result.doc.results.bindings;
+        //fireFact();
+        self._subjectFactsPublisher.publish(result.doc);
       }
     });
-  } else {
+  }/* else {
     bindings = facts.results.bindings;
     fireFact();
-  }
+  }*/
 };
 
 /**
@@ -8044,7 +8130,8 @@ mljs.prototype.semanticcontext.prototype.getFact = function(subjectIri,predicate
  * @param {string} reload_opt - Whether to reload the fact, or use the cached value (if it exists) - defaults to false (use cache)
  */
 mljs.prototype.semanticcontext.prototype.getFacts = function(subjectIri,reload_opt) {
-  var facts = this._subjectFacts[subjectIri];
+  //var facts = this._subjectFacts[subjectIri];
+  var facts = this.getCachedFacts(subjectIri); //.facts;
   if ((true==reload_opt) || undefined == facts) {
     var sparql = "SELECT * WHERE {";
 
@@ -8060,7 +8147,9 @@ mljs.prototype.semanticcontext.prototype.getFacts = function(subjectIri,reload_o
 
     this._getFacts(sparql);
   } else {
-    this._subjectFactsPublisher.publish({subject: subjectIri,facts: facts});
+    this._subjectFactsPublisher.publish(
+      {results: {bindings: facts.facts}}
+    );
   }
 };
 
@@ -8072,13 +8161,14 @@ mljs.prototype.semanticcontext.prototype._getFacts = function(sparql,subjectIriO
     if (result.inError) {
       self._subjectFactsPublisher.publish(false);
       self._errorPublisher.publish(result.error);
-    } else {
+    } else {/*
       var res = {facts: result.doc};
       if (undefined != subjectIriOpt) {
         self._subjectFacts[subjectIriOpt] = result.doc;
         res.subject = subjectIriOpt;
-      }
-      self._subjectFactsPublisher.publish(res);
+      }*/
+      self._cache(result.doc,true);
+      self._subjectFactsPublisher.publish(result.doc);
     }
   });
 };
@@ -8156,6 +8246,7 @@ mljs.prototype.semanticcontext.prototype.queryFacts = function(sparql) {
     if (result.inError) {
       self._errorPublisher.publish(result.error);
     } else {
+      self._cache(result.doc);
       // pass facts on to listeners
       self._factsPublisher.publish(result.doc);
     }

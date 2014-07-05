@@ -16,9 +16,12 @@ window.onload = function() {
     .collectionConstraint() // default constraint name of 'collection'
     .rangeConstraint("Title","title","http://www.w3.org/1999/xhtml","xs:string","http://marklogic.com/collation/",true,["item-order"])
     .rangeConstraint("Heading","h1","http://www.w3.org/1999/xhtml","xs:string","http://marklogic.com/collation/",true,["item-order"])
-
+    ;
 
   var searchcontext = db.createSearchContext();
+  searchcontext.setOptions(optionsName,ob);
+  searchcontext.setCollection("mixed"); // restrict all search results
+
   var semanticcontext = db.createSemanticContext();
   semanticcontext.getTripleConfiguration().addTest();
   semanticcontext.setContentContext(searchcontext);
@@ -37,8 +40,6 @@ window.onload = function() {
   searchcontext.register(bar);
   searchcontext.register(results);
   searchcontext.register(facts);
-  searchcontext.setOptions(optionsName,ob);
-  searchcontext.setCollection("mixed"); // restrict all search results
 
   searchcontext.addErrorListener(error.updateError);
 
