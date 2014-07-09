@@ -46,10 +46,10 @@ Targets for 1.6 (Jun 2014) - Theme: MLJS Ease of Use in the Browser
   - DONE BUG empty strings in widget context config for directory, format, transform results in invalid searches
   - DONE BUG autoCategories on highcharts was false by default, should be true
   - DONE BUG widget-search.js line 560 - suggestions.suggestions is undefined (not a snippeting search)
-  - BUG clicking on contexts results in js error
+  - BUG workplace clicking on contexts results in js error
   - BUG workplace load executing two searches on single searchcontext (hence slow page load)
-  - BUG Need scroll bar adding to main widget layout area so it doesn't overflow
-  - BUG repeatedly dragging new widget classes on to layout causes top widget only to be rendered, to first two parts of zone
+  - BUG workplace Need scroll bar adding to main widget layout area so it doesn't overflow
+  - BUG workplace repeatedly dragging new widget classes on to layout causes top widget only to be rendered, to first two parts of zone
   - DONE BUG Sparqlbar and graphexplorer widgets no longer work
   - DONE BUG no empty results message in sparqlresults
   - DONE BUG no empty results message in entityfacts
@@ -62,12 +62,14 @@ Targets for 1.6 (Jun 2014) - Theme: MLJS Ease of Use in the Browser
   - DONE BUG null when selecting Document as first subject in sparqlbar
   - DONE BUG selecting a reltype causes a child term to be added when there wasn't already one
   - DONE BUG search auto complete totally broke on infobox page
-  - BUG why aren't there any suggestions on infobox page?
+  - BUG Docs: why aren't there any suggestions on infobox page?
   - TEST BUG GET /v1/graph should be /v1/graphs
   - DONE BUG explorer widget fails when trying to link to subject that has already been drawn
   - DONE BUG explorer widget doesn't always hide hover labels (likely because line drawn over them taking the focus)
   - BUG explorer widget scroll bar should be at top when needed
   - BUG explorer widget should respond to swipe gestures
+  - DONE BUG explorer widget doesn't handle non known rdfTypes gracefully
+  - DONE BUG explorer widget doesn't show more than one instance for a particular predicate
   - DONE BUG infobox page: empty sparql results does not empty entity facts area of facts
  - DEFERRED Widgets: Workplace UI feedback
   - DEFERRED auto expand/collapse drop zones on widget page
@@ -198,6 +200,7 @@ Targets for 1.6 (Jun 2014) - Theme: MLJS Ease of Use in the Browser
     - tripleconfig and ontologies
     - searchresults and custom renderers
     - semanticcontext.setContentContext(searchcontext)
+    - Have workplace widget add and load a script line for page custom js files list (page config section?)
    - Missing basics
     - geocontext
     - Support other basic types in widget/context config

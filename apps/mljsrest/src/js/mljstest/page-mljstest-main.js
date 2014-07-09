@@ -34,8 +34,8 @@ window.onload = function() {
       log("ALL DONE. Click on one of the links above to use the demonstration.");
     };
 
-    db.graph("mljs-test-graph-1", function(result) {
-      if (result.inError) {
+    //db.graph("mljs-test-graph-1", function(result) {
+  //    if (result.inError) {
         log(" - Test graphs do not exist. Creating.");
 
         var triples1 = [
@@ -59,6 +59,9 @@ window.onload = function() {
           {subject: "/mixed/4", predicate: "http://marklogic.com/semantics/ontology/mentions", object: "http://marklogic.com/semantic/targets/people/wendy"},
           {subject: "/mixed/4", predicate: "http://marklogic.com/semantics/ontology/mentions", object: "http://marklogic.com/semantic/targets/people/adam"},
           {subject: "/mixed/4", predicate: "http://marklogic.com/semantics/ontology/mentions", object: "http://marklogic.com/semantic/targets/foodstuffs/cheese"},
+          {subject: "http://marklogic.com/semantic/targets/animals/penguin",predicate: "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", object: "http://marklogic.com/semantic.rdfTypes/animal"},
+          {subject: "http://marklogic.com/semantic/targets/animals/penguin",predicate: "called", string: "Polly", locale: "en"},
+          {subject: "http://marklogic.com/semantic/targets/people/adam",predicate: "likes", object: "http://marklogic.com/semantic/targets/animals/penguin"},
           {subject: "http://marklogic.com/semantic/targets/people/wendy", predicate: "http://marklogic.com/semantics/ontology/mentioned_in", object: "/mixed/4"},
           {subject: "http://marklogic.com/semantic/targets/people/adam", predicate: "http://marklogic.com/semantics/ontology/mentioned_in", object: "/mixed/4"},
           {subject: "http://marklogic.com/semantic/targets/foodstuffs/cheese", predicate: "http://marklogic.com/semantics/ontology/mentioned_in", object: "/mixed/4"},
@@ -113,10 +116,10 @@ window.onload = function() {
             });
           }
         });
-      } else {
-        alldone();
-      }
-    });
+      //} else {
+      //  alldone();
+      //}
+    //});
   };
 
   var doload = function() {

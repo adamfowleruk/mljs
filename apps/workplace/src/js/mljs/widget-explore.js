@@ -472,12 +472,12 @@ com.marklogic.widgets.graphexplorer.prototype._drawSubjectDetail = function(subj
     for (var b = 0,bindings = facts, max = bindings.length, predicate, obj, binding;b < max;b++) {
       binding = bindings[b];
       predicate = binding.predicate;
-      //mljs.defaultconnection.logger.debug("OUR PREDICATE: " + JSON.stringify(predicate));
+      mljs.defaultconnection.logger.debug("OUR PREDICATE: " + JSON.stringify(predicate));
       var pinfo = scfg.getPredicateFromIRI(predicate.value);
-      //mljs.defaultconnection.logger.debug("OUR PINFO: " + JSON.stringify(pinfo));
+      mljs.defaultconnection.logger.debug("OUR PINFO: " + JSON.stringify(pinfo));
       var obj = binding.object;
-      //mljs.defaultconnection.logger.debug("OUR OBJECT: " + JSON.stringify(obj));
-      //mljs.defaultconnection.logger.debug("OUR BINDING: " + JSON.stringify(binding));
+      mljs.defaultconnection.logger.debug("OUR OBJECT: " + JSON.stringify(obj));
+      mljs.defaultconnection.logger.debug("OUR BINDING: " + JSON.stringify(binding));
 
       if (predicate.value != "http://www.w3.org/1999/02/22-rdf-syntax-ns#type") {
         var t = predicate.value;
@@ -490,7 +490,12 @@ com.marklogic.widgets.graphexplorer.prototype._drawSubjectDetail = function(subj
         }
 
         //props += "<b>" + t + ":</b> " + obj.value + "<br/>";
-        propValues[predicate.value] = {value: obj.value, title: ttitle, type: obj.type};
+        // WARNING the below REMOVES multiple relations with the same PREDICATE!!!
+        var pv = propValues[predicate.value];
+        if (undefined == pv) {
+          pv = propValues[predicate.value] = [];
+        }
+        propValues[predicate.value].push({value: obj.value, title: ttitle, type: obj.type});
 
         if (predicate.value == "http://marklogic.com/semantics/ontology/Document#uri") {
           docuri = obj.value;
@@ -514,7 +519,7 @@ com.marklogic.widgets.graphexplorer.prototype._drawSubjectDetail = function(subj
 
       var predValue = propValues[namepredicate];
       if (undefined != predValue) {
-        title = predValue.value;
+        title = predValue[0].value;
       } else {
         // leave title as iri
       }
@@ -660,27 +665,35 @@ com.marklogic.widgets.graphexplorer.prototype._drawSubjectDetail = function(subj
   var infos = new Array();
 
   for (var propname in propValues) {
-    if (propValues.hasOwnProperty(propname)) { // ensure property, not function
+    //if (propValues.hasOwnProperty(propname)) { // ensure property, not function
+    mljs.defaultconnection.logger.debug("PROPERTY VALUE: " + JSON.stringify(propValues[propname]));
+    mljs.defaultconnection.logger.debug("PROPERTY VALUE TYPE: " + typeof(propValues[propname]));
+    if (Array.isArray(propValues[propname])) {
       mljs.defaultconnection.logger.debug("PROPERTY TO LIST: " + propname);
       prop = propValues[propname];
-      var propShow = prop.value;
-      if ("uri" == prop.type) {
-        // FIRST CHECK TO SEE IF THE RELATED OBJECT'S PROPERTIES ARE CACHED
-        // IF NOT, LOAD
-        var relname = this._generateNameLink(prop.value);
-        if (null == relname) {
-          // load description later
-          var propCount = this.propertyCount++;
-          var elid = this.container + "-loadname-" + propCount;
-          //propShow = "<span id='" + elid + "'>" + "<i>Loading...</i>" + "</span>"; // not showing loading as we dont get a callback if there is no further details
-          propShow = "<span id='" + elid + "'>" + this._shortenSubjectIri(prop.value) + "</span>";
-          summaries.push(prop.value);
-        } else {
-          propShow = relname;
-          infos.push({relname: relname, propname:propname,propvalue:prop.value});
+      // TODO list multiples as indiviual rows
+      for (var p = 0,maxp = prop.length,prp;p <maxp;p++) {
+        prp = prop[p];
+        var propShow = prp.value;
+        if ("uri" == prp.type) {
+          // FIRST CHECK TO SEE IF THE RELATED OBJECT'S PROPERTIES ARE CACHED
+          // IF NOT, LOAD
+          var relname = this._generateNameLink(prp.value);
+          if (null == relname) {
+            // load description later
+            var propCount = this.propertyCount++;
+            var elid = this.container + "-loadname-" + propCount;
+            //propShow = "<span id='" + elid + "'>" + "<i>Loading...</i>" + "</span>"; // not showing loading as we dont get a callback if there is no further details
+            propShow = "<span id='" + elid + "'>" + this._shortenSubjectIri(prp.value) + "</span>";
+            summaries.push(prp.value);
+          } else {
+            propShow = relname;
+            infos.push({relname: relname, propname:propname,propvalue:prp.value});
+          }
         }
-      }
-      props += "<b>" + prop.title + ":</b> " + propShow + "<br/>";
+        props += "<b>" + prp.title + ":</b> " + propShow + "<br/>";
+
+      } // end prop multiple for
     }
   }
 

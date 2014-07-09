@@ -2133,7 +2133,7 @@ mljs.prototype.graph = function(uri_opt,callback_opt) {
   }
 
   var options = {
-    path: "/v1/graphs",
+    path: "/v1/graphs?format=json",
     method: "GET"
   }
   if (undefined != uri_opt) {
@@ -7769,14 +7769,26 @@ mljs.prototype.semanticcontext.prototype._cache = function(results,allFactsForAl
 
       // get the human readable name for this type instance
       //if (null != this._tripleconfig) { // weird, but can happen
+      mljs.defaultconnection.logger.debug("CF: type obj value: " + type.object.value);
         var typeInfo = this.getTripleConfiguration().getEntityFromIRI(type.object.value);
-        si.typeNameString = typeInfo.title;
-        var subjectNameProp = this._tripleconfig.getNameProperty(typeInfo.iri).iri;
-        if (undefined != subjectNameProp) {
-          si.namePredicate = subjectNameProp;
-          var subName = this._cachedFact(si,subjectNameProp);
-          if (undefined != subName) {
-            si.nameString = subName.object.value;
+        if (undefined != typeInfo) {
+          si.typeNameString = typeInfo.title;
+          mljs.defaultconnection.logger.debug("CF: type info title: " + typeInfo.title);
+          var nameProp = this._tripleconfig.getNameProperty(typeInfo.iri);
+          mljs.defaultconnection.logger.debug("CF: type iri: " + typeInfo.iri);
+          mljs.defaultconnection.logger.debug("CF: type name prop: " + nameProp);
+          if (undefined != nameProp) {
+            var subjectNameProp = nameProp.iri;
+            mljs.defaultconnection.logger.debug("CF: subject name prop: " + subjectNameProp);
+            if (undefined != subjectNameProp) {
+              si.namePredicate = subjectNameProp;
+              var subName = this._cachedFact(si,subjectNameProp);
+              mljs.defaultconnection.logger.debug("CF: subject name: " + subName);
+              if (undefined != subName) {
+                mljs.defaultconnection.logger.debug("CF: subName value: " + subName.object.value);
+                si.nameString = subName.object.value;
+              }
+            }
           }
         }
       //}
