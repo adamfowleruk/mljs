@@ -78,7 +78,10 @@
  ****/
 .create {
 }
-.create-select {
+.create-col {
+  width: 100%;
+}
+.create-select, .create-text-input, .create-largetext-input {
   display:inline;
 }
 

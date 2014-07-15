@@ -78,6 +78,125 @@ var defaultdboptions = {
   host: "localhost", port: 9090, adminport: 8002, ssl: false, auth: "digest", username: "admin",password: "admin", database: "mldbtest", searchoptions: {}, fastthreads: 10, fastparts: 100
 }; // TODO make Documents the default db, automatically figure out port when creating new rest server
 
+
+var stringhelper = {};
+
+/**
+ * Converts a value in to separate words, splitting the words by dash, underscore, and CamelCase
+ *
+ * @param {string} str - The value to process
+ */
+stringhelper.processValueAll = function(str) {
+  return stringhelper.processValue(str,"all");
+};
+
+/**
+ * Converts a value in to separate words, using the specified mode
+ *
+ * @param {string} str - The value to process
+ * @param {string} mode - The mode ("all|splitdash|splitunderscore|camelcase")
+ */
+stringhelper.processValue = function(str,mode) {
+  var name = str;
+  name = stringhelper.splitdash(name,mode);
+  name = stringhelper.splitunderscore(name,mode);
+  name = stringhelper.camelcase(name,mode);
+  return name;
+};
+
+/**
+ * Generate a standard set of snippet HTML. Useful for integrating to custom search results renderers
+ *
+ * @param {result} result - REST result JSON. Should contain result.matches[{"match-text": ["", ... ]}, ... ]
+ */
+stringhelper.snippet = function(result) {
+  var resStr = "";
+
+        for (var i = 0;i < result.matches.length;i++) {
+          resStr += "<div class='searchresults-snippet'>\"";
+          for (var m = 0;m < result.matches[i]["match-text"].length;m++) {
+            if ("string" == typeof result.matches[i]["match-text"][m]) {
+              resStr += result.matches[i]["match-text"][m] ;
+            } else {
+              resStr += "<span class='searchresults-snippet-highlight'>" + result.matches[i]["match-text"][m].highlight + "</span>";
+            }
+          }
+          resStr += "\"</div>";
+        }
+
+  return resStr;
+};
+
+/**
+ * Splits a string in to words when it encounters a dash. Returns a string with spaces instead of dashes.
+ *
+ * @param {string} value - The original value
+ * @param {string} mode - The mode. Function only operates is mode is "all" or "splitdash"
+ */
+stringhelper.splitdash = function(value,mode) {
+  if (value == undefined || value == null) {
+    mljs.defaultconnection.logger.warn("WARNING: splitdash(): value is " + value);
+    return "";
+  }
+  if ("string" != typeof value) {
+    mljs.defaultconnection.logger.warn("WARNING: splitdash(): value is not of type string, but of type '" + (typeof value) + "'");
+    return "" + value; // return raw value - can be converted to string
+  }
+  var name = value;
+  if ("all" == mode || "splitdash" == mode) {
+    //mljs.defaultconnection.logger.debug("Apply splitdash transform to " + name);
+    var parts = name.split("-");
+    var nn = "";
+    for (var i = 0;i < parts.length;i++) {
+      nn += parts[i] + " ";
+    }
+    name = nn.trim();
+  }
+  return name;
+};
+
+/**
+ * Splits a string in to words when it encounters an underscore. Returns a string with spaces instead of underscores.
+ *
+ * @param {string} value - The original value
+ * @param {string} mode - The mode. Function only operates is mode is "all" or "splitdunderscore"
+ */
+stringhelper.splitunderscore = function(value,mode) {
+  var name = value;
+  if ("all" == mode || "splitunderscore" == mode) {
+    //mljs.defaultconnection.logger.debug("Apply splitunderscore transform to " + name);
+    var parts = name.split("_");
+    var nn = "";
+    for (var i = 0;i < parts.length;i++) {
+      nn += parts[i] + " ";
+    }
+    name = nn.trim();
+  }
+  return name;
+};
+
+/**
+ * Splits a string in to words when it encounters a capital letter. Returns a string with spaces before a capital letter.
+ *
+ * @param {string} value - The original value
+ * @param {string} mode - The mode. Function only operates is mode is "all" or "camelcase"
+ */
+stringhelper.camelcase = function(value,mode) {
+  var name = value;
+  if ("all" == mode || "camelcase" == mode) {
+    //mljs.defaultconnection.logger.debug("Apply camelcase transform to " + name);
+    var parts = name.split(" ");
+    var nn = "";
+    for (var i = 0;i < parts.length;i++) {
+      nn += parts[i].substring(0,1).toUpperCase() + parts[i].substring(1) + " ";
+    }
+    name = nn.trim();
+  }
+  return name;
+};
+
+
+
 /**
  * Converts the specified text to XML using the Browser's built in XML support
  * @param {string} text - The textual representation of the XML
@@ -332,6 +451,82 @@ function xmlToJsonSearchResults(xml) {
   }
   return obj;
 
+};
+
+
+function jsonExtractValue(json,namePath) {
+  if (undefined == json) {
+    return null;
+  }
+  var paths = namePath.split(".");
+  var obj = json;
+  for (var i = 0;undefined != obj && i < paths.length;i++) {
+    obj = obj[paths[i]]; // TODO handle documents with multiple result container elements (arrays of results within same doc)
+  }
+  //mljs.defaultconnection.logger.debug("jsonExtractValue(): Returning value: " + obj);
+  return obj;
+};
+
+function xmlExtractValue(xmldoc,namePath,namespaces_opt) {
+  // construct and apply XPath from namePath
+  //var xpath = "/" + namePath.replace(/\./g,"/");
+  var xpath = namePath;
+  //xpath = xpath.replace(/\/.*:/g,"/*:"); // replace all namespaces with global namespace - temporary hack
+  console.log("Final XPath now: " + xpath);
+
+  // TODO apply xpath to extract document value
+  var myfunc = function(prefix) {
+    if (undefined != namespaces_opt) {
+      return namespaces_opt[prefix];
+    } else {
+        if (prefix === "jb") {
+          return "http://marklogic.com/xdmp/json/basic";
+        } else if (prefix === "i") {
+          return "http://www.marklogic.com/intel/intercept";
+        }
+    }
+          return null;
+    //return null; // assume always default namespace
+    // TODO support namespaces globally somehow - global context? page context?
+  };
+
+  var evalResult = xmldoc.evaluate(xpath,xmldoc,myfunc,2,null); // 2=string
+
+  if (null == evalResult) {
+    return null;
+  }
+  return evalResult.stringValue;
+};
+
+function extractValue(jsonOrXml,namePath,namespaces_opt) {
+  if (undefined == jsonOrXml) {
+    return null;
+  }
+  if ('object' == typeof(jsonOrXml) && undefined == jsonOrXml.nodeType) {
+    return jsonExtractValue(jsonOrXml,namePath);
+  } else if ('string' == typeof(jsonOrXml)) {
+    return xmlExtractValue(textToXML(jsonOrXml),namePath);
+  } else if (undefined == jsonOrXml) {
+    return null;
+  } else {
+    return xmlExtractValue(jsonOrXml,namePath,namespaces_opt);
+  }
+};
+
+function jsonOrXml(jsonOrXmlOrString) {
+  if ('object' == typeof(jsonOrXmlOrString) && undefined == jsonOrXml.nodeType) {
+    return jsonOrXmlOrString;
+  } else if ('string' == typeof(jsonOrXmlOrString)) {
+    if (jsonOrXmlOrString.substring(0,1) == "{") {
+      return JSON.parse(jsonOrXmlOrString);
+    } else {
+      return textToXML(jsonOrXmlOrString);
+    }
+  } else if (undefined == jsonOrXmlOrString) {
+    return null;
+  } else {
+    return jsonOrXmlOrString;
+  }
 };
 
 /**
@@ -8293,9 +8488,19 @@ mljs.prototype.documentcontext = function() {
 
   this._allowableProperties = new Array(); // [{name: "keyword",title: "Keyword", cardinality: 1 | "*"}, ... ]
 
+  this._config = {
+    template: {title: "Some title",content: "Some content"},
+    uriPattern: null // means decided by server entirely
+  }; // TODO update Configuration to include these, and refactor allowableProperties in to this
+
+  this._constructed = null; // holds the content of the document being constructed/edited
+  this._properties = new Array(); // [{property: "" OR element: "", namespaces: [], content: ""}, ...]
+  this._uri = null;
+
   this._highlightedPublisher = new com.marklogic.events.Publisher();
   this._selectedPublisher = new com.marklogic.events.Publisher();
   this._contentPublisher = new com.marklogic.events.Publisher();
+  this._partPublisher = new com.marklogic.events.Publisher();
   this._propertiesPublisher = new com.marklogic.events.Publisher();
   this._errorPublisher = new com.marklogic.events.Publisher();
   this._confirmationPublisher = new com.marklogic.events.Publisher();
@@ -8397,6 +8602,9 @@ mljs.prototype.documentcontext.prototype.register = function(obj) {
   if (undefined != obj.updateDocumentContent) {
     this._contentPublisher.subscribe(function(results) {obj.updateDocumentContent(results)});
   }
+  if (undefined != obj.updateDocumentPart) {
+    this._partPublisher.subscribe(function(results) {obj.updateDocumentPart(results)});
+  }
   if (undefined != obj.updateDocumentProperties) {
     this._propertiesPublisher.subscribe(function(results) {obj.updateDocumentProperties(results)});
   }
@@ -8450,6 +8658,8 @@ mljs.prototype.documentcontext.prototype.getContent = function(docuri) {
     if (result.inError) {
       self._errorPublisher.publish(result.detail);
     } else {
+      this._constructed = result.doc;
+      this._uri = docuri;
       self._contentPublisher.publish({docuri: docuri, doc: result.doc});
     }
   });
@@ -8467,6 +8677,7 @@ mljs.prototype.documentcontext.prototype.getProperties = function(docuri) {
     if (result.inError) {
       self._errorPublisher.publish(result.detail);
     } else {
+      this._uri = docuri;
       self._propertiesPublisher.publish({docuri: docuri, properties: result.doc});
     }
   });
@@ -8526,6 +8737,215 @@ mljs.prototype.documentcontext.prototype.getFacets = function(docuri,optionsName
   });
 };
 
+
+/*
+fieldDef = {
+  title: "Main Heading", path: "/h:body/h:h1[1]", namespaces: {h: "http://whatever"}, // also path: "some.json.path"
+  type: "string|datetime|date|positiveInteger|integer|float|double", // basically any xs: intrinsic type
+  required: true, min: 1, max: 7, default: 5, multiple: true // min max for numeric types, multiple for multi instance selects (for example)
+}
+
+// title defaults to CamelCase and split of last path element, type to string, required to false, multiple false, no namespaces
+// thus only required field is path.
+*/
+
+/**
+ * Sets the value of a part (field aka property aka element aka attribute) within the document.
+ * @param {json} fieldDef - The field definition
+ * @param {string|number} - The raw JavaScript content
+ */
+mljs.prototype.documentcontext.prototype.setPart = function(fieldDef,content) {
+  this.completeFieldDef(fieldDef);
+ // TODO figure out generic replaceValue() function
+
+   // construct and apply XPath from namePath
+   //var xpath = "/" + namePath.replace(/\./g,"/");
+   var xpath = fieldDef.path;
+   //xpath = xpath.replace(/\/.*:/g,"/*:"); // replace all namespaces with global namespace - temporary hack
+   console.log("Final XPath now: " + xpath);
+
+  // TODO support JSON documents
+
+   // TODO apply xpath to extract document value
+  var myfunc = function(prefix) {
+    if (undefined != fieldDef.namespaces) {
+      return fieldDef.namespaces[prefix];
+    } else {
+      if (prefix === "jb") {
+        return "http://marklogic.com/xdmp/json/basic";
+      } else if (prefix === "i") {
+        return "http://www.marklogic.com/intel/intercept";
+      }
+    }
+    return null;
+     //return null; // assume always default namespace
+     // TODO support namespaces globally somehow - global context? page context?
+  };
+
+  // get node
+  var iterator = this._constructed.evaluate(xpath,this._constructed,myfunc,XPathResult.ORDERED_NODE_ITERATOR_TYPE,null); // TODO WHY IS THIS NOT WORKING???
+  var child = iterator.iterateNext();
+  //for (var i = 0, max = children.length, child;i < max;i++) {
+  if (child) { // first only (assume they forgot [1] on the end of the xpath)
+    //child = children.item(i);
+    // cannot execute xpath on child nodes
+    // if has content, remove it
+    for (var n = 0;n < child.childNodes.length;n++) {
+      child.removeChild(child.childNodes.item(n));
+    }
+    // set content text node
+    child.innerHTML = content; // TODO check for XML Node here too
+    // TODO check the above works in Node.js without changes
+  }
+
+};
+
+/**
+ * Returns the value of the given part, or null if it doesn't exist yet
+ * @param {json} fieldDef - The field definition
+ */
+mljs.prototype.documentcontext.prototype.getPart = function(fieldDef) {
+  this.completeFieldDef(fieldDef);
+  return this._getConstructedPart(fieldDef);
+};
+
+mljs.prototype.documentcontext.prototype._getConstructedPart = function(fieldDef) {
+  var self = this;
+  if (undefined == this._constructed) {
+    this.__d("documentcontext._getConstructedPart: NO CONSTRUCTED CONTENT YET! CANNOT FETCH FIELD");
+  }
+  return this.db.extractValue(this._constructed,fieldDef.path,fieldDef.namespaces);
+};
+
+/**
+ * Sets the template to use for a new document. WARNING: This does NOT call reset() to clear the currently saved document!
+ * @param {string|XMLDocument|JSON} templateContent - The content to use in the template.
+ */
+mljs.prototype.documentcontext.prototype.setTemplate = function(templateContent) {
+  this._config.template = templateContent;
+  if (undefined == this._constructed) {
+    this.reset();
+  }
+};
+
+/**
+ * Returns the current template value (WARNING: May be text if set via Workplace, not an XML Document or JSON object)
+ */
+mljs.prototype.documentcontext.prototype.getTemplate = function() {
+  return this._config.template;
+};
+
+/**
+ * Resets the content of this document to null or the template value. Converts to XML or JSON automatically.
+ * Call this method when you've loaded a document, but now wish to work on a new document, without using the same URI or properties.
+ * Forces a call to updateContent()
+ */
+mljs.prototype.documentcontext.prototype.reset = function() {
+  this._constructed = null;
+  this._properties = new Array();
+
+  // generate new content from template
+  if (undefined != this._config.template) {
+    this._constructed = this._config.template;
+    if ("string" == typeof(this._constructed)) {
+      if (this._constructed.substring(0,1) == "<") {
+        // XML
+        this._constructed = this.db.textToXml(this._constructed);
+      } else {
+        // try JSON
+        this._constructed = JSON.parse(this._constructed);
+      }
+    }
+  }
+  this._contentPublisher.publish({docuri: null,doc: this._constructed});
+};
+
+
+mljs.prototype.documentcontext.prototype.completeFieldDef = function(fieldDef) {
+  // validate/fix/fill in field def
+  if (undefined == fieldDef.title) {
+    if ("/" == fieldDef.path.substring(0,1)) {
+      // XPath
+      var start = 0;
+      var end = fieldDef.path.length;
+      console.log("CFD: original: " + fieldDef.path);
+      var lastIndex = fieldDef.path.lastIndexOf("/");
+      console.log("CFD: last slash: " + lastIndex);
+      if (-1 != lastIndex) {
+        var lastColon = fieldDef.path.indexOf(":", lastIndex + 1);
+        console.log("CFD: last colon: " + lastColon);
+        if (-1 != lastColon) {
+          start = lastColon + 1;
+        } else {
+          start = lastIndex + 1;
+        }
+      } else {
+        // leave as start of string
+      }
+      console.log("CFD: start now: " + start);
+      var square = fieldDef.path.indexOf("[",start);
+      console.log("CFD: square: " + square);
+      if (-1 != square) {
+        end = square;
+      } else {
+        // leave as end of string
+      }
+      fieldDef.title = this.db.stringhelper.processValueAll(fieldDef.path.substring(start,end));
+    } else {
+      // JSON Path
+      if (-1 != fieldDef.path.lastIndexOf(".")) {
+        fieldDef.title = this.db.stringhelper.processValueAll(fieldDef.path.lastIndexOf("."));
+      } else {
+        fieldDef.title = this.db.stringhelper.processValueAll(fieldDef.path);
+      }
+    }
+  }
+
+  if (undefined == fieldDef.namespaces) {
+    fieldDef.namespaces = {};
+  }
+
+  if (undefined == fieldDef.type) {
+    fieldDef.type = "string";
+  }
+
+  if (undefined == fieldDef.required) {
+    fieldDef.required = false;
+  }
+
+  if (undefined == fieldDef.multiple) {
+    fieldDef.multiple = false;
+  }
+
+  if (undefined == fieldDef.default) {
+    fieldDef.default = "";
+  }
+};
+
+/**
+ * Saves this document content, properties and permissions in one hit via a PUT to /v1/documents - mljs.save().
+ * If a new document, sets the value of context._uri to the new document's URI.
+ * Forces an immediate getContent() in order to load any changes by pre-commit triggers.
+ * (This also gives you the URI via updateContent({docuri: "uri", doc: XML|JSON}); ).
+ */
+mljs.prototype.documentcontext.prototype.save = function() {
+  var self = this;
+  this.db.save(this._constructed,this._uri,{
+    properties: self._properties
+  }, function(result) {
+    if (result.inError) {
+      // uh oh
+
+      self._errorPublisher.publish(result.detail);
+    } else {
+      if (null != result.docuri) {
+        self._uri = result.docuri; // TODO check this is correct
+      }
+
+      self.getContent(self._uri); // forces content publish too
+    }
+  });
+};
 
 
 
@@ -8944,6 +9364,99 @@ mljs.prototype.alertcontext.prototype.register = function(wgt) {
 
 
 
+/**
+ * Abstracts data collation from many sources, across multiple calls
+ * E.g. one source may be facets from a document query, another triples relating to the subject (reference data),
+ * another still may be cooccurence data.
+ * This class is an extract of visual functionality in the highcharts and openlayers widgets.
+ * WARNING: DEVELOPMENT GRADE CODE - NOT READY FOR PRIME TIME
+ */
+mljs.prototype.seriescontext = function() {
+  this.TYPE_RESULTS_METRICS          = 1;
+  this.TYPE_RESULTS_DOCUMENT_CONTENT = 2;
+  this.TYPE_RESULTS_DOCUMENT_FACETS  = 3;
+  this.TYPE_COOCCURENCE              = 4;
+  this.TYPE_TRIPLES                  = 5;
+
+  this._series = {}; // name => {}
+
+  this._dataUpdatePublisher = new com.marklogic.events.Publisher();
+};
+
+mljs.prototype.seriescontext.prototype.addSeries = function(name,type,sourceContext,titleSourceType,
+  titleSource,categorySourceType,categorySource,valueSourceType,valueSource) {
+  this._series[name] = {
+    name: name, type: type,sourceContext: sourceContext,titleSourceType: titleSourceType,
+    titleSource: titleSource,categorySourceType: categorySourceType,valueSourceType:valueSourceType,
+    valueSource:valueSource
+  };
+  // set up listeners
+  var self = this;
+  if (this._TYPE_RESULTS_DOCUMENT_FACETS == type) {
+    this._series[name].listener = {
+      updateResults: function(results) {
+        self._updateResultsFacets(self._series[name],results);
+      }
+    };
+    sourceContext.register(this._series[name].listener);
+  }else if (this._TYPE_RESULTS_DOCUMENT_CONTENT == type) {
+    this._series[name].listener = {
+      updateResults: function(results) {
+        self._updateResultsContent(self._series[name],results);
+      }
+    };
+    sourceContext.register(this._series[name].listener);
+  } else if (this._TYPE_COOCCURENCE == type) {
+    this._series[name].listener = {
+      updateValues: function(results) {
+        self._updateValuesCooccurence(self._series[name],results);
+      }
+    };
+    sourceContext.register(this._series[name].listener);
+  } else {
+    // TODO other source types
+  }
+};
+
+mljs.prototype.seriescontext.prototype._updateSubjectFacts = function(facts) {
+
+};
+
+mljs.prototype.seriescontext.prototype._updateResultsFacets = function(series,results) {
+
+};
+
+mljs.prototype.seriescontext.prototype._updateResultsContent = function(series,results) {
+
+};
+
+mljs.prototype.seriescontext.prototype._updateValuesCooccurence = function(series,results) {
+
+};
+
+mljs.prototype.seriescontext.prototype.register = function(widget) {
+  if (undefined != widget.setSeriesContext) {
+    widget.setSeriesContext(this);
+  }
+
+  var self = this;
+  if (undefined != widget.updateSeriesData) {
+    this._dataUpdatePublisher.subscribe(function() {
+      widget.updateSeriesData(self);
+    });
+  }
+};
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -8995,3 +9508,8 @@ mljs.prototype.alertcontext.prototype.register = function(wgt) {
 mljs.prototype.textToXML = textToXML;
 mljs.prototype.xmlToJson = xmlToJson;
 mljs.prototype.xmlToText = xmlToText;
+mljs.prototype.jsonOrXml = jsonOrXml;
+mljs.prototype.extractValue = extractValue;
+mljs.prototype.jsonExtractValue = jsonExtractValue;
+mljs.prototype.xmlExtractValue = xmlExtractValue;
+mljs.prototype.stringhelper = stringhelper;

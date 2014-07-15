@@ -47,6 +47,8 @@ com.marklogic.widgets = window.com.marklogic.widgets || {};
  */
 com.marklogic.widgets.searchhelper = {};
 
+// TODO REMOVE PROCESSING CODE, USE THAT IN MLJS CORE's string helper functions
+
 /**
  * Converts a value in to separate words, splitting the words by dash, underscore, and CamelCase
  *

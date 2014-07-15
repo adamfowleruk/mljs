@@ -2,7 +2,7 @@
 
 ## Upcoming releases
 
-Targets for 1.6 (Jun 2014) - Theme: MLJS Ease of Use in the Browser
+Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
  - Node: Write a frickin' auto app deploy directory watching app
  - Docs: Demo app improvements
   - sparqlbar page: add explorer link to entityfacts config
@@ -16,8 +16,8 @@ Targets for 1.6 (Jun 2014) - Theme: MLJS Ease of Use in the Browser
   - mljsrest - snippets.html
   - mldbwebtest - search
   - mldbwebtest - snippets
- - Docs: Wiki
-  - All entityfacts-3.png (infobox) to gallery list
+ - DONE Docs: Wiki
+  - DONE All entityfacts-3.png (infobox) to gallery list
  - Double check stylesheet usage in Workplace app (uses Bootstrap only, not 960.css, unlike mljsrest test app)
  - TEST Semantics
   - DONE Add mentions triple to MarkLogic Document Ontology in mljs.js line 7430
@@ -32,13 +32,39 @@ Targets for 1.6 (Jun 2014) - Theme: MLJS Ease of Use in the Browser
    - DONE test first mentioned mode
    - DONE test all mentioned mode
    - DONE Update workplace configuration options
+ - IN PROGRESS Needed for upcoming demo
+  - Widgets: Time series Bar chart for bucketed time by date, value y series
+  - IN PROGRESS Widgets: Edit document
+   - DONE New document template
+   - DONE Create document
+   - DONE Edit XML/XHTML document string fields
+    - DONE BUG XPath not returning value for known field, so can't set content
+   - TEST Edit JSON document string fields
+   - Permissions
+   - Properties editing fixed
+   - DONE Small string
+   - DONE Large string
+   - DONE HTML string
+   - Numeric string - int / float (JavaScript limits?)
+   - Drop down for string enum
+   - Drop down for int/float/date
+   - date and time editing, with time zone
+   - DEFERRED Multiple instance elements
+   - Collection and other non-visual doc settings moved in to doccontext (from docbuilder widget)
+   - Rationalise mode settings in docbuilder
+  - Widgets: Semantic Network diagrams
+   - As circles
+   - Force directed distance initially
+   - draggable position after initial render
+   - Pick a library - d3.js OR ...
  - IN PROGRESS Widgets: Various Widget Bugs / performance enhancements
   - HIGH
    - DONE BUG Make links appear for related subjects where iriHandler is set
    - BUG Docs: Openlayers demo page hovering over marker causes null reference looking for result area by id to change css classes
    - BUG google maps address lookup longitude not working again (check latest social media code for fix - back port)
-   - Widgets: Gracefully handle RDF types that have not been configured in the triple config
-   - BUG why don't suggestions show facet values, only facet names?
+   - BUG Workplace page not loading at all - error in workplace js file
+   - DONE Widgets: Gracefully handle RDF types that have not been configured in the triple config
+   - DONE BUG why don't suggestions show facet values, only facet names?
   - BUG Clicking on Bar chart value gives: Point clicked: x:0, series name:'animal', y:3 data: undefined
   - BUG highcharts configuration in Workplace 'thin' column overflows container
   - Kill suggestions request before issuing another request (one per letter typed)
@@ -63,7 +89,8 @@ Targets for 1.6 (Jun 2014) - Theme: MLJS Ease of Use in the Browser
   - DONE BUG selecting a reltype causes a child term to be added when there wasn't already one
   - DONE BUG search auto complete totally broke on infobox page
   - BUG Docs: why aren't there any suggestions on infobox page?
-  - TEST BUG GET /v1/graph should be /v1/graphs
+  - DONE BUG GET /v1/graph should be /v1/graphs
+  - BUG main.js - commented out use of GET graph as it returns HTML not JSON, causing conversion error
   - DONE BUG explorer widget fails when trying to link to subject that has already been drawn
   - DONE BUG explorer widget doesn't always hide hover labels (likely because line drawn over them taking the focus)
   - BUG explorer widget scroll bar should be at top when needed
@@ -213,10 +240,13 @@ Targets for 1.6 (Jun 2014) - Theme: MLJS Ease of Use in the Browser
     - Configure tripleconfig in semanticcontext
     - contributeQuery mode for custom page query in to searchcontext (base query)
     - Link semantic context to document context for MarkLogic Document ontology links
+    - configuration of registering one context with another, of any type, as a sendTo, receiveFrom, or biDirectional link
    - Widget extra configuration parameters
     - sparqlresults.iriHandler(pattern)
     - tagcloud.setFacet(facetName)
     - how to handle create (upload) forms widget?
+     - template (in doccontext, not widget)
+     - list of field definitions
     - addressbar.radius
     - openlayers.setGeoSelectionConstraint
     - openlayers.go (lon,lat, zoom)
@@ -234,10 +264,10 @@ Targets for 1.6 (Jun 2014) - Theme: MLJS Ease of Use in the Browser
     - DEFERRED Also allow fixed tabs at start and end (list for each). E.g. Settings, Home, etc. for non-workplace dynamic pages - display text, url
    - Create new Workplace page dialogue - name, based on - then load in page editor
    - DONE via app configure link on navbar - New workplace page button on end of nav widget
-  - Practicality updates
+  - IN PROGRESS Practicality updates
    - DEFERRED Options builder UI widget - read from ML if possible
    - DEFERRED Query builder UI widget (base query for search, default query for page load)
-   - Docs: OOTB Workplace demo app - no data
+   - IN PROGRESS Docs: OOTB Workplace demo app - no data
  - IN PROGRESS Widgets: UI Consistency
   - IN PROGRESS Widgets: Update all for Bootstrap CSS support
    - DONE searchbar
@@ -274,7 +304,8 @@ Targets for 1.6 (Jun 2014) - Theme: MLJS Ease of Use in the Browser
    - options builder widget
    - query builder widget
    - IN PROGRESS create
-    - Can't style file upload button or input file name box
+    - DEFERRED Can't style file upload button or input file name box
+    - IN PROGRESS Document create/edit fields
    - DEFERRED markings (non prod)
    - DEFERRED rdb2rdf (non prod)
    - DEFERRED Bootstrap CSS toggles/options in Workplace configuration?
@@ -301,7 +332,7 @@ Targets for 1.6 (Jun 2014) - Theme: MLJS Ease of Use in the Browser
      - validation feedback on the fly of indexed constraints
      - allow specification of extracted metadata
      - allow co-occurence specification
-  - Allow using other existing pages as template
+  - Allow using other existing pages as template (copy and edit)
    - template search well and results
    - workplace page preview?
  - Workplace Security review
@@ -316,7 +347,7 @@ Targets for 1.6 (Jun 2014) - Theme: MLJS Ease of Use in the Browser
   - Share workplace via URL
    - Add this to My Workplaces option on non-owned workplace page load
   - Edit limited to owner of workplace
- - Docs: Workplace standalone app
+ - IN PROGRESS Docs: Workplace standalone app
   - DONE Roxy base rest only project
   - DONE Update build scripts to send latest files in to project
   - Special security roles for application, and app wide security settings
@@ -325,6 +356,8 @@ Targets for 1.6 (Jun 2014) - Theme: MLJS Ease of Use in the Browser
   - logged in welcome page, with logout button
   - Special re-writer for security and workplace pages
  - DONE Docs: Deprecate mldbwebtest app as primary source of widget files in build, remove app itself
+ - Docs: Remove mldbwebtest from tutorials, documentation, wiki
+  - replace with mljsrest via Node.js webserver
  - DONE BUG Widgets: searchbar - When contributing query as term query for structured search, if text blank need to send and-query not term-query("") - else nothing is returned!
  - DONE BUG Core: version being called multiple times per page (when version endpoint doesn't exist)
  - IN PROGRESS BUG Docs: Explorer widget not loading document facet data on mljsrest app
@@ -391,15 +424,31 @@ Targets for 1.8 (Aug 2014) - Theme: Visualisations
    - IN PROGRESS Make it easier to add event handlers like click to navigate, view (as html via XSLT), download
    - Allow passing of custom parameters to event handlers in addition to document uri
    - Externalise constraint name to display name (search option annotations on constraints) - constraintTitle function on manager
-  - Core: data series context
+  - IN PROGRESS Core: data series context
    - Handles series calculation and parsing external to any particular widget
-   - reliant upon a single searchcontext (and options builder) object
+   - reliant upon multiple source contexts - e.g. searchcontext (and options builder) object
    - list potential data sources
    - list potential category x sources
    - list potential value y (measure) sources
    - calculate series and their data points dynamically when results arrive, based on above configuration
+   - support multiple source types
+    - move over document values
+    - move over document facets
+    - move over subject facts
+    - move over anything useful from openlayers
+    - move over anything useful from highcharts
+    - Add co-occurence (2 or 3 way - on three way, one of the values can be series name for splitting)
+    - Add lexicon support
+    - Add ML 8 sparql aggregation support
+    - Check for any other potential sources
+     - results metrics themselves
+     - results extracted constraint/metadata/element/property
+     - buckets (time series especially)
+   - allow splitting of a single series based on dynamic series name source
+   - allow merging of series based on equals function
+    - requires replacing dynamic category names with value (E.g. PROD1234 => YellowAnorak) when category sources differ
    - fire series update event for individual series (need depends upon widget)
-   - fire all series update event for overall results (need depends upon widget)
+   - TEST fire all series update event for overall results (need depends upon widget)
  - Widgets: Workplace
   - Allow user personalisation for widgets on a page (auto save and load via workplace context)
   - Allow showing of live data against configuration options (E.g. list the facets from options that are selectable for a highchart)
