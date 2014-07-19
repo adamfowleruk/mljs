@@ -52,13 +52,31 @@ declare variable $c:ROXY-OPTIONS :=
  :)
 declare variable $c:ROXY-ROUTES :=
   <routes xmlns="http://marklogic.com/appservices/rest">
-  	      <request uri="^/$" endpoint="/roxy/query-router.xqy">
-  	        <uri-param name="controller">mljstest</uri-param>
-  	        <uri-param name="func">main</uri-param>
-  	        <uri-param name="format">html</uri-param>
-  	        <http method="GET"/>
-  	        <http method="HEAD"/>
-  	      </request>
+
+
+  <request uri="^/(css|js|images|fonts)/(.*)" endpoint="/$1/$2"/>
+  <request uri="^/favicon.ico$" endpoint="/favicon.ico"/>
+  <request uri="^/v1/.+$"/>
+
+          <request uri="^/application.html5$" endpoint="/application.html5">
+            <http method="GET"/>
+            <http method="HEAD"/>
+          </request>
+
+          <request uri="^/$" endpoint="/index.html5">
+            <http method="GET"/>
+            <http method="HEAD"/>
+          </request>
+                  <request uri="^/index.html5$" endpoint="/index.html5">
+                    <http method="GET"/>
+                    <http method="HEAD"/>
+                  </request>
+
+                  <request uri="^/.*$" endpoint="/workplace.html5">
+                    <http method="GET"/>
+                    <http method="HEAD"/>
+                  </request>
+
     <request uri="^/my/awesome/route" />
     {
       $def:ROXY-ROUTES/rest:request

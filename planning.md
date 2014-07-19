@@ -9,25 +9,37 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
   - sparqlbar page: make document links use mentioned_in link with correct IRI for search results rendering
   - explorer page: accept incoming IRI link in url ?iri=, where not specified use existing default
   - DONE remove extraneous entity facts rendering logging code
+ - Docs: API documentation
+  - document all namespaces
+  - document all type defs
+  - document all return values
+ - Docs: Generate build of Workplace app in dist folder, with lightweight initial deployment scripts
  - IN PROGRESS Demo Jam updates
   - DONE Bootstrap CSS themed Workplace admin
-  - BUG left hand nav height not same as right hand - see JWs fix
-  - BUG action config selection for new not drawing
-  - App wide configuration page in workplace app created
-  - BUG entityfacts widget doesn't like unknown classes (Penguin)
-  - Create new page in Workplace app working
+  - DONE App wide configuration page in workplace app created
+  - DONE Create new page in Workplace app working
   - TEST navigation in workplace app
+   - DONE Rewrite rewriter XQuery for Workplace
+   - TEST Detect 'active' page properly
+  - BUG assignments only being saved for first item in workplaceadmin configwrapper
+   - Is this because of dropping on the top most drop zone each time (first bottom dz, rest configwrapper dzs)
+    - Thus are the configwrapper drop zones doing nothing wrt adding new widget configs to the context?
+  - TEST Sanity checked all inserting code in context BUG same widget mentioned multiple times in context registration
   - Registering search renderers globally via JS include (not workplace config)
-  - App context for app wide settings
-   - default doc view page url and params
-   - default semantic explore page and params
-  - Page context for page control
-   - Take query string parameters and map to appropriate widget parameters (defaults in app context)
-   - Manages mapping to widgets, not delegating this to widgets
+  - NA App context for app wide settings
+  - IN PROGRESS Page context for page control
+   - IN PROGRESS Take query string parameters and map to appropriate widget parameters (defaults in app context)
+   - TEST Manages mapping to widgets, not delegating this to widgets
+   - TEST default doc view page url and params
+   - TEST default semantic explore page and params
   - Test content
-   - Social media analytics and provenance
+   - News monitoring data?
+   - Social media analytics and provenance?
     - campaign data
     - Generate who talks to whom triples, with messages sent information and influence score
+  - BUG left hand nav height not same as right hand - see JWs fix
+  - BUG action config selection for new not drawing
+  - BUG entityfacts widget doesn't like unknown classes (Penguin)
  - Docs: Remove all uses of the searchpage widget in demos
   - DEFERRED Ensure thinthick layout with embedded column layout works
    - DEFERRED create columns layout for workplace
@@ -281,7 +293,7 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
    - DEFERRED Allow workplaces to be kept instead in a drop down menu
    - DEFERRED Menu Editor
     - DEFERRED Also allow fixed tabs at start and end (list for each). E.g. Settings, Home, etc. for non-workplace dynamic pages - display text, url
-   - Create new Workplace page dialogue - name, based on - then load in page editor
+   - DONE Create new Workplace page dialogue - name, based on - then load in page editor
    - DONE via app configure link on navbar - New workplace page button on end of nav widget
   - IN PROGRESS Practicality updates
    - DEFERRED Options builder UI widget - read from ML if possible
@@ -366,14 +378,15 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
   - Share workplace via URL
    - Add this to My Workplaces option on non-owned workplace page load
   - Edit limited to owner of workplace
- - IN PROGRESS Docs: Workplace standalone app
+ - DONE Docs: Workplace standalone app
   - DONE Roxy base rest only project
   - DONE Update build scripts to send latest files in to project
-  - Special security roles for application, and app wide security settings
-  - IN PROGRESS Generic page template
-  - IN PROGRESS Logged out page (with login area)
-  - logged in welcome page, with logout button
-  - Special re-writer for security and workplace pages
+  - DEFERRED Special security roles for application, and app wide security settings
+  - DONE Generic page template
+  - DEFERRED Logged out page (with login area)
+   - DEFERRED Requires app level security and default role
+  - DEFERRED logged in welcome page, with logout button
+  - DONE Special re-writer for security and workplace pages
  - DONE Docs: Deprecate mldbwebtest app as primary source of widget files in build, remove app itself
  - Docs: Remove mldbwebtest from tutorials, documentation, wiki
   - replace with mljsrest via Node.js webserver
@@ -381,7 +394,7 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
  - DONE BUG Core: version being called multiple times per page (when version endpoint doesn't exist)
  - IN PROGRESS BUG Docs: Explorer widget not loading document facet data on mljsrest app
   - DONE Due to subjectIri to docuri hack line 508 of widget-explore.js: Need better way to determine document URI from subjectIri -> should use #uri child property
-  - Need to also cache links between docuri (key) and subject URI, so documentcontext listener can match subject correctly
+  - Need to also cache links between docuri (key) and subject IRI, so documentcontext listener can match subject correctly
  - Docs: Put latest doc updates front and centre of MLJS main page and API home page
   - aka release notes
   - youtube videos

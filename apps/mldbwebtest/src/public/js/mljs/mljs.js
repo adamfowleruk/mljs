@@ -32,6 +32,11 @@ if (typeof(window) === 'undefined') {
     ]
   });
 } else {
+  if (typeof String.prototype.endsWith !== 'function') {
+    String.prototype.endsWith = function(suffix) {
+        return this.indexOf(suffix, this.length - suffix.length) !== -1;
+    };
+  }
   noop = function() {
     // do nothing
   };
@@ -1109,6 +1114,9 @@ mljs.prototype.get = function(docuri,options_opt,callback_opt) {
   };
   if (undefined != options_opt && undefined != options_opt.path) {
     options.path = this._applyTransformProperties(options_opt.path);
+  }
+  if (docuri.endsWith(".json")) {
+    options.path += "&format=json";
   }
 
   this.__doreq("GET",options,null,function (result) {

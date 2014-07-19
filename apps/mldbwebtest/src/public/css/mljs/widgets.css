@@ -960,7 +960,7 @@ div.log {
 
 /** Workplace admin **/
 #workplaceeditormain {
-  z-order: 999999999;
+  z-index: 1000;
   position:absolute;
   top: 0px;
   left: 0px;
@@ -1043,8 +1043,8 @@ div.log {
 }
 
 .btn-fix {
-  height: 20px;
-  line-height: 20px;
+  height: 18px;
+  line-height: 18px;
 }
 
 .workplaceadmin .workplaceadmin-contexts-listitem-text {

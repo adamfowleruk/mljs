@@ -119,7 +119,7 @@ com.marklogic.widgets.workplace.prototype.updateWorkplace = function(context) {
   mljs.defaultconnection.logger.debug("Creating zones");
   layout.createZones(json.assignments);
 
-  var widgets = new Array(); // widgetid => wgt instance
+  var widgets = {}; //new Array(); // widgetid => wgt instance
 
   // initialise widgets in these areas
   mljs.defaultconnection.logger.debug("Creating widget instances");
@@ -135,7 +135,7 @@ com.marklogic.widgets.workplace.prototype.updateWorkplace = function(context) {
     widgets[widget.widget] = wgt;
   }
 
-  var contexts = new Array(); // contextid => context object
+  var contexts = {}; //new Array(); // contextid => context object
 
   // create management contexts from connection object
   mljs.defaultconnection.logger.debug("Creating contexts");
@@ -1082,9 +1082,10 @@ com.marklogic.widgets.workplacecontext.prototype.loadMyPages = function() {
     var pages = new Array();
     for (var i = 0, maxi = results.results.length,page;i < maxi;i++) {
       page = results.results[i].content;
-      pages.push(page);
+      pages.push({uri: results.results[i].uri,page: page});
     }
     // fire update event on return
+    self._cachedPages = pages;
     self._myPagesPublisher.publish(pages);
   });
   sc.doStructuredQuery(qb.toJson());
@@ -1095,10 +1096,51 @@ com.marklogic.widgets.workplacecontext.prototype.loadMyPages = function() {
  * If the cache is empty, returns an empty array and loads readable pages in to cache asynchronously (via loadMyPages()).
  */
 com.marklogic.widgets.workplacecontext.prototype.getCachedPages = function() {
-  if (false === this._cached) {
+  if (false === this._cachedPages) {
     this.loadMyPages();
   }
   return this._cachedPages;
+};
+
+com.marklogic.widgets.workplacecontext.prototype.createPage = function(pageJson) {
+  // create page on server
+  var self = this;
+  this.db.save(pageJson,"/admin/workplace/" + this.__genid() + ".json",{collection: "/config/workplace/page"},function(result) {
+    if (result.inError) {
+      // TODO publish error
+    } else {
+      // add to cached pages
+      self._cachedPages.push({uri: result.docuri,page: pageJson});
+      // update page list
+      self._myPagesPublisher.publish(self._cachedPages);
+    }
+  });
+};
+
+
+com.marklogic.widgets.workplacecontext.prototype.__genid = function() {
+  return "" + ((new Date()).getTime()) + "-" + Math.ceil(Math.random()*100000000);
+};
+
+com.marklogic.widgets.workplacecontext.prototype.deletePage = function(uri) {
+  var self = this;
+  this.db.delete(uri,function(result) {
+    if (result.inError) {
+      // TODO handle result error
+    } else {
+      // remove page from cached pages
+      var newcache = new Array();
+      for (var p = 0,maxp = self._cachedPages.length,page;p < maxp;p++) {
+        page = self._cachedPages[p];
+        if (uri != page.uri) {
+          newcache.push(page);
+        }
+      }
+      self._cachedPages = newcache;
+      // fire update event
+      self._myPagesPublisher.publish(self._cachedPages);
+    }
+  });
 };
 
 /**
@@ -1217,6 +1259,23 @@ com.marklogic.widgets.workplacecontext.prototype.saveWorkplace = function(json,u
   this.db.save(json,uri_opt || "/admin/workplace/" + this.__genid() + ".json",props_opt,callback);
 };
 
+com.marklogic.widgets.workplacecontext.prototype.loadWorkplace = function(uri) {
+  var self = this;
+
+  this.db.get(uri,function(result) {
+    if (result.inError) {
+      // TODO handle error
+    } else {
+      self._uri = uri;
+      self._json = result.doc;
+
+      self._lastSaved = self._json;
+      self._processConfig();
+      self._fireUpdate();
+    }
+  });
+};
+
 /**
  * TODO docs
  */
@@ -1292,6 +1351,15 @@ com.marklogic.widgets.workplacecontext.prototype.setSummary = function(title, ur
  */
 com.marklogic.widgets.workplacecontext.prototype.setLayout = function(newLayout) {
   this._json.layout = newLayout;
+};
+
+/**
+ * Changes page URLs to that now specified.
+ *
+ * @param {Array} urlArray - new url array
+ */
+com.marklogic.widgets.workplacecontext.prototype.setUrls = function(urlArray) {
+  this._json.urls = urlArray;
 };
 
 /**
@@ -1433,7 +1501,9 @@ com.marklogic.widgets.workplacecontext.prototype.registerWidget = function(widge
   for (var i = 0, max = this._json.contexts.length,c;i < max;i++) {
     c = this._json.contexts[i];
     if (c.context == contextName) {
-      c.register.push(widgetName);
+      if (!c.register.contains(widgetName)) {
+        c.register.push(widgetName);
+      }
       return;
     }
   }
@@ -1520,13 +1590,33 @@ com.marklogic.widgets.workplacecontext.prototype.addContextAction = function(con
  * @private
  */
 com.marklogic.widgets.workplacecontext.prototype._processConfig = function() {
-  for (var i = 0, max = this._json.widgets.length,wgt;i < max;i++) {
-    wgt = this._json.widgets[i];
-    this._addWidgetName(wgt.widget);
+  if (undefined == this._json.widgets) {
+    this._json.widgets = [];
   }
-  for (var i = 0, max = this._json.contexts.length,ctx;i < max;i++) {
-    ctx = this._json.contexts[i];
-    this._addWidgetName(ctx.context);
+    for (var i = 0, max = this._json.widgets.length,wgt;i < max;i++) {
+      wgt = this._json.widgets[i];
+      this._addWidgetName(wgt.widget);
+    }
+
+  if (undefined == this._json.contexts) {
+    this._json.contexts = [];
+  }
+    for (var i = 0, max = this._json.contexts.length,ctx;i < max;i++) {
+      ctx = this._json.contexts[i];
+      this._addWidgetName(ctx.context);
+    }
+
+  if (undefined == this._json.actions) {
+    this._json.actions = [];
+  }
+  if (undefined == this._json.assignments) {
+    this._json.assignments = [];
+  }
+  if (undefined == this._json.layout) {
+    this._json.layout = "thinthick";
+  }
+  if (undefined == this._json.urls) {
+    this._json.urls = [];
   }
   this._calculateObjectTypeMap();
 };
@@ -1843,12 +1933,12 @@ com.marklogic.widgets.workplaceadmin.prototype._refresh = function() {
   str += "    <div class='well'>";
 
   str += "<div class='page-header workplaceadmin-panels-heading-outer'>";
-  str += "  <h1 class='workplaceadmin-panels-heading'>Edit Workplace Page</h1>";
+  str += "  Edit Workplace Page";
   str += "</div>";
 
   str += "<div class='panel panel-primary' id='" + this.container + "-page-outer'>"; // page settings
   str += "  <div id='" + this.container + "-page-heading' class='panel-heading workplaceadmin-page-heading'>";
-  str += "   <h3 class=''>Page Settings</h3>";
+  str += "   Page Settings";
   str += "</div>";
   str += "  <div id='" + this.container + "-page-content' class='panel-body workplaceadmin-page-content'>";
   /*
@@ -1896,7 +1986,7 @@ com.marklogic.widgets.workplaceadmin.prototype._refresh = function() {
 
 
   str += "<div class='panel panel-info' id='" + this.container + "-widgets-outer'>";
-  str += "  <div id='" + this.container + "-widgets-heading' class='panel-heading workplaceadmin-widgets-heading'><h3>Widgets</h3></div>";
+  str += "  <div id='" + this.container + "-widgets-heading' class='panel-heading workplaceadmin-widgets-heading'>Widgets</div>";
   str += "  <div id='" + this.container + "-widgets-content' class='panel-body workplaceadmin-widgets-content hidden'>";
   str += "<table class='mljstable workplaceadmin-widgets-list'>"
   for (var i = 0, col = 0, max = this._config.widgetList.length,w;i < max;i++) {
@@ -1929,7 +2019,7 @@ com.marklogic.widgets.workplaceadmin.prototype._refresh = function() {
 
 
   str += "<div class='panel panel-info' id='" + this.container + "-contexts-outer'>";
-  str += "  <div id='" + this.container + "-contexts-heading' class='panel-heading workplaceadmin-contexts-heading'><h3>Contexts</h3></div>";
+  str += "  <div id='" + this.container + "-contexts-heading' class='panel-heading workplaceadmin-contexts-heading'>Contexts</div>";
   str += "  <div id='" + this.container + "-contexts-content' class='panel-body workplaceadmin-contexts-content hidden'>";
   str += "   <div id='" + this.container + "-contexts-list' class='workplaceadmin-contexts-list'><i>None</i></div>";
   str += "   <div id='" + this.container + "-contexts-add' class='workplaceadmin-contexts-add'>";
@@ -1959,7 +2049,7 @@ com.marklogic.widgets.workplaceadmin.prototype._refresh = function() {
 
 
   str += "<div class='panel panel-info' id='" + this.container + "-actions-outer'>";
-  str += "  <div id='" + this.container + "-actions-heading' class='panel-heading workplaceadmin-actions-heading '><h3>Actions</h3></div>";
+  str += "  <div id='" + this.container + "-actions-heading' class='panel-heading workplaceadmin-actions-heading '>Actions</div>";
   str += "  <div id='" + this.container + "-actions-content' class='panel-body workplaceadmin-actions-content hidden'>";
   str += "   <button id='" + this.container + "-actions-onload' class='btn btn-default workplaceadmin-actions-onload'>On page load</button>";
   str += "  </div>";
@@ -1985,9 +2075,7 @@ com.marklogic.widgets.workplaceadmin.prototype._refresh = function() {
   str += "  </div>";
   str += "  <div id='" + this.container + "-config-actions' class='container_12 col-md-12 hidden'>";
   str += "   <div class='panel panel-default'>";
-  str += "    <div class='panel-heading'>";
-  str += "     <h3 class=''>Configure Actions</h3>";
-  str += "    </div>";
+  str += "    <div class='panel-heading'>Configure Actions</div>";
   str += "    <div class='panel-body'>";
   str += "     <div id='" + this.container + "-config-actions-new' class='container_12 col-md-12 col-sx-12'></div>";
   str += "     <div id='" + this.container + "-config-actions-list' class='container_12 col-md-12 col-sx-12'></div>";
@@ -2041,6 +2129,14 @@ com.marklogic.widgets.workplaceadmin.prototype._refresh = function() {
     });
     // refresh contexts list
     self._updateContextsList();
+  };
+
+  var urlsEl = document.getElementById(this.container + "-page-urls");
+  urlsEl.onchange = function() {
+    var val = urlsEl.value;
+    var urls = val.split(",");
+    console.log("URLS: " + val);
+    self._workplaceContext.setUrls(urls);
   };
 
   var layoutEl = document.getElementById(this.container + "-page-layout");
@@ -2109,7 +2205,7 @@ com.marklogic.widgets.workplaceadmin.prototype._persistTabChanges = function() {
     // save page settings
     this._workplaceContext.setSummary(
       document.getElementById(this.container + "-page-title").value,
-      document.getElementById(this.container + "-page-urls").innerHTML.split(","),
+      document.getElementById(this.container + "-page-urls").value.split(","),
       document.getElementById(this.container + "-page-layout").value,
       false); // TODO get shared status from checkbox
   }
@@ -2311,7 +2407,9 @@ com.marklogic.widgets.workplaceadmin.prototype._addClassToZone = function(widget
   var json = this._workplaceContext.getJson();
   for (var c = 0,maxc = json.contexts.length,ctx;c < maxc;c++) {
     ctx = json.contexts[c];
-    ctx.register.push(widget.widget);
+    if (!ctx.register.contains(widget.widget)) {
+      ctx.register.push(widget.widget);
+    }
     // should auto update UI when switch to context config tab
   }
 
@@ -2550,7 +2648,7 @@ com.marklogic.widgets.workplaceadmin.prototype._updateContextsList = function() 
       // NOW LINKED WIDGETS LIST
       var mine = new Array();
       var str = "<div class='mljswidget panel panel-default config-context-links'>"
-      str += "<div class='panel-heading'><h3 class=''>Widgets to Register</h3></div>";
+      str += "<div class='panel-heading'>Widgets to Register</div>";
       str += "<div class='panel-body'>";
       str += "<select size='10' multiple='multiple' id='" + self.container + "-config-contexts-links-link'>";
       for (var w = 0, maxw = json.widgets.length,wgt;w < maxw;w++) {
@@ -2685,9 +2783,7 @@ com.marklogic.widgets.orderedconfig.prototype._fireNewOrder = function() {
 com.marklogic.widgets.orderedconfig.prototype._refresh = function() {
   this._ordered = new com.marklogic.util.linkedlist();
   var s = "<div id='" + this.container + "-orderedconfig' class='mljswidget panel panel-default orderedconfig'>";
-  s += "<div class='panel-heading'>";
-  s += "<h3 class=''>" + this._title + "</h3>";
-  s += "</div><div class='panel-body'>";
+  s += "<div class='panel-heading'>" + this._title + "</div><div class='panel-body'>";
 
   // add configs to list
   var configList = this._workplaceContext.getActionDescriptions();
@@ -3200,8 +3296,8 @@ com.marklogic.widgets.configwrapper.prototype._init = function() {
   str += " <button class='btn btn-danger btn-sm configwrapper-delete' id='" + this.container + "-name-del'>";
   str += "<span class='glyphicon glyphicon-remove btn-fix-sm'></span>";
   str += "</button> ";
-  str += " <h3 class='configwrapper-heading' draggable='true' id='" + this.container + "-name'>";
-  str += this._widgetName + "</h3>"; // TODO show widget type title here too
+  str += " <span class='configwrapper-heading' draggable='true' id='" + this.container + "-name'>";
+  str += this._widgetName + "</span>"; // TODO show widget type title here too
   str += "</div>"; // panel heading
 
   // show config elements on page
@@ -3502,6 +3598,7 @@ com.marklogic.widgets.workplacenavbar = function(container) {
     appConfigureLinkText: "Configure App", appConfigureUrl: "/application.html5", showPageConfigureLink: true,
     pageConfigureLinkText: "Configure Page", showLogoutLink: false, logoutLinkText: "Logout", logoutUrl: "/logout"
   };
+  //this._pages = new Array(); // pages full json documents content
   this._refresh();
 };
 
@@ -3575,14 +3672,24 @@ com.marklogic.widgets.workplacenavbar.prototype._refresh = function() {
   s += "<div class='navbar-collapse collapse'><ul class='nav navbar-nav'>";
 
   if (null != this._config.homeUrl && "" != this._config.homeUrl.trim()) {
-    s += "<li class='active'><a href='" + this._config.homeUrl + "'>" + this._config.homeText + "</a></li>";
+    s += "<li";
+    if (this._config.homeUrl.contains(window.location.pathname)) {
+      s += " class='active'";
+    }
+    s += "><a href='" + this._config.homeUrl + "'>" + this._config.homeText + "</a></li>";
   }
+
+  // compare window.path with url in order to determine active nav button
 
   if (null != this._workplaceContext) {
     var pages = this._workplaceContext.getCachedPages();
     for (var i = 0, maxi = pages.length, page;i < maxi;i++) {
       page = pages[i];
-      s += "<li><a href='" + page.url + "'>" + page.title + "</a></li>";
+      s += "<li";
+      if (page.page.urls.contains(window.location.pathname)) {
+        s += " class='active'";
+      }
+      s += "><a href='" + page.page.urls[0] + "'>" + page.page.title + "</a></li>";
     }
   }
   // TODO support embedded pages in dropdown navigation
@@ -3607,12 +3714,22 @@ com.marklogic.widgets.workplacenavbar.prototype._refresh = function() {
 
   s += "</ul><ul class='nav navbar-nav navbar-right'>";
   if (true === this._config.showAppConfigureLink) {
-    s += "<li><a id=" + this.container + "-workplacenavbar-configureapp' href='" + this._config.appConfigureUrl +
+    s += "<li";
+
+    if (this._config.appConfigureUrl.contains(window.location.pathname)) {
+      s += " class='active'";
+    }
+    s += "><a id=" + this.container + "-workplacenavbar-configureapp' href='" + this._config.appConfigureUrl +
          "'>" + this._config.appConfigureLinkText + "</a></li>";
   }
   s += "<li><a href='#'>" + this._config.pageConfigureLinkText + "</a></li>";
   if (true === this._config.showLogoutLink) {
-    s += "<li><a href='" + this._config.logoutUrl + "'>" + this._config.logoutLinkText + "</a></li>";
+    s += "<li";
+
+    if (this._config.logoutUrl.contains(window.location.pathname)) {
+      s += " class='active'";
+    }
+    s += "><a href='" + this._config.logoutUrl + "'>" + this._config.logoutLinkText + "</a></li>";
   }
   s += "</ul></div><!--/.nav-collapse --></div><!--/.container-fluid --></div>";
   document.getElementById(this.container).innerHTML = s;
@@ -3620,4 +3737,243 @@ com.marklogic.widgets.workplacenavbar.prototype._refresh = function() {
   // TODO click event handlers
   // TODO Just the edit page link required - the rest are URL based
 
+};
+
+
+com.marklogic.widgets.workplacenavbar.prototype.updateMyPages = function(pages) {
+  // receive page array and draw nav bar
+  //this._pages = pages;
+  this._refresh();
+};
+
+
+
+
+
+
+
+
+
+
+
+com.marklogic.widgets.workplacepagelist = function(container) {
+  this.container = container;
+  this._workplaceContext = null;
+};
+
+/**
+ * Sets the workplace context for this widget
+ * @param {com.marklogic.widgets.workplacecontext} ctx - Workplace context instance
+ */
+com.marklogic.widgets.workplacepagelist.prototype.setWorkplaceContext = function(ctx) {
+  mljs.defaultconnection.logger.debug("workplacepagelist.setWorkplaceContext: called.");
+  this._workplaceContext = ctx;
+};
+
+/**
+ * Returns the workplace context used by this widget
+ * @return {com.marklogic.widgets.workplacecontext} ctx - The Workplace context instance
+ */
+com.marklogic.widgets.workplacepagelist.prototype.getWorkplaceContext = function() {
+  return this._workplaceContext;
+};
+
+com.marklogic.widgets.workplacepagelist.prototype.updateMyPages = function(pages) {
+  var str = "<div class='panel panel-info'>";
+  str += "<div class='panel-heading'>Pages</div>";
+  str += "<div class='panel-body'>";
+
+  for (var p = 0,maxp = pages.length,page;p < maxp;p++) {
+    page = pages[p];
+
+    // title and urls
+    str += "<div class='btn-toolbar'>";
+    str += "<div class='btn-group'>";
+    str += " <button id='" + this.container + "-" + p + "-del' class='btn btn-danger'><span class='glyphicon glyphicon-remove btn-fix'></span></button>";
+    str += " <button id='" + this.container + "-" + p + "-edit'  class='btn btn-default'><span class='glyphicon glyphicon-cog btn-fix'></span></button>";
+    str += " <button id='" + this.container + "-" + p + "-name'  class='btn btn-default'><span class='btn-fix'>" + page.page.title + " @ ";
+    if (undefined != page.urls) { // happens on creation of new page with just a title
+      for (var u = 0,maxu = page.page.urls.length,url;u < maxu;u++) {
+        url = page.page.urls[u];
+        if (u > 0) {
+          str += ", ";
+        }
+        str += url;
+      }
+    }
+    str += "</span></button>";
+    str += "</div>";
+    str += "</div>";
+  }
+  if (0 == pages.length) {
+    str += "<p><i>No pages to display</i></p>";
+  }
+
+  // Page add button - sets name only with random uri
+  str += "<div class='form-group'>";
+  str += " <label>New page name</label>";
+  str += " <div class='input-group'>";
+  str += "  <input id='" + this.container + "-pagename' class='form-control' type='text' placeholder='Page name'/>";
+  str += "  <div id='" + this.container + "-addpage' class='input-group-addon glyphicon glyphicon-plus'></div>";
+  str += " </div>"; // input group
+  str += "</div>"; // form group
+
+  str += "</div>"; // panel body
+  str += "</div>"; // panel
+
+  document.getElementById(this.container).innerHTML = str;
+
+  // click event handlers
+  var self = this;
+
+  var addDelHandler = function(elid,page) {
+    var el = document.getElementById(elid);
+    el.onclick = function(evt) {
+      self._workplaceContext.deletePage(page.uri);
+
+      evt.stopPropagation();
+      return false;
+    };
+  };
+  var addEditHandler = function(elid,page) {
+    var el = document.getElementById(elid);
+    el.onclick = function(evt) {
+      // show workplace admin popup
+      com.marklogic.widgets.workplaceadmin.renderFullscreen(self._workplaceContext);
+      self._workplaceContext.loadWorkplace(page.uri);
+
+      evt.stopPropagation();
+      return false;
+    };
+  };
+
+  // remove and edit click handlers
+  for (var p = 0,maxp = pages.length,page;p < maxp;p++) {
+    page = pages[p];
+    // add delete click handler
+    addDelHandler(this.container + "-" + p + "-del",page);
+    // add cog AND name click handlers
+    addEditHandler(this.container + "-" + p + "-edit",page);
+    addEditHandler(this.container + "-" + p + "-name",page);
+  }
+
+  // Add click handler
+  document.getElementById(this.container + "-addpage").onclick = function(evt) {
+    var json = {title: document.getElementById(self.container + "-pagename").value};
+    self._workplaceContext.createPage(json);
+    evt.stopPropagation();
+    return false;
+  };
+};
+
+
+
+
+
+
+
+
+
+/**
+ * A Page Context acts as a micro controller for a page - routing page invocation settings through to
+ * a workplace context's page configuration.
+ *
+ * Use case is that a page has query string parameters which affect the run time configuration or actions of
+ * a workplace page.
+ *
+ * A Page Context holds certain default mappings, but can be configured with a range of mappings. These mappings
+ * are activated post workplace page draw - and thus are more useful to map to contexts which fire their own
+ * update methods on listeners.
+ *
+ * Example 1. A ?docuri=SomeUri.json parameter is used to call doccontext.loadContent on the page to view a document.
+ * Example 2. A ?iri=SomeIri parameters is used to call semanticcontext.subjectFacts(iri) to explore a Subject.
+ */
+com.marklogic.widgets.pagecontext = function() {
+  this._workplaceContext = null;
+  this._config = {
+    mappings: {
+      docuri: {querystring: "docuri", targets: [{class: "DocumentContext", method: "getContent"},{class: "DocumentContext", method: "getProperties"}]},
+      iri: {querystring: "iri", targets: [{class: "SemanticContext", method: "subjectFacts"}]}
+    }
+  }
+};
+
+com.marklogic.widgets.pagecontext.prototype.setWorkplaceContext = function(ctx) {
+  this._workplaceContext = ctx;
+};
+
+com.marklogic.widgets.pagecontext.prototype.setMappings = function(mappings) {
+  this._config.mappings = mappings;
+};
+
+com.marklogic.widgets.pagecontext.prototype.process = function() {
+  var params = this._parse();
+  var objects = {}; // classname => {instanceName => {param1: val1, param2: val2}}
+  for (var name in this._config.mappings) {
+    var mapping = this._config.mappings[name];
+    var value = params[mapping.querystring];
+    if (undefined != value) {
+      // process value
+      // check if object instances exist in context
+      for (var t = 0,maxt = mappings.targets.length,target;t < maxt;t++) {
+        target = mappings.targets[t];
+        var classInstances = objects[target.class];
+        if (undefined == classInstances) {
+          classInstances = {};
+          objects[target.class] = classInstances;
+        }
+        // get widget instance and set parameters as appropriate (collect per object)
+        var instances = this._workplaceContext.getInstancesOf(target.class);
+        for (var i = 0,maxi = instances.length,ins;i < maxi;i++) {
+          ins = instances[i];
+          var iname = ins.widget || ins.context || ins.action;
+          var cinstance = classInstances[iname];
+          if (undefined == cinstance) {
+            cinstance = {};
+            classInstances[iname] = cinstance;
+          }
+          // TODO check if configuration parameter name is valid before setting
+          cinstance[name] = value;
+        }
+      }
+    }
+  }
+
+  // now loop through objects, setting appropriate configuration options (setConfiguration())
+  for (var cname in objects) {
+    obj = objects[cname];
+    for (var iname in obj) {
+      ins = obj[iname];
+      // TODO instruct workplace context to pass on override configuration parameter (will be useful for personalisation later too)
+    }
+  }
+};
+
+com.marklogic.widgets.pagecontext.prototype._parse = function() {
+  var result = {};
+  var str = window.location.search.substring(1); // removes ? character
+  var pos = str.indexOf("&");
+  var op = 1;
+  do {
+    var np = pos;
+    if (-1 == pos) {
+      np = str.length;
+    } else {
+      pos = str.indexOf("&",np + 1);
+    }
+    var sub = str.substring(op,np);
+
+    var qp = sub.indexOf("=");
+    var value = null;
+    var name = null;
+    if (-1 != qp) {
+      name = sub.substring(0,qp);
+      value = decodeURI(sub.substring(qp + 1));
+    } else {
+      name = sub;
+    }
+    result[name] = value;
+
+  } while (-1 != pos);
+  return result;
 };

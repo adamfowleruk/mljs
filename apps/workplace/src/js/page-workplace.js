@@ -13,7 +13,17 @@ window.onload = function() {
     wpcontext.register(nav);
     wpcontext.loadMyPages();
 
-    // TODO Load the current page configuration
+    // Load the current page configuration
+
+        var workplace = new com.marklogic.widgets.workplace("workplace");
+        wpcontext.register(workplace);
+
+        //workplace.editable(); - edited via link on top right of page instead 
+        //workplace.saveable(false); // don't persist changes
+        // NB first below is "try this first, then default to second"
+        var pageurl = window.location.pathname; // TODO validate this works in all browsers
+        workplace.loadPage(pageurl); // could instead use loadPage() to determine automatically via window.location, or loadPage("/my/path") to load via search in content database
+
 
   } catch (err) {
     errors.show(err);

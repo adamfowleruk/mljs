@@ -89,8 +89,8 @@ cp $RA/js/bootstrap* $WA/js/
 cp apps/mljsrest/rest-api/ext/* apps/workplace/rest-api/ext/
 cp $RA/app/models/rdb2rdf-lib.xqy $WA/app/models/
 cp $RA/app/models/lib-thesaurus.xqy $WA/app/models/
-cp $RA/app/config/config.xqy $WA/app/config/
-cp $RA/roxy/config/defaults.xqy $WA/roxy/config/
+#cp $RA/app/config/config.xqy $WA/app/config/
+#cp $RA/roxy/config/defaults.xqy $WA/roxy/config/
 cp $RA/app/models/sql.xqy $WA/app/models/
 cp -R $RA/fonts $WA
 
