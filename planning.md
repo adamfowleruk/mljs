@@ -389,7 +389,8 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
   - DONE Special re-writer for security and workplace pages
  - DONE Docs: Deprecate mldbwebtest app as primary source of widget files in build, remove app itself
  - Docs: Remove mldbwebtest from tutorials, documentation, wiki
-  - replace with mljsrest via Node.js webserver
+  - replace with Workplace app initially
+  - also show mljsrest app via Node.js webserver
  - DONE BUG Widgets: searchbar - When contributing query as term query for structured search, if text blank need to send and-query not term-query("") - else nothing is returned!
  - DONE BUG Core: version being called multiple times per page (when version endpoint doesn't exist)
  - IN PROGRESS BUG Docs: Explorer widget not loading document facet data on mljsrest app
