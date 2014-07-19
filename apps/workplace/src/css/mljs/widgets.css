@@ -966,13 +966,13 @@ div.log {
   left: 0px;
   width: 100%;
   height: 100%;
-  margin-top: 100px;
+  margin-top: 40px;
 }
 
 .workplaceadmin {
   width: 1310px;
   background-color: white;
-  border: 1px solid gray;
+  /*border: 1px solid gray;*/
   min-height: 768px;
   position: relative;
   margin: 0 auto;
@@ -984,13 +984,19 @@ div.log {
   padding: 10px;
   width: 348px;
   height: 768px;
-  background-color: #C2DDFF;
+  /*background-color: #C2DDFF;*/
   position: absolute;
+}
+
+.workplaceadmin-panels-heading-outer {
+  margin-top: 0px;
+  margin-bottom: 0px;
 }
 
 .workplaceadmin-config {
   top: 0px;
   left: 348px;
+  width: 950px;
   background-color: #FFFFFF;
   position: absolute;
 }
@@ -1009,8 +1015,9 @@ div.log {
 
 .workplaceadmin-widgets-content {
   overflow-y: scroll;
-  height: 572px;
+  height: 522px;
   overflow-x: visible;
+  padding: 5px;
 }
 
 .workplaceadmin-widgets-list {
@@ -1029,13 +1036,15 @@ div.log {
   float:left;
 }
 
+.workplaceadmin .workplaceadmin-contexts-removecontext {
+}
+
 .workplaceadmin .workplaceadmin-contexts-addcontext {
-  width: 23px;
-  height: 23px;
-  background-image: url(/images/mljs/add-vsmall.png);
-  background-repeat:no-repeat;
-  background-position:center center;
-  display:inline-block;
+}
+
+.btn-fix {
+  height: 20px;
+  line-height: 20px;
 }
 
 .workplaceadmin .workplaceadmin-contexts-listitem-text {
@@ -1047,12 +1056,12 @@ div.log {
 }
 
 .workplaceadmin .workplaceadmin-contexts-delcontext {
-  width: 21px;
+  /*width: 21px;
   height: 21px;
   background-image: url(/images/mljs/delete-vsmall.png);
   background-repeat:no-repeat;
   background-position:center center;
-  display:inline-block;
+  display:inline-block;*/
 }
 
 .workplaceadmin-actions-heading {
@@ -1074,29 +1083,33 @@ div.log {
 }
 
 .workplaceadmin-widgets-list-img {
-  width: 95px;
-  height:95px;
+  width: 77px;
+  height:77px;
   background-image: url(/images/mljs/question-mark.png);
   text-align: center;
 }
 
 .workplaceadmin-widgets-list-span {
-  font-size: 10pt;
+  font-size: 8pt;
   padding-top: 30px;
   font-weight: bold;
 }
 
 .mljswidget .config-context-links {
-  border: 1px solid grey;
+  /*border: 1px solid grey;
   padding: 2px;
-  margin-bottom: 5px;
+  margin-bottom: 5px;*/
 }
 
 /** Config wrapper widget - used by workplace admin **/
 .mljswidget .configwrapper {
-  border: 1px solid grey;
+  /*border: 1px solid grey;
   padding: 2px;
-  margin-bottom: 5px;
+  margin-bottom: 5px;*/
+}
+
+.mljswidget .configwrapper .configwrapper-heading {
+  display: inline-block;
 }
 
 .mljswidget .configwrapper .configwrapper-table {
@@ -1126,30 +1139,31 @@ div.log {
 }
 
 .mljswidget .configwrapper .configwrapper-addmultiple {
+  /*
   display:block;
   width: 20px;
   height: 20px;
   background-image: url(/images/mljs/add-vsmall.png);
   background-repeat:no-repeat;
-  background-position:center center;
+  background-position:center center;*/
 }
 
 .mljswidget .configwrapper .configwrapper-delmultiple {
-  display:block;
+  /*display:block;
   width: 32px;
   height: 32px;
   background-image: url(/images/mljs/delete-vsmall.png);
   background-repeat:no-repeat;
-  background-position:center center;
+  background-position:center center;*/
 }
 
 .mljswidget .configwrapper .configwrapper-delete {
-  display: inline-block;
+  /*display: inline-block;
   width: 21px;
   height: 21px;
   background-image: url(/images/mljs/delete-vsmall.png);
   background-repeat:no-repeat;
-  background-position:center center;
+  background-position:center center;*/
 }
 
 .mljswidget .configwrapper .subtitle {
@@ -1192,9 +1206,11 @@ div.log {
 }
 
 .mljswidget .dropzone-target {
-  border: 1px solid lightblue;
+  /*border: 1px solid lightblue;*/
   text-align:center;
   position: relative;
+  line-height: 32px;
+  height: 32px;
 }
 
 .mljswidget .dropzone-target:hover {
@@ -1213,9 +1229,9 @@ div.log {
   vertical-align: middle;
   line-height: 32px;
   text-align: right;
-  background-image: url(/images/mljs/add-small.png);
+  /*background-image: url(/images/mljs/add-small.png);
   background-repeat:no-repeat;
-  background-position:left center;
+  background-position:left center;*/
 }
 
 

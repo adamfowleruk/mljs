@@ -3,12 +3,31 @@
 ## Upcoming releases
 
 Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
- - Node: Write a frickin' auto app deploy directory watching app
+ - DONE Node: Write a frickin' auto app deploy directory watching app
  - Docs: Demo app improvements
   - sparqlbar page: add explorer link to entityfacts config
   - sparqlbar page: make document links use mentioned_in link with correct IRI for search results rendering
   - explorer page: accept incoming IRI link in url ?iri=, where not specified use existing default
-  - remove extraneous entity facts rendering logging code
+  - DONE remove extraneous entity facts rendering logging code
+ - IN PROGRESS Demo Jam updates
+  - DONE Bootstrap CSS themed Workplace admin
+  - BUG left hand nav height not same as right hand - see JWs fix
+  - BUG action config selection for new not drawing
+  - App wide configuration page in workplace app created
+  - BUG entityfacts widget doesn't like unknown classes (Penguin)
+  - Create new page in Workplace app working
+  - TEST navigation in workplace app
+  - Registering search renderers globally via JS include (not workplace config)
+  - App context for app wide settings
+   - default doc view page url and params
+   - default semantic explore page and params
+  - Page context for page control
+   - Take query string parameters and map to appropriate widget parameters (defaults in app context)
+   - Manages mapping to widgets, not delegating this to widgets
+  - Test content
+   - Social media analytics and provenance
+    - campaign data
+    - Generate who talks to whom triples, with messages sent information and influence score
  - Docs: Remove all uses of the searchpage widget in demos
   - DEFERRED Ensure thinthick layout with embedded column layout works
    - DEFERRED create columns layout for workplace
@@ -17,8 +36,8 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
   - mldbwebtest - search
   - mldbwebtest - snippets
  - DONE Docs: Wiki
-  - DONE All entityfacts-3.png (infobox) to gallery list
- - Double check stylesheet usage in Workplace app (uses Bootstrap only, not 960.css, unlike mljsrest test app)
+  - DONE Add entityfacts-3.png (infobox) to gallery list
+ - DONE Double check stylesheet usage in Workplace app (uses Bootstrap only, not 960.css, unlike mljsrest test app)
  - TEST Semantics
   - DONE Add mentions triple to MarkLogic Document Ontology in mljs.js line 7430
   - TEST Added OpenCalais types to tripleconfig (addOpenCalais), and is added by default
@@ -62,19 +81,19 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
    - DONE BUG Make links appear for related subjects where iriHandler is set
    - BUG Docs: Openlayers demo page hovering over marker causes null reference looking for result area by id to change css classes
    - BUG google maps address lookup longitude not working again (check latest social media code for fix - back port)
-   - BUG Workplace page not loading at all - error in workplace js file
+   - DONE BUG Workplace page not loading at all - error in workplace js file
    - DONE Widgets: Gracefully handle RDF types that have not been configured in the triple config
    - DONE BUG why don't suggestions show facet values, only facet names?
   - BUG Clicking on Bar chart value gives: Point clicked: x:0, series name:'animal', y:3 data: undefined
-  - BUG highcharts configuration in Workplace 'thin' column overflows container
+  - DONE BUG highcharts configuration in Workplace 'thin' column overflows container
   - Kill suggestions request before issuing another request (one per letter typed)
   - DONE BUG add data series button not working on newly dragged instance of highcharts widget
   - DONE BUG empty strings in widget context config for directory, format, transform results in invalid searches
   - DONE BUG autoCategories on highcharts was false by default, should be true
   - DONE BUG widget-search.js line 560 - suggestions.suggestions is undefined (not a snippeting search)
-  - BUG workplace clicking on contexts results in js error
+  - DONE BUG workplace clicking on contexts results in js error
   - BUG workplace load executing two searches on single searchcontext (hence slow page load)
-  - BUG workplace Need scroll bar adding to main widget layout area so it doesn't overflow
+  - NA BUG workplace Need scroll bar adding to main widget layout area so it doesn't overflow
   - BUG workplace repeatedly dragging new widget classes on to layout causes top widget only to be rendered, to first two parts of zone
   - DONE BUG Sparqlbar and graphexplorer widgets no longer work
   - DONE BUG no empty results message in sparqlresults
@@ -268,8 +287,8 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
    - DEFERRED Options builder UI widget - read from ML if possible
    - DEFERRED Query builder UI widget (base query for search, default query for page load)
    - IN PROGRESS Docs: OOTB Workplace demo app - no data
- - IN PROGRESS Widgets: UI Consistency
-  - IN PROGRESS Widgets: Update all for Bootstrap CSS support
+ - DONE Widgets: UI Consistency
+  - DONE Widgets: Update all for Bootstrap CSS support
    - DONE searchbar
    - DONE searchfacets
    - DONE searchsort
@@ -293,23 +312,23 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
    - DONE docproperties
    - DONE docheadproperties
    - DONE search result select
-   - Workplace
-   - thin thick layout
-   - thick thin layout
-   - column layout
-   - workplace admin (including left hand side)
-   - widget config
-   - widget drop zone
-   - new workplace page dialogue
-   - options builder widget
-   - query builder widget
-   - IN PROGRESS create
+   - DONE Workplace
+   - DONE thin thick layout
+   - DONE thick thin layout
+   - DONE column layout
+   - DONE workplace admin (including left hand side)
+   - DONE widget config
+   - DONE widget drop zone
+   - NA new workplace page dialogue (workplace app)
+   - DEFERRED options builder widget
+   - DEFERRED query builder widget
+   - DONE create
     - DEFERRED Can't style file upload button or input file name box
-    - IN PROGRESS Document create/edit fields
+    - DONE Document create/edit fields
    - DEFERRED markings (non prod)
    - DEFERRED rdb2rdf (non prod)
    - DEFERRED Bootstrap CSS toggles/options in Workplace configuration?
-   - IN PROGRESS Hints at top of test pages in mljsrest
+   - DONE Hints at top of test pages in mljsrest
   - IN PROGRESS Docs: Update MLJSREST app framework for bootstrap support
   - Docs: Get hold of MarkLogic bootstrap theme CSS from MY (License?)
   - Get MY to review app, workplace and widget UX
@@ -368,7 +387,7 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
   - youtube videos
   - blog (news) items
   - latest tutorials
- - IN PROGRESS Docs: Various doc issues
+ - DONE Docs: Various doc issues
   - DONE Docs: Wiki: Image previews of all widgets, linking to pages with code examples (Like d3.js' home page)
   - DEFERRED Workplace page configuration JSON download/upload too?
   - DEFERRED Sample content for testing bundle too? (MLCP archive? Version dependent?)

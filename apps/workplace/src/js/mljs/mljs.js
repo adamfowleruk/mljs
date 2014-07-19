@@ -1290,9 +1290,9 @@ mljs.prototype.save = function(jsonXmlBinary,docuri_opt,props_opt,callback_opt) 
         options.contentType = "text/xml";
         format = null; // overrides param override setting
       } else {
-        this.logger.debug("MLJS.save: No contentType specified, falling back to application/json");
+        this.logger.debug("MLJS.save: No contentType specified, falling back to blank (server deterined)"); // was application/json
         // assume JSON, but could easily be binary too
-        options.contentType = "application/json";
+        //options.contentType = "application/json";
         format = null; // overrides param override setting
 
         // NB binary support exists within wrappers
@@ -9451,8 +9451,159 @@ mljs.prototype.seriescontext.prototype.register = function(widget) {
 
 
 
+com.marklogic.util = {};
+
+com.marklogic.util.linkedlistitem = function(name,value) {
+  this._name = name;
+  this._value = value;
+  this._next = null;
+  this._previous = null;
+};
+
+com.marklogic.util.linkedlistitem.prototype.getName = function() {
+  return this._name;
+};
+
+com.marklogic.util.linkedlistitem.prototype.getValue = function() {
+  return this._value;
+};
+
+com.marklogic.util.linkedlistitem.prototype.setNext = function(nextItem) {
+  this._next = nextItem;
+};
+
+com.marklogic.util.linkedlistitem.prototype.getNext = function() {
+  return this._next;
+};
+
+com.marklogic.util.linkedlistitem.prototype.setPrevious = function(previousItem) {
+  this._previous = previousItem;
+};
+
+com.marklogic.util.linkedlistitem.prototype.getPrevious = function() {
+  return this._previous;
+};
 
 
+
+
+com.marklogic.util.linkedlist = function() {
+  this._first = null;
+  this._last = null; // helps append run fast
+  this._length = 0;
+};
+
+com.marklogic.util.linkedlist.prototype.append = function(name,value) {
+  var end = new com.marklogic.util.linkedlistitem(name,value);
+  if (null != this._last) {
+    this._last.setNext(end);
+  }
+  end.setPrevious(this._last);
+  if (null == this._first) {
+    this._first = end;
+  }
+  this._last = end;
+  this._length++;
+  return this._length - 1;
+};
+
+com.marklogic.util.linkedlist.prototype.getLength = function() {
+  return this._length;
+};
+
+com.marklogic.util.linkedlist.prototype._getItemByName = function(name) {
+  var item = this._first;
+  while (null != item) {
+    if (item.getName() == name) {
+      return item;
+    }
+    item = item.getNext();
+  }
+  return null;
+};
+
+
+com.marklogic.util.linkedlist.prototype._getItemByPosition = function(pos) {
+  var item = this._first;
+  for (var i = 0;i < pos;i++) {
+    item = item.getNext();
+  }
+  return item;
+};
+
+com.marklogic.util.linkedlist.prototype.forEach = function(callback) {
+  var item = this._first;
+  while (null != item) {
+    callback(item);
+    item = item.getNext();
+  }
+};
+
+com.marklogic.util.linkedlist.prototype.moveTo = function(name,newPos) {
+  var curItem = this._getItemByName(name);
+  var itemNext = this._getItemByPosition(newPos);
+
+  // remove from current position
+  var curPrev = curItem.getPrevious();
+  var curNext = curItem.getNext();
+  if (null != curPrev) {
+    curPrev.setNext(curNext);
+  }
+  if (null != curNext) {
+    curNext.setPrevious(curPrev);
+  }
+
+  // place at new position
+  var itemNextPrev = itemNext.getPrevious();
+  if (null != itemNextPrev) {
+    itemNextPrev.setNext(curItem);
+  }
+  curItem.setPrevious(itemNextPrev);
+  curItem.setNext(itemNext);
+  itemNext.setPrevious(curItem);
+
+  if (this._last.getName() == name) {
+    this._last = curPrev;
+  }
+  if (this._first.getName() == name) {
+    this._first = curNext;
+  }
+};
+
+com.marklogic.util.linkedlist.prototype.insertAt = function(name,value,pos) {
+  this.append(name,value);
+  this.moveTo(name,pos);
+};
+
+com.marklogic.util.linkedlist.prototype.remove = function(name) {
+  var item = this._getItemByName(name);
+  var prev = item.getPrevious();
+  var next = item.getNext();
+  if (null != prev) {
+    prev.setNext(next);
+  }
+  if (null != next) {
+    next.setPrevious(prev);
+  }
+  if (this._first.getName() == name) {
+    this._first = next;
+  }
+  if (this._last.getName() == name) {
+    this._last = prev;
+  }
+
+  this._length--;
+};
+
+com.marklogic.util.linkedlist.prototype.getOrderedItems = function() {
+  var ordered = new Array();
+  var item = this._first;
+  while (null != item) {
+    ordered.push(item);
+    item = item.getNext();
+  }
+  return ordered;
+};
 
 
 
