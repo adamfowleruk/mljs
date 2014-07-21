@@ -1199,7 +1199,11 @@ com.marklogic.widgets.sparqlresults = function(container) {
   //    {"person":{"type":"uri","value":"http://marklogic.com/semantic/targets/person/Abraham%20Troublemaker"}}
   // ]}}
 
-  this._iriHandler = null;
+  var self = this;
+  this._iriHandler = function(iri) {
+    // load subject facts based on iri
+    self.semanticcontext.subjectFacts(iri);
+  };
 
   this._config = {
     mode: "none"
@@ -1238,7 +1242,7 @@ com.marklogic.widgets.sparqlresults.prototype.setConfiguration = function(config
   }
 
   // refresh display
-  this.refresh();
+  this._refresh();
 };
 
 com.marklogic.widgets.sparqlresults.prototype.setSemanticContext = function(sc) {
@@ -1549,7 +1553,7 @@ com.marklogic.widgets.entityfacts.prototype.setConfiguration = function(config) 
   }
 
   // refresh display
-  this.refresh();
+  this._refresh();
 };
 
 com.marklogic.widgets.entityfacts.prototype.setSemanticContext = function(sc) {

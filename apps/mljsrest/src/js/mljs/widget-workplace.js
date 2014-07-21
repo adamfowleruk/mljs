@@ -33,6 +33,8 @@ com.marklogic.widgets.workplace = function(container) {
   this._editable = false;
 
   this._contexts = new Array(); // contextname => contextObject instance
+  this._widgets = {};
+  this._classInstances = {};
 
   this._workplaceContext = new com.marklogic.widgets.workplacecontext();
 
@@ -133,7 +135,15 @@ com.marklogic.widgets.workplace.prototype.updateWorkplace = function(context) {
     var wgt = this._createWidget(widget.type,elementid,widget.config);
     mljs.defaultconnection.logger.debug("Create widget has returned");
     widgets[widget.widget] = wgt;
+    var instances = this._classInstances[widget.type];
+    if (undefined == instances) {
+      instances = [];
+      this._classInstances[widget.type] = instances;
+    }
+    instances.push(wgt);
   }
+
+  this._widgets = widgets;
 
   var contexts = {}; //new Array(); // contextid => context object
 
@@ -148,6 +158,12 @@ com.marklogic.widgets.workplace.prototype.updateWorkplace = function(context) {
     var inst = creator.call(mljs.defaultconnection);
     contexts[ctx.context] = inst;
     mljs.defaultconnection.logger.debug("Is context instance valid?: is object?: " + (typeof inst));
+    var instances = this._classInstances[ctx.type];
+    if (undefined == instances) {
+      instances = [];
+      this._classInstances[ctx.type] = instances;
+    }
+    instances.push(inst);
 
     // initialise context configuration
     mljs.defaultconnection.logger.debug("Config: " + JSON.stringify(ctx.config));
@@ -228,8 +244,18 @@ com.marklogic.widgets.workplace.prototype._createWidget = function(type,elementi
 };
 
 
+com.marklogic.widgets.workplace.prototype.getInstance = function(name) {
+  // get instance of widget/context and return to caller
+  var ins = this._contexts[name];
+  if (null == ins) {
+    ins = this._widgets[name];
+  }
+  return ins;
+};
 
-
+com.marklogic.widgets.workplace.prototype.getInstancesOf = function(cname) {
+  return this._classInstances[cname];
+};
 
 
 
@@ -426,6 +452,7 @@ com.marklogic.widgets.layouts.helper.extendLayout = function(layoutInstance,cont
     var ass = [];
     for (var zone in self.zones) {
       var z = self.zones[zone];
+      self._eliminateBlanks(z); // should fix orders and gaps in new widget placements
       for (var o = 2, max = z.length, wgt;o < max;o += 2) {
         wgt = z[o];
         if (undefined != z[o]) {
@@ -648,7 +675,8 @@ com.marklogic.widgets.layouts.helper.extendLayout = function(layoutInstance,cont
     var z = self.zones[newZone];
 
     var lastWidget = null;
-    for (var w = z.length - 1, min = z.length - 3, moveme;w >= min && null == lastWidget;w--) {
+    // find last index with a widget in it
+    for (var w = z.length - 1, min = 0, moveme;w >= min && null == lastWidget;w--) {
       moveme = z[w];
       if (undefined != moveme) {
         lastWidget = moveme;
@@ -681,17 +709,20 @@ com.marklogic.widgets.layouts.helper.extendLayout = function(layoutInstance,cont
     if (null != wgt) { // null if we're placing at the end
       // if not empty, increment order on all widgets at and after position
       if (null != lastWidget && lastWidget.elementid == wgt.elementid) {
+        // NO IDEA WHY THIS IS NECESSARY
+        /*
         // just move the last widget
         z[newIndexOneBased + 2] = z[newIndexOneBased];
         z[newIndexOneBased] = undefined;
         if (1 == z.length % 2) {
           z[newIndexOneBased + 1] = undefined; // spacer - corrects z.length later
         }
-        lastWidget.order += 2;
+        lastWidget.order += 2; // LOOKS LIKE RUBBISH TO ME
 
         // blank out old positions
         self.zones[oldZone][oldOrder] = undefined;
         self.zones[oldZone][oldOrder - 1] = undefined; // spacer
+        */
       } else {
         for (var w = z.length - 1, min = newIndexOneBased, moveme;w >= min;w--) {
           moveme = z[w];
@@ -733,6 +764,21 @@ com.marklogic.widgets.layouts.helper.extendLayout = function(layoutInstance,cont
       //z = self._getZone(oldZone);
       z = self.zones[oldZone];
 
+    // sanity check - loop through old zone. If any widgets where zone or order doesn't match, blank them
+    // Horrible, horrible hack
+    for (var w = 1,maxw = z.length,wtm;w < maxw;w++) {
+      wtm = z[w];
+      if (undefined != wtm) {
+        if (wtm.zone != oldZone) {
+          z[w] = undefined;
+        } else {
+          if (wtm.order != w) {
+            z[w] = undefined;
+          }
+        }
+      }
+    }
+
     self._eliminateBlanks(z);
 
 
@@ -751,7 +797,19 @@ com.marklogic.widgets.layouts.helper.extendLayout = function(layoutInstance,cont
         moveme = z[w];
         if (undefined == moveme) {
           foundGap++;
+
+          // move all afterwards up to this position, decrement max by 1
+          for (var nw = w + 1,maxnw = max,newitem;nw < maxnw;nw++) {
+            z[nw - 1] = z[nw];
+            if (undefined != z[nw - 1]) {
+              z[nw - 1].order = nw - 1;
+            }
+            z[nw] = undefined;
+          }
+          max--;
+
         } else {
+          /*
           if (foundGap > 0) {
             moveme.order = w - foundGap; // safer than decrementing by 2
             // move element back 2 - can only happen when not undefined. i.e. after gap
@@ -759,8 +817,10 @@ com.marklogic.widgets.layouts.helper.extendLayout = function(layoutInstance,cont
             z[w] = undefined;
           }
           maxOrder = moveme.order; // new order only. Maximum is always at end of elements
+          */
         }
       }
+      maxOrder = max;
       /*
       for (var w = oldOrder + 3, max = z.length, moveme;w < max;w++) { // TODO handle +1 when no spacer present
         moveme = z[w];
@@ -771,6 +831,7 @@ com.marklogic.widgets.layouts.helper.extendLayout = function(layoutInstance,cont
         z[w] = undefined; // so we don't get duplicates at the end of the array
       }*/
       //console.log("z.length now: " + z.length);
+      // NB following should be superfluous now
       for (var w = maxOrder + 1, max = z.length, moveme;w < max;w++) {
         z[w] = undefined; // could be 3 out if moved from end of one column to end of another column
       }
@@ -1013,6 +1074,23 @@ com.marklogic.widgets.workplacecontext = function() {
     ]}
 
   ]; // TODO read this on instance creation from extensions library(ies)
+};
+
+com.marklogic.widgets.workplacecontext.prototype.getInstancesOf = function(cname) {
+  var instances = new Array();
+  for (var i = 0,maxi = this._json.widgets.length,wgt;i < maxi;i++) {
+    wgt = this._json.widgets[i];
+    if (wgt.type == cname) {
+      instances.push(wgt.widget);
+    }
+  }
+  for (var i = 0,maxi = this._json.contexts.length,wgt;i < maxi;i++) {
+    wgt = this._json.contexts[i];
+    if (wgt.type == cname) {
+      instances.push(wgt.context);
+    }
+  }
+  return instances;
 };
 
 com.marklogic.widgets.workplacecontext.prototype.setActionDescriptions = function(descs) {
@@ -1804,7 +1882,7 @@ com.marklogic.widgets.workplaceadmin = function(container) {
       {title: "Search Pager", classname: "com.marklogic.widgets.searchpager", description: "Page through search results."},
       {title: "Search Facets", classname: "com.marklogic.widgets.searchfacets", description: "Show facets returned from a search, and allow their selection."},
       {title: "Search Results", classname: "com.marklogic.widgets.searchresults", description: "Show search results. Supports built in and custom rendering."},
-      {title: "Search Results Selection", classname: "com.marklogic.widgets.searchselect", description: "List documents selected in Search Results."},
+      {title: "Search Results Selection", classname: "com.marklogic.widgets.selection", description: "List documents selected in Search Results."},
       {title: "Structured Search Selection", classname: "com.marklogic.widgets.searchselection", description: "Select a structured search to execute."},
       {title: "Semantic Search Bar", classname: "com.marklogic.widgets.sparqlbar", description: "Visually create a sophisticated SPARQL query."},
       {title: "Semantic Search Results", classname: "com.marklogic.widgets.sparqlresults", description: "Show a summary of Subjects returned from a SPARQL query."},
@@ -2459,6 +2537,11 @@ com.marklogic.widgets.workplaceadmin.prototype.updateWorkplace = function(ctx) {
 
   var json = this._workplaceContext.getJson();
   var self = this;
+
+  if (undefined == json) {
+    console.log("WARNING: workplaceadmin.updateWorkplace: ctx json null!");
+    return; // sanity check for concurrent updates
+  }
 
   // load top level layout for this page (or panel we are managing, at least)
   mljs.defaultconnection.logger.debug("workplaceadmin.updateWorkplace: Creating layout");
@@ -3673,7 +3756,7 @@ com.marklogic.widgets.workplacenavbar.prototype._refresh = function() {
 
   if (null != this._config.homeUrl && "" != this._config.homeUrl.trim()) {
     s += "<li";
-    if (this._config.homeUrl.contains(window.location.pathname)) {
+    if (-1 != this._config.homeUrl.indexOf(window.location.pathname)) {
       s += " class='active'";
     }
     s += "><a href='" + this._config.homeUrl + "'>" + this._config.homeText + "</a></li>";
@@ -3685,11 +3768,13 @@ com.marklogic.widgets.workplacenavbar.prototype._refresh = function() {
     var pages = this._workplaceContext.getCachedPages();
     for (var i = 0, maxi = pages.length, page;i < maxi;i++) {
       page = pages[i];
-      s += "<li";
-      if (page.page.urls.contains(window.location.pathname)) {
-        s += " class='active'";
+      if (undefined != page.page.urls && Array.isArray(page.page.urls) && page.page.urls.length > 0) {
+        s += "<li";
+        if (page.page.urls.contains(window.location.pathname)) {
+          s += " class='active'";
+        }
+        s += "><a href='" + page.page.urls[0] + "'>" + page.page.title + "</a></li>";
       }
-      s += "><a href='" + page.page.urls[0] + "'>" + page.page.title + "</a></li>";
     }
   }
   // TODO support embedded pages in dropdown navigation
@@ -3716,7 +3801,7 @@ com.marklogic.widgets.workplacenavbar.prototype._refresh = function() {
   if (true === this._config.showAppConfigureLink) {
     s += "<li";
 
-    if (this._config.appConfigureUrl.contains(window.location.pathname)) {
+    if (-1 != this._config.appConfigureUrl.indexOf(window.location.pathname)) {
       s += " class='active'";
     }
     s += "><a id=" + this.container + "-workplacenavbar-configureapp' href='" + this._config.appConfigureUrl +
@@ -3726,7 +3811,7 @@ com.marklogic.widgets.workplacenavbar.prototype._refresh = function() {
   if (true === this._config.showLogoutLink) {
     s += "<li";
 
-    if (this._config.logoutUrl.contains(window.location.pathname)) {
+    if (-1 != this._config.logoutUrl.indexOf(window.location.pathname)) {
       s += " class='active'";
     }
     s += "><a href='" + this._config.logoutUrl + "'>" + this._config.logoutLinkText + "</a></li>";
@@ -3890,12 +3975,18 @@ com.marklogic.widgets.workplacepagelist.prototype.updateMyPages = function(pages
  */
 com.marklogic.widgets.pagecontext = function() {
   this._workplaceContext = null;
+  this._workplaceWidget = null;
   this._config = {
     mappings: {
       docuri: {querystring: "docuri", targets: [{class: "DocumentContext", method: "getContent"},{class: "DocumentContext", method: "getProperties"}]},
-      iri: {querystring: "iri", targets: [{class: "SemanticContext", method: "subjectFacts"}]}
+      iri: {querystring: "iri", targets: [{class: "SemanticContext", method: "subjectFacts"},{class: "com.marklogic.widgets.graphexplorer", method: "drawSubject"}]},
+      q: {querystring: "q", targets: [{class: "SearchContext", method: "doSimpleQuery"}]}
     }
   }
+};
+
+com.marklogic.widgets.pagecontext.prototype.setWorkplaceWidget = function(wgt) {
+  this._workplaceWidget = wgt;
 };
 
 com.marklogic.widgets.pagecontext.prototype.setWorkplaceContext = function(ctx) {
@@ -3908,31 +3999,36 @@ com.marklogic.widgets.pagecontext.prototype.setMappings = function(mappings) {
 
 com.marklogic.widgets.pagecontext.prototype.process = function() {
   var params = this._parse();
-  var objects = {}; // classname => {instanceName => {param1: val1, param2: val2}}
+  var objects = {}; // classname => {widgetName => {param1: val1, param2: val2}}
   for (var name in this._config.mappings) {
+    console.log("PC: found mapping name: " + name);
     var mapping = this._config.mappings[name];
     var value = params[mapping.querystring];
+    console.log("PC: mapping has value: " + value);
     if (undefined != value) {
       // process value
       // check if object instances exist in context
-      for (var t = 0,maxt = mappings.targets.length,target;t < maxt;t++) {
-        target = mappings.targets[t];
+      for (var t = 0,maxt = mapping.targets.length,target;t < maxt;t++) {
+        target = mapping.targets[t];
         var classInstances = objects[target.class];
+        console.log("PC: checking for instances of target class: " + target.class);
         if (undefined == classInstances) {
           classInstances = {};
           objects[target.class] = classInstances;
         }
-        // get widget instance and set parameters as appropriate (collect per object)
+        // get widget instance NAME and set parameters as appropriate (collect per object)
         var instances = this._workplaceContext.getInstancesOf(target.class);
         for (var i = 0,maxi = instances.length,ins;i < maxi;i++) {
           ins = instances[i];
-          var iname = ins.widget || ins.context || ins.action;
+          var iname = ins;
+          console.log("PC: Found instance: " + iname);
           var cinstance = classInstances[iname];
           if (undefined == cinstance) {
             cinstance = {};
             classInstances[iname] = cinstance;
           }
           // TODO check if configuration parameter name is valid before setting
+          console.log("PC: Setting instance config value " + name + "=" + value);
           cinstance[name] = value;
         }
       }
@@ -3940,20 +4036,31 @@ com.marklogic.widgets.pagecontext.prototype.process = function() {
   }
 
   // now loop through objects, setting appropriate configuration options (setConfiguration())
+  console.log("PC: processing configs...");
   for (var cname in objects) {
-    obj = objects[cname];
+    console.log("PC: Processing class: " + cname);
+    var obj = objects[cname];
     for (var iname in obj) {
-      ins = obj[iname];
-      // TODO instruct workplace context to pass on override configuration parameter (will be useful for personalisation later too)
+      console.log("PC: Loading instance name: " + iname);
+      var config = obj[iname];
+      // pass on override configuration parameter
+      var wgt = this._workplaceWidget.getInstance(iname);
+      console.log("PC: Got instance?: " + (undefined != wgt));
+      wgt.setConfiguration(config);
     }
   }
+};
+
+com.marklogic.widgets.pagecontext.prototype.updateWorkplace = function() {
+  // parse post workplace load
+  this.process();
 };
 
 com.marklogic.widgets.pagecontext.prototype._parse = function() {
   var result = {};
   var str = window.location.search.substring(1); // removes ? character
   var pos = str.indexOf("&");
-  var op = 1;
+  var op = 0;
   do {
     var np = pos;
     if (-1 == pos) {
@@ -3962,8 +4069,10 @@ com.marklogic.widgets.pagecontext.prototype._parse = function() {
       pos = str.indexOf("&",np + 1);
     }
     var sub = str.substring(op,np);
+    console.log("PC: Sub: " + sub);
 
     var qp = sub.indexOf("=");
+    console.log("PC: qp: " + qp);
     var value = null;
     var name = null;
     if (-1 != qp) {
@@ -3972,6 +4081,7 @@ com.marklogic.widgets.pagecontext.prototype._parse = function() {
     } else {
       name = sub;
     }
+    console.log("PC: name: " + name + " = " + value);
     result[name] = value;
 
   } while (-1 != pos);

@@ -895,11 +895,14 @@ com.marklogic.widgets.searchfacets.prototype._refresh = function() {
 
       for (var name in this.results.facets) { // TODO replace with introspection of objects within search facets (objects, not array)
         var facet = this.results.facets[name];
+        var values = facet.facetValues;
+
+        // could be null - e.g. geo boxes
+        if (undefined != values) {
         var facetStr = "<div class='panel panel-info searchfacets-facet' id='" + this.container + "-facetinfo-" + name + "'><div class='panel-heading searchfacets-facet-title'>" + fname(name) + "</div>" +
           "<div class='panel-body searchfacets-facet-values'>";
         var settings = this._getFacetSettings(name);
         var max = this.listSize;
-        var values = facet.facetValues;
         // sort facets first by count
         bubbleSort(values, "count");
         var valuesCount = values.length;
@@ -954,6 +957,7 @@ com.marklogic.widgets.searchfacets.prototype._refresh = function() {
         facetStr += "</div></div>";
         if (!(0 == valuesCount && this.hideEmptyFacets)) {
           str += facetStr;
+        }
         }
       }
     }

@@ -4,10 +4,10 @@
 
 Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
  - DONE Node: Write a frickin' auto app deploy directory watching app
- - Docs: Demo app improvements
+ - Docs: mljsrest demo app improvements
   - sparqlbar page: add explorer link to entityfacts config
-  - sparqlbar page: make document links use mentioned_in link with correct IRI for search results rendering
-  - explorer page: accept incoming IRI link in url ?iri=, where not specified use existing default
+  - TEST sparqlbar page: make document links use mentioned_in link with correct IRI for search results rendering
+  - DONE via page context - explorer page: accept incoming IRI link in url ?iri=, where not specified use existing default
   - DONE remove extraneous entity facts rendering logging code
  - Docs: API documentation
   - document all namespaces
@@ -18,28 +18,22 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
   - DONE Bootstrap CSS themed Workplace admin
   - DONE App wide configuration page in workplace app created
   - DONE Create new page in Workplace app working
-  - TEST navigation in workplace app
+  - DONE navigation in workplace app
    - DONE Rewrite rewriter XQuery for Workplace
-   - TEST Detect 'active' page properly
-  - BUG assignments only being saved for first item in workplaceadmin configwrapper
-   - Is this because of dropping on the top most drop zone each time (first bottom dz, rest configwrapper dzs)
-    - Thus are the configwrapper drop zones doing nothing wrt adding new widget configs to the context?
-  - TEST Sanity checked all inserting code in context BUG same widget mentioned multiple times in context registration
-  - Registering search renderers globally via JS include (not workplace config)
-  - NA App context for app wide settings
-  - IN PROGRESS Page context for page control
-   - IN PROGRESS Take query string parameters and map to appropriate widget parameters (defaults in app context)
-   - TEST Manages mapping to widgets, not delegating this to widgets
-   - TEST default doc view page url and params
-   - TEST default semantic explore page and params
-  - Test content
-   - News monitoring data?
-   - Social media analytics and provenance?
-    - campaign data
-    - Generate who talks to whom triples, with messages sent information and influence score
+   - DONE Detect 'active' page properly
+  - DONE BUG assignments only being saved for first item in workplaceadmin configwrapper
+  - DONE Sanity checked all inserting code in context BUG same widget mentioned multiple times in context registration
+  - DONE Searchcontext to default to loading 'all' search options file if none specified explicitly
+  - DONE Page context for page control
+   - DONE Take query string parameters and map to appropriate widget parameters (defaults in app context)
+   - DONE Manages mapping to widgets, not delegating this to widgets
+   - DONE default doc view page url and params
+   - DONE default semantic explore page and params
+   - DEFERRED use method calls instead of setConfiguration on workplace widgets
   - BUG left hand nav height not same as right hand - see JWs fix
   - BUG action config selection for new not drawing
   - BUG entityfacts widget doesn't like unknown classes (Penguin)
+  - TEST BUG not loading facets on MarkLogic Document on workplace explorer page
  - Docs: Remove all uses of the searchpage widget in demos
   - DEFERRED Ensure thinthick layout with embedded column layout works
    - DEFERRED create columns layout for workplace
@@ -273,11 +267,11 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
     - Link semantic context to document context for MarkLogic Document ontology links
     - configuration of registering one context with another, of any type, as a sendTo, receiveFrom, or biDirectional link
    - Widget extra configuration parameters
-    - sparqlresults.iriHandler(pattern)
+    - NA achieveing via default iriHandler loading subjectFacts through semantic context - sparqlresults.iriHandler(pattern)
     - tagcloud.setFacet(facetName)
-    - how to handle create (upload) forms widget?
-     - template (in doccontext, not widget)
-     - list of field definitions
+    - IN PROGRESS how to handle create (upload) forms widget?
+     - DONE template (in doccontext, not widget)
+     - DONE list of field definitions
     - addressbar.radius
     - openlayers.setGeoSelectionConstraint
     - openlayers.go (lon,lat, zoom)
@@ -286,19 +280,19 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
     - searchselection.addQuery
     - openlayers.addSeries
     - co-occurence - title, displayTuple, setTupleConstraints
-    - entityfacts.iriHandler(pattern)
+    - DONE entityfacts.iriHandler(pattern)
    - Copy query URL for searchbar widget to clipboard (deep link to searchcontext page config)
-  - TEST Widgets: Application Navigation widget
-   - TEST One tab per Workplace in current app, sends to appropriate URL
+  - DONE Widgets: Application Navigation widget
+   - DONE One tab per Workplace in current app, sends to appropriate URL
    - DEFERRED Allow workplaces to be kept instead in a drop down menu
    - DEFERRED Menu Editor
     - DEFERRED Also allow fixed tabs at start and end (list for each). E.g. Settings, Home, etc. for non-workplace dynamic pages - display text, url
    - DONE Create new Workplace page dialogue - name, based on - then load in page editor
    - DONE via app configure link on navbar - New workplace page button on end of nav widget
-  - IN PROGRESS Practicality updates
+  - DONE Practicality updates
    - DEFERRED Options builder UI widget - read from ML if possible
    - DEFERRED Query builder UI widget (base query for search, default query for page load)
-   - IN PROGRESS Docs: OOTB Workplace demo app - no data
+   - DONE Docs: OOTB Workplace demo app - no data
  - DONE Widgets: UI Consistency
   - DONE Widgets: Update all for Bootstrap CSS support
    - DONE searchbar
@@ -347,7 +341,7 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
    - Ask about info panel headings on interaction vs. results panels
  - Advanced workplace functionality
   - application wide settings
-   - By default exclude all workplace admin collection documents from search (additionalProperties, searchoptions, in searchcontext)
+   - DONE in all search options - By default exclude all workplace admin collection documents from search (additionalProperties, searchoptions, in searchcontext)
    - Widget: list/create/remove search options
     - automatically used a textarea instead of an input box if large string used
    - Widget: edit search options
@@ -388,7 +382,7 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
   - DEFERRED logged in welcome page, with logout button
   - DONE Special re-writer for security and workplace pages
  - DONE Docs: Deprecate mldbwebtest app as primary source of widget files in build, remove app itself
- - Docs: Remove mldbwebtest from tutorials, documentation, wiki
+ - IN PROGRESS Docs: Remove mldbwebtest from tutorials, documentation, wiki
   - replace with Workplace app initially
   - also show mljsrest app via Node.js webserver
  - DONE BUG Widgets: searchbar - When contributing query as term query for structured search, if text blank need to send and-query not term-query("") - else nothing is returned!
@@ -397,7 +391,7 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
   - DONE Due to subjectIri to docuri hack line 508 of widget-explore.js: Need better way to determine document URI from subjectIri -> should use #uri child property
   - Need to also cache links between docuri (key) and subject IRI, so documentcontext listener can match subject correctly
  - Docs: Put latest doc updates front and centre of MLJS main page and API home page
-  - aka release notes
+  - DONE aka release notes
   - youtube videos
   - blog (news) items
   - latest tutorials
@@ -539,11 +533,7 @@ Targets for 1.8 (Aug 2014) - Theme: Visualisations
 
 DEFERRED from 1.8 Theme: Visualisations
  - Widgets: Refactor remaining for Bootstrap CSS
-  - searchbar
-  - facets
   - facet deselection
-  - pager
-  - search sorter
   - search selection
   - select structured search
   - co-occurence
@@ -763,7 +753,7 @@ Targets for 1.9 (Sep 2014) Interim Release - Theme: Documentation
     - Core
     - Highcharts
    - underscores for private functions
-   - NA _configuration json object for Workplace compatible widgets/contexts
+   - NA configuration json object for Workplace compatible widgets/contexts
    - UpperCamelCase for constructors/objects
    - IN PROGRESS lowerCamelCase for functions (searchcontext and mljs have some alllowercase methods)
    - DONE Using Factory pattern. See mljs.create*() methods. Changed mljs.defaultconnection in core MLJS to instead access parent MLJS instance

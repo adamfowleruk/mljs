@@ -51,7 +51,7 @@ com.marklogic.widgets.graphexplorer = function(container) {
 
   this.columnCount = new Array(); // 1 based column number > count of widgets drawn in there
 
-  this.searchOptionsName = "default";
+  this.searchOptionsName = "all";
 
   this.columnWidths = new Array(); // colnumber -> pixel width maximum in column
   this.rowHeights = new Array(); // crownumber -> pixel height maximum in row
@@ -61,6 +61,13 @@ com.marklogic.widgets.graphexplorer = function(container) {
   this._messageBoxes = new Array(); // list of msgboxes shown, to destroy!!!
 
   this._init();
+};
+
+com.marklogic.widgets.graphexplorer.prototype.setConfiguration = function(config) {
+  // TODO REPLACE THIS UGLY HACK
+  if (undefined != config.iri) {
+    this.drawSubject(config.iri);
+  }
 };
 
 /**

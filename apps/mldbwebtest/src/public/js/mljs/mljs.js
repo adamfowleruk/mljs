@@ -5852,7 +5852,7 @@ mljs.prototype.searchcontext.getConfigurationDefinition = function() {
 mljs.prototype.searchcontext.prototype.setConfiguration = function(config) {
   this._options = config.options;
   this.optionsName = config.optionsName;
-  this.defaultQuery = config.defaultQuery;
+  this.defaultQuery = config.defaultQuery || "";
   this.sortWord = config.sortWord;
   this.collection = config.collection;
   this.directory = config.directory;
@@ -5870,7 +5870,32 @@ mljs.prototype.searchcontext.prototype.setConfiguration = function(config) {
     this.transform = null;
   }
   if ("" == this.sortWord) {
-    this.transform = "sort";
+    this.sortWord = "sort";
+  }
+  if ("" == this.optionsName) {
+    this.optionsName = null;
+  }
+
+  // if blank optionsName, set to 'all', and attempt to load it
+  var self = this;
+  var loadOptions = function(name) {
+
+      self.db.searchOptions("all",function(result) {
+        if (result.inError) {
+          // don't exist
+        } else {
+          self.optionsName = "all";
+          self._options = result.doc;
+        }
+      });
+  };
+  if (null == this.optionsName) {
+    loadOptions("all");
+  } else {
+    if (null == this._options || null == this._options.options) {
+      // name set, options not loaded yet
+      loadOptions(this._optionsName);
+    }
   }
 };
 
