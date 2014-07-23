@@ -29,6 +29,7 @@ com.marklogic.widgets = window.com.marklogic.widgets || {};
  */
 com.marklogic.widgets.workplace = function(container) {
   this.container = container;
+  this._configurationContext = new mljs.defaultconnection.configurationcontext(this);
 
   this._editable = false;
 
@@ -105,6 +106,11 @@ com.marklogic.widgets.workplace.prototype.loadPage = function(jsonOrString,json_
   this._workplaceContext.loadPage(jsonOrString,json_opt);
 };
 
+// configuration context methods
+com.marklogic.widgets.workplace.getInstance = function(instanceName) {
+  return this._widgets[instanceName] || this._contexts[instanceName];
+};
+
 /**
  * Redraws this workplace based on the configuration in the specified workplace context object.
  *
@@ -133,6 +139,8 @@ com.marklogic.widgets.workplace.prototype.updateWorkplace = function(context) {
     var elementid = item.elementid;
 
     var wgt = this._createWidget(widget.type,elementid,widget.config);
+    this._configurationContext.register(wgt);
+
     mljs.defaultconnection.logger.debug("Create widget has returned");
     widgets[widget.widget] = wgt;
     var instances = this._classInstances[widget.type];
@@ -156,6 +164,7 @@ com.marklogic.widgets.workplace.prototype.updateWorkplace = function(context) {
     var creator = mljs.defaultconnection["create" + ctx.type];
     mljs.defaultconnection.logger.debug("Is creator function of type function?: " + (typeof creator));
     var inst = creator.call(mljs.defaultconnection);
+    this._configurationContext.register(inst);
     contexts[ctx.context] = inst;
     mljs.defaultconnection.logger.debug("Is context instance valid?: is object?: " + (typeof inst));
     var instances = this._classInstances[ctx.type];
@@ -167,7 +176,7 @@ com.marklogic.widgets.workplace.prototype.updateWorkplace = function(context) {
 
     // initialise context configuration
     mljs.defaultconnection.logger.debug("Config: " + JSON.stringify(ctx.config));
-    mljs.defaultconnection.logger.debug("Context Obj: " + JSON.stringify(inst));
+    //mljs.defaultconnection.logger.debug("Context Obj: " + JSON.stringify(inst));
     if (undefined != inst.setConfiguration && undefined != ctx.config) {
       mljs.defaultconnection.logger.debug("Setting context configuration");
       inst.setConfiguration(ctx.config);
@@ -185,7 +194,7 @@ com.marklogic.widgets.workplace.prototype.updateWorkplace = function(context) {
 
   // call onload actions in order
   if (undefined != json.actions && undefined != json.actions.onload) {
-    mljs.defaultconnection.logger.debug("Processing onload actions");
+    mljs.defaultconnection.logger.debug("Processing onload actions (" + json.actions.onload.length + ")");
     for (var a = 0, max = json.actions.onload.length,action;a < max;a++) {
       action = json.actions.onload[a];
       mljs.defaultconnection.logger.debug("Processing onload action: " + JSON.stringify(action));
@@ -957,8 +966,8 @@ com.marklogic.widgets.actions = {};
  */
 com.marklogic.widgets.actions.javascript = function() {
   this._config = {
-    targetObject: null,
-    methodName: null,
+    target: null,
+    method: null,
     parameters: []
   };
 };
@@ -974,7 +983,9 @@ com.marklogic.widgets.actions.javascript.getConfigurationDefinition = function()
  * Sets the workplace widget instance configuration
  */
 com.marklogic.widgets.actions.javascript.prototype.setConfiguration = function(config) {
-  this._config = config;
+  for (var prop in config) {
+    this._config[prop] = config[prop];
+  }
 };
 
 /**
@@ -983,13 +994,13 @@ com.marklogic.widgets.actions.javascript.prototype.setConfiguration = function(c
  * @param {object} executionContext - The execution context. Holds environment configuration for this action.
  */
 com.marklogic.widgets.actions.javascript.prototype.execute = function(executionContext) {
-  if ((null == this._config.targetObject) || (null == this._config.methodName)) {
+  if ((null == this._config.target) || (null == this._config.method)) {
     return {executed: false, details: "targetObject or methodName are null"};
   }
-  var obj = executionContext.getContextObject(this._config.targetObject);
+  var obj = executionContext.getContextObject(this._config.target);
   mljs.defaultconnection.logger.debug("Got target object?: " + obj);
-  mljs.defaultconnection.logger.debug("Fetching method name: " + this._config.methodName);
-  var func = (obj[this._config.methodName]);
+  mljs.defaultconnection.logger.debug("Fetching method name: " + this._config.method);
+  var func = (obj[this._config.method]);
   mljs.defaultconnection.logger.debug("Got target object function: " + func);
   var result = func.call(obj); // TODO support parameters
   return {executed:true, result: result, details: "Method executed successfully"};
@@ -1060,7 +1071,7 @@ com.marklogic.widgets.workplacecontext = function() {
     {targetClass: "GeoContext", methodName: "go", parameters: [
       {title: "lon", type: "decimal", minimum: -180, maximum: +180, default:"0", description: "The Longitude (East-West) of the point of interest in WGS84/EPSG4326 format."},
       {title: "lat", type: "decimal", minimum: -90, maximum: +90, default:"52", description: "The Latitude (North-South) of the point of interest in WGS84/EPSG4326 format."},
-      {title: "zoom", type: "positiveInteger", minimum: -1, maximum: +15, default:"13", description: "Zoom level to use (13 is urban area)."}
+      {title: "zoom", type: "positiveInteger", minimum: 1, maximum: 15, default:"13", description: "Zoom level to use (13 is urban area)."}
     ]},
     {targetClass: "DocumentContext", methodName: "getContent", parameters: [
       {title: "docuri", type: "string", default:"", description: "The MarkLogic document URI to fetch content for."}
@@ -1093,6 +1104,19 @@ com.marklogic.widgets.workplacecontext.prototype.getInstancesOf = function(cname
   return instances;
 };
 
+com.marklogic.widgets.workplacecontext.prototype.getInstances = function() {
+  var instances = new Array();
+  for (var i = 0,maxi = this._json.widgets.length,wgt;i < maxi;i++) {
+    wgt = this._json.widgets[i];
+    instances.push(wgt.widget);
+  }
+  for (var i = 0,maxi = this._json.contexts.length,wgt;i < maxi;i++) {
+    wgt = this._json.contexts[i];
+    instances.push(wgt.context);
+  }
+  return instances;
+};
+
 com.marklogic.widgets.workplacecontext.prototype.setActionDescriptions = function(descs) {
   this._actions = descs;
 };
@@ -1105,6 +1129,13 @@ com.marklogic.widgets.workplacecontext.prototype.getActionDescription = function
     }
   }
   return null;
+};
+
+com.marklogic.widgets.workplacecontext.prototype.setActionList = function(listName,actionArray) {
+  if (undefined == this._json.actions || Array.isArray(this._json.actions)) {
+    this._json.actions = {};
+  }
+  this._json.actions[listName] = actionArray;
 };
 
 com.marklogic.widgets.workplacecontext.prototype.getActionDescriptions = function() {
@@ -1299,9 +1330,12 @@ com.marklogic.widgets.workplacecontext.prototype.save = function(callback) { // 
   var self = this;
   this.saveWorkplace(this._json,this._uri,null,function(result) {
     console.log("WORKPLACE SAVED");
+
     self.loadPage(self._uri); // tries to remove all internal config and reload
     //self._fireUpdate();
     callback();
+
+    self.loadMyPages();
   });
 };
 
@@ -1685,7 +1719,7 @@ com.marklogic.widgets.workplacecontext.prototype._processConfig = function() {
     }
 
   if (undefined == this._json.actions) {
-    this._json.actions = [];
+    this._json.actions = {onload:[],onunload:[]};
   }
   if (undefined == this._json.assignments) {
     this._json.assignments = [];
@@ -1883,6 +1917,7 @@ com.marklogic.widgets.workplaceadmin = function(container) {
       {title: "Search Facets", classname: "com.marklogic.widgets.searchfacets", description: "Show facets returned from a search, and allow their selection."},
       {title: "Search Results", classname: "com.marklogic.widgets.searchresults", description: "Show search results. Supports built in and custom rendering."},
       {title: "Search Results Selection", classname: "com.marklogic.widgets.selection", description: "List documents selected in Search Results."},
+      {title: "Refresh Search", classname: "com.marklogic.widgets.refreshsearch", description: "Refresh button for a search on this page."},
       {title: "Structured Search Selection", classname: "com.marklogic.widgets.searchselection", description: "Select a structured search to execute."},
       {title: "Semantic Search Bar", classname: "com.marklogic.widgets.sparqlbar", description: "Visually create a sophisticated SPARQL query."},
       {title: "Semantic Search Results", classname: "com.marklogic.widgets.sparqlresults", description: "Show a summary of Subjects returned from a SPARQL query."},
@@ -2111,7 +2146,8 @@ com.marklogic.widgets.workplaceadmin.prototype._refresh = function() {
   str += "<select id='" + this.container + "-contexts-add-dropdown' class='form-control workplaceadmin-contexts-add-dropdown'>";
   str += "  <option value='SearchContext' title='Search Context' id='" + this.container + "-contextselect-searchcontext'>Search Context</option>";
   str += "  <option value='SemanticContext' title='Semantic Context' id='" + this.container + "-contextselect-semanticcontext'>Semantic Context</option>";
-  str += "  <option value='DocumentContext' title='Document Context' id='" + this.container + "-contextselect-searchcontext'>Document Context</option>";
+  str += "  <option value='DocumentContext' title='Document Context' id='" + this.container + "-contextselect-documentcontext'>Document Context</option>";
+  str += "  <option value='GeoContext' title='Geo Context' id='" + this.container + "-contextselect-geocontext'>Geo Context</option>";
   str += "</select>";
   str += "</div>"; // form group
   str += "<button class='btn btn-default' id='" + this.container + "-contexts-add-button'>";
@@ -2725,6 +2761,8 @@ com.marklogic.widgets.workplaceadmin.prototype._updateContextsList = function() 
         classConfig = mljs.defaultconnection.semanticcontext.getConfigurationDefinition();
       } else if ("DocumentContext" == ctxjson.type) {
         classConfig = mljs.defaultconnection.documentcontext.getConfigurationDefinition();
+      } else if ("GeoContext" == ctxjson.type) {
+        classConfig = mljs.defaultconnection.geocontext.getConfigurationDefinition();
       }
       wrapper.wrap(ctxjson.context,ctxjson.type,classConfig,ctxjson.config);
 
@@ -2775,16 +2813,45 @@ com.marklogic.widgets.workplaceadmin.prototype._drawActions = function(actionLis
   // create configwrapper set for actions
   var orderedconfig = new com.marklogic.widgets.orderedconfig(this.container + "-config-actions-list");
   var self = this;
-  orderedconfig.addOrderChangeListener(function(orderedconfig) {
+  orderedconfig.addOrderChangeListener(function(oc) {
     // do something with new order (E.g. update workplaceContext)
-    self._workplaceContext.getJson().actions[actionListName] = orderedconfig;
+    self._workplaceContext.setActionList(actionListName,oc);
   });
   // ensure the target and method and other such parameters managed by creator are not editable by hand
   orderedconfig.readOnly([{type: "javascript", readonly:["target","method"]}]);
   // no drop zone for new elements
   orderedconfig.dropzones(true,false); // first is re-arrange zones, second is append zone (last zone)
   // give array of items to draw, and json dot delimited path to id field
-  orderedconfig.configure(actions,"action");
+  var jsdefs = {javascript: {
+    target: {type: "instance", default: null, title: "Target", description: "Class to call method on"},
+    method: {type: "method", default: null, title: "Method", description: "Method name to call"},
+    parameters: {type:"multiple",default:[], minimum:0,title: "Parameters",description: "Method Parameters",
+      childDefinitions: {
+        type: {type: "jstype", default: "string", title: "Type", description: "Parameter type"},
+        value: {type: "jsvalue", default: null, title: "Value", description: "Parameter value"}
+      }
+    }
+  }}; // only one type supported at the moment - javascript function call (perhaps raise/handle event, page change, in future)
+  var actions = this._workplaceContext.getJson().actions;
+  var actionList = [];
+  if (undefined != actions) {
+    var list = actions[actionListName];
+    if (undefined != list && Array.isArray(list)) {
+      actionList = list;
+    }
+  }
+  this._workplaceContext.setActionList(actionListName,actionList);
+
+  orderedconfig.configure(actionList,jsdefs,"action");
+
+
+  creator.addActionCreatedListener(function(actionJson) {
+    // add to workplace context json
+    actionList.push(actionJson);
+    self._workplaceContext.setActionList(actionListName,actionList);
+    // add new configwrapper at end
+    orderedconfig.append(actionJson);
+  });
 
   creator.updateWorkplace(this._workplaceContext);
   orderedconfig.updateWorkplace(this._workplaceContext);
@@ -2806,13 +2873,15 @@ com.marklogic.widgets.orderedconfig = function(container) {
 
   this._workplaceContext = null;
 
-  this._title = "Configurations";
+  this._title = "Actions";
 //  this._configs = new Array(); // ??? get from context
   this._readonly = new Array(); // [{type: "objType", readonly:["item1","item2.path", ...]}, ...]
   this._drawOrderDropzones = true;
   this._drawNewDropzone = true;
   this._allowRemoval = true;
   this._nameJsonPath = "name";
+
+  this._nextidx = 0;
 
   this._ordered = new com.marklogic.util.linkedlist();
 
@@ -2845,8 +2914,10 @@ com.marklogic.widgets.orderedconfig.prototype.dropzones = function(drawOrderDrop
   this._drawNewDropzone = drawNewDropzone;
 };
 
-com.marklogic.widgets.orderedconfig.prototype.configure = function(configList,nameJsonPath) {
+com.marklogic.widgets.orderedconfig.prototype.configure = function(instances,definitions,nameJsonPath) {
   //this._configs = configList; // get from context
+  this._definitions = definitions;
+  this._instances = instances;
   this._nameJsonPath = nameJsonPath;
 
   this._refresh();
@@ -2866,27 +2937,26 @@ com.marklogic.widgets.orderedconfig.prototype._fireNewOrder = function() {
 com.marklogic.widgets.orderedconfig.prototype._refresh = function() {
   this._ordered = new com.marklogic.util.linkedlist();
   var s = "<div id='" + this.container + "-orderedconfig' class='mljswidget panel panel-default orderedconfig'>";
-  s += "<div class='panel-heading'>" + this._title + "</div><div class='panel-body'>";
+  s += "<div class='panel-heading'>" + this._title + "</div><div class='panel-body' id='" + this.container + "-list'>";
+
 
   // add configs to list
-  var configList = this._workplaceContext.getActionDescriptions();
-  for (var c = 0,maxc = configList.length,config;c < maxc;c++) {
-    config = configList[c];
-    // create outer div
-    var elid = this.container + "-item-" + c;
-    this._ordered.append(config[this._nameJsonPath],{config: config, element: elid}); // TODO process path rather than use directly as a name
+  if (null != this._workplaceContext) {
+    // This returns classes NOT instances!
+    for (var a = 0,maxa = this._instances.length,inst;a < maxa;a++) {
+      inst = this._instances[a]; // {action: "searchcontext1.doSimpleQuery",type: "javascript", config: {target: "searchcontext1", method: "doSimpleQuery"}}
 
-    // create parent for each dropzone AND config PAIR
-    s += "<div id='" + elid + "'>";
-    s += " <div id='" + elid + "-dz'></div>";
-    s += " <div id='" + elid + "-config'></div>";
-    s += "</div>";
-  }
+      var res = this._addConfig(inst,a);
+      s += res.html;
+    } // end action loop
 
-  if (true === this._drawNewDropzone) {
-    s += " <div id='" + this.container + "-appenddz'></div>";
+    this._nextidx = maxa;
+
+    if (true === this._drawNewDropzone) {
+      s += " <div id='" + this.container + "-appenddz'></div>";
+    }
+    s += "</div></div>";
   }
-  s += "</div></div>";
   // save html
   document.getElementById(this.container).innerHTML = s;
 
@@ -2895,17 +2965,55 @@ com.marklogic.widgets.orderedconfig.prototype._refresh = function() {
     // draw current order and dropzones
     // set up event handlers
     // render configs within their divs
-    var value = item.getValue(); // value = {config: config, element: elid}
-    var dz = new com.marklogic.widgets.dropzone(value.element + "-dz"); // TODO configure dropzone
-    var wrapper = new com.marklogic.widgets.configwrapper(value.element + "-config");
-    configwrapper.wrap(value.config); // TODO validate no more config needed here
+    self._addWrapper(item);
   });
 };
 
 
+com.marklogic.widgets.orderedconfig.prototype.append = function(actionJson) {
+  var item = this._addConfig(actionJson,this._nextidx++); // TODO make generic rther than just actions
+  // APPEND CODE - item.html
+  var el = document.getElementById(this.container + "-list");
+  com.marklogic.widgets.appendHTML(el,item.html);
+
+  this._addWrapper(item.item);
+};
 
 
+/* Returns item definition */
+com.marklogic.widgets.orderedconfig.prototype._addConfig = function(json,idx) {
+  var s = "";
+  var inst = null;
+      var def = this._definitions[json.type];
+        // create outer div
+        var elid = this.container + "-item-" + idx;
+                // create parent for each dropzone AND config PAIR
+                s += "<div id='" + elid + "'>";
+                s += " <div id='" + elid + "-dz'></div>";
+                s += " <div id='" + elid + "-config'></div>";
+                s += "</div>";
+        inst = { html:s, item: this._ordered.append(json[this._nameJsonPath],{config: json.config, type: json.type, def: def, element: elid})}; // TODO process path rather than use directly as a name
 
+  return inst;
+};
+
+com.marklogic.widgets.orderedconfig.prototype._addWrapper = function(item) {
+  var self = this;
+
+  var value = item.getValue(); // value = {config: config, element: elid}
+  var dz = new com.marklogic.widgets.dropzone(value.element + "-dz"); // TODO configure dropzone
+  var wrapper = new com.marklogic.widgets.configwrapper(value.element + "-config");
+  wrapper.addWidgetRemovedListener(function(data){
+    // TODO handle removal event
+  });
+
+  // update workplace config and register event handlers
+
+  wrapper.setWorkplaceContext(this._workplaceContext);
+  // TODO D&D repositioning config - wrapper.onto("widgetconfig",["layoutposition"],{type: "widgetconfig", data: widget});
+
+  wrapper.wrap(item.getName(),value.type,value.def,value.config); // widgetName,classname,configDescription,currentConfig
+};
 
 
 /**
@@ -3095,7 +3203,9 @@ com.marklogic.widgets.configwrapper.prototype._genConfigHTMLConf = function(json
 
   var usedDefault = false;
 
-  if ("string" == d.type) {
+  if ("string" == d.type || "double" == d.type || "jsvalue" == d.type || "method" == d.type) {
+    // text box for jsvalue
+
     addtitle();
     var val = c;
     if (undefined == c) {
@@ -3115,6 +3225,7 @@ com.marklogic.widgets.configwrapper.prototype._genConfigHTMLConf = function(json
     conf.addhandler = function() {
       var el = document.getElementById(self.container + "-" + conf.id);
       el.onchange = function() {
+        // TODO if double, check is a valid double
         json[name] = el.value;
       };
     };
@@ -3208,6 +3319,25 @@ com.marklogic.widgets.configwrapper.prototype._genConfigHTMLConf = function(json
     str += "<button class='btn btn-default btn-sm' id='" + this.container + "-" + conf.id + "-add'>";
     str += "<span class='glyphicon glyphicon-plus btn-fix-sm configwrapper-addmultiple'></span>";
     str += "</button>";
+
+
+    conf.addhandler = function() {
+      var el = document.getElementById(self.container + "-" + conf.id + "-add");
+      el.onclick = function() {
+        // add a new row to this table
+        var cjson = {};
+        for (var didx = 0,maxdidx = conf.def.childDefinitions.length,defItem;didx < maxdidx;didx++) {
+          defItem = conf.def.childDefinitions[didx];
+          for (var item in defItem) {
+            cjson[item] = defItem[item].default;
+          }
+        }
+        json[name].push(cjson);
+        // best to update workplace config json, then refresh entire widget
+        self._updateWidgetConfig();
+      };
+    };
+
     str += "</div>";
     str += "<div class='configwrapper-multiple-indent'>";
     str += "<table class='configwrapper-multiple-table' id='" + this.container + "-" + conf.id + "-table'>";
@@ -3250,7 +3380,90 @@ com.marklogic.widgets.configwrapper.prototype._genConfigHTMLConf = function(json
     }
     str += "</table>";
     str += "</div>";
-  }
+  } else if ("SearchContext"==d.type||"GeoContext"==d.type||"DocumentContext" == d.type||"SemanticContext"==d.type) {
+    // TODO handle dynamic context class names
+
+    // drop down of instances of correct context type
+    var instances = this._workplaceContext.getInstancesOf(d.type); // returns string array of instance names
+
+    addtitle();
+    var val = c;
+    if (undefined == c) {
+      val = d.default;
+      usedDefault = true;
+    }
+    str += "<select class='form-control' id='" + this.container + "-" + conf.id + "'>";
+    for (var i = 0,opt,max=instances.length; i < max;i++) {
+      opt = instances[i];
+      str += "<option value='" + opt + "' title='" + opt + "' ";
+      if (opt === val) {
+        str += "selected='selected' ";
+      }
+      str += ">" + opt + "</option>";
+    }
+    str += "</select>";
+    conf.addhandler = function() {
+      var el = document.getElementById(self.container + "-" + conf.id);
+      el.onchange = function() {
+        json[name] = el.value;
+      };
+    };
+  } else if ("jstype" == d.type) {
+    var instances = ["null","string","number","instance"];
+
+          addtitle();
+          var val = c;
+          if (undefined == c) {
+            val = d.default;
+            usedDefault = true;
+          }
+          str += "<select class='form-control' id='" + this.container + "-" + conf.id + "'>";
+          for (var i = 0,opt,max=instances.length; i < max;i++) {
+            opt = instances[i];
+            str += "<option value='" + opt + "' title='" + opt + "' ";
+            if (opt === val) {
+              str += "selected='selected' ";
+            }
+            str += ">" + opt + "</option>";
+          }
+          str += "</select>";
+          conf.addhandler = function() {
+            var el = document.getElementById(self.container + "-" + conf.id);
+            el.onchange = function() {
+              json[name] = el.value;
+            };
+          };
+  } else if ("instance" == d.type) {
+    // get workplace instance names for drop down
+    var instances = this._workplaceContext.getInstances(); // string array of instance names
+
+      addtitle();
+      var val = c;
+      if (undefined == c) {
+        val = d.default;
+        usedDefault = true;
+      }
+      str += "<select class='form-control' id='" + this.container + "-" + conf.id + "'>";
+      for (var i = 0,opt,max=instances.length; i < max;i++) {
+        opt = instances[i];
+        str += "<option value='" + opt + "' title='" + opt + "' ";
+        if (opt === val) {
+          str += "selected='selected' ";
+        }
+        str += ">" + opt + "</option>";
+      }
+      str += "</select>";
+      conf.addhandler = function() {
+        var el = document.getElementById(self.container + "-" + conf.id);
+        el.onchange = function() {
+          json[name] = el.value;
+        };
+      };
+
+
+  } // other types here
+
+
   if (usedDefault) {
     json[name] = d.default;
   }
@@ -3451,7 +3664,7 @@ com.marklogic.widgets.actionorderer.prototype.updateWorkplace = function(ctx) {
  */
 com.marklogic.widgets.actionorderer.prototype.wrap = function(actions) {
   this._actions = actions;
-  this._configs = configs;
+  this._configs = configs; // TODO where's this variable come from???
 
   var el = document.getElementById(this.container + "-actions");
   el.innerHTML = ""; // reset
@@ -3469,12 +3682,24 @@ com.marklogic.widgets.actionorderer.prototype.wrap = function(actions) {
     var htmlid = this.container + "-action-" + a;
     var wrapper = new com.marklogic.widgets.configwrapper(htmlid);
     var desc = null;
-    var actionClassType
+
+
+
+
+
+
+    var actionClassType; // TODO fix this
+
+
+
+
+
+
     for (var c = 0,maxc = configs.length,config;c < maxc;c++) {
       config = configs[c];
-      if (config.targetClass == action.config.tar)
-      wrapper.wrap(action.action,action.type,desc,action.config);
-
+      if (config.targetClass == action.config.target) { // TODO WARNING action.config.target is an instance name, not a class type name
+        wrapper.wrap(action.action,action.type,desc,action.config); // TODO check these params
+      }
     }
   }
 };
@@ -3513,7 +3738,7 @@ com.marklogic.widgets.actioncreator.prototype._init = function() {
   var str = "<div class='mljswidget actioncreator' id='" + this.container + "-actioncreator'>";
   str += "    Object: <select class='actioncreator-object' id='" + this.container + "-object'></select> ";
   str += "    Function: <select class='actioncreator-function' id='" + this.container + "-function'></select> ";
-  str += "    <span class='button actioncreator-add'>ADD</span>";
+  str += "    <button id='" + this.container + "-button' class='btn btn-default actioncreator-add'><span class='glyphicon glyphicon-plus btn-fix'></span></button>";
   str += "   </div>";
 
   document.getElementById(this.container).innerHTML = str;
@@ -3535,31 +3760,59 @@ com.marklogic.widgets.actioncreator.prototype._init = function() {
     self._currentFunction = funcEl.value;
   }
 
-  // TODO button click handler - with sanity check for blank object or function
+  // button click handler - with sanity check for blank object or function
+  var but = document.getElementById(this.container + "-button");
+  but.onclick = function(evt) {
+    // add instance to config and redraw configwrapper
+    var classInstance = document.getElementById(self.container + "-object").value;
+    var funcName = document.getElementById(self.container + "-function").value;
+    if (null == classInstance || null == funcName) {
+      // do nothing? show message?
+    } else {
+      var name = classInstance + "." + funcName; // TODO add an extra number on the end to differentiate same method call (why would there be multiple? series add?)
+      var json = {type: "javascript", action: name, config: {target: classInstance, method: funcName ,parameters:[]}};
+      self._newActionPublisher.publish(json);
+    }
+    evt.stopPropagation();
+    return false;
+  };
 };
 
 com.marklogic.widgets.actioncreator.prototype._refreshObjectList = function(toHighlight) {
+  console.log("AC: _refreshObjectList");
 
   // NB add 'Other...' option to select
   var str = "";
 
   // draw object options
   var otm = this._workplaceContext.getObjectTypes();
+  var curValue = null;
   for (var objname in otm) {
     obj = otm[objname];
     str += "<option value='" + objname + "'";
     if (objname == toHighlight) {
       str += " selected='selected'";
+      curValue = objname;
     }
     str += ">" + objname + "</option>";
   }
   str == "<option value='__other'>Other...</option>";
-  document.getElementById(this.container + "-object").innerHTML = str;
+  var el = document.getElementById(this.container + "-object");
+  el.innerHTML = str;
+
+  if (null == curValue) {
+    curValue = el.value; // get highlighted value in html
+  }
+
+  this._currentObject = curValue; // force this so dont get an invalid value hidden in the json
+
+  this._refreshFunctionList();
 };
 
 com.marklogic.widgets.actioncreator.prototype._refreshFunctionList = function(toHighlight) {
+  console.log("AC: _refreshFunctionList");
   // reset function list
-  document.getElementById(this.container + "-function").innerHTML = "";
+  var el = document.getElementById(this.container + "-function");
   if (null == this._currentObject) {
     return; // sanity check
   }
@@ -3567,7 +3820,9 @@ com.marklogic.widgets.actioncreator.prototype._refreshFunctionList = function(to
 
   // load functions (if object selected)
   var s = "";
+  console.log("AC: Fetching object type for: " + this._currentObject);
   var typeHighlight = this._workplaceContext.getObjectType(this._currentObject);
+  console.log("AC: type to highlight: " + typeHighlight);
   var actions = this._workplaceContext.getActionDescriptions();
   for (var t = 0,maxt = actions.length,action;t < maxt;t++) {
     action = actions[t];
@@ -3580,7 +3835,11 @@ com.marklogic.widgets.actioncreator.prototype._refreshFunctionList = function(to
       s += ">" + action.methodName + "</option>";
     }
   }
+  el.innerHTML = s;
   this._currentFunc = newFunc;
+  if (null == this._currentFunc) {
+    this._currentFunc = el.value;
+  }
 };
 
 com.marklogic.widgets.actioncreator.prototype.updateWorkplace = function(ctx) {
@@ -3807,7 +4066,7 @@ com.marklogic.widgets.workplacenavbar.prototype._refresh = function() {
     s += "><a id=" + this.container + "-workplacenavbar-configureapp' href='" + this._config.appConfigureUrl +
          "'>" + this._config.appConfigureLinkText + "</a></li>";
   }
-  s += "<li><a href='#'>" + this._config.pageConfigureLinkText + "</a></li>";
+  s += "<li><a href='#' id='" + this.container + "-workplacenavbar-configurepage'>" + this._config.pageConfigureLinkText + "</a></li>";
   if (true === this._config.showLogoutLink) {
     s += "<li";
 
@@ -3819,8 +4078,13 @@ com.marklogic.widgets.workplacenavbar.prototype._refresh = function() {
   s += "</ul></div><!--/.nav-collapse --></div><!--/.container-fluid --></div>";
   document.getElementById(this.container).innerHTML = s;
 
-  // TODO click event handlers
-  // TODO Just the edit page link required - the rest are URL based
+  var self = this;
+  document.getElementById(this.container + "-workplacenavbar-configurepage").onclick = function(evt) {
+    com.marklogic.widgets.workplaceadmin.renderFullscreen(self._workplaceContext);
+
+    evt.stopPropagation();
+    return false;
+  };
 
 };
 
@@ -3844,6 +4108,8 @@ com.marklogic.widgets.workplacenavbar.prototype.updateMyPages = function(pages) 
 com.marklogic.widgets.workplacepagelist = function(container) {
   this.container = container;
   this._workplaceContext = null;
+
+  this._pages = new Array();
 };
 
 /**
@@ -3863,13 +4129,21 @@ com.marklogic.widgets.workplacepagelist.prototype.getWorkplaceContext = function
   return this._workplaceContext;
 };
 
+
+com.marklogic.widgets.workplacepagelist.prototype.updateWorkplace = function() {
+  // redraw navbar in case new page added / page deleted
+  this.updateMyPages(); // use previous pages list provided
+};
+
 com.marklogic.widgets.workplacepagelist.prototype.updateMyPages = function(pages) {
+  this._pages = pages || this._pages; // remember previous pages list if not specified
+
   var str = "<div class='panel panel-info'>";
   str += "<div class='panel-heading'>Pages</div>";
   str += "<div class='panel-body'>";
 
-  for (var p = 0,maxp = pages.length,page;p < maxp;p++) {
-    page = pages[p];
+  for (var p = 0,maxp = this._pages.length,page;p < maxp;p++) {
+    page = this._pages[p];
 
     // title and urls
     str += "<div class='btn-toolbar'>";
@@ -3877,7 +4151,7 @@ com.marklogic.widgets.workplacepagelist.prototype.updateMyPages = function(pages
     str += " <button id='" + this.container + "-" + p + "-del' class='btn btn-danger'><span class='glyphicon glyphicon-remove btn-fix'></span></button>";
     str += " <button id='" + this.container + "-" + p + "-edit'  class='btn btn-default'><span class='glyphicon glyphicon-cog btn-fix'></span></button>";
     str += " <button id='" + this.container + "-" + p + "-name'  class='btn btn-default'><span class='btn-fix'>" + page.page.title + " @ ";
-    if (undefined != page.urls) { // happens on creation of new page with just a title
+    if (undefined != page.page.urls) { // happens on creation of new page with just a title
       for (var u = 0,maxu = page.page.urls.length,url;u < maxu;u++) {
         url = page.page.urls[u];
         if (u > 0) {
@@ -3890,7 +4164,7 @@ com.marklogic.widgets.workplacepagelist.prototype.updateMyPages = function(pages
     str += "</div>";
     str += "</div>";
   }
-  if (0 == pages.length) {
+  if (0 == this._pages.length) {
     str += "<p><i>No pages to display</i></p>";
   }
 
@@ -3933,8 +4207,8 @@ com.marklogic.widgets.workplacepagelist.prototype.updateMyPages = function(pages
   };
 
   // remove and edit click handlers
-  for (var p = 0,maxp = pages.length,page;p < maxp;p++) {
-    page = pages[p];
+  for (var p = 0,maxp = this._pages.length,page;p < maxp;p++) {
+    page = this._pages[p];
     // add delete click handler
     addDelHandler(this.container + "-" + p + "-del",page);
     // add cog AND name click handlers
@@ -3944,7 +4218,7 @@ com.marklogic.widgets.workplacepagelist.prototype.updateMyPages = function(pages
 
   // Add click handler
   document.getElementById(this.container + "-addpage").onclick = function(evt) {
-    var json = {title: document.getElementById(self.container + "-pagename").value};
+    var json = {title: document.getElementById(self.container + "-pagename").value, actions: {onload:[],onunload:[]}};
     self._workplaceContext.createPage(json);
     evt.stopPropagation();
     return false;
@@ -3978,9 +4252,18 @@ com.marklogic.widgets.pagecontext = function() {
   this._workplaceWidget = null;
   this._config = {
     mappings: {
-      docuri: {querystring: "docuri", targets: [{class: "DocumentContext", method: "getContent"},{class: "DocumentContext", method: "getProperties"}]},
-      iri: {querystring: "iri", targets: [{class: "SemanticContext", method: "subjectFacts"},{class: "com.marklogic.widgets.graphexplorer", method: "drawSubject"}]},
-      q: {querystring: "q", targets: [{class: "SearchContext", method: "doSimpleQuery"}]}
+      docuri: {querystring: "docuri", targets: [
+        {class: "DocumentContext", method: "getContent", index: 1},
+        {class: "DocumentContext", method: "getProperties", index: 1}
+      ]},
+      iri: {querystring: "iri", targets: [
+        {class: "SemanticContext", method: "subjectFacts", index: 1},
+        {class: "com.marklogic.widgets.graphexplorer", method: "drawSubject", index: 1} // TODO have focusSubject setting & update event on semantic context
+      ]},
+      q: {querystring: "q", targets: [{class: "SearchContext", method: "doSimpleQuery", index: 1}]},
+      lat: {querystring: "lat", targets: [{class: "GeoContext", method: "homeRadius", index: 1}]},
+      lon: {querystring: "lon", targets: [{class: "GeoContext", method: "homeRadius", index: 2}]},
+      radius: {querystring: "radius", targets: [{class: "GeoContext", method: "homeRadius", index: 3}]}
     }
   }
 };

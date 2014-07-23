@@ -82,6 +82,11 @@ and its
 
     <script type="text/javascript" src="/js/highcharts.js"></script>
 
+    <script type="text/javascript" src="/js/OpenLayers-2.13.1/OpenLayers.js"></script> <!-- debug deployment only - remove '.debug' for production use -->
+    <script type="text/javascript" src="/js/heatmap/heatmap.js"></script>
+    <script type="text/javascript" src="/js/heatmap/heatmap-openlayers.js"></script>
+    <!--<script>OpenLayers.Console = window.console || OpenLayers.Console;</script>--> <!-- debug deployment only -->
+
     <script type="text/javascript" src="/js/mljs/widget-search.js"></script>
     <script type="text/javascript" src="/js/mljs/widget-address.js"></script>
     <script type="text/javascript" src="/js/mljs/widget-collections.js"></script>
@@ -95,7 +100,6 @@ and its
     <script type="text/javascript" src="/js/mljs/widget-openlayers.js"></script>
     <script type="text/javascript" src="/js/mljs/widget-tagcloud.js"></script>
     <script type="text/javascript" src="/js/mljs/widget-triples.js"></script>
-
     <script type="text/javascript" src="/js/mljs/widget-highcharts.js"></script>
 
     <script src="js/page-workplace.js"></script>

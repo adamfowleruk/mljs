@@ -9,6 +9,13 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
   - TEST sparqlbar page: make document links use mentioned_in link with correct IRI for search results rendering
   - DONE via page context - explorer page: accept incoming IRI link in url ?iri=, where not specified use existing default
   - DONE remove extraneous entity facts rendering logging code
+ - DEFERRED future improvements
+  - DEFERRED Make contexts in workplace admin config driven, not hard coded
+  - DEFERRED geocontext: add updateHome event
+   - DEFERRED Widgets: openlayers: support this event to move focus
+   - DEFERRED Widgets: openlayers: advanced - if multiple home points, ensure all are visible on the map
+  - Widgets: Consistent workplace page ordering in navigation and list on edit app page
+  - Widgets: Workplace page list - make name click button take you to page for viewing, not editing, it
  - Docs: API documentation
   - document all namespaces
   - document all type defs
@@ -30,10 +37,36 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
    - DONE default doc view page url and params
    - DONE default semantic explore page and params
    - DEFERRED use method calls instead of setConfiguration on workplace widgets
-  - BUG left hand nav height not same as right hand - see JWs fix
-  - BUG action config selection for new not drawing
+  - BUG MINOR UX left hand nav height not same as right hand - see JWs fix
+  - DONE BUG action config selection for new not drawing
+  - BUG searchcontext search before loading search options does not work
+   - try adding reference to search methods correctly (not passing options name to REST)
   - BUG entityfacts widget doesn't like unknown classes (Penguin)
   - TEST BUG not loading facets on MarkLogic Document on workplace explorer page
+  - DONE BUG page urls not showing up on app edit page
+  - BUG MAJOR REST API ignoring collection parameter when POST ing search (and likely other query string params) - make this a query parameter when using post
+  - DONE BUG Configure page link not working in Workplace app
+  - DONE BUG page navbar or page list not updating when existing page edited to have new page url
+  - DONE BUG Home location settings on geocontext (none appear)
+  - BUG MINOR UX Widgets: searchbar suggestions appear within div, not hovering over it (CSS? modal?)
+  - BUG MINOR PERFORMANCE workplacecontext - cache all pages if loadMyPages called - so loadPage just reads cache
+   - NB may need to tell loadPage to wait until other returns
+  - BUG USEFULNESS need heatmap configuration in openlayers widget in workplace (should just need index defining)
+  - IN PROGRESS MAJOR USABLE need series configuration in openlayers
+   - TEST Need to link to search context instance - type=SearchContext|GeoContext|SemanticContext|DocumentContext
+   - Need to add constraint and value extract to search options
+  - BUG MAJOR UX page doesn't refresh from sratch after saving workplace changes on same screen
+  - BUG semantic search results elements have too much padding (h3?)
+  - BUG add not-query(element-value-query(sem:triples - PLURAL ONLY)) to additional query
+  - BUG clicking subject in entity facts in workplace app breaks semantic search results widget (loading ... loading...)
+   - Not checking if data already exists for subject? (summary data already loaded)
+  - Better data for demo
+   - Can we get salesforce data exported?
+   - social media analytics?
+   - Perform static analysis to generate Subject's in triple store for collected tweet data
+   - Individual knows and messaged links
+   - Sent/Received summaries
+  - TEST lon, lat centre location for geocontext in pagecontext
  - Docs: Remove all uses of the searchpage widget in demos
   - DEFERRED Ensure thinthick layout with embedded column layout works
    - DEFERRED create columns layout for workplace

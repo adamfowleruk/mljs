@@ -61,6 +61,8 @@ com.marklogic.widgets.openlayers = function(container) {
   this._selectedUri = null;
   this._highlightedUri = null;
 
+  this._configurationContext = null;
+
   this.heatmap = null; // open layers heatmap
 
   this._refresh();
@@ -84,8 +86,25 @@ com.marklogic.widgets.openlayers.getConfigurationDefinition = function() {
         {value: self.MEDIUM, title: "Medium", description: "Several heatmap areas(" + self.MEDIUM + ")."},
         {value: self.LOW, title: "Low", description: "Few heatmap areas(" + self.LOW + ")."}
       ]
-    }
+    },
+        series: {type: "multiple", minimum: 0, default: [], title: "Series", description: "Data series to render on the map",
+          childDefinitions: {
+            //title,searchcontext,latsrc,lonsrc,titlesrc,summarysrc,icon_source_opt,heatmap_constraint
+            title: {type: "string", default: "", title: "Series name", description: "Common name for this series"},
+            searchcontext: {type: "SearchContext",default: null, title: "Search Context", description: "Search context data source"},
+            latsrc: {type: "string",default: null,title: "Latitude Source", description: "document value to extract latitude from"},
+            lonsrc: {type: "string",default: null,title: "Longitude Source", description: "document value to extract longitude from"},
+            titlesrc: {type: "string",default: null,title: "Title Source", description: "document value to extract Title from"},
+            summarysrc: {type: "string",default: null,title: "Summary Source", description: "document value to extract Summary from"},
+            iconsrc: {type: "string",default: null,title: "Summary Source", description: "document value to extract Icon URL from"},
+            heatmapconstraint: {type: "string",default: null,title: "Heatmap Constraint", description: "Name of the constraint holding the heatmap"}
+          }
+        }
   };
+};
+
+com.marklogic.widgets.openlayers.prototype.setConfigurationContext = function(ctx) {
+  this._configurationContext = ctx;
 };
 
 /**
@@ -97,9 +116,16 @@ com.marklogic.widgets.openlayers.prototype.setConfiguration = function(config) {
   for (var prop in config) {
     this._config[prop] = config[prop];
   }
+  if (undefined != config.series && null != this._configurationContext) {
+    for (var s = 0,maxs = config.series.length,series;s < maxs;s++) {
+      series = config.series[s];
+      this.addSeries(series.title,this._configurationContext.getInstance(series.searchcontext),
+        series.latsrc,series.lonsrc,series.titlesrc,series.summarysrc,series.iconsrc,series.heatmapconstraint);
+    }
+  }
 
   // refresh display
-  this.refresh();
+  this._refresh();
 
   // process layer config AFTER refresh
   if (true===this._config.showGoogleStreet) {

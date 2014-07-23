@@ -2124,10 +2124,10 @@ mljs.prototype.values = function(query,tuplesname,optionsname,sprops_opt,callbac
       }};
       if (typeof query == "string") {
         // plain text query
-        search.qtext = query;
+        search.search.qtext = query;
       } else if (typeof query == "object") {
         // structured query
-        search.query = query.query;
+        search.search.query = query.query;
       }
 
       options.path = self._applySearchProperties(options.path,sprops_opt); // WONT THIS BE IGNORED?
@@ -5841,6 +5841,18 @@ mljs.prototype.searchcontext.getConfigurationDefinition = function() {
     directory: {type: "string", default: "", title: "Directory", description: "Directory (URI path) to restrict results to."},
     transform: {type: "string", default: "", title: "Transform", description: "Transform to apply to the search results object."},
     format: {type: "string", default: "", title: "Format", description: "Format of the result."} // TODO enum for format
+    ,searchEndpoint: {type: "enum", default: "search", title: "Search Endpoint", description: "Whether to execute a values or content query",
+      options: [
+        {value: "search", title: "Search", description: "Default REST search endpoint."},
+        {value: "values", title: "Values", description: "Default REST values endpoint."},
+        {value: "custom", title: "Custom", description: "Custom REST endpoint."}
+      ]},
+
+    tuples: {type: "multiple", minimum: 0, default: [], title: "Tuples", description: "Tuples to load when executing search",
+      childDefinitions: {
+        name: {type: "string", default: "", title: "Tuple name", description: "Tuple name in search options"}
+      }
+    }
   };
 };
 
@@ -5859,12 +5871,23 @@ mljs.prototype.searchcontext.prototype.setConfiguration = function(config) {
   this.transform = config.transform;
   this.transformParameters = config.transformParameters || {};
   this.format = config.format;
+  this._searchEndpoint = config.searchEndpoint;
+  this._tuples = [];
+  if (undefined != config.tuples) {
+    for (var t = 0,maxt = config.tuples.length,tuple;t < maxt;t++) {
+      tuple = config.tuples[t];
+      this._tuples.push(tuple.name);
+    }
+  }
 
   if (this.format == "") {
     this.format = null;
   }
   if ("" == this.directory) {
     this.directory = null;
+  }
+  if ("" == this.collection) {
+    this.collection = null;
   }
   if ("" == this.transform) {
     this.transform = null;
@@ -5875,26 +5898,30 @@ mljs.prototype.searchcontext.prototype.setConfiguration = function(config) {
   if ("" == this.optionsName) {
     this.optionsName = null;
   }
+  if ("" == this._searchEndpoint) {
+    this._searchEndpoint = "search";
+  }
 
   // if blank optionsName, set to 'all', and attempt to load it
   var self = this;
   var loadOptions = function(name) {
 
-      self.db.searchOptions("all",function(result) {
+      self.db.searchOptions(name,function(result) {
         if (result.inError) {
           // don't exist
         } else {
-          self.optionsName = "all";
+          self.optionsName = name;
           self._options = result.doc;
         }
       });
   };
   if (null == this.optionsName) {
+    this.optionsName = "all"; // in case of async issues on page load
     loadOptions("all");
   } else {
     if (null == this._options || null == this._options.options) {
       // name set, options not loaded yet
-      loadOptions(this._optionsName);
+      loadOptions(this.optionsName);
     }
   }
 };
@@ -6400,6 +6427,8 @@ mljs.prototype.searchcontext.prototype._doQuery = function(structured_opt,text_o
 
   var dos = function() {
     // check override first
+    console.log("endpoint_override_opt: " + endpoint_override_opt);
+    console.log("self._searchEndpoint: " + self._searchEndpoint);
     if (undefined != endpoint_override_opt) {
       if ("search" == endpoint_override_opt) {
         structuredF();
@@ -6420,8 +6449,10 @@ mljs.prototype.searchcontext.prototype._doQuery = function(structured_opt,text_o
         valuesF();
       } else if ("combined" == self._searchEndpoint) {
         combinedF();
-      } else {
+      } else if ("custom" == self._searchEndpoint) {
         customF();
+      } else {
+        throw new TypeError("searchcontext._doQuery: searchEndpoint must be 'values', 'combined' or 'custom'");
       }
     }
   };
@@ -9107,6 +9138,33 @@ mljs.prototype.geocontext = function() {
   // info for updating related search context(s)
   this._searchContexts = new Array(); // array of {context: context, constraintName: null|value}
   this._defaultConstraintName = "location";
+
+  this._configurationContext = null;
+
+  this._config = {
+    homelat: null, homelon: null, homeradius: null // convenience home configuration
+  }; // TODO move configurations in to here
+  // TODO add linked SC link here
+};
+
+mljs.prototype.geocontext.prototype.setConfigurationContext = function(cc) {
+  this._configurationContext = cc;
+};
+
+mljs.prototype.geocontext.getConfigurationDefinition = function() {
+  return {
+    homelat: {type: "double", default: null, title: "Home Latitude", description: "Default location latitude WGS84."},
+    homelon: {type: "double", default: null, title: "Home Longitude", description: "Default location longitude WGS84."},
+    homeradius: {type: "double", default: null, title: "Home Radius", description: "Default location radius statute miles."}
+  };
+};
+
+mljs.prototype.geocontext.prototype.setConfiguration = function(config) {
+  this._config = config;
+  if (undefined != this._config.homelat && undefined != this._config.homelon) {
+    this.homeRadius(this._config.homelat,this._config.homelon,this._config.homeradius,this._alwaysFallback); // TODO update config reference for _config
+  }
+  // TODO lookup linked sc context instance via config context
 };
 
 // initialisation methods
@@ -9167,6 +9225,25 @@ mljs.prototype.geocontext.prototype.home = function(areaOrArray,alwaysFallback) 
   this._home = areaOrArray;
   if (undefined != alwaysFallback) {
     this._alwaysFallback = alwaysFallback;
+  }
+  return this;
+};
+
+
+/**
+ * Convenience method for home() to set home location to a point with an optional radius (defaults to 20 miles).
+ *
+ * @param {number} lat - latitude of home point
+ * @param {number} lon - longitude of home point
+ * @param {number} radiusMiles_opt - optional radius of home point location (default 20 miles)
+ * @param {boolean} alwaysFallback - Whether this should be used just as a start position (false), or always used as a default location when no areas have been contributed (true).
+ */
+mljs.prototype.geocontext.prototype.homeRadius = function(lat,lon,radiusMiles_opt,alwaysFallback_opt) {
+  var qb = this.db.createQuery();
+  this._home = qb.circleDef(lat,lon,radiusMiles_opt || 20);
+
+  if (undefined != alwaysFallback_opt) {
+    this._alwaysFallback = alwaysFallback_opt;
   }
   return this;
 };
@@ -9265,7 +9342,22 @@ mljs.prototype.geocontext.prototype._fireLocaleUpdate = function() {
 
 
 
-
+// NB SHOULD NOT BE USED DIRECTLY - SHOULD BE WRAPPED AS AN ABSTRACT CLASS
+mljs.prototype.configurationcontext = function(parent) {
+  var oldregister = parent.register;
+  parent.register = function(widget) {
+    if (undefined != widget.setConfigurationContext) {
+      widget.setConfigurationContext(parent);
+    }
+    if (undefined != oldregister) {
+      oldregister(widget); // incase we're part of another context with a register function - chaining function calls
+    }
+  };
+  parent.getInstance = parent.getInstance || function(instanceName) {
+    return null;
+  };
+  return parent;
+};
 
 
 
@@ -9537,7 +9629,7 @@ com.marklogic.util.linkedlist.prototype.append = function(name,value) {
   }
   this._last = end;
   this._length++;
-  return this._length - 1;
+  return end;
 };
 
 com.marklogic.util.linkedlist.prototype.getLength = function() {
@@ -9604,8 +9696,9 @@ com.marklogic.util.linkedlist.prototype.moveTo = function(name,newPos) {
 };
 
 com.marklogic.util.linkedlist.prototype.insertAt = function(name,value,pos) {
-  this.append(name,value);
+  var item = this.append(name,value);
   this.moveTo(name,pos);
+  return item;
 };
 
 com.marklogic.util.linkedlist.prototype.remove = function(name) {

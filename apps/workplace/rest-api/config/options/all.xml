@@ -1,6 +1,13 @@
 <search:options xmlns:search="http://marklogic.com/appservices/search">
   <search:debug>false</search:debug>
   <search:transform-results apply="raw"/>
+  <search:additional-query>
+    <cts:not-query xmlns:cts="http://marklogic.com/cts">
+      <cts:collection-query>
+        <cts:uri>mljsInternalData</cts:uri>
+      </cts:collection-query>
+    </cts:not-query>
+  </search:additional-query>
   <search:constraint name="collection">
     <search:collection prefix=""/>
   </search:constraint>

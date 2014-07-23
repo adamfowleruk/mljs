@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="MarkLogic Workplace template">
     <meta name="author" content="">
-    <link rel="shortcut icon" href="assets/ico/favicon.ico">
+    <link rel="shortcut icon" href="/images/favicon.ico">
 
     <title>MarkLogic Workplace</title>
 
@@ -43,7 +43,7 @@ Will you create a content status Dashboard? How about a powerful Search & Discov
 application exposing the power of MarkLogic in minutes!</p>
 
         <p>
-          <a class="btn btn-lg btn-primary" href="/applications.html5" role="button">Start creating now &raquo;</a>
+          <a class="btn btn-lg btn-primary" href="/application.html5" role="button">Start creating now &raquo;</a>
         </p>
       </div>
 

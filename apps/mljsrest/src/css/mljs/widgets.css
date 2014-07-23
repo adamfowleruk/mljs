@@ -960,7 +960,7 @@ div.log {
 
 /** Workplace admin **/
 #workplaceeditormain {
-  z-index: 1000;
+  z-index: 99999999; /* openlayers has controls at 1004 zindex */
   position:absolute;
   top: 0px;
   left: 0px;

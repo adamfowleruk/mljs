@@ -3238,3 +3238,58 @@ com.marklogic.widgets.searchmetrics.prototype.updateResults = function(results) 
   // send output to webpage DOM (do not make multiple edits to the DOM - it's slower)
   document.getElementById(this.container).innerHTML = str;
 };
+
+
+
+
+
+
+
+
+
+com.marklogic.widgets.refreshsearch = function(container) {
+  this.container = container;
+
+  this._searchContext = null;
+
+  this._config = {
+    mode: "structured" // structured or content
+  };
+
+  var s = "<div class='mljswidget refreshsearch' id='" + this.container + "-outer'>";
+  s += "<button class='btn btn-primary glyphicon glyphicon-refresh' id='" + this.container + "-button'></button>";
+  s += "</div>";
+  document.getElementById(this.container).innerHTML = s;
+
+  var self = this;
+  document.getElementById(this.container + "-button").onclick = function() {
+    console.log("refreshsearch: Click");
+    if (null != self._searchContext) {
+      if ("structured" == self._config.mode) {
+        self._searchContext.contributeStructuredQuery(self.container,null); // forces search (without blank contributed search term)
+      } else {
+        // do simple query with last query value
+        self._doSimpleQuery(null); // forces default query // TODO make this last query, not just default
+      }
+    }
+  };
+};
+
+com.marklogic.widgets.refreshsearch.getConfigurationDefinition = function() {
+  return {
+    mode: {type: "enum", default: "structured", title: "Search Mode", description: "Are we executing a structured (or values) query, or content query?",
+      options: [
+        {value: "structured", title: "Structured", description: "Structured Query"},
+        {value: "content", title: "Content", description: "(Defualt) Content Query"}
+      ]}
+  };
+};
+
+
+com.marklogic.widgets.refreshsearch.prototype.setConfiguration = function(config) {
+  this._config = config;
+};
+
+com.marklogic.widgets.refreshsearch.prototype.setSearchContext = function(ctx) {
+  this._searchContext = ctx;
+};

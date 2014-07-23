@@ -29,14 +29,13 @@ com.marklogic.widgets.cooccurence = function(container) {
   this.selectionPublisher = new com.marklogic.events.Publisher();
 
   this._config = {
-    title: "Co-occurence"
+    title: "Co-occurence",
+    displayTuple: null
   };
 
   this.values = null;
 
   this.constraintArray = null;
-
-  this._displayTuple = null;
 
   this._refresh();
 };
@@ -49,7 +48,8 @@ com.marklogic.widgets.cooccurence = function(container) {
 com.marklogic.widgets.cooccurence.getConfigurationDefinition = function() {
   var self = this;
   return {
-    title: {type: "string", default: "Co-occurence", title: "Title",description: "Title for this widget."}
+    title: {type: "string", default: "Co-occurence", title: "Title",description: "Title for this widget."},
+    displayTuple: {type: "string", default: null, title: "Display Tuple",description: "Tuple name to display."}
   };
 };
 
@@ -72,7 +72,7 @@ com.marklogic.widgets.cooccurence.prototype.setConfiguration = function(config) 
  * @param {string} tuplename - The name of the tuple to only respond to
  */
 com.marklogic.widgets.cooccurence.prototype.displayTuple = function(tuplename) {
-  this._displayTuple = tuplename;
+  this._config.displayTuple = tuplename;
 };
 
 /**
@@ -121,7 +121,7 @@ com.marklogic.widgets.cooccurence.prototype.updateValues = function(values) {
   if ("boolean" == typeof(values)) {
     return;
   }
-  if (null == this._displayTuple || (undefined != values["values-response"] && this._displayTuple == values["values-response"].name)) {
+  if (null == this._config.displayTuple || (undefined != values["values-response"] && this._config.displayTuple == values["values-response"].name)) {
     this.values = values;
 
     this._refresh();
