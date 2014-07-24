@@ -5162,6 +5162,7 @@ mljs.prototype.options.prototype.values = function(name) { // TODO handle values
  */
 mljs.prototype.options.prototype.defaultLimit = function(num) {
   this.defaults.limit = num;
+  return this;
 };
 
 
