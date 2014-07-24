@@ -60,7 +60,12 @@ cp $RA/css/bootstrap-roxy.css $SA/public/css/bootstrap-roxy.css
 cp $RA/css/kratu.css $SA/public/css/kratu.css
 #cp mldbwebtest/src/public/css/reset.css mljsrest/src/css/reset.css
 cp -R $RA/css/960 $SA/public/css/
-cp apps/mljsrest/rest-api/ext/* apps/mldbwebtest/rest-api/ext/
+
+#cp apps/mljsrest/rest-api/ext/* apps/mldbwebtest/rest-api/ext/
+cp src/rest-api/ext/* apps/mldbwebtest/rest-api/ext/
+cp src/rest-api/ext/* apps/mljsrest/rest-api/ext/
+cp src/rest-api/ext/* apps/workplace/rest-api/ext/
+
 cp $RA/app/models/rdb2rdf-lib.xqy $SA/app/models/
 cp $RA/app/models/lib-thesaurus.xqy $SA/app/models/
 cp $RA/app/config/config.xqy $SA/app/config/
@@ -86,7 +91,7 @@ cp $RA/css/bootstrap* $WA/css/
 cp $RA/js/bootstrap* $WA/js/
 #cp mldbwebtest/src/public/css/reset.css mljsrest/src/css/reset.css
 #cp -R $RA/css/960 $SA/css/
-cp apps/mljsrest/rest-api/ext/* apps/workplace/rest-api/ext/
+#cp apps/mljsrest/rest-api/ext/* apps/workplace/rest-api/ext/
 cp $RA/app/models/rdb2rdf-lib.xqy $WA/app/models/
 cp $RA/app/models/lib-thesaurus.xqy $WA/app/models/
 #cp $RA/app/config/config.xqy $WA/app/config/
