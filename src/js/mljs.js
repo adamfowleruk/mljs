@@ -5104,7 +5104,7 @@ mljs.prototype.options.prototype.getConstraint = function(name) {
  * @param {string} name - The name of the tuples configuration to create
  * @param {string|JSON} el - The json element for a co-occurence. Either a range constraint name, element/json key name (string) or a full REST API range type object (JSON). You can specify any number of these as required (minimum 2)
  */
-mljs.prototype.options.prototype.tuples = function(name) { // TODO handle infinite tuple definitions (think /v1/ only does 2 at the moment anyway)
+mljs.prototype.options.prototype.tuples = function(name) { // TODO handle values-options and aggregate configuration
   var tuples = {name: name,range: new Array()};
   if (undefined == this.options.tuples) {
     this.options.tuples = new Array();
@@ -5122,6 +5122,9 @@ mljs.prototype.options.prototype.tuples = function(name) { // TODO handle infini
       tuples.range.push(con.range);
     }
   }
+  if (undefined != this.defaults.limit) {
+    tuples["values-option"] = ["limit=" + this.defaults.limit]; // TODO validate this is a valid option for tuples (docs only mention values)
+  }
   this.options.tuples.push(tuples);
   return this;
 };
@@ -5132,7 +5135,7 @@ mljs.prototype.options.prototype.tuples = function(name) { // TODO handle infini
  * @param {string} name - The name of the values configuration to create
  * @param {string|JSON} el - The json element for a co-occurence. Either a range constraint name, element/json key name (string) or a full REST API range type object (JSON). You can specify any number of these as required
  */
-mljs.prototype.options.prototype.values = function(name) {
+mljs.prototype.options.prototype.values = function(name) { // TODO handle values-options and aggregate configuration
   var values = {name: name,range: new Array()};
   this.options["return-values"] = true;
   if (undefined == this.options.values) {
@@ -5146,9 +5149,21 @@ mljs.prototype.options.prototype.values = function(name) {
       values.range.push(con.range);
     }
   }
+  if (undefined != this.defaults.limit) {
+    values["values-option"] = ["limit=" + this.defaults.limit];
+  }
   this.options.values.push(values);
   return this;
 };
+
+/**
+ * Sets the default limit for values and tuples lookups (co-occurence and lexicon value listing)
+ * @param {postitiveInteger} num - The limit of the number of results to return
+ */
+mljs.prototype.options.prototype.defaultLimit = function(num) {
+  this.defaults.limit = num;
+};
+
 
 mljs.prototype.options.prototype.suggest = function(constraint,options_opt) {
   this.options["suggestion-source"].push({
