@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<search:options xmlns:search="http://marklogic.com/appservices/search">
+  <search:search-option>unfiltered</search:search-option>
+  <search:page-length>10</search:page-length>
+  <search:additional-query>
+    <cts:not-query xmlns:cts="http://marklogic.com/cts">
+      <cts:collection-query>
+        <cts:uri>mljsInternalData</cts:uri>
+        <cts:uri>senders</cts:uri>
+      </cts:collection-query>
+    </cts:not-query>
+  </search:additional-query>
+
+  <search:debug>false</search:debug>
+  <search:extract-metadata>
+    <search:constraint-value ref="location"/>
+    <search:constraint-value ref="sender"/>
+    <search:constraint-value ref="participant"/>
+    <search:qname elem-ns="http://www.marklogic.com/intel/intercept" elem-name="extract"/>
+    <search:qname elem-ns="http://www.marklogic.com/intel/intercept" elem-name="translationText"/>
+    <search:qname elem-ns="http://www.marklogic.com/intel/intercept" elem-name="extractLang"/>
+
+  </search:extract-metadata>
+  <search:transform-results apply="empty-snippet"/>
+  <search:constraint name="location">
+    <search:geo-elem-pair>
+      <search:parent name="coords" ns="http://www.marklogic.com/intel/intercept"/>
+      <search:lat name="lat" ns="http://www.marklogic.com/intel/intercept"/>
+      <search:lon name="lon" ns="http://www.marklogic.com/intel/intercept"/>
+      <search:geo-option>units=miles</search:geo-option>
+
+      <search:geo-option>coordinate-system=wgs84</search:geo-option>
+      <search:heatmap n="-22.601751738293885" s="-23.384274889550028" w="-43.87691212109409" e="-42.62996387890622" latdivs="14" londivs="19"/>
+    </search:geo-elem-pair>
+  </search:constraint>
+  <search:constraint name="sender">
+    <search:range type="xs:string" facet="true">
+      <search:path-index xmlns:i="http://www.marklogic.com/intel/intercept">/i:intercept/i:sender/i:identity-ref/i:service-id</search:path-index>
+      <search:facet-option>limit=10</search:facet-option>
+
+      <search:facet-option>fragment-frequency</search:facet-option>
+    </search:range>
+  </search:constraint>
+  <search:constraint name="participant">
+    <search:range type="xs:string" facet="true">
+      <search:path-index xmlns:i="http://www.marklogic.com/intel/intercept">/i:intercept/i:participants/i:identity-ref/i:service-id</search:path-index>
+      <search:facet-option>limit=10</search:facet-option>
+
+      <search:facet-option>fragment-frequency</search:facet-option>
+    </search:range>
+  </search:constraint>
+  <search:constraint name="topic">
+    <search:range type="xs:string" collation="http://marklogic.com/collation/">
+      <search:element name="topic" ns="http://www.marklogic.com/intel/intercept"/>
+    </search:range>
+  </search:constraint>
+
+  <search:constraint name="type">
+    <search:range type="xs:string" collation="http://marklogic.com/collation/">
+      <search:element name="type" ns="http://www.marklogic.com/intel/intercept"/>
+    </search:range>
+  </search:constraint>
+  <search:constraint name="feed">
+    <search:range type="xs:string" collation="http://marklogic.com/collation/">
+      <search:element name="feed" ns="http://www.marklogic.com/intel/intercept"/>
+    </search:range>
+
+  </search:constraint>
+  <search:constraint name="language">
+    <search:range type="xs:string" collation="http://marklogic.com/collation/">
+      <search:element name="extractLang" ns="http://www.marklogic.com/intel/intercept"/>
+    </search:range>
+  </search:constraint>
+  <search:return-metrics>true</search:return-metrics>
+
+  <search:return-qtext>true</search:return-qtext>
+  <search:return-query>false</search:return-query>
+  <search:return-results>true</search:return-results>
+  <search:return-similar>false</search:return-similar>
+  <search:sort-order direction="descending">
+    <search:score/>
+    <search:annotation>Relevancy (Desc)</search:annotation>
+
+  </search:sort-order>
+  <search:sort-order direction="ascending" type="xs:string" collation="http://marklogic.com/collation/">
+    <search:element name="topic" ns="http://www.marklogic.com/intel/intercept"/>
+  </search:sort-order>
+  <search:sort-order direction="descending" type="xs:string" collation="http://marklogic.com/collation/">
+    <search:element name="topic" ns="http://www.marklogic.com/intel/intercept"/>
+  </search:sort-order>
+  <search:sort-order direction="ascending" type="xs:string" collation="http://marklogic.com/collation/">
+    <search:element name="type" ns="http://www.marklogic.com/intel/intercept"/>
+
+  </search:sort-order>
+  <search:sort-order direction="descending" type="xs:string" collation="http://marklogic.com/collation/">
+    <search:element name="type" ns="http://www.marklogic.com/intel/intercept"/>
+  </search:sort-order>
+  <search:sort-order direction="ascending" type="xs:string" collation="http://marklogic.com/collation/">
+    <search:element name="feed" ns="http://www.marklogic.com/intel/intercept"/>
+  </search:sort-order>
+  <search:sort-order direction="descending" type="xs:string" collation="http://marklogic.com/collation/">
+    <search:element name="feed" ns="http://www.marklogic.com/intel/intercept"/>
+
+  </search:sort-order>
+  <search:sort-order direction="ascending" type="xs:string" collation="http://marklogic.com/collation/">
+    <search:element name="extractLang" ns="http://www.marklogic.com/intel/intercept"/>
+  </search:sort-order>
+  <search:sort-order direction="descending" type="xs:string" collation="http://marklogic.com/collation/">
+    <search:element name="extractLang" ns="http://www.marklogic.com/intel/intercept"/>
+  </search:sort-order>
+  <search:suggestion-source ref="sender"/>
+  <search:suggestion-source ref="participant"/>
+
+  <search:suggestion-source ref="topic"/>
+  <search:suggestion-source ref="type"/>
+  <search:suggestion-source ref="feed"/>
+  <search:suggestion-source ref="language"/>
+
+
+</search:options>
