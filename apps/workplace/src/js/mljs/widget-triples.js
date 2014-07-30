@@ -164,7 +164,7 @@ com.marklogic.widgets.semantichelper._drawSummary = function(irilink,si,iriHandl
       if (null != iriHandler) {
         s += "<a href='#' id='" + elid + "-link'>";
       }
-      s += cn + " (" + si.typeNameString + ")";
+      s += cn + " <small>" + si.typeNameString + "</small>";
 
       if (null != iriHandler) {
         s += "</a>";
@@ -1266,6 +1266,7 @@ com.marklogic.widgets.sparqlresults.prototype._refresh = function() {
   var s = "<div id='" + this.container + "-sparqlresults' class='mljswidget panel panel-info sparqlresults'>";
   s += "<div class='title panel-heading sparqlresults-title'>Subject Search Results</div>";
   s += "<div class='panel-body sparqlresults-content'>";
+  s += "<div class='list-group'>"
 
   var irilinks = new Array();
 
@@ -1295,22 +1296,22 @@ com.marklogic.widgets.sparqlresults.prototype._refresh = function() {
       // title - get name eventually
       var bindings = this.results.results.bindings;
       if (0 == bindings.length) {
-        s += "<div class='sparqlresults-results'>No Results</div>";
+        s += "<div class='list-group-item sparqlresults-results'>No Results</div>";
       }
       for (var b = 0,max = bindings.length, binding;b < max;b++) {
         binding = this.results.results.bindings[b];
-        s += "<div id='" + this.container + "-sparqlresults-result-" + b + "' class='sparqlresults-result";
+        s += "<div id='" + this.container + "-sparqlresults-result-" + b + "' class='list-group-item sparqlresults-result"; // change this to an a tag?
         if (null != this._iriHandler) {
           s += " sparqlresults-navigable";
         }
-        s += "'><h3>" + (b + 1) + ". ";
-        for (var et = 0, maxent = entities.length, entityValue;et < maxent;et++) {
+        s += "'><h4>" + (b + 1) + ". ";
+        for (var et = 0, maxent = 1 /*entities.length*/, entityValue;et < maxent;et++) { // TODO FIGURE OUT WHY THREE ARE HERE??? DUPLICATES???
           entityValue = binding[entities[et]];
           //s += entities[et] + " (" + entityValue.type + "): " + entityValue.value;
           s += "<span id='" + this.container + "-sparqlresults-result-" + b + "-summary'><i>Loading...</i></span>";
           irilinks.push({iri: entityValue.value, type: binding[entities[et]].type, elid: this.container + "-sparqlresults-result-" + b + "-summary"});
         }
-        s += "</h3></div>";
+        s += "</h4></div>";
       }
     }
    }
@@ -1318,7 +1319,7 @@ com.marklogic.widgets.sparqlresults.prototype._refresh = function() {
     s += "<i>No results</i>";
   }
 
-  s += "</div></div>";
+  s += "</div></div></div>";
 
   document.getElementById(this.container).innerHTML = s;
 

@@ -100,8 +100,8 @@
 }
 
 .mljswidget h4 {
-  font-size: 0.8em;
-  font-weight: 300;
+  /*font-size: 0.8em;
+  font-weight: 300;*/
 }
 
 .mljswidget .title {
@@ -716,15 +716,15 @@ span.person {
   color: #4B4B4B;
   margin-bottom: 15px;
   */ /* uncomment when not using bootstrap */
-  margin-bottom: 0px;
+  /*margin-bottom: 0px;*/
 }
 
 .sparqlresults-result {
-  width: 100%;
+  /*width: 100%;
   margin-bottom: 10px;
-  /*border: 2px solid red;*/
+  border: 2px solid red;
   border-bottom: 1px solid #eee;
-  padding: 5px;
+  padding: 5px;*/
 }
 
 .entityfacts-title {

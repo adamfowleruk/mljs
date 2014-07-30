@@ -117,31 +117,72 @@ com.marklogic.widgets.workplace.getInstance = function(instanceName) {
  * @param {workplacecontext} context - The Workplace context holding the configuration to render.
  */
 com.marklogic.widgets.workplace.prototype.updateWorkplace = function(context) {
+mljs.defaultconnection.logger.debug("workplace.updateWorkplace: UPDATING PAGE");
   var json = this._workplaceContext.getJson();
 
   // load top level layout for this page (or panel we are managing, at least)
-  mljs.defaultconnection.logger.debug("Creating layout");
+  mljs.defaultconnection.logger.debug("workplace.updateWorkplace: Creating layout");
   var layout = new (com.marklogic.widgets.layouts[json.layout])(this.container + "-layout");
 
   // generate named areas for widgets to be contained
-  mljs.defaultconnection.logger.debug("Creating zones");
+  mljs.defaultconnection.logger.debug("workplace.updateWorkplace: Creating zones");
   layout.createZones(json.assignments);
+
+
+  var contexts = {}; //new Array(); // contextid => context object
+
+  // create management contexts from connection object
+  mljs.defaultconnection.logger.debug("workplace.updateWorkplace: Creating contexts");
+  for (var c = 0, max = json.contexts.length,ctx;c < max;c++) {
+    ctx = json.contexts[c];
+    mljs.defaultconnection.logger.debug("workplace.updateWorkplace: Context: " + c + " is " + JSON.stringify(ctx));
+
+    var creator = mljs.defaultconnection["create" + ctx.type];
+    mljs.defaultconnection.logger.debug("workplace.updateWorkplace: Is creator function of type function?: " + (typeof creator));
+    var inst = creator.call(mljs.defaultconnection);
+    this._configurationContext.register(inst);
+    contexts[ctx.context] = inst;
+    mljs.defaultconnection.logger.debug("workplace.updateWorkplace: Is context instance valid?: is object?: " + (typeof inst));
+    var instances = this._classInstances[ctx.type];
+    if (undefined == instances) {
+      instances = [];
+      this._classInstances[ctx.type] = instances;
+    }
+    instances.push(inst);
+
+    // initialise context configuration
+    mljs.defaultconnection.logger.debug("workplace.updateWorkplace: Config: " + JSON.stringify(ctx.config));
+    //mljs.defaultconnection.logger.debug("Context Obj: " + JSON.stringify(inst));
+    if (undefined != inst.setConfiguration && undefined != ctx.config) {
+      mljs.defaultconnection.logger.debug("workplace.updateWorkplace: Setting context configuration");
+      inst.setConfiguration(ctx.config);
+    }
+
+    // register widgets with contexts - now done in _createWidget instead
+    //for (var wid = 0, widmax = ctx.register.length,widgetid;wid < widmax;wid++) {
+    //  widgetid = ctx.register[wid];
+    //  mljs.defaultconnection.logger.debug("registering widget: " + wid + " to " + widgetid);
+    //  inst.register(widgets[widgetid]);
+    //}
+  }
+
+  this._contexts = contexts;
+
 
   var widgets = {}; //new Array(); // widgetid => wgt instance
 
   // initialise widgets in these areas
-  mljs.defaultconnection.logger.debug("Creating widget instances");
+  mljs.defaultconnection.logger.debug("workplace.updateWorkplace: Creating widget instances");
   for (var w = 0, max = json.widgets.length,widget;w < max;w++) {
     widget = json.widgets[w];
-    mljs.defaultconnection.logger.debug("Creating widget: " + w + " with: " + JSON.stringify(widget));
+    mljs.defaultconnection.logger.debug("workplace.updateWorkplace: Creating widget: " + w + " with: " + JSON.stringify(widget));
 
     var item = layout.getAssignmentByWidgetName(widget.widget).item;
     var elementid = item.elementid;
 
-    var wgt = this._createWidget(widget.type,elementid,widget.config);
-    this._configurationContext.register(wgt);
+    var wgt = this._createWidget(widget.type,elementid,widget.config,widget.widget);
 
-    mljs.defaultconnection.logger.debug("Create widget has returned");
+    mljs.defaultconnection.logger.debug("workplace.updateWorkplace: Create widget has returned");
     widgets[widget.widget] = wgt;
     var instances = this._classInstances[widget.type];
     if (undefined == instances) {
@@ -153,63 +194,25 @@ com.marklogic.widgets.workplace.prototype.updateWorkplace = function(context) {
 
   this._widgets = widgets;
 
-  var contexts = {}; //new Array(); // contextid => context object
-
-  // create management contexts from connection object
-  mljs.defaultconnection.logger.debug("Creating contexts");
-  for (var c = 0, max = json.contexts.length,ctx;c < max;c++) {
-    ctx = json.contexts[c];
-    mljs.defaultconnection.logger.debug("Context: " + c + " is " + JSON.stringify(ctx));
-
-    var creator = mljs.defaultconnection["create" + ctx.type];
-    mljs.defaultconnection.logger.debug("Is creator function of type function?: " + (typeof creator));
-    var inst = creator.call(mljs.defaultconnection);
-    this._configurationContext.register(inst);
-    contexts[ctx.context] = inst;
-    mljs.defaultconnection.logger.debug("Is context instance valid?: is object?: " + (typeof inst));
-    var instances = this._classInstances[ctx.type];
-    if (undefined == instances) {
-      instances = [];
-      this._classInstances[ctx.type] = instances;
-    }
-    instances.push(inst);
-
-    // initialise context configuration
-    mljs.defaultconnection.logger.debug("Config: " + JSON.stringify(ctx.config));
-    //mljs.defaultconnection.logger.debug("Context Obj: " + JSON.stringify(inst));
-    if (undefined != inst.setConfiguration && undefined != ctx.config) {
-      mljs.defaultconnection.logger.debug("Setting context configuration");
-      inst.setConfiguration(ctx.config);
-    }
-
-    // register widgets with contexts
-    for (var wid = 0, widmax = ctx.register.length,widgetid;wid < widmax;wid++) {
-      widgetid = ctx.register[wid];
-      mljs.defaultconnection.logger.debug("registering widget: " + wid + " to " + widgetid);
-      inst.register(widgets[widgetid]);
-    }
-  }
-
-  this._contexts = contexts;
 
   // call onload actions in order
   if (undefined != json.actions && undefined != json.actions.onload) {
-    mljs.defaultconnection.logger.debug("Processing onload actions (" + json.actions.onload.length + ")");
+    mljs.defaultconnection.logger.debug("workplace.updateWorkplace: Processing onload actions (" + json.actions.onload.length + ")");
     for (var a = 0, max = json.actions.onload.length,action;a < max;a++) {
       action = json.actions.onload[a];
-      mljs.defaultconnection.logger.debug("Processing onload action: " + JSON.stringify(action));
+      mljs.defaultconnection.logger.debug("workplace.updateWorkplace: Processing onload action: " + JSON.stringify(action));
       var actionObject = new(com.marklogic.widgets.actions[action.type])();
-      mljs.defaultconnection.logger.debug("Got instance. Calling setConfiguration()...");
+      mljs.defaultconnection.logger.debug("workplace.updateWorkplace: Got instance. Calling setConfiguration()...");
       actionObject.setConfiguration(action.config);
-      mljs.defaultconnection.logger.debug("Finished configuring. Caling execute(this)...");
+      mljs.defaultconnection.logger.debug("workplace.updateWorkplace: Finished configuring. Caling execute(this)...");
       var result = actionObject.execute(this);
-      mljs.defaultconnection.logger.debug("Got result: " + JSON.stringify(result));
+      mljs.defaultconnection.logger.debug("workplace.updateWorkplace: Got result: " + JSON.stringify(result));
       // TODO do something with result
     }
-    mljs.defaultconnection.logger.debug("COMPLETE processing onload actions");
+    mljs.defaultconnection.logger.debug("workplace.updateWorkplace: COMPLETE processing onload actions");
   }
 
-  mljs.defaultconnection.logger.debug("finished loading page");
+  mljs.defaultconnection.logger.debug("workplace.updateWorkplace: finished loading page");
 };
 
 /**
@@ -233,7 +236,7 @@ com.marklogic.widgets.workplace._getWidgetClass = function(type) {
   return wobj;
 };
 
-com.marklogic.widgets.workplace.prototype._createWidget = function(type,elementid,config) {
+com.marklogic.widgets.workplace.prototype._createWidget = function(type,elementid,config,name) {
   mljs.defaultconnection.logger.debug("workplace._createWidget: Creating widget: " + type + " in " + elementid + " with config: " + JSON.stringify(config));
 
   var wobj = com.marklogic.widgets.workplace._getWidgetClass(type);
@@ -243,6 +246,30 @@ com.marklogic.widgets.workplace.prototype._createWidget = function(type,elementi
 
   mljs.defaultconnection.logger.debug("workplace._createWidget: has widget instance been created? type is object?: " + (typeof wgt));
 
+  if (undefined !== this._configurationContext) {
+    this._configurationContext.register(wgt);
+  }
+
+  var json = this._workplaceContext.getJson();
+  var getContext = function(cn) {
+    for (var c = 0,maxc = json.contexts.length,ct;c < maxc;c++) {
+      ct = json.contexts[c];
+      if (ct.context == cn) {
+        return ct;
+      }
+    }
+    return null;
+  };
+
+  // register with contexts first
+  for (var ctxname in this._contexts) {
+    var ctxconfig = getContext(ctxname);
+    var ctx = this._contexts[ctxname];
+    // check if reigster contains this widget's name
+    if (ctxconfig.register.contains(name)) {
+      ctx.register(wgt);
+    }
+  }
 
   // apply config to object
   if (undefined !== wgt.setConfiguration) { // backwards compatibility - widget may not have configuration
@@ -893,7 +920,12 @@ com.marklogic.widgets.layouts.thinthick.prototype._init = function() {
   s += "<div id='" + this.container + "-A' class='grid_4 col-md-4 col-xs-12 thinthick-thin'></div>";
   s += "<div id='" + this.container + "-B' class='grid_8 col-md-8 col-xs-12 thinthick-thick'></div>";
   s += "</div>";
-  document.getElementById(this.container).innerHTML = s;
+  var el = document.getElementById(this.container);
+  if (undefined == el) {
+    console.log("WARNING: ATTEMPTING TO SET NON EXISTENT LAYOUT ELEMENT: " + this.container);
+  } else {
+    el.innerHTML = s;
+  }
 };
 
 
@@ -919,7 +951,12 @@ com.marklogic.widgets.layouts.thickthin.prototype._init = function() {
   s += "<div id='" + this.container + "-A' class='grid_8 col-md-8 col-xs-12 thickthin-thick'></div>";
   s += "<div id='" + this.container + "-B' class='grid_4 col-md-4 col-xs-12 thickthin-thin'></div>";
   s += "</div>";
-  document.getElementById(this.container).innerHTML = s;
+  var el = document.getElementById(this.container);
+  if (undefined == el) {
+    console.log("WARNING: ATTEMPTING TO SET NON EXISTENT LAYOUT ELEMENT: " + this.container);
+  } else {
+    el.innerHTML = s;
+  }
 };
 
 
@@ -946,7 +983,12 @@ com.marklogic.widgets.layouts.column.prototype._init = function() {
   var s = "<div id='" + this.container + "-layout' class='container_12 row mljswidget layout column'>";
   s += "<div id='" + this.container + "-A' class='column col-md-12 col-xs-12'></div>";
   s += "</div>";
-  document.getElementById(this.container).innerHTML = s;
+  var el = document.getElementById(this.container);
+  if (undefined == el) {
+    console.log("WARNING: ATTEMPTING TO SET NON EXISTENT LAYOUT ELEMENT: " + this.container);
+  } else {
+    el.innerHTML = s;
+  }
 };
 
 
@@ -1331,7 +1373,7 @@ com.marklogic.widgets.workplacecontext.prototype.save = function(callback) { // 
   this.saveWorkplace(this._json,this._uri,null,function(result) {
     console.log("WORKPLACE SAVED");
 
-    self.loadPage(self._uri); // tries to remove all internal config and reload
+    self.loadPageWithUri(self._uri); // tries to remove all internal config and reload
     //self._fireUpdate();
     callback();
 
@@ -1346,7 +1388,11 @@ com.marklogic.widgets.workplacecontext.prototype.save = function(callback) { // 
  * TODO docs
  */
 com.marklogic.widgets.workplacecontext.prototype.getWorkplace = function(name,callback) {
-  this.db.get("/admin/workplace/" + encodeURI(name) + ".json", callback);
+  if (-1 == name.indexOf(".json")) {
+    this.db.get("/admin/workplace/" + encodeURI(name) + ".json", callback);
+  } else {
+    this.db.get(name, callback);
+  }
 };
 
 
@@ -1736,7 +1782,7 @@ com.marklogic.widgets.workplacecontext.prototype._processConfig = function() {
 /**
  * Loads the specified JSON or json string page configuration in to this context
  *
- * @param {json|string} jsonOrString - The configuration to load
+ * @param {json|string} jsonOrString - The configuration to load - Either the Page's Document URI (NOT web URL), or JSON object definition
  * @param {json} json_opt - Optional fall back JSON configuration, if remote workplace config does not exist. Useful for new applications.
  */
 com.marklogic.widgets.workplacecontext.prototype.loadPage = function(jsonOrString,json_opt) {
@@ -1815,13 +1861,13 @@ com.marklogic.widgets.workplacecontext.prototype.register = function(widget) {
   }
   if (undefined != widget.updateWorkplace) {
     var func = function(wp) {widget.updateWorkplace(wp);};
-    this._linker.link(widget,"WorkplaceUpdateListener",func);
     this.addWorkplaceUpdateListener(func);
+    this._linker.link(widget,"WorkplaceUpdateListener",func);
   }
   if (undefined != widget.updateMyPages) {
     var func = function(pages) {widget.updateMyPages(pages);};
-    this._linker.link(widget,"myPagesPublisher",func);
     this._myPagesPublisher.subscribe(func);
+    this._linker.link(widget,"myPagesPublisher",func);
   }
 };
 
@@ -3236,14 +3282,20 @@ com.marklogic.widgets.configwrapper.prototype._genConfigHTMLConf = function(json
       val = d.default;
       usedDefault = true;
     }
+    var hasSelected = false;
     str += "<select class='form-control' id='" + this.container + "-" + conf.id + "'>";
     for (var i = 0,opt,max=d.options.length; i < max;i++) {
       opt = d.options[i];
       str += "<option value='" + opt.value + "' title='" + opt.description + "' ";
       if (opt.value === val) {
         str += "selected='selected' ";
+        hasSelected = true;
       }
       str += ">" + opt.title + "</option>"; // TODO selected=selected if select.value doesn't work
+    }
+    if (!hasSelected /*&& null == d.default*/ && undefined != d.options[0]) {
+      json[name] = d.options[0].value;
+      usedDefault = false;
     }
     str += "</select>";
     conf.addhandler = function() {
@@ -3380,6 +3432,10 @@ com.marklogic.widgets.configwrapper.prototype._genConfigHTMLConf = function(json
     }
     str += "</table>";
     str += "</div>";
+
+
+
+
   } else if ("SearchContext"==d.type||"GeoContext"==d.type||"DocumentContext" == d.type||"SemanticContext"==d.type) {
     // TODO handle dynamic context class names
 
@@ -3388,6 +3444,7 @@ com.marklogic.widgets.configwrapper.prototype._genConfigHTMLConf = function(json
 
     addtitle();
     var val = c;
+    var hasSelected = false;
     if (undefined == c) {
       val = d.default;
       usedDefault = true;
@@ -3398,8 +3455,13 @@ com.marklogic.widgets.configwrapper.prototype._genConfigHTMLConf = function(json
       str += "<option value='" + opt + "' title='" + opt + "' ";
       if (opt === val) {
         str += "selected='selected' ";
+        hasSelected = true;
       }
       str += ">" + opt + "</option>";
+    }
+    if (!hasSelected && /*null == d.default &&*/ undefined != instances[0]) {
+      json[name] = instances[0];
+      usedDefault = false;
     }
     str += "</select>";
     conf.addhandler = function() {
@@ -3413,6 +3475,7 @@ com.marklogic.widgets.configwrapper.prototype._genConfigHTMLConf = function(json
 
           addtitle();
           var val = c;
+          var hasSelected = false;
           if (undefined == c) {
             val = d.default;
             usedDefault = true;
@@ -3423,8 +3486,13 @@ com.marklogic.widgets.configwrapper.prototype._genConfigHTMLConf = function(json
             str += "<option value='" + opt + "' title='" + opt + "' ";
             if (opt === val) {
               str += "selected='selected' ";
+              hasSelected = true;
             }
             str += ">" + opt + "</option>";
+          }
+          if (!hasSelected && /*null == d.default &&*/ undefined != instances[0]) {
+            json[name] = instances[0];
+            usedDefault = false;
           }
           str += "</select>";
           conf.addhandler = function() {
@@ -3439,6 +3507,7 @@ com.marklogic.widgets.configwrapper.prototype._genConfigHTMLConf = function(json
 
       addtitle();
       var val = c;
+      var hasSelected = false;
       if (undefined == c) {
         val = d.default;
         usedDefault = true;
@@ -3449,8 +3518,13 @@ com.marklogic.widgets.configwrapper.prototype._genConfigHTMLConf = function(json
         str += "<option value='" + opt + "' title='" + opt + "' ";
         if (opt === val) {
           str += "selected='selected' ";
+          hasSelected = true;
         }
         str += ">" + opt + "</option>";
+      }
+      if (!hasSelected && /*null == d.default &&*/ undefined != instances[0]) {
+        json[name] = instances[0];
+        usedDefault = false;
       }
       str += "</select>";
       conf.addhandler = function() {

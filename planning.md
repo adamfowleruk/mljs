@@ -21,7 +21,7 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
   - document all type defs
   - document all return values
  - Docs: Generate build of Workplace app in dist folder, with lightweight initial deployment scripts
- - IN PROGRESS Demo Jam updates
+ - DONE Demo Jam updates
   - DONE Bootstrap CSS themed Workplace admin
   - DONE App wide configuration page in workplace app created
   - DONE Create new page in Workplace app working
@@ -37,36 +37,37 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
    - DONE default doc view page url and params
    - DONE default semantic explore page and params
    - DEFERRED use method calls instead of setConfiguration on workplace widgets
-  - BUG MINOR UX left hand nav height not same as right hand - see JWs fix
+  - DEFERRED BUG MINOR UX left hand nav height not same as right hand - see JWs fix
   - DONE BUG action config selection for new not drawing
-  - BUG searchcontext search before loading search options does not work
-   - try adding reference to search methods correctly (not passing options name to REST)
-  - BUG entityfacts widget doesn't like unknown classes (Penguin)
-  - TEST BUG not loading facets on MarkLogic Document on workplace explorer page
+  - DONE BUG searchcontext search before loading search options does not work
+   - DONE try adding reference to search methods correctly (not passing options name to REST)
+  - DONE BUG openlayers geoheatmap update call on searchcontext errors is options not yet loaded
+  - DONE BUG entityfacts widget doesn't like unknown classes (Penguin)
+  - DONE BUG not loading facets on MarkLogic Document on workplace explorer page
   - DONE BUG page urls not showing up on app edit page
   - BUG MAJOR REST API ignoring collection parameter when POST ing search (and likely other query string params) - make this a query parameter when using post
   - DONE BUG Configure page link not working in Workplace app
   - DONE BUG page navbar or page list not updating when existing page edited to have new page url
   - DONE BUG Home location settings on geocontext (none appear)
-  - BUG MINOR UX Widgets: searchbar suggestions appear within div, not hovering over it (CSS? modal?)
-  - BUG MINOR PERFORMANCE workplacecontext - cache all pages if loadMyPages called - so loadPage just reads cache
-   - NB may need to tell loadPage to wait until other returns
-  - BUG USEFULNESS need heatmap configuration in openlayers widget in workplace (should just need index defining)
-  - IN PROGRESS MAJOR USABLE need series configuration in openlayers
-   - TEST Need to link to search context instance - type=SearchContext|GeoContext|SemanticContext|DocumentContext
-   - Need to add constraint and value extract to search options
-  - BUG MAJOR UX page doesn't refresh from sratch after saving workplace changes on same screen
-  - BUG semantic search results elements have too much padding (h3?)
-  - BUG add not-query(element-value-query(sem:triples - PLURAL ONLY)) to additional query
-  - BUG clicking subject in entity facts in workplace app breaks semantic search results widget (loading ... loading...)
-   - Not checking if data already exists for subject? (summary data already loaded)
-  - Better data for demo
-   - Can we get salesforce data exported?
-   - social media analytics?
-   - Perform static analysis to generate Subject's in triple store for collected tweet data
-   - Individual knows and messaged links
-   - Sent/Received summaries
-  - TEST lon, lat centre location for geocontext in pagecontext
+  - DEFERRED BUG MINOR UX Widgets: searchbar suggestions appear within div, not hovering over it (CSS? modal?)
+  - DEFERRED BUG MINOR PERFORMANCE workplacecontext - cache all pages if loadMyPages called - so loadPage just reads cache
+   - DEFERRED NB may need to tell loadPage to wait until other returns
+  - DONE DONE BUG USEFULNESS need heatmap configuration in openlayers widget in workplace (should just need index defining)
+  - DONE MAJOR USABLE need series configuration in openlayers
+   - DONE Need to link to search context instance - type=SearchContext|GeoContext|SemanticContext|DocumentContext
+   - DONE Need to add constraint and value extract to search options
+  - DONE BUG MAJOR UX page doesn't refresh from scratch after saving workplace changes on same screen
+  - DONE BUG semantic search results elements have too much padding (h4)
+  - DEFERRED review widget headings, whether to have them, do we want a generic heading item?
+  - DONE BUG add not-query(element-value-query(sem:triples - PLURAL ONLY)) to additional query
+  - DONE BUG clicking subject in entity facts in workplace app breaks semantic search results widget (loading ... loading...)
+   - DONE Same subject has multiple entities returns in Sparql
+  - DONE Better data for demo
+   - DONE social media analytics
+   - DONE Perform static analysis to generate Subject's in triple store for collected tweet data
+   - DONE Individual knows and messaged links
+   - DONE Sent/Received summaries
+  - NA Can only be done in widget for initial position - lon, lat centre location for geocontext in pagecontext
  - Docs: Remove all uses of the searchpage widget in demos
   - DEFERRED Ensure thinthick layout with embedded column layout works
    - DEFERRED create columns layout for workplace
@@ -117,23 +118,31 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
    - Pick a library - d3.js OR ...
  - IN PROGRESS Widgets: Various Widget Bugs / performance enhancements
   - HIGH
-   - DONE BUG Make links appear for related subjects where iriHandler is set
    - BUG Docs: Openlayers demo page hovering over marker causes null reference looking for result area by id to change css classes
    - BUG google maps address lookup longitude not working again (check latest social media code for fix - back port)
+   - BUG changing zoom or otherwise altering openlayer search forces collection constraint (any text query) to be forgotten - same is true in reverse
+    - We don't cache text query as a contributed query?
+   - BUG UX Usefulness - OpenLayers needs to be easily configurable to show a marker - what data can be mapped? (At moment just document value path)
+    - Need to support metadata, including lon/lat geo pair data, summary or title string data, description data, as a minimum
    - DONE BUG Workplace page not loading at all - error in workplace js file
    - DONE Widgets: Gracefully handle RDF types that have not been configured in the triple config
    - DONE BUG why don't suggestions show facet values, only facet names?
+   - DONE BUG Make links appear for related subjects where iriHandler is set
   - BUG Clicking on Bar chart value gives: Point clicked: x:0, series name:'animal', y:3 data: undefined
+  - BUG Docs: why aren't there any suggestions on infobox page?
+  - BUG Too many REST requests - Kill suggestions request before issuing another request (one per letter typed)
+  - BUG workplace repeatedly dragging new widget classes on to layout causes top widget only to be rendered, to first two parts of zone
+  - BUG main.js - commented out use of GET graph as it returns HTML not JSON, causing conversion error
+  - BUG explorer widget scroll bar should be at top when needed
+  - BUG explorer widget should respond to swipe gestures
   - DONE BUG highcharts configuration in Workplace 'thin' column overflows container
-  - Kill suggestions request before issuing another request (one per letter typed)
   - DONE BUG add data series button not working on newly dragged instance of highcharts widget
   - DONE BUG empty strings in widget context config for directory, format, transform results in invalid searches
   - DONE BUG autoCategories on highcharts was false by default, should be true
   - DONE BUG widget-search.js line 560 - suggestions.suggestions is undefined (not a snippeting search)
   - DONE BUG workplace clicking on contexts results in js error
-  - BUG workplace load executing two searches on single searchcontext (hence slow page load)
+  - NA One for nav bar - BUG workplace load executing two searches on single searchcontext (hence slow page load)
   - NA BUG workplace Need scroll bar adding to main widget layout area so it doesn't overflow
-  - BUG workplace repeatedly dragging new widget classes on to layout causes top widget only to be rendered, to first two parts of zone
   - DONE BUG Sparqlbar and graphexplorer widgets no longer work
   - DONE BUG no empty results message in sparqlresults
   - DONE BUG no empty results message in entityfacts
@@ -146,13 +155,9 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
   - DONE BUG null when selecting Document as first subject in sparqlbar
   - DONE BUG selecting a reltype causes a child term to be added when there wasn't already one
   - DONE BUG search auto complete totally broke on infobox page
-  - BUG Docs: why aren't there any suggestions on infobox page?
   - DONE BUG GET /v1/graph should be /v1/graphs
-  - BUG main.js - commented out use of GET graph as it returns HTML not JSON, causing conversion error
   - DONE BUG explorer widget fails when trying to link to subject that has already been drawn
   - DONE BUG explorer widget doesn't always hide hover labels (likely because line drawn over them taking the focus)
-  - BUG explorer widget scroll bar should be at top when needed
-  - BUG explorer widget should respond to swipe gestures
   - DONE BUG explorer widget doesn't handle non known rdfTypes gracefully
   - DONE BUG explorer widget doesn't show more than one instance for a particular predicate
   - DONE BUG infobox page: empty sparql results does not empty entity facts area of facts
@@ -372,39 +377,6 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
   - Docs: Get hold of MarkLogic bootstrap theme CSS from MY (License?)
   - Get MY to review app, workplace and widget UX
    - Ask about info panel headings on interaction vs. results panels
- - Advanced workplace functionality
-  - application wide settings
-   - DONE in all search options - By default exclude all workplace admin collection documents from search (additionalProperties, searchoptions, in searchcontext)
-   - Widget: list/create/remove search options
-    - automatically used a textarea instead of an input box if large string used
-   - Widget: edit search options
-    - handle basic search options
-     - options name
-     - number of results per page
-     - document transform
-     - additionalQuery
-    - list available indexes for constraints/facets (possible without priviliges or admin port?)
-    - search for a document and introspect to identify facets/constraints
-     - element value constraint
-     - indexed constraints
-     - validation feedback on the fly of indexed constraints
-     - allow specification of extracted metadata
-     - allow co-occurence specification
-  - Allow using other existing pages as template (copy and edit)
-   - template search well and results
-   - workplace page preview?
- - Workplace Security review
-  - Ensure all documents are created such that all app users can read them
-  - Ensure users can specify sharing constraints for workplace pages
-   - Private (only I can read and edit)
-   - Shared (Only I can edit, others can read/open page)
-   - Public (any valid user can edit or read the workplace page)
-  - Special role/privilige for editing workplace app documents?
-  - Workplace wide defaults for hiding Workplace config documents from all search results (How does REST API do this?)
-  - Share workplace via permissions
-  - Share workplace via URL
-   - Add this to My Workplaces option on non-owned workplace page load
-  - Edit limited to owner of workplace
  - DONE Docs: Workplace standalone app
   - DONE Roxy base rest only project
   - DONE Update build scripts to send latest files in to project
@@ -440,8 +412,43 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
    - DONE foldering fix
    - IN PROGRESS re-register mljs-bower with bower guys
 
-Targets for 1.8 (Aug 2014) - Theme: Visualisations
+Targets for 1.7 (Aug 2014) - Theme: Minor Workplace and styling improvements
+ - Workplace Security review
+  - Ensure all documents are created such that all app users can read them
+  - Ensure users can specify sharing constraints for workplace pages
+   - Private (only I can read and edit)
+   - Shared (Only I can edit, others can read/open page)
+   - Public (any valid user can edit or read the workplace page)
+  - Special role/privilige for editing workplace app documents?
+  - Workplace wide defaults for hiding Workplace config documents from all search results (How does REST API do this?)
+  - Share workplace via permissions
+  - Share workplace via URL
+   - Add this to My Workplaces option on non-owned workplace page load
+  - Edit limited to owner of workplace
+
+Targets for 1.8 (Sep 2014) - Theme: Visualisations
  - Workplace additions
+  - Advanced workplace functionality
+   - application wide settings
+    - DONE in all search options - By default exclude all workplace admin collection documents from search (additionalProperties, searchoptions, in searchcontext)
+    - Widget: list/create/remove search options
+     - automatically used a textarea instead of an input box if large string used
+    - Widget: edit search options
+     - handle basic search options
+      - options name
+      - number of results per page
+      - document transform
+      - additionalQuery
+     - list available indexes for constraints/facets (possible without priviliges or admin port?)
+     - search for a document and introspect to identify facets/constraints
+      - element value constraint
+      - indexed constraints
+      - validation feedback on the fly of indexed constraints
+      - allow specification of extracted metadata
+      - allow co-occurence specification
+  - Allow using other existing pages as template (copy and edit)
+   - template search well and results
+   - workplace page preview?
   - Allow sublayouts
    - Have all layouts mixin getConfigurationDefinition and setConfiguration functions
    - Add layouts to widgets class list in own section at top

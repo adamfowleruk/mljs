@@ -553,25 +553,33 @@ com.marklogic.widgets.graphexplorer.prototype._drawSubjectDetail = function(subj
 
     var facets = this.facetCache[uri];
     if (null == facets) {
-      mljs.defaultconnection.logger.debug("PROCESSING ML DOCUMENT SUBJECT: " + subjectIri);
+      mljs.defaultconnection.logger.debug("WE: NO FACETS CACHE. PROCESSING ML DOCUMENT SUBJECT: " + subjectIri);
 
       loadingContent = true;
 
       this.documentContext.getFacets(uri,this.searchOptionsName); // TODO in future may change this to the URI property rather than relying on the URI as the subjectIri (incase many entities link to the same doc)
     } else {
+
+        mljs.defaultconnection.logger.debug("WE: Got facet values in cache");
       for (facet in facets) {
+        mljs.defaultconnection.logger.debug("WE: facet name: " + facet);
         var values = facets[facet].facetValues;
-        var max = values.length;
         var facetValues = "";
-        for (var v = 0;v < max;v++) {
-          var fv = values[v];
-          if (v > 0) {
-            facetValues += ", ";
+        if (undefined != values) {
+          var max = values.length;
+          for (var v = 0;v < max;v++) {
+            var fv = values[v];
+            if (v > 0) {
+              facetValues += ", ";
+            }
+              mljs.defaultconnection.logger.debug("WE: facet value: " + fv.name);
+            facetValues += fv.name;
           }
-          facetValues += fv.name;
         }
         if ("" != facetValues) {
-          propValues[facet] = {value: facetValues, title: facet, type: "facet"};
+
+            mljs.defaultconnection.logger.debug("WE: setting prop values");
+          propValues[facet] = [{value: facetValues, title: facet, type: "facet"}];
         }
       }
     }

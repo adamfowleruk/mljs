@@ -5917,6 +5917,9 @@ mljs.prototype.searchcontext.prototype.setConfiguration = function(config) {
   if ("" == this._searchEndpoint) {
     this._searchEndpoint = "search";
   }
+  if (null != this._options && "" != this._options) {
+    this._options = JSON.parse(this._options); // saved as string currently - may change later
+  }
 
   // if blank optionsName, set to 'all', and attempt to load it
   var self = this;
@@ -6552,6 +6555,10 @@ mljs.prototype.searchcontext.prototype.updateGeoHeatmap = function(constraint_na
 
     // copy heatmap information in to search options
     var con = null;
+    if (undefined == this._options || undefined == this._options.options || undefined == this._options.options.constraint) {
+      return;
+    }
+
     for (var i = 0, max = this._options.options.constraint.length;i < max && null == con;i++) {
       con = this._options.options.constraint[i];
       if (con.name == constraint_name) {
