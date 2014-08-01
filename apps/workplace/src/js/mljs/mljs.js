@@ -3152,6 +3152,7 @@ mljs.prototype.dlsrule = function(name,callback) {
  * @param {function} callback - The callback to invoke after the method completes
  */
 mljs.prototype.version = function(callback) {
+  /*
   var options = {
     path: "/v1/resources/version",
     method: "GET",
@@ -3161,6 +3162,18 @@ mljs.prototype.version = function(callback) {
   this.__doreq("VERSION",options,null,function(result){
     if (!result.inError) {
       that._version = result.doc.version;
+    } else {
+      that._version = false; // indicates error
+    }
+    callback(result);
+  });*/
+  var options = {
+    path: "/v1/graphs", method: "HEAD"
+  };
+  var that = this;
+  this.__doreq("VERSION",options,null,function(result){
+    if (!result.inError) {
+      that._version = "7.0-1";
     } else {
       that._version = false; // indicates error
     }
@@ -5936,9 +5949,13 @@ mljs.prototype.searchcontext.prototype.setConfiguration = function(config) {
   };
   if (null == this.optionsName) {
     this.optionsName = "all"; // in case of async issues on page load
+    // assume they exist
+    this.optionsExist = true;
     loadOptions("all");
   } else {
     if (null == this._options || null == this._options.options) {
+      // assume they exist
+      this.optionsExist = true;
       // name set, options not loaded yet
       loadOptions(this.optionsName);
     }

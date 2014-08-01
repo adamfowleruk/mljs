@@ -45,20 +45,29 @@ com.marklogic.widgets.graphexplorer = function(container) {
   this.properties = new Array(); // {htmlid: "span3456", parentid: "div1234", predicate: ""}
 
   this.propertyCache = new Array(); // subjectiri -> facts json
-  this.facetCache = new Array(); // subjectIri -> facets json
+  this.facetCache = new Array(); // documentUri -> facets json
 
   this.drawWhenComplete = new Array(); // JSON object {subject: iri, dependencies: [string dep iri]}
 
   this.columnCount = new Array(); // 1 based column number > count of widgets drawn in there
 
-  this.searchOptionsName = "default";
+  this.searchOptionsName = "all";
 
   this.columnWidths = new Array(); // colnumber -> pixel width maximum in column
   this.rowHeights = new Array(); // crownumber -> pixel height maximum in row
 
   this._existingPaths = {}; // this._existingPaths[parentiri][childiri] = path
 
+  this._messageBoxes = new Array(); // list of msgboxes shown, to destroy!!!
+
   this._init();
+};
+
+com.marklogic.widgets.graphexplorer.prototype.setConfiguration = function(config) {
+  // TODO REPLACE THIS UGLY HACK
+  if (undefined != config.iri) {
+    this.drawSubject(config.iri);
+  }
 };
 
 /**
@@ -313,6 +322,16 @@ com.marklogic.widgets.graphexplorer.prototype._entityFromIRI = function(iri) {
   return null;
 };
 
+com.marklogic.widgets.graphexplorer.prototype._iriFromUri = function(uri) {
+  for (var i = 0, max = this.entities.length, ent;i < max;i++) {
+    ent = this.entities[i];
+    if (ent.docuri == uri) {
+      return ent.subjectiri;
+    }
+  }
+  return null;
+};
+
 com.marklogic.widgets.graphexplorer.prototype._propertyFromUI = function(elid) {
   for (var i = 0, max = this.properties.length, prop;i < max;i++) {
     prop = this.properties[i];
@@ -365,6 +384,12 @@ com.marklogic.widgets.graphexplorer.prototype._getColumnCount = function(column)
  * @param {integer} row - The row to draw this subject in
  */
 com.marklogic.widgets.graphexplorer.prototype.drawSubject = function(subjectIri,parentIri,column,row) {
+  if (undefined == column) {
+    column = 1;
+  }
+  if (undefined == row) {
+    row = 1;
+  }
     if (1 == column && 1 == row) {
       this._incrementColumnCount(1);
     }
@@ -441,7 +466,7 @@ com.marklogic.widgets.graphexplorer.prototype._drawSubjectDetail = function(subj
   // draw subject box itself
 
   // use semantic config to find common name and type (use summarise into code)
-  var scfg = this.semanticContext.getConfiguration();
+  var scfg = this.semanticContext.getTripleConfiguration();
 
 
   var propValues = new Array();
@@ -451,15 +476,15 @@ com.marklogic.widgets.graphexplorer.prototype._drawSubjectDetail = function(subj
   var title = subjectIri;
   var docuri = null; // only applicable to MarkLogic document entities - see later code in this function
   var type = "Unknown";
-    for (var b = 0,bindings = facts.results.bindings, max = bindings.length, predicate, obj, binding;b < max;b++) {
+    for (var b = 0,bindings = facts, max = bindings.length, predicate, obj, binding;b < max;b++) {
       binding = bindings[b];
       predicate = binding.predicate;
-      //mljs.defaultconnection.logger.debug("OUR PREDICATE: " + JSON.stringify(predicate));
+      mljs.defaultconnection.logger.debug("OUR PREDICATE: " + JSON.stringify(predicate));
       var pinfo = scfg.getPredicateFromIRI(predicate.value);
-      //mljs.defaultconnection.logger.debug("OUR PINFO: " + JSON.stringify(pinfo));
+      mljs.defaultconnection.logger.debug("OUR PINFO: " + JSON.stringify(pinfo));
       var obj = binding.object;
-      //mljs.defaultconnection.logger.debug("OUR OBJECT: " + JSON.stringify(obj));
-      //mljs.defaultconnection.logger.debug("OUR BINDING: " + JSON.stringify(binding));
+      mljs.defaultconnection.logger.debug("OUR OBJECT: " + JSON.stringify(obj));
+      mljs.defaultconnection.logger.debug("OUR BINDING: " + JSON.stringify(binding));
 
       if (predicate.value != "http://www.w3.org/1999/02/22-rdf-syntax-ns#type") {
         var t = predicate.value;
@@ -472,7 +497,12 @@ com.marklogic.widgets.graphexplorer.prototype._drawSubjectDetail = function(subj
         }
 
         //props += "<b>" + t + ":</b> " + obj.value + "<br/>";
-        propValues[predicate.value] = {value: obj.value, title: ttitle, type: obj.type};
+        // WARNING the below REMOVES multiple relations with the same PREDICATE!!!
+        var pv = propValues[predicate.value];
+        if (undefined == pv) {
+          pv = propValues[predicate.value] = [];
+        }
+        propValues[predicate.value].push({value: obj.value, title: ttitle, type: obj.type});
 
         if (predicate.value == "http://marklogic.com/semantics/ontology/Document#uri") {
           docuri = obj.value;
@@ -496,7 +526,7 @@ com.marklogic.widgets.graphexplorer.prototype._drawSubjectDetail = function(subj
 
       var predValue = propValues[namepredicate];
       if (undefined != predValue) {
-        title = predValue.value;
+        title = predValue[0].value;
       } else {
         // leave title as iri
       }
@@ -516,31 +546,40 @@ com.marklogic.widgets.graphexplorer.prototype._drawSubjectDetail = function(subj
 
   if ("http://marklogic.com/semantics/ontology/Document" == baseType) {
     var uri = docuri; // SEE EARLIER CODE - OLD: //subjectIri.substring(48);
+    ent.docuri = uri;
 
     // check the subject cache for this IRI (done earlier in function)
     // <http://marklogic.com/semantics/ontology/Document#uri>
 
     var facets = this.facetCache[uri];
     if (null == facets) {
-      mljs.defaultconnection.logger.debug("PROCESSING ML DOCUMENT SUBJECT: " + subjectIri);
+      mljs.defaultconnection.logger.debug("WE: NO FACETS CACHE. PROCESSING ML DOCUMENT SUBJECT: " + subjectIri);
 
       loadingContent = true;
 
       this.documentContext.getFacets(uri,this.searchOptionsName); // TODO in future may change this to the URI property rather than relying on the URI as the subjectIri (incase many entities link to the same doc)
     } else {
+
+        mljs.defaultconnection.logger.debug("WE: Got facet values in cache");
       for (facet in facets) {
+        mljs.defaultconnection.logger.debug("WE: facet name: " + facet);
         var values = facets[facet].facetValues;
-        var max = values.length;
         var facetValues = "";
-        for (var v = 0;v < max;v++) {
-          var fv = values[v];
-          if (v > 0) {
-            facetValues += ", ";
+        if (undefined != values) {
+          var max = values.length;
+          for (var v = 0;v < max;v++) {
+            var fv = values[v];
+            if (v > 0) {
+              facetValues += ", ";
+            }
+              mljs.defaultconnection.logger.debug("WE: facet value: " + fv.name);
+            facetValues += fv.name;
           }
-          facetValues += fv.name;
         }
         if ("" != facetValues) {
-          propValues[facet] = {value: facetValues, title: facet, type: "facet"};
+
+            mljs.defaultconnection.logger.debug("WE: setting prop values");
+          propValues[facet] = [{value: facetValues, title: facet, type: "facet"}];
         }
       }
     }
@@ -553,9 +592,16 @@ com.marklogic.widgets.graphexplorer.prototype._drawSubjectDetail = function(subj
 
   var self = this;
   var addshow = function(relbox,rn,left,top,piri,riri) {
-    var msgbox;
+    var destroyBoxes = function() {
+      for (var bn = 0,maxbn = self._messageBoxes.length,thebox;bn < maxbn;bn++) {
+        thebox = self._messageBoxes[bn];
+        thebox.destroy();
+      }
+      self._messageBoxes = new Array();
+    };
     relbox.on("mouseover",function(){
-      msgbox = ren.label(rn,left+18,top-7).attr({
+      destroyBoxes();
+      var msgbox = ren.label(rn,left+18,top-7).attr({
         fill: "white",
         stroke: colors[4],
         'stroke-width': 4,
@@ -564,8 +610,9 @@ com.marklogic.widgets.graphexplorer.prototype._drawSubjectDetail = function(subj
       }).css({
         color: colors[0]
       }).add().shadow(true);
+      self._messageBoxes.push(msgbox);
     }).on("mouseout",function() {
-      msgbox.destroy();
+      destroyBoxes();
     }).on("click",function() {
       // TODO load related object
       mljs.defaultconnection.logger.debug("RELATION CLICKED: piri: " + piri + ", riri: " + riri);
@@ -584,7 +631,10 @@ com.marklogic.widgets.graphexplorer.prototype._drawSubjectDetail = function(subj
         targetrow = existingent.row;
         targetcol = existingent.column;
 
-        if (undefined != self._existingPaths[piri][riri]) {
+        if (undefined != self._existingPaths[subjectIri] && undefined != self._existingPaths[subjectIri][piri] &&
+            undefined != self._existingPaths[subjectIri][piri][riri]) {
+          // don't redraw existing link
+          // WRONG is showing ANY subject with this path, not OUR subject!
           return;
         }
       }
@@ -620,8 +670,9 @@ com.marklogic.widgets.graphexplorer.prototype._drawSubjectDetail = function(subj
         'stroke-width': 2,stroke: colors[0] }).add();
 
       // add to existing to ensure duplicate paths are not drawn
-      self._existingPaths[piri] = self._existingPaths[piri] || {};
-      self._existingPaths[piri][riri] = pth;
+      self._existingPaths[subjectIri] = self._existingPaths[subjectIri] || {};
+      self._existingPaths[subjectIri][piri] = self._existingPaths[subjectIri][piri] || {};
+      self._existingPaths[subjectIri][piri][riri] = pth;
     });
 
   };
@@ -629,27 +680,35 @@ com.marklogic.widgets.graphexplorer.prototype._drawSubjectDetail = function(subj
   var infos = new Array();
 
   for (var propname in propValues) {
-    if (propValues.hasOwnProperty(propname)) { // ensure property, not function
+    //if (propValues.hasOwnProperty(propname)) { // ensure property, not function
+    mljs.defaultconnection.logger.debug("PROPERTY VALUE: " + JSON.stringify(propValues[propname]));
+    mljs.defaultconnection.logger.debug("PROPERTY VALUE TYPE: " + typeof(propValues[propname]));
+    if (Array.isArray(propValues[propname])) {
       mljs.defaultconnection.logger.debug("PROPERTY TO LIST: " + propname);
       prop = propValues[propname];
-      var propShow = prop.value;
-      if ("uri" == prop.type) {
-        // FIRST CHECK TO SEE IF THE RELATED OBJECT'S PROPERTIES ARE CACHED
-        // IF NOT, LOAD
-        var relname = this._generateNameLink(prop.value);
-        if (null == relname) {
-          // load description later
-          var propCount = this.propertyCount++;
-          var elid = this.container + "-loadname-" + propCount;
-          //propShow = "<span id='" + elid + "'>" + "<i>Loading...</i>" + "</span>"; // not showing loading as we dont get a callback if there is no further details
-          propShow = "<span id='" + elid + "'>" + this._shortenSubjectIri(prop.value) + "</span>";
-          summaries.push(prop.value);
-        } else {
-          propShow = relname;
-          infos.push({relname: relname, propname:propname,propvalue:prop.value});
+      // TODO list multiples as indiviual rows
+      for (var p = 0,maxp = prop.length,prp;p <maxp;p++) {
+        prp = prop[p];
+        var propShow = prp.value;
+        if ("uri" == prp.type) {
+          // FIRST CHECK TO SEE IF THE RELATED OBJECT'S PROPERTIES ARE CACHED
+          // IF NOT, LOAD
+          var relname = this._generateNameLink(prp.value);
+          if (null == relname) {
+            // load description later
+            var propCount = this.propertyCount++;
+            var elid = this.container + "-loadname-" + propCount;
+            //propShow = "<span id='" + elid + "'>" + "<i>Loading...</i>" + "</span>"; // not showing loading as we dont get a callback if there is no further details
+            propShow = "<span id='" + elid + "'>" + this._shortenSubjectIri(prp.value) + "</span>";
+            summaries.push(prp.value);
+          } else {
+            propShow = relname;
+            infos.push({relname: relname, propname:propname,propvalue:prp.value});
+          }
         }
-      }
-      props += "<b>" + prop.title + ":</b> " + propShow + "<br/>";
+        props += "<b>" + prp.title + ":</b> " + propShow + "<br/>";
+
+      } // end prop multiple for
     }
   }
 
@@ -747,7 +806,7 @@ com.marklogic.widgets.graphexplorer.prototype._getSubjectName = function(subject
     return this._shortenSubjectIri(subjectIri);
   }
 
-  var scfg = this.semanticContext.getConfiguration();
+  var scfg = this.semanticContext.getTripleConfiguration();
 
   var predEntity = scfg.getEntityFromIRI(type);
   if (undefined == predEntity || undefined == predEntity.name) {
@@ -771,7 +830,7 @@ com.marklogic.widgets.graphexplorer.prototype._getSubjectName = function(subject
 com.marklogic.widgets.graphexplorer.prototype._getSubjectPredicate = function(cache,predIri) {
   mljs.defaultconnection.logger.debug("_getSubjectPredicate: loading predicate from cache. Predicate: " + predIri + " cache:- " + JSON.stringify(cache));
 
-  for (var b = 0,bindings = cache.results.bindings, max = bindings.length, predicate, obj, binding;b < max;b++) {
+  for (var b = 0,bindings = cache, max = bindings.length, predicate, obj, binding;b < max;b++) {
     binding = bindings[b];
     predicate = binding.predicate;
     if (predIri == predicate.value) {
@@ -787,13 +846,18 @@ com.marklogic.widgets.graphexplorer.prototype._getSubjectPredicate = function(ca
  * @param {object} result - The MLJS result wrapper. result.doc contains the SPARQL result in a JSON expression
  */
 com.marklogic.widgets.graphexplorer.prototype.updateSubjectFacts = function(result) {
-  mljs.defaultconnection.logger.debug("graphexplorer.updateSubjectFacts: " + result.subject);
+  if (true === result || false === result) {
+    return; // TODO clear display
+  }
+  mljs.defaultconnection.logger.debug("graphexplorer.updateSubjectFacts: " + JSON.stringify(result));
+  var subjects = com.marklogic.widgets.semantichelper.calculateUniqueSubjects(result);
 
   // get parentiri, subjectiri, rdftype and group facts to these three
   // find relevant parent-subject iri nodes on the display
   // update this particular data node
-  this.propertyCache[result.subject] = result.facts;
-  this._drawSubjectDetail(result.subject,result.facts);
+  var facts = this.semanticContext.getCachedFacts(subjects[0]).facts
+  this.propertyCache[subjects[0]] = facts;
+  this._drawSubjectDetail(subjects[0],facts);
 
   // check against draw when complete too
   // TODO make this more efficient by removing subjects that have been complete from dependencies
@@ -818,7 +882,7 @@ com.marklogic.widgets.graphexplorer.prototype.updateSubjectFacts = function(resu
       // redraw subject
       this._drawSubjectDetail(doc.subject,this.propertyCache[doc.subject]);
     } else {
-      mljs.defaultconnection.logger.debug("graphexplorer.updateSubjectFacts: Not got all for: " + doc.subject + " after loading facts for: " + result.subject);
+      mljs.defaultconnection.logger.debug("graphexplorer.updateSubjectFacts: Not got all for: " + doc.subject + " after loading facts for: " + subjects[0]);
       newDrawWhenComplete.push(doc);
     }
   }
@@ -839,7 +903,8 @@ com.marklogic.widgets.graphexplorer.prototype.updateDocumentFacets = function(re
   console.log("graphexplorer.updateDocumentFacets: URI: " + uri);
   this.facetCache[uri] = result.facets;
 
-  var iri = "http://marklogic.com/semantics/ontology/Document" + uri; // TODO replace with URI -> subject cache
+  //var iri = "http://marklogic.com/semantics/ontology/Document" + uri; // TODO replace with URI -> subject cache
+  var iri = this._iriFromUri(uri);
   var flen = 0;
   if (undefined != result.facets) {
     flen = result.facets.length;
@@ -858,7 +923,7 @@ com.marklogic.widgets.graphexplorer.prototype._dropped = function(propelid) {
   var entity = this._entityFromUI(prop.parentid);
 
   // get predicate info from semantic configuration object
-  var scfg = this.semanticContext.getConfiguration();
+  var scfg = this.semanticContext.getTripleConfiguration();
   var predicate = scfg.getPredicateInfo(prop.predicate); // TODO verify this call is correct name
 
   // add predicate to our built SPARQL query

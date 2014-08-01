@@ -19,52 +19,52 @@ com.marklogic = window.com.marklogic || {};
 com.marklogic.widgets = window.com.marklogic.widgets || {};
 
 /**
- * Creates a HighCharts wrapper widget. HighCharts is a commercial JavaScript graphing widget distributed with MarkLogic. 
+ * Creates a HighCharts wrapper widget. HighCharts is a commercial JavaScript graphing widget distributed with MarkLogic.
  * If you are using this widget against a MarkLogic application, you are licensed to use HighCharts
- * 
+ *
  * This widget is MLJS Workplace enabled.
- * 
+ *
  * @constructor
  * @param {string} container - HTML ID of the element to place this widget's content within.
  */
 com.marklogic.widgets.highcharts = function(container) {
   this.container = container;
-  
+
   // publicly settable properties
   this.aggregateFunction = "mean"; // sum, max, min, no avg (mean, median, mode instead)
   this.nameSource = "title"; // e.g. city name
   this.valueSource = "value"; // e.g. temperature
   this.categorySource = "category"; // E.g. month
   this.autoCategories = false;
-  
+
   this._title = "Title";
   this._subtitle = "Subtitle";
   this._xTitle = "Categories";
   this._yTitle = "Values";
   this._type = "line";
-  
+
   this._seriesNameToFacetName = {};
-  
+
   this.ctx = mljs.defaultconnection.createSearchContext();
-  
-  
+
+
   // TODO expose the below as configuration
   this.categoryOrdering = "month";
   this.categories = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-  
+
   // internal properties
   this.series = new Array();
-  
-  this.errorPublisher = new com.marklogic.events.Publisher(); 
-  
+
+  this.errorPublisher = new com.marklogic.events.Publisher();
+
   this._updateOptions();
-  
+
   this._refresh();
 };
 
 /**
  * Sets the search context for this widget
- * 
+ *
  * @param {searchcontext} c - The searchcontext to link to
  */
 com.marklogic.widgets.highcharts.prototype.setSearchContext = function(c) {
@@ -73,12 +73,12 @@ com.marklogic.widgets.highcharts.prototype.setSearchContext = function(c) {
 
 /**
  * Returns the MLJS Workplace configuration definition listing config properties supported by this widget
- * 
+ *
  * @static
  */
 com.marklogic.widgets.highcharts.getConfigurationDefinition = function() {
   return {
-    
+
     title: {type: "string", default: "My Chart", title: "Chart Title", description: "Main chart title."},
     subtitle: {type: "string", default: "", title: "Chart Subtitle", description: "Chart Subtitle."},
     xTitle: {type: "string", default: "", title: "X Axis Title", description: "Category X Axis Title."},
@@ -113,7 +113,7 @@ com.marklogic.widgets.highcharts.getConfigurationDefinition = function() {
           ]
         },
         nameSource: {type: "string", default: "title", title: "Name Source", description: "The element, JSON key, facet or hardcoded value to use to find the series name (dot delimited)."},
-        autoCategories: {type: "boolean", default: false, title: "Auto Categories", description: "Whether to replace the default categories (month names) with values automatically calculated from the Category Source definition."},
+        autoCategories: {type: "boolean", default: true, title: "Auto Categories", description: "Whether to replace the default categories (month names) with values automatically calculated from the Category Source definition."},
         categorySourceType: {type: "enum", default: "element", title: "Category Source Type", description: "Where to get the Category from",
           options: [
             {value: "element", title: "Element or JSON key", description: "XML Element value or JSON key value"},
@@ -149,18 +149,20 @@ com.marklogic.widgets.highcharts.getConfigurationDefinition = function() {
 
 /**
  * Sets the configuration for this instance of a widget in an MLJS Workplace
- * 
+ *
  * @param {json} config - The JSON Workplace widget configuration to apply
  */
 com.marklogic.widgets.highcharts.prototype.setConfiguration = function(config) {
   for (var prop in config) {
     if (prop == "title" || prop == "subtitle" || prop == "xTitle" || prop == "yTitle" || prop == "type") {
       mljs.defaultconnection.logger.debug("Setting HighCharts options: " + prop + " to " + config[prop]);
-      this[prop] = config[prop];
+      this["_" + prop] = config[prop];
     }
   }
   this._updateOptions();
-  
+
+  if (undefined != config && undefined != config.series && Array.isArray(config.series)) {
+
   for (var s = 0, max = config.series.length, series;s < max;s++) {
     // TODO handle multiple series rendering
     series = config.series[s];
@@ -200,21 +202,30 @@ com.marklogic.widgets.highcharts.prototype.setConfiguration = function(config) {
         break;
     }
     values += series.valueSource;
-    
+
     mljs.defaultconnection.logger.debug("Series info: nameSource: " + name + ", categorySource: " + category + ", valueSource: " + values);
-    
+
     this.setSeriesSources(name,category,values);
     this.aggregateFunction = series.aggregateFunction;
     this.autoCategories = series.autoCategories;
+
+    // now execute type configuration
+    this[config.type](); // no extra params by default
   }
-  
+
+} else {
+  // show some intelligent message about no series defined
+  this._title = "No series defined";
+  this._subtitle = "Cannot render empty chart";
+}
+
   // refresh display
   //this._refresh();
 };
 
 /**
  * Adds an error listener to this widget
- * 
+ *
  * @param {function(error)} fl - The error listener to add
  */
 com.marklogic.widgets.highcharts.prototype.addErrorListener = function(fl) {
@@ -223,7 +234,7 @@ com.marklogic.widgets.highcharts.prototype.addErrorListener = function(fl) {
 
 /**
  * Removes an error listener
- * 
+ *
  * @param {function(error)} fl - The error listener to remove
  */
 com.marklogic.widgets.highcharts.prototype.removeErrorListener = function(fl) {
@@ -281,11 +292,11 @@ com.marklogic.widgets.highcharts.prototype._updateOptions = function() {
         str += this.x;
         str += ': ';
       }
-      str += this.y; 
+      str += this.y;
       return str;
     };
   }*/
-  
+
   mljs.defaultconnection.logger.debug("highcharts.prototype._updateOptions(): Options now: " + JSON.stringify(this.options));
 };
 
@@ -296,7 +307,7 @@ com.marklogic.widgets.highcharts.prototype._selectCategory = function(facetName,
 
 /**
  * Specifies the client side aggregation function to apply to the search results (not the search facet results)
- * 
+ *
  * @param {function} fn - The aggregate function to use. Should accept a results object
  */
 com.marklogic.widgets.highcharts.prototype.setAggregateFunction = function(fn) {
@@ -305,17 +316,17 @@ com.marklogic.widgets.highcharts.prototype.setAggregateFunction = function(fn) {
 
 com.marklogic.widgets.highcharts.prototype._refresh = function() {
   // draw data points
-  
+
   mljs.defaultconnection.logger.debug("Options on refresh: " + JSON.stringify(this.options));
-  
+
   //$("#" + this.container).highcharts(this.options);
   this.chart = new Highcharts.Chart(this.options);
 };
 
 /**
- * Specifies that the widget should automatically use the categories found in the search results. 
+ * Specifies that the widget should automatically use the categories found in the search results.
  * Do not use this if you want to show a category with a '0' result even if it does not exist in search results.
- * 
+ *
  * @param {boolean} bv - Whether to use automatic category mode (default is true)
  */
 com.marklogic.widgets.highcharts.prototype.setAutoCategories = function(bv) {
@@ -324,7 +335,7 @@ com.marklogic.widgets.highcharts.prototype.setAutoCategories = function(bv) {
 
 /**
  * Sets the JSON source in Parent.Child.Accessor format of where in the search result's content: JSON parameter to use for the Series name, category name and value
- * 
+ *
  * @param {string} nameSource - The JSON path to use for the series name
  * @param {string} categorySource - The JSON path to use for the category name
  * @param {string} valueSource - The JSON path to use for values
@@ -339,7 +350,7 @@ com.marklogic.widgets.highcharts.prototype.setSeriesSources = function(nameSourc
 /**
  * Event handler. Intended as a parameter for an addSubjectFactsListener.
  * Takes triple facts and extracts in to chart
- * 
+ *
  * @param {object} facts - The MLJS result wrapper. result.doc.facts contains the sparql result returned in a JSON expression.
  */
 com.marklogic.widgets.highcharts.prototype.updateSubjectFacts = function(facts) {
@@ -347,12 +358,12 @@ com.marklogic.widgets.highcharts.prototype.updateSubjectFacts = function(facts) 
     // TODO show/hide refresh image based on value of this.results (true|false)
     return;
   }
-  
+
   mljs.defaultconnection.logger.debug("in highcharts.updateSubjectFacts()");
   //mljs.defaultconnection.logger.debug(" - results: " + JSON.stringify(results));
-  
-    
-  
+
+
+
   mljs.defaultconnection.logger.debug(" - looping over facts");
   for (var r = 0;r < facts.facts.bindings.length;r++) {
     var result = facts.facts.bindings[r];
@@ -373,13 +384,13 @@ com.marklogic.widgets.highcharts.prototype.updateSubjectFacts = function(facts) 
     // get data value
     var value = extractValue(resdoc,this.valueSource);
     //mljs.defaultconnection.logger.debug(" -  -  - value: " + value);
-    
+
     var category = extractValue(resdoc,this.categorySource);
     //mljs.defaultconnection.logger.debug(" -  -  - category: " + category);
     if (!allCategories.contains(category)) {
       allCategories.push(category);
     }
-    
+
     // see if name is already known
     if (!seriesNames.contains(name)) {
       seriesNames.push(name);
@@ -397,50 +408,50 @@ com.marklogic.widgets.highcharts.prototype.updateSubjectFacts = function(facts) 
     //mljs.defaultconnection.logger.debug(" -  - next...");
   }
   mljs.defaultconnection.logger.debug(" - finished looping over facts");
-  
+
   this._displayResults(seriesNames,seriesCounts,seriesValues,allCategories);
 };
 
 /**
  * Event handler. Intended as a parameter for an addResultsListener method.
- * 
+ *
  * @param {results} results - REST API JSON Results object, as from GET /v1/search
  */
 com.marklogic.widgets.highcharts.prototype.updateResults = function(results) {
   mljs.defaultconnection.logger.debug("in highcharts.updateResults()");
-  
+
   if (false == results || true == results ) {
     // TODO show/hide refresh image based on value of this.results (true|false)
     return;
   }
-  
+
   mljs.defaultconnection.logger.debug(" - results: " + JSON.stringify(results));
-  
+
   // go through each results and extract name and values, grouping by name
   var seriesNames = new Array();
   var seriesValues = new Array(); // name -> array(category) -> array(values)
   var seriesCounts = new Array(); // name -> array(category) -> count of values
-  
+
   var allCategories = new Array();
-  
+
   //if (undefined != results && undefined == results.results) {
   //  results = { results: results};
   //}
-  
+
   if (this.categorySource.startsWith("!")) {
     mljs.defaultconnection.logger.debug("Loading series data from facet");
     this.aggregateFunction = "none";
-    
+
     // Source name hardcoded, category name is facet, category value is facet name, and count is values
     var name = this.nameSource.substring(1);
     var facetName = this.categorySource.substring(1);
     mljs.defaultconnection.logger.debug(" - Facet title: " + name + ", facet name: " + facetName);
     seriesNames.push(facetName);
-    
+
     var facetValues = results.facets[facetName].facetValues;
     seriesValues[facetName] = new Array();
     seriesCounts[facetName] = new Array();
-    
+
     mljs.defaultconnection.logger.debug(" - Number of facet values: " + facetValues.length);
     for (var i = 0;i < facetValues.length;i++) {
       seriesValues[facetName][facetValues[i].name] = new Array();
@@ -450,10 +461,10 @@ com.marklogic.widgets.highcharts.prototype.updateResults = function(results) {
       }
       seriesCounts[facetName][facetValues[i].name] = 1;
     }
-    
+
   } else {
-    
-  
+
+
   mljs.defaultconnection.logger.debug(" - looping over results");
   for (var r = 0;r < results.results.length;r++) {
     var result = results.results[r].content;
@@ -474,21 +485,21 @@ com.marklogic.widgets.highcharts.prototype.updateResults = function(results) {
     // get data value
     var value = extractValue(resdoc,this.valueSource);
     //mljs.defaultconnection.logger.debug(" -  -  - value: " + value);
-    
+
     // series name (highcharts) to facet name (categorySource) mapping
     if (this.categorySource.startsWith("!")) {
       this._seriesNameToFacetName[name] = this.categorySource.substring(1); // assume facet
     } else {
       // assume from a value, and facet name is same as property name (json)
-      this._seriesNameToFacetName[name] = this.categorySource; 
+      this._seriesNameToFacetName[name] = this.categorySource;
     }
-    
+
     var category = extractValue(resdoc,this.categorySource);
     //mljs.defaultconnection.logger.debug(" -  -  - category: " + category);
     if (!allCategories.contains(category)) {
       allCategories.push(category);
     }
-    
+
     // see if name is already known
     if (!seriesNames.contains(name)) {
       seriesNames.push(name);
@@ -506,23 +517,23 @@ com.marklogic.widgets.highcharts.prototype.updateResults = function(results) {
     //mljs.defaultconnection.logger.debug(" -  - next...");
   }
   mljs.defaultconnection.logger.debug(" - finished looping over results");
-  
+
   } // end if is not facet value as category source
-  
+
   this._displayResults(seriesNames,seriesCounts,seriesValues,allCategories);
 };
 
 com.marklogic.widgets.highcharts.prototype._displayResults = function(seriesNames,seriesCounts,seriesValues,allCategories) {
-  
+
   if (this.autoCategories) {
     mljs.defaultconnection.logger.debug("updateResults(): Auto categories enabled");
     this.categories = allCategories;
     // TODO sort categories alphabetically
   }
-  
+
   mljs.defaultconnection.logger.debug("Series names: " + JSON.stringify(seriesNames));
   mljs.defaultconnection.logger.debug("Series Values: " + JSON.stringify(seriesValues));
-  
+
   // now aggregate by looping through each name then each category, applying appropriate function
   var sum = function(arr) {
     var sum = 0;
@@ -565,7 +576,7 @@ com.marklogic.widgets.highcharts.prototype._displayResults = function(seriesName
   var none = function(arr) {
     return arr[0];
   };
-  
+
   var func = sum;
   if ("mean" == this.aggregateFunction) {
     func = mean;
@@ -578,7 +589,7 @@ com.marklogic.widgets.highcharts.prototype._displayResults = function(seriesName
   } else if ("none" == this.aggregateFunction) {
     func = none;
   }
-  
+
   // now loop over names, categories, and create values array
   // allow order of categories to be specified (in future this could be automatic. E.g. if a whole number range such as age)
   var series = new Array();
@@ -597,7 +608,7 @@ com.marklogic.widgets.highcharts.prototype._displayResults = function(seriesName
         var json = {name: this.categories[p], y: seriesValues[name][this.categories[p]][0]};
         data.push(json);
       }
-      
+
       series[n] = {type: "pie", name: name,data: data};
     } else {
       var orderedData = new Array();
@@ -607,11 +618,11 @@ com.marklogic.widgets.highcharts.prototype._displayResults = function(seriesName
       series[n] = { name: name, data: orderedData};
     }
   }
-  
+
   // now set chart's option's series values
   this.options.series = series;
   this.options.xAxis.categories = this.categories;
-  
+
   this._refresh();
 };
 
@@ -645,7 +656,7 @@ com.marklogic.widgets.highcharts.prototype._addPointClickHandler = function(char
             }
           }*/
           self._selectCategory(self._seriesNameToFacetName[this.series.name],data);
-          
+
         } else {
           // likely a pie chart
           self._selectCategory(this.series.name,data);
@@ -671,7 +682,7 @@ com.marklogic.widgets.highcharts.prototype._addPointClickHandler = function(char
 com.marklogic.widgets.highcharts.prototype.line = function(extra_params_opt) {
   this.options.chart.type = 'line';
   this._type = "line";
-  
+
   this.options.plotOptions.line = {
     dataLabels: {
       enabled: false
@@ -681,7 +692,7 @@ com.marklogic.widgets.highcharts.prototype.line = function(extra_params_opt) {
   /*
   this.options.tooltip.enabled = true;
   //this.options.tooltip.shared = true;
-  
+
   this.options.tooltip.formatter = function() {
     return Highcharts.numberFormat(this.y,1);
   };
@@ -804,7 +815,7 @@ com.marklogic.widgets.highcharts.prototype.nolegend = function() {
 
 /**
  * Whether to enable or disable a legednd. Enabled by default below the chart
- * 
+ *
  * @param {boolean} enabled - Enable the legend?
  */
 com.marklogic.widgets.highcharts.prototype.legend = function(enabled) {
@@ -836,7 +847,7 @@ com.marklogic.widgets.highcharts.prototype.stacked = function() {
 
 /**
  * Sets highcharts stack label configuration
- * 
+ *
  * @param {json} stackLabels - High charts stack label json configuration
  */
 com.marklogic.widgets.highcharts.prototype.stackLabels = function(stackLabels) {

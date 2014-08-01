@@ -612,7 +612,8 @@ com.marklogic.widgets.searchbar.prototype.updateSuggestions = function(suggestio
           pos--;
         }
       }
-      input.value = q.substring(0,pos) + suggestion;
+      input.value = /*q.substring(0,pos) +*/ suggestion;
+      // TODO fix the above to allow multiple suggestions anywhere within a free text search query
 
       // set cursor position to end of the search bar
       setCursor(input,q.length);

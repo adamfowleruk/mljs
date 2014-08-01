@@ -10,15 +10,30 @@ window.onload = function() {
    */
 
 
-  var wgt = new com.marklogic.widgets.searchpage("search-page");
+  //var wgt = new com.marklogic.widgets.searchpage("search-page");
   // README NOW!!! If you don't know what addProcessor does, comment out the lines! MLJS provides default processors that may well work if using JSON, XHTML or some XML
-  wgt.results.addProcessor("animals", function(result) {
+  var sc = db.createSearchContext();
+  var results = new com.marklogic.widgets.searchresults("results");
+  var facets = new com.marklogic.widgets.searchfacets("facets");
+  var sorter = new com.marklogic.widgets.searchsort("sorter");
+  var pager = new com.marklogic.widgets.searchpager("pager");
+  var metrics = new com.marklogic.widgets.searchmetrics("metrics");
+  var bar = new com.marklogic.widgets.searchbar("searchbar");
+
+  sc.register(results);
+  sc.register(facets);
+  sc.register(sorter);
+  sc.register(pager);
+  sc.register(metrics);
+  sc.register(bar);
+
+  results.addProcessor("animals", function(result) {
     return ("object" == typeof result.content && undefined != result.content.animal && undefined != result.content.title && undefined != result.content.summary);
   }, function (result) {
     return "<div class='searchresults-result'><div class='h4'>" + result.index + ". " + result.content.title + "</div>" +
       "<div class='searchresults-snippet'>I am " + result.content.title + ". A " + result.content.animal + " fact is: " + result.content.summary + "</div></div>";
   });
-  wgt.results.addProcessor("movies", function(result) {
+  results.addProcessor("movies", function(result) {
     if ("object" == typeof result.content && undefined != result.content.actor && undefined != result.content.genre && undefined != result.content.year) {
       return true;
     }
@@ -59,7 +74,7 @@ window.onload = function() {
   });
   //var options = ob.toJson();
 
-  wgt.setOptions("mljstest-page-search-options",ob);
-  wgt.execute(); // uses search context
+  sc.setOptions("mljstest-page-search-options",ob);
+  sc.doSimpleQuery(); // uses search context
 
 };

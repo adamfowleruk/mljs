@@ -1044,7 +1044,15 @@ com.marklogic.widgets.actions.javascript.prototype.execute = function(executionC
   mljs.defaultconnection.logger.debug("Fetching method name: " + this._config.method);
   var func = (obj[this._config.method]);
   mljs.defaultconnection.logger.debug("Got target object function: " + func);
-  var result = func.call(obj); // TODO support parameters
+
+  // TODO create parameters array with type conversion
+  var params = [];
+  for (var p = 0,maxp = this._config.parameters.length,par;p < maxp;p++) {
+    par = this._config.parameters[p];
+    params.push(par.value); // TODO type conversion based on par.type
+  }
+
+  var result = func.apply(obj,params); // support parameters
   return {executed:true, result: result, details: "Method executed successfully"};
 };
 

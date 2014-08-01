@@ -2,11 +2,49 @@
 
 ## Upcoming releases
 
+Interim demo targets
+ - IN PROGRESS Needed for upcoming demo
+  - Widgets: Time series Bar chart for bucketed time by date, value y series
+  - IN PROGRESS Widgets: Edit document
+   - DONE New document template
+   - DONE Create document
+   - DONE Edit XML/XHTML document string fields
+    - DONE BUG XPath not returning value for known field, so can't set content
+   - TEST Edit JSON document string fields
+   - Permissions
+   - Properties editing fixed
+   - DONE Small string
+   - DONE Large string
+   - DONE HTML string
+   - Numeric string - int / float (JavaScript limits?)
+   - Drop down for string enum
+   - Drop down for int/float/date
+   - date and time editing, with time zone
+   - DEFERRED Multiple instance elements
+   - Collection and other non-visual doc settings moved in to doccontext (from docbuilder widget)
+   - Rationalise mode settings in docbuilder
+  - Widgets: Semantic Network diagrams
+   - As circles
+   - Force directed distance initially
+   - draggable position after initial render
+   - Pick a library - d3.js OR ...
+
 Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
- - DONE Node: Write a frickin' auto app deploy directory watching app
- - Docs: mljsrest demo app improvements
-  - sparqlbar page: add explorer link to entityfacts config
-  - TEST sparqlbar page: make document links use mentioned_in link with correct IRI for search results rendering
+ - DONE Node: mlwatcher: Write a frickin' auto app deploy directory watching app
+ - Record Workplace app showcase demos
+  - Introduction - build an app in 5 minutes
+  - Workplace App 001 - Installing Workplace against your database (include within the DB at end too)
+  - Workplace App 002 - Configuring search options - xml upload with Roxy deployer, with mlwatcher, or json copy/paste. Also cover indexes.
+  - Workplace App 003 - Adding a facetted search page
+  - Workplace App 004 - Adding a geospatial search page with address lookup, heatmaps, selection
+  - Workplace App 005 - Adding Semantic search and explorer pages
+  - Workplace App 006 - Adding Linking content search to semantic search with infobox
+  - Workplace App 007 - Adding a ananlytics dashboard page, with multiple search contexts, charts, co-occurence and tag clouds
+  - DEFERRED Workplace App Video - Mix and match 01 - Map, text search, tag cloud -> requires search context linking
+  - DEFERRED Workplace App Video - Plugging in your own widgets - requires dynamic javascript widget registration
+ - TEST Docs: mljsrest demo app improvements
+  - DEFERRED sparqlbar page: add explorer link to entityfacts config
+  - TEST BUG sparqlbar page: make document links use mentioned_in link with correct IRI for search results rendering
   - DONE via page context - explorer page: accept incoming IRI link in url ?iri=, where not specified use existing default
   - DONE remove extraneous entity facts rendering logging code
  - DEFERRED future improvements
@@ -14,13 +52,13 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
   - DEFERRED geocontext: add updateHome event
    - DEFERRED Widgets: openlayers: support this event to move focus
    - DEFERRED Widgets: openlayers: advanced - if multiple home points, ensure all are visible on the map
-  - Widgets: Consistent workplace page ordering in navigation and list on edit app page
-  - Widgets: Workplace page list - make name click button take you to page for viewing, not editing, it
+  - DEFERRED Widgets: Consistent workplace page ordering in navigation and list on edit app page
+  - DEFERRED Widgets: Workplace page list - make name click button take you to page for viewing, not editing, it
  - Docs: API documentation
   - document all namespaces
   - document all type defs
   - document all return values
- - Docs: Generate build of Workplace app in dist folder, with lightweight initial deployment scripts
+ - TEST Docs: Generate build of Workplace app in dist folder, with lightweight initial deployment scripts
  - DONE Demo Jam updates
   - DONE Bootstrap CSS themed Workplace admin
   - DONE App wide configuration page in workplace app created
@@ -68,19 +106,19 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
    - DONE Individual knows and messaged links
    - DONE Sent/Received summaries
   - NA Can only be done in widget for initial position - lon, lat centre location for geocontext in pagecontext
- - Docs: Remove all uses of the searchpage widget in demos
+ - DONE Docs: Remove all uses of the searchpage widget in demos
   - DEFERRED Ensure thinthick layout with embedded column layout works
-   - DEFERRED create columns layout for workplace
-  - mljsrest - search.html
-  - mljsrest - snippets.html
-  - mldbwebtest - search
-  - mldbwebtest - snippets
+   - DEFERRED create 2 columns layout for workplace
+  - DONE mljsrest - search.html
+  - DONE mljsrest - snippets.html
+  - DEPRECATED mldbwebtest - search
+  - DEPRECATED mldbwebtest - snippets
  - DONE Docs: Wiki
   - DONE Add entityfacts-3.png (infobox) to gallery list
  - DONE Double check stylesheet usage in Workplace app (uses Bootstrap only, not 960.css, unlike mljsrest test app)
- - TEST Semantics
+ - DONE TEST Semantics
   - DONE Add mentions triple to MarkLogic Document Ontology in mljs.js line 7430
-  - TEST Added OpenCalais types to tripleconfig (addOpenCalais), and is added by default
+  - DONE TEST Added OpenCalais types to tripleconfig (addOpenCalais), and is added by default
  - DONE Widget: InfoBox - just using EntityFacts widget
   - DONE Lookup MLDocument based on docuri
   - DONE Display list of facts (like in triple explorer)
@@ -91,34 +129,9 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
    - DONE test first mentioned mode
    - DONE test all mentioned mode
    - DONE Update workplace configuration options
- - IN PROGRESS Needed for upcoming demo
-  - Widgets: Time series Bar chart for bucketed time by date, value y series
-  - IN PROGRESS Widgets: Edit document
-   - DONE New document template
-   - DONE Create document
-   - DONE Edit XML/XHTML document string fields
-    - DONE BUG XPath not returning value for known field, so can't set content
-   - TEST Edit JSON document string fields
-   - Permissions
-   - Properties editing fixed
-   - DONE Small string
-   - DONE Large string
-   - DONE HTML string
-   - Numeric string - int / float (JavaScript limits?)
-   - Drop down for string enum
-   - Drop down for int/float/date
-   - date and time editing, with time zone
-   - DEFERRED Multiple instance elements
-   - Collection and other non-visual doc settings moved in to doccontext (from docbuilder widget)
-   - Rationalise mode settings in docbuilder
-  - Widgets: Semantic Network diagrams
-   - As circles
-   - Force directed distance initially
-   - draggable position after initial render
-   - Pick a library - d3.js OR ...
  - IN PROGRESS Widgets: Various Widget Bugs / performance enhancements
   - HIGH
-   - BUG Docs: Openlayers demo page hovering over marker causes null reference looking for result area by id to change css classes
+   - BUG Docs: mljsrest Openlayers demo page hovering over marker causes null reference looking for result area by id to change css classes
    - BUG google maps address lookup longitude not working again (check latest social media code for fix - back port)
    - BUG changing zoom or otherwise altering openlayer search forces collection constraint (any text query) to be forgotten - same is true in reverse
     - We don't cache text query as a contributed query?
@@ -128,13 +141,18 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
    - DONE Widgets: Gracefully handle RDF types that have not been configured in the triple config
    - DONE BUG why don't suggestions show facet values, only facet names?
    - DONE BUG Make links appear for related subjects where iriHandler is set
-  - BUG Clicking on Bar chart value gives: Point clicked: x:0, series name:'animal', y:3 data: undefined
-  - BUG Docs: why aren't there any suggestions on infobox page?
-  - BUG Too many REST requests - Kill suggestions request before issuing another request (one per letter typed)
+  - BUG mljsrest: chartsearch.html: Clicking on Bar chart value gives: Point clicked: x:0, series name:'animal', y:3 data: undefined
+  - DONE BUG searchbar: Clicking on suggestion repeats facet name twice
+  - DEFERRED BUG Docs: mljsrest: why aren't there any suggestions on infobox page?
+  - DEFERRED BUG MINOR PERFORMANCE Too many REST requests - Kill suggestions request before issuing another request (one per letter typed)
   - BUG workplace repeatedly dragging new widget classes on to layout causes top widget only to be rendered, to first two parts of zone
-  - BUG main.js - commented out use of GET graph as it returns HTML not JSON, causing conversion error
+  - DEFERRED BUG mljsrest: main.js - commented out use of GET graph as it returns HTML not JSON, causing conversion error
   - BUG explorer widget scroll bar should be at top when needed
   - BUG explorer widget should respond to swipe gestures
+  - DONE BUG Core: Find way of doing version() call without requiring custom rest extension - sniff HEAD /v1/graphs
+  - DONE BUG Core: HEAD call results in JSON parse error for empty string ""
+  - DEFERRED BUG Core: HEAD /v1/graphs takes 240ms rather than 18ms for fetching static imagery or suggest - why?
+  - DEFERRED BUG REST API Bug: Search doesn't like ampersand @ character in constraint value in combined query - escape?
   - DONE BUG highcharts configuration in Workplace 'thin' column overflows container
   - DONE BUG add data series button not working on newly dragged instance of highcharts widget
   - DONE BUG empty strings in widget context config for directory, format, transform results in invalid searches
@@ -268,10 +286,12 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
     - DONE BUG null appearing as text when used as default value for string fields
    - DONE remove widget button on heading for each widget on UI
    - IN PROGRESS Page load actions
-    - IN PROGRESS Hard coded ones in this edition (use JSON config object array though so later it can be easily added)
-    - TEST searchcontext.doSimpleQuery(string)
+    - DONE Hard coded ones in this edition (use JSON config object array though so later it can be easily added)
+    - DONE BUG doSimpleQuery as action somehow bypassing ctx.setConfiguration()s setting of optioneName to "all"
+    - DONE searchcontext.doSimpleQuery(string)
      - input from hard coded string, or from page query string parameter
-    - TEST searchcontext.doStructuredQuery(query)
+     - DONE BUG string parameter being ignored
+    - DONE searchcontext.doStructuredQuery()
      - query builder construction of query
     - TEST graphexplorer.drawSubject(iri,null,1,1)
     - TEST semanticcontext.subjectQuery(sparql,offset,limit)
@@ -283,7 +303,7 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
     - TEST doccontext.getContent(docuri)
     - TEST doccontext.getProperties(docuri)
     - TEST doccontext.getFacts(docuri,optionsName)
-    - Arbitrary code object variable and method
+    - DEFERRED Arbitrary code object variable and method
    - DEFERRED Icons for widgets
   - Usefulness fixes - without which widgets are pointless
    - Global widget and context extension auto detection by classes

@@ -178,77 +178,6 @@ function insert(array, begin, end, v)
 }
 
 
-function jsonExtractValue(json,namePath) {
-  if (undefined == json) {
-    return null;
-  }
-  var paths = namePath.split(".");
-  var obj = json;
-  for (var i = 0;undefined != obj && i < paths.length;i++) {
-    obj = obj[paths[i]]; // TODO handle documents with multiple result container elements (arrays of results within same doc)
-  }
-  //mljs.defaultconnection.logger.debug("jsonExtractValue(): Returning value: " + obj);
-  return obj;
-};
-
-function xmlExtractValue(xmldoc,namePath) {
-  // construct and apply XPath from namePath
-  //var xpath = "/" + namePath.replace(/\./g,"/");
-  var xpath = namePath;
-  //xpath = xpath.replace(/\/.*:/g,"/*:"); // replace all namespaces with global namespace - temporary hack
-  console.log("Final XPath now: " + xpath);
-
-  // TODO apply xpath to extract document value
-  var myfunc = function(prefix) {
-	      if (prefix === "jb") {
-    	    return "http://marklogic.com/xdmp/json/basic";
-	      } else if (prefix === "i") {
-    	    return "http://www.marklogic.com/intel/intercept";
-	      } else {
-	        return null;
-	      }
-    //return null; // assume always default namespace
-    // TODO support namespaces globally somehow - global context? page context?
-  };
-
-  var evalResult = xmldoc.evaluate(xpath,xmldoc,myfunc,2,null); // 2=string
-
-  if (null == evalResult) {
-    return null;
-  }
-  return evalResult.stringValue;
-};
-
-function extractValue(jsonOrXml,namePath) {
-  if (undefined == jsonOrXml) {
-    return null;
-  }
-  if ('object' == typeof(jsonOrXml) && undefined == jsonOrXml.nodeType) {
-    return jsonExtractValue(jsonOrXml,namePath);
-  } else if ('string' == typeof(jsonOrXml)) {
-    return xmlExtractValue(textToXML(jsonOrXml),namePath);
-  } else if (undefined == jsonOrXml) {
-    return null;
-  } else {
-    return xmlExtractValue(jsonOrXml,namePath);
-  }
-};
-
-function jsonOrXml(jsonOrXmlOrString) {
-  if ('object' == typeof(jsonOrXmlOrString) && undefined == jsonOrXml.nodeType) {
-    return jsonOrXmlOrString;
-  } else if ('string' == typeof(jsonOrXmlOrString)) {
-    if (jsonOrXmlOrString.substring(0,1) == "{") {
-      return JSON.parse(jsonOrXmlOrString);
-    } else {
-      return textToXML(jsonOrXmlOrString);
-    }
-  } else if (undefined == jsonOrXmlOrString) {
-    return null;
-  } else {
-    return jsonOrXmlOrString;
-  }
-};
 
 // EXTRA ARRAY FUNCTIONS
 
@@ -309,6 +238,21 @@ com.marklogic.widgets.hide = function(el,isHidden) {
   } else {
     com.marklogic.widgets.removeClass(el,"hidden");
   }
+};
+
+com.marklogic.widgets.getSelectValues = function(select) {
+  var result = new Array();
+  var options = select && select.options;
+  var opt;
+
+  for (var i=0, iLen=options.length; i<iLen; i++) {
+    opt = options[i];
+
+    if (opt.selected) {
+      result.push(opt.value || opt.text);
+    }
+  }
+  return result;
 };
 
 com.marklogic.widgets.addClass = function(el,classname) {

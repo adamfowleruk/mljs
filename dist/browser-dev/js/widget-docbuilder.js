@@ -45,6 +45,8 @@ com.marklogic.widgets.create = function(container) {
   this.overrideEndManual = false;
   this.overrideElementId = "";
 
+  this._doccontext = null;
+
 
   this._uriprefix = "/";
 
@@ -54,6 +56,20 @@ com.marklogic.widgets.create = function(container) {
   this._mode = "upload"; // upload or json or xml
 
   this._init();
+};
+
+com.marklogic.widgets.create.prototype.setDocumentContext = function(ctx) {
+  this._doccontext = ctx;
+};
+
+com.marklogic.widgets.create.prototype.updateDocumentContent = function(json) {
+  var uri = json.docuri;
+  var content = json.doc;
+  // update title
+  var t = document.getElementById(this.container + "-title");
+  t.innerHTML = "Editing document - <i>" + uri + "</i>";
+
+  // TODO update fields on page (in case trigger has updated them)
 };
 
 /**
@@ -78,8 +94,8 @@ com.marklogic.widgets.create.prototype._init = function() {
   var parentel = document.getElementById(this.container);
   parentel.innerHTML =
     "<div id='" + this.container + "-create' class='mljswidget panel panel-info create'>" +
-      "<div class='panel-heading create-title'>Create a new Document</div>" +
-      "<form id='" + this.container + "-create-form' class='panel-body create-form' role='form'>" +
+      "<div id='" + this.container + "-title' class='panel-heading create-title'>Create a new Document</div>" +
+      "<form id='" + this.container + "-create-form' class='panel-body form-horizontal create-form' role='form'>" +
         "<div class='create-row' id='" + this.container + "-create-row-0'>" +
           "<div class='create-col' id='" + this.container + "-create-row-0-col-0' style='float:left;'></div>" +
         "</div>" +
@@ -269,17 +285,18 @@ com.marklogic.widgets.create.prototype.permissions = function(allowMultiple,firs
 
   // add permissions control
   var id = this.container + "-permissions-" + (++this.controlCount);
-  var html = "<div id='" + id + "' class='input-prepend create-permissions'>";
+  var html = "<div id='" + id + "' class='form-group input-prepend create-permissions'>";
   if (undefined != title_opt) {
-    html += "<span for='" + id + "' class='create-select-title'>" + title_opt + "</label> ";
+    html += "<label for='" + id + "-select' class='col-sm-2 control-label create-select-title'>" + title_opt + "</label> ";
   }
+  html += "<div class='col-sm-10'>";
   html += "<select id='" + id + "-select' class='form-control create-select'>";
 
   for (var i = 0;i < firstRoleArray.length;i++) {
     html += "<option value='" + firstRoleArray[i] + "'>" + firstRoleArray[i] + "</option>";
   }
 
-  html += "</select></div>";
+  html += "</select></div></div>";
 
   this._place(html,"permissions",id);
   this.controlData[id] = {privilege:privilege};
@@ -327,7 +344,7 @@ com.marklogic.widgets.create.prototype.save = function(title_opt) {
     title = title_opt;
   }
 
-  var html = "<button class='btn btn-primary create-save' type='submit' id='" + id + "'>" + title + "</button>";
+  var html = "<div class='col-sm-offset-2 col-sm-10'><button class='btn btn-primary create-save' type='submit' id='" + id + "'>" + title + "</button></div>";
   this._place(html,"save",id);
 
   var self = this;
@@ -344,6 +361,147 @@ com.marklogic.widgets.create.prototype.save = function(title_opt) {
 
   return this;
 };
+
+// OTHER FIELD TYPES SUPPORTED
+
+/*
+fieldDef = {
+  title: "Main Heading", path: "/h:body/h:h1[1]", namespaces: {h: "http://whatever"}, // also path: "some.json.path"
+  type: "string|datetime|date|positiveInteger|integer|float|double", // basically any xs: intrinsic type
+  required: true, min: 1, max: 7, default: 5, multiple: true // min max for numeric types, multiple for multi instance selects (for example)
+}
+
+// title defaults to CamelCase and split of last path element, type to string, required to false, multiple false, no namespaces
+// thus only required field is path.
+*/
+
+com.marklogic.widgets.create.prototype.defaults = function(settings) {
+  // set defaults used when creating shell fieldDef
+    return this;
+};
+
+com.marklogic.widgets.create.prototype.text = function(fieldDef) {
+  var id = this.container + "-text-" + ++this.controlCount;
+
+  this._doccontext.completeFieldDef(fieldDef);
+
+  var value = this._doccontext.getPart(fieldDef);
+  if (null == value) {
+    value = "";
+  }
+  var s = "<div id='" + id + "' class='form-group input-prepend create-text-outer'>";
+  s += "<label for='" + id + "-input' class='col-sm-2 control-label create-text-label'>" + fieldDef.title + "</label>";
+  s += "<div class='col-sm-10'>";
+  s += "<input id='" + id + "-input' value='" + value + "' class='form-control create-text-input' />"; // TODO encode value for embedding in HTML
+  s += "</div>";
+  s += "</div>";
+
+  // TODO if vertical, start row with label on left, field on right
+  // TODO if horizontal, place label above field
+
+  this._place(s,"text",id);
+
+  // change event handler
+  var el = document.getElementById(id + "-input");
+  var self = this;
+  el.onchange = function(evt) {
+    self._doccontext.setPart(fieldDef,el.value);
+  };
+
+  return this;
+};
+
+com.marklogic.widgets.create.prototype.largeText = function(fieldDef) {
+    var id = this.container + "-largetext-" + ++this.controlCount;
+
+    this._doccontext.completeFieldDef(fieldDef);
+
+    var value = this._doccontext.getPart(fieldDef);
+    if (null == value) {
+      value = "";
+    }
+    var s = "<div id='" + id + "' class='form-group input-prepend create-largetext-outer'>";
+    s += "<label for='" + id + "-input' class='col-sm-2 control-label create-largetext-label'>" + fieldDef.title + "</label>";
+    s += "<div class='col-sm-10'>";
+    s += "<textarea id='" + id + "-input' class='form-control create-largetext-input'>" + value + "</textarea>"; // TODO encode value for embedding in HTML
+    s += "</div>";
+    s += "</div>";
+
+    // TODO if vertical, start row with label on left, field on right
+    // TODO if horizontal, place label above field
+
+    this._place(s,"largetext",id);
+
+    // change event handler
+    var el = document.getElementById(id + "-input");
+    var self = this;
+    el.onchange = function(evt) {
+      self._doccontext.setPart(fieldDef,el.value);
+    };
+
+    return this;
+};
+
+com.marklogic.widgets.create.prototype.largeHTML = function(fieldDef) {
+    var id = this.container + "-largehtml-" + ++this.controlCount;
+
+    this._doccontext.completeFieldDef(fieldDef);
+
+    var value = this._doccontext.getPart(fieldDef);
+    if (null == value) {
+      value = "";
+    }
+    var s = "<div id='" + id + "' class='form-group input-prepend create-largehtml-outer'>";
+    s += "<label for='" + id + "-input' class='col-sm-2 control-label create-largehtml-label'>" + fieldDef.title + "</label>";
+    s += "<div class='col-sm-10'>";
+    s += "<textarea id='" + id + "-input' class='form-control create-largehtml-input'>" + value + "</textarea>"; // TODO encode value for embedding in HTML
+    s += "</div>";
+    s += "</div>";
+
+    // TODO if vertical, start row with label on left, field on right
+    // TODO if horizontal, place label above field
+
+    this._place(s,"largehtml",id);
+
+    // initialise CKEditor
+    var editor = CKEDITOR.replace(id + "-input");
+    //fieldDef._html_editor = editor;
+
+    // change event handler
+    var self = this;
+    /*
+    var el = document.getElementById(id + "-input");
+    el.onchange = function(evt) {
+      self._doccontext.setPart(fieldDef,el.value);
+    };*/
+    editor.on('change', function() {
+      self._doccontext.setPart(fieldDef,editor.getData());
+    });
+
+    return this;
+};
+
+com.marklogic.widgets.create.prototype.dropdown = function(fieldDef) {
+  return this;
+
+};
+
+com.marklogic.widgets.create.prototype.date = function(fieldDef) {
+  return this;
+
+};
+
+com.marklogic.widgets.create.prototype.dateTime = function(fieldDef) {
+  return this;
+
+};
+
+com.marklogic.widgets.create.prototype.multiple = function(fieldDef) {
+  return this;
+
+};
+
+
 
 // EVENT HANDLERS
 
@@ -547,6 +705,9 @@ com.marklogic.widgets.create.prototype._onSave = function() {
       // TODO
       console.log("upload ctl null");
     }
+  } else if (this._mode == "xml" || this._mode == "json") {
+    // call doccontext save (assume all fields already updated)
+    this._doccontext.save();
   } else {
     // TODO
     console.log("unknown mode: " + this._mode);

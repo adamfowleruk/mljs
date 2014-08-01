@@ -47,6 +47,7 @@ com.marklogic.widgets.openlayers = function(container) {
   this.transformWgs84 = new OpenLayers.Projection("EPSG:4326");
 
   this.series = {}; // {title: "", context: searchcontext,latsource:"location.lat",lonsource:"location.lon",titlesource:"",summarysource:""};
+  this._allLayers = new Array(); // so define layers BEFORE map is rendered, so they are added on map creation (e.g. via workplace)
 
   this._selectionLayer = null;
   //this._drawControls = {};
@@ -60,6 +61,8 @@ com.marklogic.widgets.openlayers = function(container) {
 
   this._selectedUri = null;
   this._highlightedUri = null;
+
+  this._configurationContext = null;
 
   this.heatmap = null; // open layers heatmap
 
@@ -78,14 +81,34 @@ com.marklogic.widgets.openlayers.getConfigurationDefinition = function() {
     showArcGISOnline: {type: "boolean", default: false, title: "Show Arc GIS Online Layer",description: "Show the Arc GIS Online layer."},
     showAllBing: {type: "boolean", default: false, title: "Show All Bing Maps Layers",description: "Show all Bing Maps layers."},
     "constraint-name": {type: "string", default: null, title: "Selection Constraint Name", description: "The name of the search options constraint to use for selection."},
-    heatmapGranularity: {type: "enum", default: self.HIGH, title: " Heat Map Granularity", description: "How detailed a heatmap to calculate in MarkLogic Server.",
+    heatmapGranularity: {type: "enum", default: 256, title: " Heat Map Granularity", description: "How detailed a heatmap to calculate in MarkLogic Server.",
       options: [
-        {value: self.HIGH, title: "High", description: "Many heatmap areas(" + self.HIGH + ")."},
-        {value: self.MEDIUM, title: "Medium", description: "Several heatmap areas(" + self.MEDIUM + ")."},
-        {value: self.LOW, title: "Low", description: "Few heatmap areas(" + self.LOW + ")."}
+        {value: 256, title: "High", description: "Many heatmap areas(" + self.HIGH + ")."},
+        {value: 128, title: "Medium", description: "Several heatmap areas(" + self.MEDIUM + ")."},
+        {value: 64, title: "Low", description: "Few heatmap areas(" + self.LOW + ")."}
       ]
-    }
+    },
+    startLat: {type: "string", default: "51.5", title: "Start Latitude",description: "Initial latitude centre position."},
+    startLon: {type: "string", default: "-0.1", title: "Start Longitude",description: "Initial longitude centre position."},
+    startZoom: {type: "string", default: "13", minimum: 1, maximum: 15, title: "Start Zoom",description: "Initial zoom on centre position."},
+        series: {type: "multiple", minimum: 0, default: [], title: "Series", description: "Data series to render on the map",
+          childDefinitions: {
+            //title,searchcontext,latsrc,lonsrc,titlesrc,summarysrc,icon_source_opt,heatmap_constraint
+            title: {type: "string", default: "", title: "Series name", description: "Common name for this series"},
+            searchcontext: {type: "SearchContext",default: null, title: "Search Context", description: "Search context data source"},
+            latsrc: {type: "string",default: null,title: "Latitude Source", description: "document value to extract latitude from"},
+            lonsrc: {type: "string",default: null,title: "Longitude Source", description: "document value to extract longitude from"},
+            titlesrc: {type: "string",default: null,title: "Title Source", description: "document value to extract Title from"},
+            summarysrc: {type: "string",default: null,title: "Summary Source", description: "document value to extract Summary from"},
+            iconsrc: {type: "string",default: null,title: "Icon Source", description: "document value to extract Icon URL from"},
+            heatmapconstraint: {type: "string",default: null,title: "Heatmap Constraint", description: "Name of the constraint holding the heatmap"}
+          }
+        }
   };
+};
+
+com.marklogic.widgets.openlayers.prototype.setConfigurationContext = function(ctx) {
+  this._configurationContext = ctx;
 };
 
 /**
@@ -97,9 +120,24 @@ com.marklogic.widgets.openlayers.prototype.setConfiguration = function(config) {
   for (var prop in config) {
     this._config[prop] = config[prop];
   }
+  this.heatmap = null; // forces new heatmap layer creation
 
   // refresh display
-  this.refresh();
+  this._refresh(); // TODO verify if we actually need this - it's called from constructor anyway
+
+  // now move to correct position
+  if (undefined != this._config.startLat && undefined != this._config.startLon && undefined != this._config.startZoom &&
+      "" != this._config.startLat && "" != this._config.startLon && "" != this._config.startZoom) {
+    this.go(this._config.startLat,this._config.startLon,this._config.startZoom);
+  }
+
+  if (undefined != config.series && null != this._configurationContext) {
+    for (var s = 0,maxs = config.series.length,series;s < maxs;s++) {
+      series = config.series[s];
+      this.addSeries(series.title,this._configurationContext.getInstance(series.searchcontext),
+        series.latsrc,series.lonsrc,series.titlesrc,series.summarysrc,series.iconsrc,series.heatmapconstraint);
+    }
+  }
 
   // process layer config AFTER refresh
   if (true===this._config.showGoogleStreet) {
@@ -938,7 +976,7 @@ com.marklogic.widgets.openlayers.prototype.addSeries = function(title,searchcont
   var offset = new OpenLayers.Pixel(-(size.w/2), -size.h);
   var icon = new OpenLayers.Icon('/js/OpenLayers-2.13.1/img/marker-blue.png', size, offset);
 
-
+  this._allLayers.push(layer);
   this.series[name].layer = layer;
   this.map.addLayer(layer);
   /*

@@ -32,6 +32,11 @@ if (typeof(window) === 'undefined') {
     ]
   });
 } else {
+  if (typeof String.prototype.endsWith !== 'function') {
+    String.prototype.endsWith = function(suffix) {
+        return this.indexOf(suffix, this.length - suffix.length) !== -1;
+    };
+  }
   noop = function() {
     // do nothing
   };
@@ -77,6 +82,125 @@ if (typeof(window) === 'undefined') {
 var defaultdboptions = {
   host: "localhost", port: 9090, adminport: 8002, ssl: false, auth: "digest", username: "admin",password: "admin", database: "mldbtest", searchoptions: {}, fastthreads: 10, fastparts: 100
 }; // TODO make Documents the default db, automatically figure out port when creating new rest server
+
+
+var stringhelper = {};
+
+/**
+ * Converts a value in to separate words, splitting the words by dash, underscore, and CamelCase
+ *
+ * @param {string} str - The value to process
+ */
+stringhelper.processValueAll = function(str) {
+  return stringhelper.processValue(str,"all");
+};
+
+/**
+ * Converts a value in to separate words, using the specified mode
+ *
+ * @param {string} str - The value to process
+ * @param {string} mode - The mode ("all|splitdash|splitunderscore|camelcase")
+ */
+stringhelper.processValue = function(str,mode) {
+  var name = str;
+  name = stringhelper.splitdash(name,mode);
+  name = stringhelper.splitunderscore(name,mode);
+  name = stringhelper.camelcase(name,mode);
+  return name;
+};
+
+/**
+ * Generate a standard set of snippet HTML. Useful for integrating to custom search results renderers
+ *
+ * @param {result} result - REST result JSON. Should contain result.matches[{"match-text": ["", ... ]}, ... ]
+ */
+stringhelper.snippet = function(result) {
+  var resStr = "";
+
+        for (var i = 0;i < result.matches.length;i++) {
+          resStr += "<div class='searchresults-snippet'>\"";
+          for (var m = 0;m < result.matches[i]["match-text"].length;m++) {
+            if ("string" == typeof result.matches[i]["match-text"][m]) {
+              resStr += result.matches[i]["match-text"][m] ;
+            } else {
+              resStr += "<span class='searchresults-snippet-highlight'>" + result.matches[i]["match-text"][m].highlight + "</span>";
+            }
+          }
+          resStr += "\"</div>";
+        }
+
+  return resStr;
+};
+
+/**
+ * Splits a string in to words when it encounters a dash. Returns a string with spaces instead of dashes.
+ *
+ * @param {string} value - The original value
+ * @param {string} mode - The mode. Function only operates is mode is "all" or "splitdash"
+ */
+stringhelper.splitdash = function(value,mode) {
+  if (value == undefined || value == null) {
+    mljs.defaultconnection.logger.warn("WARNING: splitdash(): value is " + value);
+    return "";
+  }
+  if ("string" != typeof value) {
+    mljs.defaultconnection.logger.warn("WARNING: splitdash(): value is not of type string, but of type '" + (typeof value) + "'");
+    return "" + value; // return raw value - can be converted to string
+  }
+  var name = value;
+  if ("all" == mode || "splitdash" == mode) {
+    //mljs.defaultconnection.logger.debug("Apply splitdash transform to " + name);
+    var parts = name.split("-");
+    var nn = "";
+    for (var i = 0;i < parts.length;i++) {
+      nn += parts[i] + " ";
+    }
+    name = nn.trim();
+  }
+  return name;
+};
+
+/**
+ * Splits a string in to words when it encounters an underscore. Returns a string with spaces instead of underscores.
+ *
+ * @param {string} value - The original value
+ * @param {string} mode - The mode. Function only operates is mode is "all" or "splitdunderscore"
+ */
+stringhelper.splitunderscore = function(value,mode) {
+  var name = value;
+  if ("all" == mode || "splitunderscore" == mode) {
+    //mljs.defaultconnection.logger.debug("Apply splitunderscore transform to " + name);
+    var parts = name.split("_");
+    var nn = "";
+    for (var i = 0;i < parts.length;i++) {
+      nn += parts[i] + " ";
+    }
+    name = nn.trim();
+  }
+  return name;
+};
+
+/**
+ * Splits a string in to words when it encounters a capital letter. Returns a string with spaces before a capital letter.
+ *
+ * @param {string} value - The original value
+ * @param {string} mode - The mode. Function only operates is mode is "all" or "camelcase"
+ */
+stringhelper.camelcase = function(value,mode) {
+  var name = value;
+  if ("all" == mode || "camelcase" == mode) {
+    //mljs.defaultconnection.logger.debug("Apply camelcase transform to " + name);
+    var parts = name.split(" ");
+    var nn = "";
+    for (var i = 0;i < parts.length;i++) {
+      nn += parts[i].substring(0,1).toUpperCase() + parts[i].substring(1) + " ";
+    }
+    name = nn.trim();
+  }
+  return name;
+};
+
+
 
 /**
  * Converts the specified text to XML using the Browser's built in XML support
@@ -332,6 +456,82 @@ function xmlToJsonSearchResults(xml) {
   }
   return obj;
 
+};
+
+
+function jsonExtractValue(json,namePath) {
+  if (undefined == json) {
+    return null;
+  }
+  var paths = namePath.split(".");
+  var obj = json;
+  for (var i = 0;undefined != obj && i < paths.length;i++) {
+    obj = obj[paths[i]]; // TODO handle documents with multiple result container elements (arrays of results within same doc)
+  }
+  //mljs.defaultconnection.logger.debug("jsonExtractValue(): Returning value: " + obj);
+  return obj;
+};
+
+function xmlExtractValue(xmldoc,namePath,namespaces_opt) {
+  // construct and apply XPath from namePath
+  //var xpath = "/" + namePath.replace(/\./g,"/");
+  var xpath = namePath;
+  //xpath = xpath.replace(/\/.*:/g,"/*:"); // replace all namespaces with global namespace - temporary hack
+  console.log("Final XPath now: " + xpath);
+
+  // TODO apply xpath to extract document value
+  var myfunc = function(prefix) {
+    if (undefined != namespaces_opt) {
+      return namespaces_opt[prefix];
+    } else {
+        if (prefix === "jb") {
+          return "http://marklogic.com/xdmp/json/basic";
+        } else if (prefix === "i") {
+          return "http://www.marklogic.com/intel/intercept";
+        }
+    }
+          return null;
+    //return null; // assume always default namespace
+    // TODO support namespaces globally somehow - global context? page context?
+  };
+
+  var evalResult = xmldoc.evaluate(xpath,xmldoc,myfunc,2,null); // 2=string
+
+  if (null == evalResult) {
+    return null;
+  }
+  return evalResult.stringValue;
+};
+
+function extractValue(jsonOrXml,namePath,namespaces_opt) {
+  if (undefined == jsonOrXml) {
+    return null;
+  }
+  if ('object' == typeof(jsonOrXml) && undefined == jsonOrXml.nodeType) {
+    return jsonExtractValue(jsonOrXml,namePath);
+  } else if ('string' == typeof(jsonOrXml)) {
+    return xmlExtractValue(textToXML(jsonOrXml),namePath);
+  } else if (undefined == jsonOrXml) {
+    return null;
+  } else {
+    return xmlExtractValue(jsonOrXml,namePath,namespaces_opt);
+  }
+};
+
+function jsonOrXml(jsonOrXmlOrString) {
+  if ('object' == typeof(jsonOrXmlOrString) && undefined == jsonOrXml.nodeType) {
+    return jsonOrXmlOrString;
+  } else if ('string' == typeof(jsonOrXmlOrString)) {
+    if (jsonOrXmlOrString.substring(0,1) == "{") {
+      return JSON.parse(jsonOrXmlOrString);
+    } else {
+      return textToXML(jsonOrXmlOrString);
+    }
+  } else if (undefined == jsonOrXmlOrString) {
+    return null;
+  } else {
+    return jsonOrXmlOrString;
+  }
 };
 
 /**
@@ -915,6 +1115,9 @@ mljs.prototype.get = function(docuri,options_opt,callback_opt) {
   if (undefined != options_opt && undefined != options_opt.path) {
     options.path = this._applyTransformProperties(options_opt.path);
   }
+  if (docuri.endsWith(".json")) {
+    options.path += "&format=json";
+  }
 
   this.__doreq("GET",options,null,function (result) {
     result.docuri = docuri;
@@ -1095,9 +1298,9 @@ mljs.prototype.save = function(jsonXmlBinary,docuri_opt,props_opt,callback_opt) 
         options.contentType = "text/xml";
         format = null; // overrides param override setting
       } else {
-        this.logger.debug("MLJS.save: No contentType specified, falling back to application/json");
+        this.logger.debug("MLJS.save: No contentType specified, falling back to blank (server deterined)"); // was application/json
         // assume JSON, but could easily be binary too
-        options.contentType = "application/json";
+        //options.contentType = "application/json";
         format = null; // overrides param override setting
 
         // NB binary support exists within wrappers
@@ -1921,10 +2124,10 @@ mljs.prototype.values = function(query,tuplesname,optionsname,sprops_opt,callbac
       }};
       if (typeof query == "string") {
         // plain text query
-        search.qtext = query;
+        search.search.qtext = query;
       } else if (typeof query == "object") {
         // structured query
-        search.query = query.query;
+        search.search.query = query.query;
       }
 
       options.path = self._applySearchProperties(options.path,sprops_opt); // WONT THIS BE IGNORED?
@@ -2096,7 +2299,7 @@ mljs.prototype.mergeGraph = function(triples,uri_opt,callback_opt) {
   }
 
   var options = {
-    path: "/v1/graph",
+    path: "/v1/graphs",
     contentType: "text/plain",
     method: "POST"
   }
@@ -2133,7 +2336,7 @@ mljs.prototype.graph = function(uri_opt,callback_opt) {
   }
 
   var options = {
-    path: "/v1/graph",
+    path: "/v1/graphs?format=json",
     method: "GET"
   }
   if (undefined != uri_opt) {
@@ -2176,7 +2379,7 @@ mljs.prototype.graph = function(uri_opt,callback_opt) {
  */
 mljs.prototype.deleteGraph = function(uri,callback_opt) {
   var options = {
-    path: "/v1/graph?graph=" + encodeURI(uri),
+    path: "/v1/graphs?graph=" + encodeURI(uri),
     method: "DELETE"
   };
 
@@ -2949,6 +3152,7 @@ mljs.prototype.dlsrule = function(name,callback) {
  * @param {function} callback - The callback to invoke after the method completes
  */
 mljs.prototype.version = function(callback) {
+  /*
   var options = {
     path: "/v1/resources/version",
     method: "GET",
@@ -2958,6 +3162,18 @@ mljs.prototype.version = function(callback) {
   this.__doreq("VERSION",options,null,function(result){
     if (!result.inError) {
       that._version = result.doc.version;
+    } else {
+      that._version = false; // indicates error
+    }
+    callback(result);
+  });*/
+  var options = {
+    path: "/v1/graphs", method: "HEAD"
+  };
+  var that = this;
+  this.__doreq("VERSION",options,null,function(result){
+    if (!result.inError) {
+      that._version = "7.0-1";
     } else {
       that._version = false; // indicates error
     }
@@ -3644,6 +3860,8 @@ mljs.prototype.options.prototype.extractAttributeMetadata = function(elementname
 /**
  * Restricts all search parameters to the specified element.
  *
+ * @deprecated See {@see #elementContainerConstraint} .
+ *
  * {@link http://docs.marklogic.com/guide/rest-dev/appendixa#id_62771}
  *
  * @param {string} constraint_name - The name of the constraint to create
@@ -3651,9 +3869,9 @@ mljs.prototype.options.prototype.extractAttributeMetadata = function(elementname
  * @param {string} elementns - The namespace of the element to match
  * @param {string|Array} annotation_opt - The annotation to add to the constraint. MLJS uses annotation[0] as the display title, falling back to camel case constraint name if not specified
  */
-mljs.prototype.options.prototype.elementQuery = function(constraint_name,elementname,elementns,annotation_opt) {
+mljs.prototype.options.prototype.elementConstraint = function(constraint_name,elementname,elementns,annotation_opt) {
   this._includeSearchDefaults();
-  var con = {name: constraint_name, "element-query": {name: elementname, ns: elementns}};
+  var con = {name: constraint_name, "element": {name: elementname, ns: elementns}};
   if (undefined != annotation_opt) {
     if ("string" == typeof(annotation_opt)) {
       annotation_opt = [annotation_opt];
@@ -3663,6 +3881,64 @@ mljs.prototype.options.prototype.elementQuery = function(constraint_name,element
   this.addConstraint(con);
   return this;
 };
+mljs.prototype.options.prototype.elementQuery = mljs.prototype.options.prototype.elementConstraint;
+
+/**
+ * Restricts all search parameters to the specified json key.
+ *
+ * {@link http://docs.marklogic.com/guide/rest-dev/appendixa#id_62771}
+ *
+ * @param {string} constraint_name - The name of the constraint to create
+ * @param {string} jsonkey - The name of the json property (key) to match
+ * @param {string|Array} annotation_opt - The annotation to add to the constraint. MLJS uses annotation[0] as the display title, falling back to camel case constraint name if not specified
+ */
+mljs.prototype.options.prototype.jsonContainerConstraint = function(constraint_name,jsonkey,annotation_opt) {
+  this._includeSearchDefaults();
+  var con = {
+        "name": constraint_name,
+        "container": {
+          "json-key": jsonkey
+        }
+      };
+  if (undefined != annotation_opt) {
+    if ("string" == typeof(annotation_opt)) {
+      annotation_opt = [annotation_opt];
+    }
+    con.annotation = annotation_opt;
+  }
+  this.addConstraint(con);
+  return this;
+};
+
+/**
+ * Restricts all search parameters to the specified element.
+ *
+ * {@link http://docs.marklogic.com/guide/rest-dev/appendixa#id_62771}
+ *
+ * @param {string} constraint_name - The name of the constraint to create
+ * @param {string} elementname - The name of the element to match
+ * @param {string} elementns - The namespace of the element to match
+ * @param {string|Array} annotation_opt - The annotation to add to the constraint. MLJS uses annotation[0] as the display title, falling back to camel case constraint name if not specified
+ */
+mljs.prototype.options.prototype.elementContainerConstraint = function(constraint_name,elementname,elementns,annotation_opt) {
+  this._includeSearchDefaults();
+  var con = {
+        "name": constraint_name,
+        "container": {
+          "element": {name: elementname, ns: elementns}
+        }
+      };
+  if (undefined != annotation_opt) {
+    if ("string" == typeof(annotation_opt)) {
+      annotation_opt = [annotation_opt];
+    }
+    con.annotation = annotation_opt;
+  }
+  this.addConstraint(con);
+  return this;
+};
+
+
 
 /**
  * Defines a custom constraint. To skip one of parse, start or finish, set the function parameter to null.
@@ -3947,6 +4223,8 @@ mljs.prototype.options.prototype.rangeConstraint = function(constraint_name_opt,
   }
   if ((undefined != facet_opt && true===facet_opt) || undefined != facet_options_opt) {
     range.range.facet = true;
+  } else {
+    range.range.facet = false;
   }
   if (undefined != facet_options_opt) {
     range.range["facet-option"] = facet_options_opt;
@@ -4817,12 +5095,29 @@ mljs.prototype.options.prototype._quickRange = function(el) {
 };
 
 /**
+ * Returns a constraint definition based on constraint name.
+ * @param {string} name - Constraint name for already defined constraint to return
+ */
+mljs.prototype.options.prototype.getConstraint = function(name) {
+  var cons = this.options.constraint;
+  if (undefined == cons) {
+    return null;
+  }
+  for (var c = 0,maxc = cons.length,con;c < maxc;c++) {
+    con = cons[c];
+    if (con.name == name) {
+      return con;
+    }
+  }
+};
+
+/**
  * Creates a tuples definition for returning co-occurence values
  *
  * @param {string} name - The name of the tuples configuration to create
- * @param {string|JSON} el - The json element for a co-occurence. Either an element/json key name (string) or a full REST API range type object (JSON). You can specify any number of these as required (minimum 2)
+ * @param {string|JSON} el - The json element for a co-occurence. Either a range constraint name, element/json key name (string) or a full REST API range type object (JSON). You can specify any number of these as required (minimum 2)
  */
-mljs.prototype.options.prototype.tuples = function(name) { // TODO handle infinite tuple definitions (think /v1/ only does 2 at the moment anyway)
+mljs.prototype.options.prototype.tuples = function(name) { // TODO handle values-options and aggregate configuration
   var tuples = {name: name,range: new Array()};
   if (undefined == this.options.tuples) {
     this.options.tuples = new Array();
@@ -4833,7 +5128,15 @@ mljs.prototype.options.prototype.tuples = function(name) { // TODO handle infini
   //  tuples.range.push(this._quickRange(el3));
   //}
   for (var i = 1;i < arguments.length;i++) {
-    tuples.range.push(this._quickRange(arguments[i]));
+    var con = this.getConstraint(arguments[i]);
+    if (null == con || undefined == con.range) {
+      tuples.range.push(this._quickRange(arguments[i]));
+    } else {
+      tuples.range.push(con.range);
+    }
+  }
+  if (undefined != this.defaults.limit) {
+    tuples["values-option"] = ["limit=" + this.defaults.limit]; // TODO validate this is a valid option for tuples (docs only mention values)
   }
   this.options.tuples.push(tuples);
   return this;
@@ -4843,20 +5146,38 @@ mljs.prototype.options.prototype.tuples = function(name) { // TODO handle infini
  * Creates a values definition for returning lexicon values
  *
  * @param {string} name - The name of the values configuration to create
- * @param {string|JSON} el - The json element for a co-occurence. Either an element/json key name (string) or a full REST API range type object (JSON). You can specify any number of these as required
+ * @param {string|JSON} el - The json element for a co-occurence. Either a range constraint name, element/json key name (string) or a full REST API range type object (JSON). You can specify any number of these as required
  */
-mljs.prototype.options.prototype.values = function(name) {
+mljs.prototype.options.prototype.values = function(name) { // TODO handle values-options and aggregate configuration
   var values = {name: name,range: new Array()};
   this.options["return-values"] = true;
   if (undefined == this.options.values) {
     this.options.values = new Array();
   }
   for (var i = 1;i < arguments.length;i++) {
-    values.range.push(this._quickRange(arguments[i]));
+    var con = this.getConstraint(arguments[i]);
+    if (null == con || undefined == con.range) {
+      values.range.push(this._quickRange(arguments[i]));
+    } else {
+      values.range.push(con.range);
+    }
+  }
+  if (undefined != this.defaults.limit) {
+    values["values-option"] = ["limit=" + this.defaults.limit];
   }
   this.options.values.push(values);
   return this;
 };
+
+/**
+ * Sets the default limit for values and tuples lookups (co-occurence and lexicon value listing)
+ * @param {postitiveInteger} num - The limit of the number of results to return
+ */
+mljs.prototype.options.prototype.defaultLimit = function(num) {
+  this.defaults.limit = num;
+  return this;
+};
+
 
 mljs.prototype.options.prototype.suggest = function(constraint,options_opt) {
   this.options["suggestion-source"].push({
@@ -4951,6 +5272,38 @@ mljs.prototype.query.prototype.or = function(query_opt) {
   } else {
     // object
     return { "or-query": [query_opt]};
+  }
+};
+
+
+/**
+ * Creates an element constraint query, with optional query to be applied to the contents of that element.
+ *
+ * @param {string} constraint_name - The name of the constraint configured in the search options for this element.
+ * @param {JSON} query - The query, or array of queries, to use within the constructed or query
+ */
+mljs.prototype.query.prototype.element = function(constraint_name,query_opt) {
+  if (Array.isArray(query_opt)) {
+    return { "element-constraint-query": {"constraint-name": constraint_name,"and-query": query_opt}};
+  } else {
+    // object
+    return { "element-constraint-query": {"constraint-name": constraint_name,"and-query": [query_opt]}};
+  }
+};
+
+
+/**
+ * Creates an container (element or JSON key) constraint query, with optional query to be applied to the contents of that element.
+ *
+ * @param {string} constraint_name - The name of the constraint configured in the search options for this container.
+ * @param {JSON} query - The query, or array of queries, to use within the constructed or query
+ */
+mljs.prototype.query.prototype.container = function(constraint_name,query_opt) {
+  if (Array.isArray(query_opt)) {
+    return { "container-constraint-query": {"constraint-name": constraint_name,"and-query": query_opt}};
+  } else {
+    // object
+    return { "container-constraint-query": {"constraint-name": constraint_name,"and-query": [query_opt]}};
   }
 };
 
@@ -5334,6 +5687,38 @@ com.marklogic.events.Event = function(type,data) {
   this.data = data;
 };
 
+// LINKER
+com.marklogic.events.Linker = function() {
+  this._links = new Array();
+};
+
+com.marklogic.events.Linker.prototype.link = function(widget,funcname,func) {
+  var instance = this._find(widget,funcname);
+  if (null == instance) {
+    instance = {widget:widget,funcname:funcname,func:func};
+    this._links.push(instance);
+  }
+};
+
+com.marklogic.events.Linker.prototype._find = function(widget,funcname) {
+    var instance = null;
+    for (var i = 0, maxi = this._links.length;null == instance && i < maxi;i++) {
+      var candidate = this._links[i];
+      if (funcname == candidate.funcname && widget == candidate.widget) {
+        instance = candidate;
+      }
+    }
+    return instance;
+};
+
+com.marklogic.events.Linker.prototype.find = function(widget,funcname) {
+  var instance = this._find(widget,funcname);
+  if (null != instance) {
+    return instance.func;
+  }
+  return null;
+};
+
 // PUBLISHER
 
 /**
@@ -5476,7 +5861,28 @@ mljs.prototype.searchcontext = function() {
  * Returns the MLJS Workplace Context Configuration definition JSON object
  */
 mljs.prototype.searchcontext.getConfigurationDefinition = function() {
-  // TODO searchcontext config definition
+  return {
+    options: {type: "string", default: "{}", title: "Options", description: "MarkLogic search options object."}, // TODO make this a JSON object
+    optionsName: {type: "string", default: "my-search-options", title: "Options Name", description: "Name of your search options."},
+    sortWord: {type: "string", default: "sort", title: "Sort Word", description: "The keyword in your search options for sorting."},
+    defaultQuery: {type: "string", default: "", title: "Default Query", description: "Default text query to use."},
+    collection: {type: "string", default: "", title: "Collection", description: "Collection to restrict results to."},
+    directory: {type: "string", default: "", title: "Directory", description: "Directory (URI path) to restrict results to."},
+    transform: {type: "string", default: "", title: "Transform", description: "Transform to apply to the search results object."},
+    format: {type: "string", default: "", title: "Format", description: "Format of the result."} // TODO enum for format
+    ,searchEndpoint: {type: "enum", default: "search", title: "Search Endpoint", description: "Whether to execute a values or content query",
+      options: [
+        {value: "search", title: "Search", description: "Default REST search endpoint."},
+        {value: "values", title: "Values", description: "Default REST values endpoint."},
+        {value: "custom", title: "Custom", description: "Custom REST endpoint."}
+      ]},
+
+    tuples: {type: "multiple", minimum: 0, default: [], title: "Tuples", description: "Tuples to load when executing search",
+      childDefinitions: {
+        name: {type: "string", default: "", title: "Tuple name", description: "Tuple name in search options"}
+      }
+    }
+  };
 };
 
 /**
@@ -5487,13 +5893,73 @@ mljs.prototype.searchcontext.getConfigurationDefinition = function() {
 mljs.prototype.searchcontext.prototype.setConfiguration = function(config) {
   this._options = config.options;
   this.optionsName = config.optionsName;
-  this.defaultQuery = config.defaultQuery;
+  this.defaultQuery = config.defaultQuery || "";
   this.sortWord = config.sortWord;
   this.collection = config.collection;
   this.directory = config.directory;
   this.transform = config.transform;
   this.transformParameters = config.transformParameters || {};
   this.format = config.format;
+  this._searchEndpoint = config.searchEndpoint;
+  this._tuples = [];
+  if (undefined != config.tuples) {
+    for (var t = 0,maxt = config.tuples.length,tuple;t < maxt;t++) {
+      tuple = config.tuples[t];
+      this._tuples.push(tuple.name);
+    }
+  }
+
+  if (this.format == "") {
+    this.format = null;
+  }
+  if ("" == this.directory) {
+    this.directory = null;
+  }
+  if ("" == this.collection) {
+    this.collection = null;
+  }
+  if ("" == this.transform) {
+    this.transform = null;
+  }
+  if ("" == this.sortWord) {
+    this.sortWord = "sort";
+  }
+  if ("" == this.optionsName) {
+    this.optionsName = null;
+  }
+  if ("" == this._searchEndpoint) {
+    this._searchEndpoint = "search";
+  }
+  if (null != this._options && "" != this._options) {
+    this._options = JSON.parse(this._options); // saved as string currently - may change later
+  }
+
+  // if blank optionsName, set to 'all', and attempt to load it
+  var self = this;
+  var loadOptions = function(name) {
+
+      self.db.searchOptions(name,function(result) {
+        if (result.inError) {
+          // don't exist
+        } else {
+          self.optionsName = name;
+          self._options = result.doc;
+        }
+      });
+  };
+  if (null == this.optionsName) {
+    this.optionsName = "all"; // in case of async issues on page load
+    // assume they exist
+    this.optionsExist = true;
+    loadOptions("all");
+  } else {
+    if (null == this._options || null == this._options.options) {
+      // assume they exist
+      this.optionsExist = true;
+      // name set, options not loaded yet
+      loadOptions(this.optionsName);
+    }
+  }
 };
 
 /**
@@ -5997,6 +6463,8 @@ mljs.prototype.searchcontext.prototype._doQuery = function(structured_opt,text_o
 
   var dos = function() {
     // check override first
+    console.log("endpoint_override_opt: " + endpoint_override_opt);
+    console.log("self._searchEndpoint: " + self._searchEndpoint);
     if (undefined != endpoint_override_opt) {
       if ("search" == endpoint_override_opt) {
         structuredF();
@@ -6017,8 +6485,10 @@ mljs.prototype.searchcontext.prototype._doQuery = function(structured_opt,text_o
         valuesF();
       } else if ("combined" == self._searchEndpoint) {
         combinedF();
-      } else {
+      } else if ("custom" == self._searchEndpoint) {
         customF();
+      } else {
+        throw new TypeError("searchcontext._doQuery: searchEndpoint must be 'values', 'combined' or 'custom'");
       }
     }
   };
@@ -6102,6 +6572,10 @@ mljs.prototype.searchcontext.prototype.updateGeoHeatmap = function(constraint_na
 
     // copy heatmap information in to search options
     var con = null;
+    if (undefined == this._options || undefined == this._options.options || undefined == this._options.options.constraint) {
+      return;
+    }
+
     for (var i = 0, max = this._options.options.constraint.length;i < max && null == con;i++) {
       con = this._options.options.constraint[i];
       if (con.name == constraint_name) {
@@ -6898,6 +7372,7 @@ com.marklogic.semantic.tripleconfig = function() {
   this.addMarkLogic();
   this.addPlaces();
   this.addFoafPlaces();
+  this.addOpenCalais();
   //this.addTest();
   this.addMovies();
 };
@@ -7280,15 +7755,65 @@ com.marklogic.semantic.tripleconfig.prototype.addMarkLogic = function() {
 
   //this._newPredicates["uri"] = {name: "uri", title: "URI", iri: "http://marklogic.com/semantics/ontology/Document#uri", shortiri: "ml:uri"};
 
-  var doc = this.rdftype("http://marklogic.com/semantics/ontology/Document","http://marklogic.com/semantics/ontology/Document#uri").title("MarkLogic Document")
-    .prefix("http://marklogic.com/semantics/ontology/Document").pattern("http://marklogic.com/semantics/ontology/Document/#VALUE#")
+  var doc = this.rdftype("http://marklogic.com/semantics/ontology/Document",
+      "http://marklogic.com/semantics/ontology/Document#uri").title("MarkLogic Document")
+    .prefix("http://marklogic.com/semantics/ontology/Document")
+    .pattern("http://marklogic.com/semantics/ontology/Document/#VALUE#")
     .from("*","http://marklogic.com/semantics/ontology/Document#uri")
     .from("*","http://www.w3.org/ns/prov#wasDerivedFrom")
     .from("*","http://marklogic.com/semantics/ontology/mentioned_in")
-    .to("http://marklogic.com/semantics/ontology/Document",["http://www.w3.org/ns/prov#wasDerivedFrom","http://marklogic.com/semantics/ontology/mentioned_in"]);
+    .to("http://marklogic.com/semantics/ontology/Document",["http://www.w3.org/ns/prov#wasDerivedFrom",
+      "http://marklogic.com/semantics/ontology/mentioned_in"])
+    .to("*",["http://marklogic.com/semantics/ontology/mentions"])
+    ;
   doc.predicate("http://marklogic.com/semantics/ontology/Document#uri").title("URI");
   doc.predicate("http://www.w3.org/ns/prov#wasDerivedFrom").title("Derived From");
+  doc.predicate("http://marklogic.com/semantics/ontology/mentions").title("Mentions");
+  doc.predicate("http://marklogic.com/semantics/ontology/mentioned_in").title("Mentioned In");
   this.include(doc);
+};
+
+/**
+ * Adds common OpenCalais RDF types and their common names to the triple config.
+ * (Organization, Person, City, Country, Continent, Province or State, Region, Facility)
+ *
+ * {@link http://www.opencalais.com/files/owl.opencalais-4.3a.xml}
+ */
+com.marklogic.semantic.tripleconfig.prototype.addOpenCalais = function() {
+  //var cfg = semctx.getTripleConfiguration(); // used to be getConfiguration()
+  var cfg = this;
+  var org = cfg.rdftype("http://s.opencalais.com/1/type/em/e/Organization",
+      "http://s.opencalais.com/1/pred/organization").title("Extracted Organisation");
+  this.include(org);
+
+  var person = cfg.rdftype("http://s.opencalais.com/1/type/em/e/Person",
+      "http://s.opencalais.com/1/pred/person").title("Extracted Person");
+  this.include(person);
+
+  var city = cfg.rdftype("http://s.opencalais.com/1/type/em/e/City",
+      "http://s.opencalais.com/1/pred/city").title("Extracted City");
+  this.include(city);
+
+  var country = cfg.rdftype("http://s.opencalais.com/1/type/em/e/Country",
+      "http://s.opencalais.com/1/pred/country").title("Extracted Country");
+  this.include(city);
+
+  var continent = cfg.rdftype("http://s.opencalais.com/1/type/em/e/Continent",
+      "http://s.opencalais.com/1/pred/continent").title("Extracted Continent");
+  this.include(continent);
+
+  var province = cfg.rdftype("http://s.opencalais.com/1/type/em/e/ProvinceOrState",
+      "http://s.opencalais.com/1/pred/provinceorstate").title("Extracted Province/State");
+  this.include(province);
+
+  var region = cfg.rdftype("http://s.opencalais.com/1/type/em/e/Region",
+      "http://s.opencalais.com/1/pred/region").title("Extracted Region");
+  this.include(region);
+
+  var facility = cfg.rdftype("http://s.opencalais.com/1/type/em/e/Facility",
+      "http://s.opencalais.com/1/pred/facility").title("Extracted Facility");
+  this.include(facility);
+
 };
 
 /**
@@ -7491,18 +8016,130 @@ mljs.prototype.semanticcontext = function() {
   this._subjectResults = null; // SPARQL results JSON
 
   this._selectedSubject = ""; // IRI of selected subject
-  this._subjectFacts = new Array(); // IRI -> JSON SPARQL facts results object
+  //this._subjectFacts = new Array(); // IRI -> JSON SPARQL facts results object
 
   this._restrictSearchContext = null; // the searchcontext instance to update with a cts:triples-range-query when our subjectQuery is updated
   this._contentSearchContext = null; // The search context to replace the query for when finding related content to this SPARQL query (where a result IRI is a document URI)
 
   this._contentMode = "full"; // or "contribute" - whether to executed a structured query (full) or just provide a single term (contribute)
 
+  this._theCache = {}; // subjectIri => {iri: "", typeNameString: "", nameString: "", namePredicate: "", all: false, facts: [{subject,predicate,object}]}
+
   this._subjectResultsPublisher = new com.marklogic.events.Publisher();
   this._subjectFactsPublisher = new com.marklogic.events.Publisher();
   this._suggestionsPublisher = new com.marklogic.events.Publisher();
   this._factsPublisher = new com.marklogic.events.Publisher(); // publish facts that can be associated to many subjects - normally for pulling back a result per subject, with many facts per 'row'
   this._errorPublisher = new com.marklogic.events.Publisher();
+};
+
+/*mljs.prototype.semanticcontext.prototype._checktc = function() {
+  if (null == this._tripleconfig && undefined != this.db) {
+    this._tripleconfig = this.db.createTripleConfig();
+  }
+};*/
+
+mljs.prototype.semanticcontext.prototype._cache = function(results,allFactsForAllSubjects) {
+  //this._checktc();
+
+  var bindings = results.results.bindings;
+  for (var b = 0,maxb = bindings.length,bin,subject,si;b < maxb;b++) {
+    bin = bindings[b];
+    subject = bin.subject.value;
+    si = this.getCachedFacts(subject);
+    if (undefined == si) {
+      si = {iri: subject, typeNameString: null, nameString: null,namePredicate: null, all:allFactsForAllSubjects || false, facts:[]};
+      this._theCache[subject] = si;
+    }
+    //si.facts.push({subject: subject, predicate: bin.predicate.value, object: bin.object.value});
+    si.facts.push(bin); // stay compatible
+
+    // check if this subject has a name triple cached, and populate
+    var type = this._cachedFact(si,"http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
+    if (undefined != type) {
+      // Get the human readable name for this type
+      /*si.typeNamePredicate = type;
+      var typeInfo = this._tripleconfig.getEntityFromIRI(type);
+      var nameprop = this._tripleconfig.getNameProperty(typeInfo.iri).iri;
+      var name = this.getCachedFact(typeInfo.iri,nameprop);
+      if (undefined != name) {
+        si.typeNameString = name.object.value;
+      }*/
+
+
+      // get the human readable name for this type instance
+      //if (null != this._tripleconfig) { // weird, but can happen
+      mljs.defaultconnection.logger.debug("CF: type obj value: " + type.object.value);
+        var typeInfo = this.getTripleConfiguration().getEntityFromIRI(type.object.value);
+        if (undefined != typeInfo) {
+          si.typeNameString = typeInfo.title;
+          mljs.defaultconnection.logger.debug("CF: type info title: " + typeInfo.title);
+          var nameProp = this._tripleconfig.getNameProperty(typeInfo.iri);
+          mljs.defaultconnection.logger.debug("CF: type iri: " + typeInfo.iri);
+          mljs.defaultconnection.logger.debug("CF: type name prop: " + nameProp);
+          if (undefined != nameProp) {
+            var subjectNameProp = nameProp.iri;
+            mljs.defaultconnection.logger.debug("CF: subject name prop: " + subjectNameProp);
+            if (undefined != subjectNameProp) {
+              si.namePredicate = subjectNameProp;
+              var subName = this._cachedFact(si,subjectNameProp);
+              mljs.defaultconnection.logger.debug("CF: subject name: " + subName);
+              if (undefined != subName) {
+                mljs.defaultconnection.logger.debug("CF: subName value: " + subName.object.value);
+                si.nameString = subName.object.value;
+              }
+            }
+          }
+        }
+      //}
+    } // end type undefined if
+  } // end for
+};
+
+mljs.prototype.semanticcontext.prototype._cachedFact = function(si,predicateIri) {
+  for (var f = 0,maxf = si.facts.length,fact;f < maxf;f++) {
+    fact = si.facts[f];
+    if (fact.predicate.value == predicateIri) {
+      return fact;
+    }
+  }
+  return null;
+};
+
+mljs.prototype.semanticcontext.prototype.getCachedFact = function(subjectIri,predicateIri) {
+  var facts = this.getCachedFacts(subjectIri);
+  // loop through facts
+  return this._cachedFact(facts,predicateIri);
+};
+
+mljs.prototype.semanticcontext.prototype.getCachedFacts = function(subjectIri) {
+  return this._theCache[subjectIri];
+};
+
+/**
+ * Returns the MLJS Workplace Context Configuration definition JSON object
+ */
+mljs.prototype.semanticcontext.getConfigurationDefinition = function() {
+  return {
+    limit: {type: "positiveInteger", minimum: 1, default: 10, title: "Page size", description: "How many results to display (fetch) per page."},
+    contentMode: {type: "enum", default: "full", title: "Content Mode", description: "How to contribute a document-query to a search context.",
+      options: [
+        {value: "full", title: "Replace", description: "Replace the search with this document (uri) query."},
+        {value: "contribute", title: "Contribute", description: "Contribute this document (uri) query to the search."}
+      ]
+    } /*,
+    tripleConfig: {} // TODO serialization of the ontology configuration */
+  };
+};
+
+
+/**
+ * Sets the configuration of this context using the MLJS Workplace JSON format.
+ *
+ * @param {JSON} config - The JSON configuration of this context.
+ */
+mljs.prototype.semanticcontext.prototype.setConfiguration = function(config) {
+  this._limit = config.limit;
+  this._contentMode = config.contentMode;
 };
 
 /**
@@ -7557,7 +8194,7 @@ mljs.prototype.semanticcontext.prototype.hasContentContext = function() {
  *
  * @return {tripleconfig} config - The tripleconfig being used to generate SPARQL by this semanticcontext
  */
-mljs.prototype.semanticcontext.prototype.getConfiguration = function() {
+mljs.prototype.semanticcontext.prototype.getTripleConfiguration = function() {
   if (null == this._tripleconfig) {
     this._tripleconfig = this.db.createTripleConfig();
   }
@@ -7569,7 +8206,7 @@ mljs.prototype.semanticcontext.prototype.getConfiguration = function() {
  *
  * @return {tripleconfig} config - The triple config instance used
  */
-mljs.prototype.semanticcontext.prototype.setConfiguration = function(conf) {
+mljs.prototype.semanticcontext.prototype.setTripleConfiguration = function(conf) {
   this._tripleconfig = conf;
 };
 
@@ -7615,6 +8252,7 @@ mljs.prototype.semanticcontext.prototype.register = function(obj) {
     this._contentSearchContext.register(obj);
   }
 };
+
 
 /**
  * Queries for a subject using the specified SPARQL and paging information. Fires updateSubjectResults.
@@ -7752,21 +8390,31 @@ mljs.prototype.semanticcontext.prototype.subjectContent = function(subjectIri,do
  * @param {string} reload_opt - Whether to reload the fact, or use the cached value (if it exists) - defaults to false (use cache)
  */
 mljs.prototype.semanticcontext.prototype.getFact = function(subjectIri,predicate,reload_opt) {
-  var facts = this._subjectFacts[subjectIri];
-  var bindings
+  if (false === reload_opt) {
+    var facts = this.getCachedFacts(subjectIri);
+    if (undefined != facts) {
+      //self._subjectFactsPublisher.publish({subject: subjectIri,predicate:predicate, facts: [fact]}); // TODO validate this works
+      self._subjectFactsPublisher.publish(
+        {results: {bindings: facts}}
+      );
+      return;
+    }
+  }
   var self = this;
+  /*
   var fireFact = function() {
     var results = [];
     for (var i = 0;i < bindings.length;i++) {
       if (undefined == bindings[i].predicate || predicate == bindings[i].predicate) { // if undefined, its a result of us asking for a specific predicate, and thus a matching predicate
         results.push(bindings[i].predicate); // pushes type, value, xml:lang (if applicable) as JSON object to results array
       }
-    }
+    } // TODO WTF RESULTS DOES ABOVE, AND BINDINGS BELOW
     self._subjectFactsPublisher.publish({subject: subjectIri,predicate: predicate,facts: bindings})
-  };
+  };*/
 
   if ((true==reload_opt) || undefined == facts) {
-    var sparql = "SELECT * WHERE {<" + subjectIri + "> <" + predicate + "> ?object .}";
+    //var sparql = "SELECT * WHERE {<" + subjectIri + "> <" + predicate + "> ?object .}";
+    var sparql = "SELECT * WHERE {?subject ?predicate ?object . FILTER (?subject = <" + subjectIri + "> ) . FILTER (?predicate = <" + predicate + "> ) . }";
 
     // fetch info and refresh again
     self.db.sparql(sparql,function(result) {
@@ -7774,14 +8422,16 @@ mljs.prototype.semanticcontext.prototype.getFact = function(subjectIri,predicate
       if (result.inError) {
         self._errorPublisher.publish(result.error);
       } else {
-        bindings = result.doc.results.bindings;
-        fireFact();
+        self._cache(result.doc);
+        //bindings = result.doc.results.bindings;
+        //fireFact();
+        self._subjectFactsPublisher.publish(result.doc);
       }
     });
-  } else {
+  }/* else {
     bindings = facts.results.bindings;
     fireFact();
-  }
+  }*/
 };
 
 /**
@@ -7791,35 +8441,56 @@ mljs.prototype.semanticcontext.prototype.getFact = function(subjectIri,predicate
  * @param {string} reload_opt - Whether to reload the fact, or use the cached value (if it exists) - defaults to false (use cache)
  */
 mljs.prototype.semanticcontext.prototype.getFacts = function(subjectIri,reload_opt) {
-  var self = this;
-  var facts = this._subjectFacts[subjectIri];
+  //var facts = this._subjectFacts[subjectIri];
+  var facts = this.getCachedFacts(subjectIri); //.facts;
   if ((true==reload_opt) || undefined == facts) {
     var sparql = "SELECT * WHERE {";
 
     // check for bnodes
-    if (!(subjectIri.indexOf("_:") == 0)) {
+    /*if (!(subjectIri.indexOf("_:") == 0)) {
       sparql += "<";
     }
     sparql += subjectIri;
     if (!(subjectIri.indexOf("_:") == 0)) {
       sparql += ">";
-    }
-    sparql += " ?predicate ?object .}";
+    }*/
+    sparql += " ?subject ?predicate ?object . FILTER (?subject = <" + subjectIri + "> ) .}";
 
-    // fetch info and refresh again
-    self.db.sparql(sparql,function(result) {
-      self.__d("RESPONSE: " + JSON.stringify(result.doc));
-      if (result.inError) {
-        self._subjectFactsPublisher.publish(false);
-        self._errorPublisher.publish(result.error);
-      } else {
-        self._subjectFacts[subjectIri] = result.doc;
-        self._subjectFactsPublisher.publish({subject: subjectIri,facts: result.doc});
-      }
-    });
+    this._getFacts(sparql);
   } else {
-    self._subjectFactsPublisher.publish({subject: subjectIri,facts: facts});
+    this._subjectFactsPublisher.publish(
+      {results: {bindings: facts.facts}}
+    );
   }
+};
+
+mljs.prototype.semanticcontext.prototype._getFacts = function(sparql,subjectIriOpt) {
+  var self = this;
+  // fetch info and refresh again
+  self.db.sparql(sparql,function(result) {
+    self.__d("RESPONSE: " + JSON.stringify(result.doc));
+    if (result.inError) {
+      self._subjectFactsPublisher.publish(false);
+      self._errorPublisher.publish(result.error);
+    } else {/*
+      var res = {facts: result.doc};
+      if (undefined != subjectIriOpt) {
+        self._subjectFacts[subjectIriOpt] = result.doc;
+        res.subject = subjectIriOpt;
+      }*/
+      self._cache(result.doc,true);
+      self._subjectFactsPublisher.publish(result.doc);
+    }
+  });
+};
+
+/**
+ * Get facts for the Subject where the given condition matches. MUST use ?subject for the subject of interest.
+ * @param {string} whereSparql - The Sparql to embed within the where clause using ?subject
+ */
+mljs.prototype.semanticcontext.prototype.getFactsWhere = function(whereSparql) {
+  var sparql = "select * where {" + whereSparql + " ?subject ?predicate ?object .}"
+  this._getFacts(sparql);
 };
 
 /**
@@ -7886,6 +8557,7 @@ mljs.prototype.semanticcontext.prototype.queryFacts = function(sparql) {
     if (result.inError) {
       self._errorPublisher.publish(result.error);
     } else {
+      self._cache(result.doc);
       // pass facts on to listeners
       self._factsPublisher.publish(result.doc);
     }
@@ -7920,13 +8592,63 @@ mljs.prototype.documentcontext = function() {
 
   this._allowableProperties = new Array(); // [{name: "keyword",title: "Keyword", cardinality: 1 | "*"}, ... ]
 
+  this._config = {
+    template: {title: "Some title",content: "Some content"},
+    uriPattern: null // means decided by server entirely
+  }; // TODO update Configuration to include these, and refactor allowableProperties in to this
+
+  this._constructed = null; // holds the content of the document being constructed/edited
+  this._properties = new Array(); // [{property: "" OR element: "", namespaces: [], content: ""}, ...]
+  this._uri = null;
+
   this._highlightedPublisher = new com.marklogic.events.Publisher();
   this._selectedPublisher = new com.marklogic.events.Publisher();
   this._contentPublisher = new com.marklogic.events.Publisher();
+  this._partPublisher = new com.marklogic.events.Publisher();
   this._propertiesPublisher = new com.marklogic.events.Publisher();
   this._errorPublisher = new com.marklogic.events.Publisher();
   this._confirmationPublisher = new com.marklogic.events.Publisher();
   this._facetsPublisher = new com.marklogic.events.Publisher();
+};
+
+/**
+ * Returns the MLJS Workplace Context Configuration definition JSON object
+ */
+mljs.prototype.documentcontext.getConfigurationDefinition = function() {
+  return {
+    allowableProperties: {type: "multiple", minimum: 0, default: [], title: "Allowable Properties", description: "Properties to allow (none listed means all allowed)",
+      childDefinitions: {
+        name: {type: "string", default: "", title: "Property Name", description: "RDF full name of the property"},
+        title: {type: "string", default: "", title: "Property Title", description: "Human readable property title"},
+        cardinality: {type: "enum", default: "1", title: "Cardinality", description: "How many instances are possible",
+          options: [
+            {value: "1", title: "One", description: "Maximum of a single instance only"},
+            {value: "*", title: "Many", description: "No maximum"}
+          ]
+        }
+
+      }
+    }
+  };
+};
+
+
+/**
+ * Sets the configuration of this context using the MLJS Workplace JSON format.
+ *
+ * @param {JSON} config - The JSON configuration of this context.
+ */
+mljs.prototype.documentcontext.prototype.setConfiguration = function(config) {
+  this._allowableProperties = new Array();
+  var props = config.allowableProperties;
+  if (null != props) {
+    for (var p, maxp = props.legth,prop;p < maxp;p++) {
+      prop = props[p];
+      if (undefined != prop) { // array could have been modified. Sanity check only.
+        this._allowableProperties.push(prop);
+      }
+    }
+  }
 };
 
 /**
@@ -7984,6 +8706,9 @@ mljs.prototype.documentcontext.prototype.register = function(obj) {
   if (undefined != obj.updateDocumentContent) {
     this._contentPublisher.subscribe(function(results) {obj.updateDocumentContent(results)});
   }
+  if (undefined != obj.updateDocumentPart) {
+    this._partPublisher.subscribe(function(results) {obj.updateDocumentPart(results)});
+  }
   if (undefined != obj.updateDocumentProperties) {
     this._propertiesPublisher.subscribe(function(results) {obj.updateDocumentProperties(results)});
   }
@@ -8037,6 +8762,8 @@ mljs.prototype.documentcontext.prototype.getContent = function(docuri) {
     if (result.inError) {
       self._errorPublisher.publish(result.detail);
     } else {
+      this._constructed = result.doc;
+      this._uri = docuri;
       self._contentPublisher.publish({docuri: docuri, doc: result.doc});
     }
   });
@@ -8054,6 +8781,7 @@ mljs.prototype.documentcontext.prototype.getProperties = function(docuri) {
     if (result.inError) {
       self._errorPublisher.publish(result.detail);
     } else {
+      this._uri = docuri;
       self._propertiesPublisher.publish({docuri: docuri, properties: result.doc});
     }
   });
@@ -8113,6 +8841,215 @@ mljs.prototype.documentcontext.prototype.getFacets = function(docuri,optionsName
   });
 };
 
+
+/*
+fieldDef = {
+  title: "Main Heading", path: "/h:body/h:h1[1]", namespaces: {h: "http://whatever"}, // also path: "some.json.path"
+  type: "string|datetime|date|positiveInteger|integer|float|double", // basically any xs: intrinsic type
+  required: true, min: 1, max: 7, default: 5, multiple: true // min max for numeric types, multiple for multi instance selects (for example)
+}
+
+// title defaults to CamelCase and split of last path element, type to string, required to false, multiple false, no namespaces
+// thus only required field is path.
+*/
+
+/**
+ * Sets the value of a part (field aka property aka element aka attribute) within the document.
+ * @param {json} fieldDef - The field definition
+ * @param {string|number} - The raw JavaScript content
+ */
+mljs.prototype.documentcontext.prototype.setPart = function(fieldDef,content) {
+  this.completeFieldDef(fieldDef);
+ // TODO figure out generic replaceValue() function
+
+   // construct and apply XPath from namePath
+   //var xpath = "/" + namePath.replace(/\./g,"/");
+   var xpath = fieldDef.path;
+   //xpath = xpath.replace(/\/.*:/g,"/*:"); // replace all namespaces with global namespace - temporary hack
+   console.log("Final XPath now: " + xpath);
+
+  // TODO support JSON documents
+
+   // TODO apply xpath to extract document value
+  var myfunc = function(prefix) {
+    if (undefined != fieldDef.namespaces) {
+      return fieldDef.namespaces[prefix];
+    } else {
+      if (prefix === "jb") {
+        return "http://marklogic.com/xdmp/json/basic";
+      } else if (prefix === "i") {
+        return "http://www.marklogic.com/intel/intercept";
+      }
+    }
+    return null;
+     //return null; // assume always default namespace
+     // TODO support namespaces globally somehow - global context? page context?
+  };
+
+  // get node
+  var iterator = this._constructed.evaluate(xpath,this._constructed,myfunc,XPathResult.ORDERED_NODE_ITERATOR_TYPE,null); // TODO WHY IS THIS NOT WORKING???
+  var child = iterator.iterateNext();
+  //for (var i = 0, max = children.length, child;i < max;i++) {
+  if (child) { // first only (assume they forgot [1] on the end of the xpath)
+    //child = children.item(i);
+    // cannot execute xpath on child nodes
+    // if has content, remove it
+    for (var n = 0;n < child.childNodes.length;n++) {
+      child.removeChild(child.childNodes.item(n));
+    }
+    // set content text node
+    child.innerHTML = content; // TODO check for XML Node here too
+    // TODO check the above works in Node.js without changes
+  }
+
+};
+
+/**
+ * Returns the value of the given part, or null if it doesn't exist yet
+ * @param {json} fieldDef - The field definition
+ */
+mljs.prototype.documentcontext.prototype.getPart = function(fieldDef) {
+  this.completeFieldDef(fieldDef);
+  return this._getConstructedPart(fieldDef);
+};
+
+mljs.prototype.documentcontext.prototype._getConstructedPart = function(fieldDef) {
+  var self = this;
+  if (undefined == this._constructed) {
+    this.__d("documentcontext._getConstructedPart: NO CONSTRUCTED CONTENT YET! CANNOT FETCH FIELD");
+  }
+  return this.db.extractValue(this._constructed,fieldDef.path,fieldDef.namespaces);
+};
+
+/**
+ * Sets the template to use for a new document. WARNING: This does NOT call reset() to clear the currently saved document!
+ * @param {string|XMLDocument|JSON} templateContent - The content to use in the template.
+ */
+mljs.prototype.documentcontext.prototype.setTemplate = function(templateContent) {
+  this._config.template = templateContent;
+  if (undefined == this._constructed) {
+    this.reset();
+  }
+};
+
+/**
+ * Returns the current template value (WARNING: May be text if set via Workplace, not an XML Document or JSON object)
+ */
+mljs.prototype.documentcontext.prototype.getTemplate = function() {
+  return this._config.template;
+};
+
+/**
+ * Resets the content of this document to null or the template value. Converts to XML or JSON automatically.
+ * Call this method when you've loaded a document, but now wish to work on a new document, without using the same URI or properties.
+ * Forces a call to updateContent()
+ */
+mljs.prototype.documentcontext.prototype.reset = function() {
+  this._constructed = null;
+  this._properties = new Array();
+
+  // generate new content from template
+  if (undefined != this._config.template) {
+    this._constructed = this._config.template;
+    if ("string" == typeof(this._constructed)) {
+      if (this._constructed.substring(0,1) == "<") {
+        // XML
+        this._constructed = this.db.textToXml(this._constructed);
+      } else {
+        // try JSON
+        this._constructed = JSON.parse(this._constructed);
+      }
+    }
+  }
+  this._contentPublisher.publish({docuri: null,doc: this._constructed});
+};
+
+
+mljs.prototype.documentcontext.prototype.completeFieldDef = function(fieldDef) {
+  // validate/fix/fill in field def
+  if (undefined == fieldDef.title) {
+    if ("/" == fieldDef.path.substring(0,1)) {
+      // XPath
+      var start = 0;
+      var end = fieldDef.path.length;
+      console.log("CFD: original: " + fieldDef.path);
+      var lastIndex = fieldDef.path.lastIndexOf("/");
+      console.log("CFD: last slash: " + lastIndex);
+      if (-1 != lastIndex) {
+        var lastColon = fieldDef.path.indexOf(":", lastIndex + 1);
+        console.log("CFD: last colon: " + lastColon);
+        if (-1 != lastColon) {
+          start = lastColon + 1;
+        } else {
+          start = lastIndex + 1;
+        }
+      } else {
+        // leave as start of string
+      }
+      console.log("CFD: start now: " + start);
+      var square = fieldDef.path.indexOf("[",start);
+      console.log("CFD: square: " + square);
+      if (-1 != square) {
+        end = square;
+      } else {
+        // leave as end of string
+      }
+      fieldDef.title = this.db.stringhelper.processValueAll(fieldDef.path.substring(start,end));
+    } else {
+      // JSON Path
+      if (-1 != fieldDef.path.lastIndexOf(".")) {
+        fieldDef.title = this.db.stringhelper.processValueAll(fieldDef.path.lastIndexOf("."));
+      } else {
+        fieldDef.title = this.db.stringhelper.processValueAll(fieldDef.path);
+      }
+    }
+  }
+
+  if (undefined == fieldDef.namespaces) {
+    fieldDef.namespaces = {};
+  }
+
+  if (undefined == fieldDef.type) {
+    fieldDef.type = "string";
+  }
+
+  if (undefined == fieldDef.required) {
+    fieldDef.required = false;
+  }
+
+  if (undefined == fieldDef.multiple) {
+    fieldDef.multiple = false;
+  }
+
+  if (undefined == fieldDef.default) {
+    fieldDef.default = "";
+  }
+};
+
+/**
+ * Saves this document content, properties and permissions in one hit via a PUT to /v1/documents - mljs.save().
+ * If a new document, sets the value of context._uri to the new document's URI.
+ * Forces an immediate getContent() in order to load any changes by pre-commit triggers.
+ * (This also gives you the URI via updateContent({docuri: "uri", doc: XML|JSON}); ).
+ */
+mljs.prototype.documentcontext.prototype.save = function() {
+  var self = this;
+  this.db.save(this._constructed,this._uri,{
+    properties: self._properties
+  }, function(result) {
+    if (result.inError) {
+      // uh oh
+
+      self._errorPublisher.publish(result.detail);
+    } else {
+      if (null != result.docuri) {
+        self._uri = result.docuri; // TODO check this is correct
+      }
+
+      self.getContent(self._uri); // forces content publish too
+    }
+  });
+};
 
 
 
@@ -8241,6 +9178,33 @@ mljs.prototype.geocontext = function() {
   // info for updating related search context(s)
   this._searchContexts = new Array(); // array of {context: context, constraintName: null|value}
   this._defaultConstraintName = "location";
+
+  this._configurationContext = null;
+
+  this._config = {
+    homelat: null, homelon: null, homeradius: null // convenience home configuration
+  }; // TODO move configurations in to here
+  // TODO add linked SC link here
+};
+
+mljs.prototype.geocontext.prototype.setConfigurationContext = function(cc) {
+  this._configurationContext = cc;
+};
+
+mljs.prototype.geocontext.getConfigurationDefinition = function() {
+  return {
+    homelat: {type: "double", default: null, title: "Home Latitude", description: "Default location latitude WGS84."},
+    homelon: {type: "double", default: null, title: "Home Longitude", description: "Default location longitude WGS84."},
+    homeradius: {type: "double", default: null, title: "Home Radius", description: "Default location radius statute miles."}
+  };
+};
+
+mljs.prototype.geocontext.prototype.setConfiguration = function(config) {
+  this._config = config;
+  if (undefined != this._config.homelat && undefined != this._config.homelon) {
+    this.homeRadius(this._config.homelat,this._config.homelon,this._config.homeradius,this._alwaysFallback); // TODO update config reference for _config
+  }
+  // TODO lookup linked sc context instance via config context
 };
 
 // initialisation methods
@@ -8301,6 +9265,25 @@ mljs.prototype.geocontext.prototype.home = function(areaOrArray,alwaysFallback) 
   this._home = areaOrArray;
   if (undefined != alwaysFallback) {
     this._alwaysFallback = alwaysFallback;
+  }
+  return this;
+};
+
+
+/**
+ * Convenience method for home() to set home location to a point with an optional radius (defaults to 20 miles).
+ *
+ * @param {number} lat - latitude of home point
+ * @param {number} lon - longitude of home point
+ * @param {number} radiusMiles_opt - optional radius of home point location (default 20 miles)
+ * @param {boolean} alwaysFallback - Whether this should be used just as a start position (false), or always used as a default location when no areas have been contributed (true).
+ */
+mljs.prototype.geocontext.prototype.homeRadius = function(lat,lon,radiusMiles_opt,alwaysFallback_opt) {
+  var qb = this.db.createQuery();
+  this._home = qb.circleDef(lat,lon,radiusMiles_opt || 20);
+
+  if (undefined != alwaysFallback_opt) {
+    this._alwaysFallback = alwaysFallback_opt;
   }
   return this;
 };
@@ -8399,7 +9382,22 @@ mljs.prototype.geocontext.prototype._fireLocaleUpdate = function() {
 
 
 
-
+// NB SHOULD NOT BE USED DIRECTLY - SHOULD BE WRAPPED AS AN ABSTRACT CLASS
+mljs.prototype.configurationcontext = function(parent) {
+  var oldregister = parent.register;
+  parent.register = function(widget) {
+    if (undefined != widget.setConfigurationContext) {
+      widget.setConfigurationContext(parent);
+    }
+    if (undefined != oldregister) {
+      oldregister(widget); // incase we're part of another context with a register function - chaining function calls
+    }
+  };
+  parent.getInstance = parent.getInstance || function(instanceName) {
+    return null;
+  };
+  return parent;
+};
 
 
 
@@ -8531,6 +9529,251 @@ mljs.prototype.alertcontext.prototype.register = function(wgt) {
 
 
 
+/**
+ * Abstracts data collation from many sources, across multiple calls
+ * E.g. one source may be facets from a document query, another triples relating to the subject (reference data),
+ * another still may be cooccurence data.
+ * This class is an extract of visual functionality in the highcharts and openlayers widgets.
+ * WARNING: DEVELOPMENT GRADE CODE - NOT READY FOR PRIME TIME
+ */
+mljs.prototype.seriescontext = function() {
+  this.TYPE_RESULTS_METRICS          = 1;
+  this.TYPE_RESULTS_DOCUMENT_CONTENT = 2;
+  this.TYPE_RESULTS_DOCUMENT_FACETS  = 3;
+  this.TYPE_COOCCURENCE              = 4;
+  this.TYPE_TRIPLES                  = 5;
+
+  this._series = {}; // name => {}
+
+  this._dataUpdatePublisher = new com.marklogic.events.Publisher();
+};
+
+mljs.prototype.seriescontext.prototype.addSeries = function(name,type,sourceContext,titleSourceType,
+  titleSource,categorySourceType,categorySource,valueSourceType,valueSource) {
+  this._series[name] = {
+    name: name, type: type,sourceContext: sourceContext,titleSourceType: titleSourceType,
+    titleSource: titleSource,categorySourceType: categorySourceType,valueSourceType:valueSourceType,
+    valueSource:valueSource
+  };
+  // set up listeners
+  var self = this;
+  if (this._TYPE_RESULTS_DOCUMENT_FACETS == type) {
+    this._series[name].listener = {
+      updateResults: function(results) {
+        self._updateResultsFacets(self._series[name],results);
+      }
+    };
+    sourceContext.register(this._series[name].listener);
+  }else if (this._TYPE_RESULTS_DOCUMENT_CONTENT == type) {
+    this._series[name].listener = {
+      updateResults: function(results) {
+        self._updateResultsContent(self._series[name],results);
+      }
+    };
+    sourceContext.register(this._series[name].listener);
+  } else if (this._TYPE_COOCCURENCE == type) {
+    this._series[name].listener = {
+      updateValues: function(results) {
+        self._updateValuesCooccurence(self._series[name],results);
+      }
+    };
+    sourceContext.register(this._series[name].listener);
+  } else {
+    // TODO other source types
+  }
+};
+
+mljs.prototype.seriescontext.prototype._updateSubjectFacts = function(facts) {
+
+};
+
+mljs.prototype.seriescontext.prototype._updateResultsFacets = function(series,results) {
+
+};
+
+mljs.prototype.seriescontext.prototype._updateResultsContent = function(series,results) {
+
+};
+
+mljs.prototype.seriescontext.prototype._updateValuesCooccurence = function(series,results) {
+
+};
+
+mljs.prototype.seriescontext.prototype.register = function(widget) {
+  if (undefined != widget.setSeriesContext) {
+    widget.setSeriesContext(this);
+  }
+
+  var self = this;
+  if (undefined != widget.updateSeriesData) {
+    this._dataUpdatePublisher.subscribe(function() {
+      widget.updateSeriesData(self);
+    });
+  }
+};
+
+
+
+
+
+com.marklogic.util = {};
+
+com.marklogic.util.linkedlistitem = function(name,value) {
+  this._name = name;
+  this._value = value;
+  this._next = null;
+  this._previous = null;
+};
+
+com.marklogic.util.linkedlistitem.prototype.getName = function() {
+  return this._name;
+};
+
+com.marklogic.util.linkedlistitem.prototype.getValue = function() {
+  return this._value;
+};
+
+com.marklogic.util.linkedlistitem.prototype.setNext = function(nextItem) {
+  this._next = nextItem;
+};
+
+com.marklogic.util.linkedlistitem.prototype.getNext = function() {
+  return this._next;
+};
+
+com.marklogic.util.linkedlistitem.prototype.setPrevious = function(previousItem) {
+  this._previous = previousItem;
+};
+
+com.marklogic.util.linkedlistitem.prototype.getPrevious = function() {
+  return this._previous;
+};
+
+
+
+
+com.marklogic.util.linkedlist = function() {
+  this._first = null;
+  this._last = null; // helps append run fast
+  this._length = 0;
+};
+
+com.marklogic.util.linkedlist.prototype.append = function(name,value) {
+  var end = new com.marklogic.util.linkedlistitem(name,value);
+  if (null != this._last) {
+    this._last.setNext(end);
+  }
+  end.setPrevious(this._last);
+  if (null == this._first) {
+    this._first = end;
+  }
+  this._last = end;
+  this._length++;
+  return end;
+};
+
+com.marklogic.util.linkedlist.prototype.getLength = function() {
+  return this._length;
+};
+
+com.marklogic.util.linkedlist.prototype._getItemByName = function(name) {
+  var item = this._first;
+  while (null != item) {
+    if (item.getName() == name) {
+      return item;
+    }
+    item = item.getNext();
+  }
+  return null;
+};
+
+
+com.marklogic.util.linkedlist.prototype._getItemByPosition = function(pos) {
+  var item = this._first;
+  for (var i = 0;i < pos;i++) {
+    item = item.getNext();
+  }
+  return item;
+};
+
+com.marklogic.util.linkedlist.prototype.forEach = function(callback) {
+  var item = this._first;
+  while (null != item) {
+    callback(item);
+    item = item.getNext();
+  }
+};
+
+com.marklogic.util.linkedlist.prototype.moveTo = function(name,newPos) {
+  var curItem = this._getItemByName(name);
+  var itemNext = this._getItemByPosition(newPos);
+
+  // remove from current position
+  var curPrev = curItem.getPrevious();
+  var curNext = curItem.getNext();
+  if (null != curPrev) {
+    curPrev.setNext(curNext);
+  }
+  if (null != curNext) {
+    curNext.setPrevious(curPrev);
+  }
+
+  // place at new position
+  var itemNextPrev = itemNext.getPrevious();
+  if (null != itemNextPrev) {
+    itemNextPrev.setNext(curItem);
+  }
+  curItem.setPrevious(itemNextPrev);
+  curItem.setNext(itemNext);
+  itemNext.setPrevious(curItem);
+
+  if (this._last.getName() == name) {
+    this._last = curPrev;
+  }
+  if (this._first.getName() == name) {
+    this._first = curNext;
+  }
+};
+
+com.marklogic.util.linkedlist.prototype.insertAt = function(name,value,pos) {
+  var item = this.append(name,value);
+  this.moveTo(name,pos);
+  return item;
+};
+
+com.marklogic.util.linkedlist.prototype.remove = function(name) {
+  var item = this._getItemByName(name);
+  var prev = item.getPrevious();
+  var next = item.getNext();
+  if (null != prev) {
+    prev.setNext(next);
+  }
+  if (null != next) {
+    next.setPrevious(prev);
+  }
+  if (this._first.getName() == name) {
+    this._first = next;
+  }
+  if (this._last.getName() == name) {
+    this._last = prev;
+  }
+
+  this._length--;
+};
+
+com.marklogic.util.linkedlist.prototype.getOrderedItems = function() {
+  var ordered = new Array();
+  var item = this._first;
+  while (null != item) {
+    ordered.push(item);
+    item = item.getNext();
+  }
+  return ordered;
+};
+
+
+
+
 
 
 
@@ -8582,3 +9825,8 @@ mljs.prototype.alertcontext.prototype.register = function(wgt) {
 mljs.prototype.textToXML = textToXML;
 mljs.prototype.xmlToJson = xmlToJson;
 mljs.prototype.xmlToText = xmlToText;
+mljs.prototype.jsonOrXml = jsonOrXml;
+mljs.prototype.extractValue = extractValue;
+mljs.prototype.jsonExtractValue = jsonExtractValue;
+mljs.prototype.xmlExtractValue = xmlExtractValue;
+mljs.prototype.stringhelper = stringhelper;
