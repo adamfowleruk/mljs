@@ -323,7 +323,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#sunlight-1-line-7482">line 7482</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#sunlight-1-line-8007">line 8007</a>
     </li></ul></dd>
     
 
@@ -369,7 +369,7 @@
         <dl>
             
 <dt>
-    <h4 class="name" id="getConfiguration"><span class="type-signature"></span>getConfiguration<span class="signature">()</span><span class="type-signature"> &rarr; {tripleconfig}</span></h4>
+    <h4 class="name" id="getConfigurationDefinition"><span class="type-signature">&lt;static> </span>getConfigurationDefinition<span class="signature">()</span><span class="type-signature"></span></h4>
     
     
 </dt>
@@ -377,7 +377,7 @@
     
     
     <div class="description">
-        <p>Returns the underlying triple config instance.</p>
+        <p>Returns the MLJS Workplace Context Configuration definition JSON object</p>
     </div>
     
 
@@ -410,7 +410,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#sunlight-1-line-7560">line 7560</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#sunlight-1-line-8121">line 8121</a>
     </li></ul></dd>
     
 
@@ -431,29 +431,6 @@
     
     
     
-    <h5>Returns:</h5>
-    
-            
-<div class="param-desc">
-    <p>config - The tripleconfig being used to generate SPARQL by this semanticcontext</p>
-</div>
-
-
-
-<dl>
-	<dt>
-		Type
-	</dt>
-	<dd>
-		
-<span class="param-type">tripleconfig</span>
-
-
-	</dd>
-</dl>
-
-
-        
     
     
 </dd>
@@ -502,7 +479,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#sunlight-1-line-7542">line 7542</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#sunlight-1-line-8179">line 8179</a>
     </li></ul></dd>
     
 
@@ -594,7 +571,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#sunlight-1-line-7524">line 7524</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#sunlight-1-line-8161">line 8161</a>
     </li></ul></dd>
     
 
@@ -781,7 +758,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#sunlight-1-line-7754">line 7754</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#sunlight-1-line-8392">line 8392</a>
     </li></ul></dd>
     
 
@@ -922,7 +899,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#sunlight-1-line-7793">line 7793</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#sunlight-1-line-8443">line 8443</a>
     </li></ul></dd>
     
 
@@ -943,6 +920,216 @@
     
     
     
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="getFactsWhere"><span class="type-signature"></span>getFactsWhere<span class="signature">(whereSparql)</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        <p>Get facts for the Subject where the given condition matches. MUST use ?subject for the subject of interest.</p>
+    </div>
+    
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params table table-striped">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+
+		<th>Type</th>
+
+		
+
+		
+
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+
+	<tbody>
+	
+
+        <tr>
+            
+                <td class="name"><code>whereSparql</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The Sparql to embed within the where clause using ?subject</p></td>
+        </tr>
+
+	
+	</tbody>
+</table>
+
+    
+    
+    
+<dl class="details">
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#sunlight-1-line-8491">line 8491</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="getTripleConfiguration"><span class="type-signature"></span>getTripleConfiguration<span class="signature">()</span><span class="type-signature"> &rarr; {tripleconfig}</span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        <p>Returns the underlying triple config instance.</p>
+    </div>
+    
+
+    
+    
+    
+    
+    
+    
+    
+<dl class="details">
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#sunlight-1-line-8197">line 8197</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    <h5>Returns:</h5>
+    
+            
+<div class="param-desc">
+    <p>config - The tripleconfig being used to generate SPARQL by this semanticcontext</p>
+</div>
+
+
+
+<dl>
+	<dt>
+		Type
+	</dt>
+	<dd>
+		
+<span class="param-type">tripleconfig</span>
+
+
+	</dd>
+</dl>
+
+
+        
     
     
 </dd>
@@ -991,7 +1178,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#sunlight-1-line-7551">line 7551</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#sunlight-1-line-8188">line 8188</a>
     </li></ul></dd>
     
 
@@ -1132,7 +1319,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#sunlight-1-line-7643">line 7643</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#sunlight-1-line-8281">line 8281</a>
     </li></ul></dd>
     
 
@@ -1203,7 +1390,7 @@ triple algorithms over time change algorithms to a near-best option, and caches 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#sunlight-1-line-7830">line 7830</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#sunlight-1-line-8501">line 8501</a>
     </li></ul></dd>
     
 
@@ -1322,7 +1509,7 @@ NB this method does not specify its own OFFSET or LIMIT values.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#sunlight-1-line-7882">line 7882</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#sunlight-1-line-8553">line 8553</a>
     </li></ul></dd>
     
 
@@ -1444,7 +1631,7 @@ And event firers: addSubjectSelectionListener</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#sunlight-1-line-7586">line 7586</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#sunlight-1-line-8223">line 8223</a>
     </li></ul></dd>
     
 
@@ -1472,7 +1659,7 @@ And event firers: addSubjectSelectionListener</p>
         
             
 <dt>
-    <h4 class="name" id="setConfiguration"><span class="type-signature"></span>setConfiguration<span class="signature">()</span><span class="type-signature"> &rarr; {tripleconfig}</span></h4>
+    <h4 class="name" id="setConfiguration"><span class="type-signature"></span>setConfiguration<span class="signature">(config)</span><span class="type-signature"></span></h4>
     
     
 </dt>
@@ -1480,7 +1667,7 @@ And event firers: addSubjectSelectionListener</p>
     
     
     <div class="description">
-        <p>Sets the triple config instance to use for determining ontology information.</p>
+        <p>Sets the configuration of this context using the MLJS Workplace JSON format.</p>
     </div>
     
 
@@ -1488,6 +1675,55 @@ And event firers: addSubjectSelectionListener</p>
     
     
     
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params table table-striped">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+
+		<th>Type</th>
+
+		
+
+		
+
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+
+	<tbody>
+	
+
+        <tr>
+            
+                <td class="name"><code>config</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">JSON</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The JSON configuration of this context.</p></td>
+        </tr>
+
+	
+	</tbody>
+</table>
+
     
     
     
@@ -1513,7 +1749,7 @@ And event firers: addSubjectSelectionListener</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#sunlight-1-line-7572">line 7572</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#sunlight-1-line-8140">line 8140</a>
     </li></ul></dd>
     
 
@@ -1534,29 +1770,6 @@ And event firers: addSubjectSelectionListener</p>
     
     
     
-    <h5>Returns:</h5>
-    
-            
-<div class="param-desc">
-    <p>config - The triple config instance used</p>
-</div>
-
-
-
-<dl>
-	<dt>
-		Type
-	</dt>
-	<dd>
-		
-<span class="param-type">tripleconfig</span>
-
-
-	</dd>
-</dl>
-
-
-        
     
     
 </dd>
@@ -1654,7 +1867,7 @@ And event firers: addSubjectSelectionListener</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#sunlight-1-line-7533">line 7533</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#sunlight-1-line-8170">line 8170</a>
     </li></ul></dd>
     
 
@@ -1774,7 +1987,7 @@ document-query(uri) within the target search context.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#sunlight-1-line-7515">line 7515</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#sunlight-1-line-8152">line 8152</a>
     </li></ul></dd>
     
 
@@ -1795,6 +2008,98 @@ document-query(uri) within the target search context.</p>
     
     
     
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="setTripleConfiguration"><span class="type-signature"></span>setTripleConfiguration<span class="signature">()</span><span class="type-signature"> &rarr; {tripleconfig}</span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        <p>Sets the triple config instance to use for determining ontology information.</p>
+    </div>
+    
+
+    
+    
+    
+    
+    
+    
+    
+<dl class="details">
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#sunlight-1-line-8209">line 8209</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    <h5>Returns:</h5>
+    
+            
+<div class="param-desc">
+    <p>config - The triple config instance used</p>
+</div>
+
+
+
+<dl>
+	<dt>
+		Type
+	</dt>
+	<dd>
+		
+<span class="param-type">tripleconfig</span>
+
+
+	</dd>
+</dl>
+
+
+        
     
     
 </dd>
@@ -1940,7 +2245,7 @@ TODO update to use tripleconfig to determine type, if information is available.<
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#sunlight-1-line-7853">line 7853</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#sunlight-1-line-8524">line 8524</a>
     </li></ul></dd>
     
 
@@ -2084,7 +2389,7 @@ NB only executes if a (content) search context has been configured on this seman
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#sunlight-1-line-7687">line 7687</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#sunlight-1-line-8325">line 8325</a>
     </li></ul></dd>
     
 
@@ -2202,7 +2507,7 @@ NB only executes if a (content) search context has been configured on this seman
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#sunlight-1-line-7670">line 7670</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#sunlight-1-line-8308">line 8308</a>
     </li></ul></dd>
     
 
@@ -2366,7 +2671,7 @@ NB only executes if a (content) search context has been configured on this seman
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#sunlight-1-line-7626">line 7626</a>
+        <a href="mljs.js.html">mljs.js</a>, <a href="mljs.js.html#sunlight-1-line-8264">line 8264</a>
     </li></ul></dd>
     
 
@@ -2420,7 +2725,7 @@ NB only executes if a (content) search context has been configured on this seman
 					
 		<span class="jsdoc-message">
 		Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.3-dev</a>
-		on Wed Apr 30 2014 22:24:22 GMT+0100 (BST) using the <a href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
+		on Fri Aug 01 2014 09:08:26 GMT+0100 (BST) using the <a href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
 		</span>
 				</footer>
 			</div>
