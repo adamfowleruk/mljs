@@ -54,10 +54,10 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
    - DEFERRED Widgets: openlayers: advanced - if multiple home points, ensure all are visible on the map
   - DEFERRED Widgets: Consistent workplace page ordering in navigation and list on edit app page
   - DEFERRED Widgets: Workplace page list - make name click button take you to page for viewing, not editing, it
- - Docs: API documentation
-  - document all namespaces
-  - document all type defs
-  - document all return values
+ - DEFERRED Docs: API documentation
+  - DEFERRED document all namespaces
+  - DEFERRED document all type defs
+  - DEFERRED document all return values
  - TEST Docs: Generate build of Workplace app in dist folder, with lightweight initial deployment scripts
  - DONE Demo Jam updates
   - DONE Bootstrap CSS themed Workplace admin
@@ -290,10 +290,11 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
     - DONE Hard coded ones in this edition (use JSON config object array though so later it can be easily added)
     - DONE BUG doSimpleQuery as action somehow bypassing ctx.setConfiguration()s setting of optioneName to "all"
     - DONE searchcontext.doSimpleQuery(string)
-     - input from hard coded string, or from page query string parameter
+     - DONE input from hard coded string
+     - DEFERRED input from page query string parameter
      - DONE BUG string parameter being ignored
     - DONE searchcontext.doStructuredQuery()
-     - query builder construction of query
+     - DEFERRED query builder construction of query
     - TEST graphexplorer.drawSubject(iri,null,1,1)
     - TEST semanticcontext.subjectQuery(sparql,offset,limit)
     - TEST semanticcontext.subjectFacts(iri)
