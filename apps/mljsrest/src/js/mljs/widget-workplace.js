@@ -1948,6 +1948,7 @@ com.marklogic.widgets.workplaceadmin = function(container) {
 
   this._config = {
     widgetList: [
+      {title: "Address Bar", classname: "com.marklogic.widgets.addressbar", description: "Update geocontext home by looking up text address."},
       {title: "Co-occurence", classname: "com.marklogic.widgets.cooccurence", description: "Shows two way co-occurence between elements in a document."},
       /*
       {title: "Create Document", classname: "com.marklogic.widgets.create", description: "Form builder used to generate a new document on submission."},
@@ -1975,7 +1976,9 @@ com.marklogic.widgets.workplaceadmin = function(container) {
       {title: "Structured Search Selection", classname: "com.marklogic.widgets.searchselection", description: "Select a structured search to execute."},
       {title: "Semantic Search Bar", classname: "com.marklogic.widgets.sparqlbar", description: "Visually create a sophisticated SPARQL query."},
       {title: "Semantic Search Results", classname: "com.marklogic.widgets.sparqlresults", description: "Show a summary of Subjects returned from a SPARQL query."},
-      {title: "Semantic Subject Facts", classname: "com.marklogic.widgets.entityfacts", description: "Show the list of facts about a specific subject."}
+      {title: "Semantic Subject Facts", classname: "com.marklogic.widgets.entityfacts", description: "Show the list of facts about a specific subject."},
+
+      {title: "Tag Cloud", classname: "com.marklogic.widgets.tagcloud", description: "Show facet values as text, varying their font size by frequency."}
 
     ],
     layoutList: [
@@ -1984,6 +1987,40 @@ com.marklogic.widgets.workplaceadmin = function(container) {
       {title: "Column", classname: "com.marklogic.widgets.layouts.column", description: "Single column, content widgets are horizontal panels"}
     ]
   };
+
+  // load in globally registered widgets and contexts and layouts too
+  var widgets = com.marklogic.widgets.workplaceadminext.widgets;
+  if (undefined != widgets) {
+    for (var module in widgets) {
+      var mod = widgets[module];
+      if (Array.isArray(mod)) {
+        // mix these in
+        for (var w = 0,maxw = mod.length,wgt;w < maxw;w++) {
+          wgt = mod[w];
+          this._config.widgetList.push(wgt);
+        }
+      }
+    }
+  }
+  // TODO sort widget list by title
+  var layouts = com.marklogic.widgets.workplaceadminext.layouts;
+  if (undefined != layouts) {
+    for (var module in layouts) {
+      var mod = layouts[module];
+      if (Array.isArray(mod)) {
+        // mix these in
+        for (var w = 0,maxw = mod.length,layout;w < maxw;w++) {
+          layout = mod[w];
+          this._config.layoutList.push(layout);
+        }
+      }
+    }
+  }
+  // TODO sort layout list by title
+
+  // TODO mixin contexts
+
+
 
   this.closePublisher = new com.marklogic.events.Publisher();
 

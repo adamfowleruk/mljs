@@ -187,7 +187,8 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
   - DEFERRED Saved introspection of content for content value fields in highcharts configuration
   - DEFERRED Allow specification of hard coded categories when not using auto categories
   - DEFERRED Make hard coded categories driven from introspection of that field (lexicon or just range index required?)
-  - DEFERRED Visual configuration of search options
+  - IN PROGRESS Visual configuration of search options - widget-searchoptions.js
+   - IN PROGRESS Basic support to start - just wrap JSON as any other JSON object configuration, no advanced support
    - DEFERRED List all available range indexes to make in to facets/sort ordering
   - DEFERRED Visual configuration of extracted metadata for search results, with boolean logic for matches
   - DEFERRED Allow XSLT specification for individual search result custom rendering
@@ -285,7 +286,7 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
      - NA Files not included in Workplace demo - BUG cooccurence has no getConfigurationDefinition function
     - DONE BUG null appearing as text when used as default value for string fields
    - DONE remove widget button on heading for each widget on UI
-   - IN PROGRESS Page load actions
+   - TEST Page load actions
     - DONE Hard coded ones in this edition (use JSON config object array though so later it can be easily added)
     - DONE BUG doSimpleQuery as action somehow bypassing ctx.setConfiguration()s setting of optioneName to "all"
     - DONE searchcontext.doSimpleQuery(string)
@@ -305,41 +306,51 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
     - TEST doccontext.getFacts(docuri,optionsName)
     - DEFERRED Arbitrary code object variable and method
    - DEFERRED Icons for widgets
-  - Usefulness fixes - without which widgets are pointless
-   - Global widget and context extension auto detection by classes
-    - tripleconfig and ontologies
-    - searchresults and custom renderers
-    - semanticcontext.setContentContext(searchcontext)
-    - Have workplace widget add and load a script line for page custom js files list (page config section?)
-   - Missing basics
-    - geocontext
-    - Support other basic types in widget/context config
-     - decimal
-     - integer
-   - Context extra config parameters
-    - geocontext.home
-    - geocontext.inform
-    - doccontext.addAllowableProperty
-    - Configure tripleconfig in semanticcontext
-    - contributeQuery mode for custom page query in to searchcontext (base query)
-    - Link semantic context to document context for MarkLogic Document ontology links
-    - configuration of registering one context with another, of any type, as a sendTo, receiveFrom, or biDirectional link
-   - Widget extra configuration parameters
+  - IN PROGRESS Usefulness fixes - without which widgets are pointless
+   - TEST Global widget and context extension auto detection by classes
+    - DEFERRED requires a lot of config loading work, may wait until OWL/SKOS support added - tripleconfig ontologies
+    - DEFERRED not dynamically loaded yet - custom workplace contexts
+    - TEST custom workplace widgets
+    - TEST custom workplace layouts
+    - TEST custom renderers in searchresults - com.marklogic.widgets.searchresultsext.NAME.customrenderers = {};
+    - DEFERRED custom search layouts in searchresults
+    - DEFERRED custom workplace config wrapper types and config renderers
+    - DEFERRED semanticcontext.setContentContext(searchcontext)
+    - DEFERRED Have workplace widget add and load a script line for page custom js files list (page config section?)
+   - DONE Missing basics
+    - DONE geocontext
+    - DONE Support other basic types in widget/context config
+     - DONE as double - decimal
+     - DONE as positiveInteger - integer
+     - DEFERRED JSON complex type (for options config)
+   - TEST Context extra config parameters
+    - TEST geocontext.home
+    - DEFERRED geocontext.inform
+    - TEST doccontext.addAllowableProperty
+    - DEFERRED requires a lot of work - Configure tripleconfig in semanticcontext
+    - DEFERRED contributeQuery mode for custom page query in to searchcontext (base query)
+    - NA just add both to a page and register the widget with both - Link semantic context to document context for MarkLogic Document ontology links
+    - DEFERRED configuration of registering one context with another, of any type, as a sendTo, receiveFrom, or biDirectional link
+   - IN PROGRESS Widget extra configuration parameters
     - NA achieveing via default iriHandler loading subjectFacts through semantic context - sparqlresults.iriHandler(pattern)
-    - tagcloud.setFacet(facetName)
-    - IN PROGRESS how to handle create (upload) forms widget?
+    - TEST tagcloud.setFacet(facetName)
+    - TEST Add tag cloud to workplace
+    - DONE how to handle create (upload) forms widget?
      - DONE template (in doccontext, not widget)
      - DONE list of field definitions
-    - addressbar.radius
-    - openlayers.setGeoSelectionConstraint
-    - openlayers.go (lon,lat, zoom)
-    - openlayers.setHeatmapGranularity(number)
-    - searchselection.setMode
-    - searchselection.addQuery
-    - openlayers.addSeries
-    - co-occurence - title, displayTuple, setTupleConstraints
+    - TEST addressbar.radius
+    - TEST add address bar to workplace widget list
+    - DONE openlayers.setGeoSelectionConstraint
+    - DONE openlayers.go (lon,lat, zoom)
+    - DONE openlayers.setHeatmapGranularity(number)
+    - TEST searchselection.setMode
+    - searchselection.addQuery - use JSON as string initially until query builder ready?
+    - DONE openlayers.addSeries
+    - DONE co-occurence
+     - DONE title, displayTuple
+     - DEFERRED setTupleConstraints
     - DONE entityfacts.iriHandler(pattern)
-   - Copy query URL for searchbar widget to clipboard (deep link to searchcontext page config)
+   - DEFERRED Copy query URL for searchbar widget to clipboard (deep link to searchcontext page config)
   - DONE Widgets: Application Navigation widget
    - DONE One tab per Workplace in current app, sends to appropriate URL
    - DEFERRED Allow workplaces to be kept instead in a drop down menu
@@ -412,10 +423,10 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
   - also show mljsrest app via Node.js webserver
  - DONE BUG Widgets: searchbar - When contributing query as term query for structured search, if text blank need to send and-query not term-query("") - else nothing is returned!
  - DONE BUG Core: version being called multiple times per page (when version endpoint doesn't exist)
- - IN PROGRESS BUG Docs: Explorer widget not loading document facet data on mljsrest app
+ - DONE BUG Docs: Explorer widget not loading document facet data on mljsrest app
   - DONE Due to subjectIri to docuri hack line 508 of widget-explore.js: Need better way to determine document URI from subjectIri -> should use #uri child property
-  - Need to also cache links between docuri (key) and subject IRI, so documentcontext listener can match subject correctly
- - Docs: Put latest doc updates front and centre of MLJS main page and API home page
+  - DONE Need to also cache links between docuri (key) and subject IRI, so documentcontext listener can match subject correctly
+ - IN PROGRESS Docs: Put latest doc updates front and centre of MLJS main page and API home page
   - DONE aka release notes
   - youtube videos
   - blog (news) items
@@ -426,7 +437,7 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
   - DEFERRED Sample content for testing bundle too? (MLCP archive? Version dependent?)
   - DEFERRED Workplace page search and share app (hosting?)
   - DEFERRED Workplace widget NPM like search and install app (hosting?)
- - DONE Bower support
+ - IN PROGRESS Bower support
   - DONE Add bower repo support for PH
   - IN PROGRESS Fix bower repo for new mljs repo foldering layout
    - DONE foldering fix

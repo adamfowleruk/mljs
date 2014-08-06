@@ -25,7 +25,9 @@ com.marklogic.widgets = window.com.marklogic.widgets || {};
 com.marklogic.widgets.tagcloud = function(container) {
   this.container = container;
 
-  this._config = {};
+  this._config = {
+    facet: null
+  };
 
   // example: "facets":{"collection":{"type":"collection","facetValues":[]},"animal":{"type":"xs:string","facetValues":[]},"family":{"type":"xs:string","facetValues":[]}}
   // full example: "facets":{"collection":{"type":"collection","facetValues":[]},
@@ -33,8 +35,6 @@ com.marklogic.widgets.tagcloud = function(container) {
   //   {"name":"penguin","count":2,"value":"penguin"}]},
   // "family":{"type":"xs:string","facetValues":[{"name":"bird","count":2,"value":"bird"},{"name":"marklogician","count":2,"value":"marklogician"},{"name":"pet","count":4,"value":"pet"}]}}
   this.results = null;
-
-  this.facet = null;
 
   this.ctx = mljs.defaultconnection.createSearchContext();
 
@@ -48,6 +48,7 @@ com.marklogic.widgets.tagcloud = function(container) {
  */
 com.marklogic.widgets.tagcloud.getConfigurationDefinition = function() {
   return {
+    facet: {type: "string", default: null, title: "Facet", description: "Which facet to use for the tag cloud."},
   };
 };
 
@@ -60,19 +61,22 @@ com.marklogic.widgets.tagcloud.prototype.setConfiguration = function(config) {
   for (var prop in config) {
     this._config[prop] = config[prop];
   }
+  if (""==this._config.facet) {
+    this._config.facet = null;
+  }
 
   // refresh display
   this._refresh();
 };
 
 com.marklogic.widgets.tagcloud.prototype.setFacet = function(f) {
-  this.facet = f;
+  this._config.facet = f;
 };
 
 com.marklogic.widgets.tagcloud.prototype._refresh = function() {
   var str = "";
   str += "<div class='mljswidget panel panel-info widget-tagcloud'>";
-  if (null == this.facet) {
+  if (null == this._config.facet) {
     str += "<p>No Facet specified. Use wgt.setFacet(name) to specify which facet to display as a tag cloud.</p>";
   } else {
 
@@ -81,7 +85,7 @@ com.marklogic.widgets.tagcloud.prototype._refresh = function() {
 
         for (var name in this.results.facets) {
 
-          if (this.facet == name) {
+          if (this._config.facet == name) {
 
 
             var values = this.results.facets[name].facetValues;

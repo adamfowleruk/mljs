@@ -4727,7 +4727,7 @@ mljs.prototype.options.prototype.starter = function(label,apply,strength,additio
   for (var n in additional_properties_opt) {
     st[n] = additional_properties_opt[n];
   }
-  this.options.grammar.start.push(st);
+  this.options.grammar.start.push(st); // TODO check this is start and not starter, as above
   return this;
 };
 

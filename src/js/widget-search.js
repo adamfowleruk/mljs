@@ -1211,6 +1211,21 @@ com.marklogic.widgets.searchresults = function(container) {
   // event handlers
   this.selectionPublisher = new com.marklogic.events.Publisher();
   this.highlightPublisher = new com.marklogic.events.Publisher();
+
+
+  // MIXIN custom processors at this point
+  var custom = com.marklogic.widgets.searchresultsext;
+  if (undefined != custom) {
+    for (var named in custom) {
+      var cust = custom[name];
+      if (undefined != cust.customerrenderers) {
+        var renderers = cust.customrenderers;
+        for (var ren in renderers) {
+          this.processors[ren] = renderers[ren]; // copy over in to this object - and custom in code will be added/overridden on top
+        }
+      }
+    }
+  }
 };
 
 /**
