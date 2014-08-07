@@ -31,6 +31,7 @@ Interim demo targets
 
 Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
  - DONE Node: mlwatcher: Write a frickin' auto app deploy directory watching app
+ - TEST Docs: Generate build of Workplace app in dist folder, with
  - Record Workplace app showcase demos
   - Introduction - build an app in 5 minutes
   - Workplace App 001 - Installing Workplace against your database (include within the DB at end too)
@@ -39,26 +40,12 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
   - Workplace App 004 - Adding a geospatial search page with address lookup, heatmaps, selection
   - Workplace App 005 - Adding Semantic search and explorer pages
   - Workplace App 006 - Adding Linking content search to semantic search with infobox
-  - Workplace App 007 - Adding a ananlytics dashboard page, with multiple search contexts, charts, co-occurence and tag clouds
-  - DEFERRED Workplace App Video - Mix and match 01 - Map, text search, tag cloud -> requires search context linking
-  - DEFERRED Workplace App Video - Plugging in your own widgets - requires dynamic javascript widget registration
+  - Workplace App 007 - Adding a analytics dashboard page, with multiple search contexts, charts, co-occurence and tag clouds
+  - Workplace App 008 - Using a custom bootstrap theme
  - TEST Docs: mljsrest demo app improvements
-  - DEFERRED sparqlbar page: add explorer link to entityfacts config
   - TEST BUG sparqlbar page: make document links use mentioned_in link with correct IRI for search results rendering
   - DONE via page context - explorer page: accept incoming IRI link in url ?iri=, where not specified use existing default
-  - DONE remove extraneous entity facts rendering logging code
- - DEFERRED future improvements
-  - DEFERRED Make contexts in workplace admin config driven, not hard coded
-  - DEFERRED geocontext: add updateHome event
-   - DEFERRED Widgets: openlayers: support this event to move focus
-   - DEFERRED Widgets: openlayers: advanced - if multiple home points, ensure all are visible on the map
-  - DEFERRED Widgets: Consistent workplace page ordering in navigation and list on edit app page
-  - DEFERRED Widgets: Workplace page list - make name click button take you to page for viewing, not editing, it
- - DEFERRED Docs: API documentation
-  - DEFERRED document all namespaces
-  - DEFERRED document all type defs
-  - DEFERRED document all return values
- - TEST Docs: Generate build of Workplace app in dist folder, with lightweight initial deployment scripts
+  - DONE remove extraneous entity facts rendering logging code lightweight initial deployment scripts
  - DONE Demo Jam updates
   - DONE Bootstrap CSS themed Workplace admin
   - DONE App wide configuration page in workplace app created
@@ -74,8 +61,6 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
    - DONE Manages mapping to widgets, not delegating this to widgets
    - DONE default doc view page url and params
    - DONE default semantic explore page and params
-   - DEFERRED use method calls instead of setConfiguration on workplace widgets
-  - DEFERRED BUG MINOR UX left hand nav height not same as right hand - see JWs fix
   - DONE BUG action config selection for new not drawing
   - DONE BUG searchcontext search before loading search options does not work
    - DONE try adding reference to search methods correctly (not passing options name to REST)
@@ -87,16 +72,12 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
   - DONE BUG Configure page link not working in Workplace app
   - DONE BUG page navbar or page list not updating when existing page edited to have new page url
   - DONE BUG Home location settings on geocontext (none appear)
-  - DEFERRED BUG MINOR UX Widgets: searchbar suggestions appear within div, not hovering over it (CSS? modal?)
-  - DEFERRED BUG MINOR PERFORMANCE workplacecontext - cache all pages if loadMyPages called - so loadPage just reads cache
-   - DEFERRED NB may need to tell loadPage to wait until other returns
   - DONE DONE BUG USEFULNESS need heatmap configuration in openlayers widget in workplace (should just need index defining)
   - DONE MAJOR USABLE need series configuration in openlayers
    - DONE Need to link to search context instance - type=SearchContext|GeoContext|SemanticContext|DocumentContext
    - DONE Need to add constraint and value extract to search options
   - DONE BUG MAJOR UX page doesn't refresh from scratch after saving workplace changes on same screen
   - DONE BUG semantic search results elements have too much padding (h4)
-  - DEFERRED review widget headings, whether to have them, do we want a generic heading item?
   - DONE BUG add not-query(element-value-query(sem:triples - PLURAL ONLY)) to additional query
   - DONE BUG clicking subject in entity facts in workplace app breaks semantic search results widget (loading ... loading...)
    - DONE Same subject has multiple entities returns in Sparql
@@ -107,8 +88,6 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
    - DONE Sent/Received summaries
   - NA Can only be done in widget for initial position - lon, lat centre location for geocontext in pagecontext
  - DONE Docs: Remove all uses of the searchpage widget in demos
-  - DEFERRED Ensure thinthick layout with embedded column layout works
-   - DEFERRED create 2 columns layout for workplace
   - DONE mljsrest - search.html
   - DONE mljsrest - snippets.html
   - DEPRECATED mldbwebtest - search
@@ -143,16 +122,11 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
    - DONE BUG Make links appear for related subjects where iriHandler is set
   - BUG mljsrest: chartsearch.html: Clicking on Bar chart value gives: Point clicked: x:0, series name:'animal', y:3 data: undefined
   - DONE BUG searchbar: Clicking on suggestion repeats facet name twice
-  - DEFERRED BUG Docs: mljsrest: why aren't there any suggestions on infobox page?
-  - DEFERRED BUG MINOR PERFORMANCE Too many REST requests - Kill suggestions request before issuing another request (one per letter typed)
   - BUG workplace repeatedly dragging new widget classes on to layout causes top widget only to be rendered, to first two parts of zone
-  - DEFERRED BUG mljsrest: main.js - commented out use of GET graph as it returns HTML not JSON, causing conversion error
   - BUG explorer widget scroll bar should be at top when needed
   - BUG explorer widget should respond to swipe gestures
   - DONE BUG Core: Find way of doing version() call without requiring custom rest extension - sniff HEAD /v1/graphs
   - DONE BUG Core: HEAD call results in JSON parse error for empty string ""
-  - DEFERRED BUG Core: HEAD /v1/graphs takes 240ms rather than 18ms for fetching static imagery or suggest - why?
-  - DEFERRED BUG REST API Bug: Search doesn't like ampersand @ character in constraint value in combined query - escape?
   - DONE BUG highcharts configuration in Workplace 'thin' column overflows container
   - DONE BUG add data series button not working on newly dragged instance of highcharts widget
   - DONE BUG empty strings in widget context config for directory, format, transform results in invalid searches
@@ -179,19 +153,9 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
   - DONE BUG explorer widget doesn't handle non known rdfTypes gracefully
   - DONE BUG explorer widget doesn't show more than one instance for a particular predicate
   - DONE BUG infobox page: empty sparql results does not empty entity facts area of facts
- - DEFERRED Widgets: Workplace UI feedback
-  - DEFERRED auto expand/collapse drop zones on widget page
-  - DEFERRED 'preview' settings from page edit overlay (perhaps by collapsing overlay to just a bar 25 px high)
- - DEFERRED Widgets: Future Workplace enhancement
-  - DEFERRED Lookup/drop down of highcharts facets from linked searchcontext(s) and their associated options
-  - DEFERRED Saved introspection of content for content value fields in highcharts configuration
-  - DEFERRED Allow specification of hard coded categories when not using auto categories
-  - DEFERRED Make hard coded categories driven from introspection of that field (lexicon or just range index required?)
+ - Workplace UI
   - IN PROGRESS Visual configuration of search options - widget-searchoptions.js
    - IN PROGRESS Basic support to start - just wrap JSON as any other JSON object configuration, no advanced support
-   - DEFERRED List all available range indexes to make in to facets/sort ordering
-  - DEFERRED Visual configuration of extracted metadata for search results, with boolean logic for matches
-  - DEFERRED Allow XSLT specification for individual search result custom rendering
  - DONE BUG mljs.returnFacets returns true instead of this, breaking chaining
  - IN PROGRESS Widgets: Workplace completion
   - IN PROGRESS Basics
@@ -236,7 +200,6 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
     - DONE Link new widgets to existing contexts automatically
      - NA Does each widget definition require a supportedContexts array option? -> No, just add in Workplace by default
      - DONE Link to all contexts in this release
-     - DEFERRED come up with sensible auto registration for widgets with contexts on page (for multi contexts)
     - NA Automatically add one context of each type per page (new or existing)
    - DONE Context configuration for Workplace
     - DONE left hand side list contexts
@@ -252,7 +215,6 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
      - DONE blank getConfigurationDefinition, setConfiguration
      - DONE Basic context config settings
      - DONE linked widget list
-    - DEFERRED alert context
     - DONE Create add context button and make it work
     - DONE Delete context button
     - DONE Show context type next to name
@@ -279,11 +241,6 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
     - DONE docviewer
     - DONE docproperties
     - DONE docheadproperties
-    - DEFERRED create
-    - DEFERRED markings (non prod)
-    - DEFERRED rdb2rdf (non prod)
-    - DEFERRED TEST Add all production ready widgets as admissable in the Workplace widget's default configuration
-     - NA Files not included in Workplace demo - BUG cooccurence has no getConfigurationDefinition function
     - DONE BUG null appearing as text when used as default value for string fields
    - DONE remove widget button on heading for each widget on UI
    - TEST Page load actions
@@ -291,47 +248,30 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
     - DONE BUG doSimpleQuery as action somehow bypassing ctx.setConfiguration()s setting of optioneName to "all"
     - DONE searchcontext.doSimpleQuery(string)
      - DONE input from hard coded string
-     - DEFERRED input from page query string parameter
      - DONE BUG string parameter being ignored
     - DONE searchcontext.doStructuredQuery()
-     - DEFERRED query builder construction of query
     - TEST graphexplorer.drawSubject(iri,null,1,1)
     - TEST semanticcontext.subjectQuery(sparql,offset,limit)
     - TEST semanticcontext.subjectFacts(iri)
     - TEST semanticcontext.queryFacts(sparql)
     - TEST geocontext.go (lon,lat, zoom)
-    - DEFERRED dynamic structured queries
-     - DEFERRED see openlayers page with byDistance and byRating
     - TEST doccontext.getContent(docuri)
     - TEST doccontext.getProperties(docuri)
     - TEST doccontext.getFacts(docuri,optionsName)
-    - DEFERRED Arbitrary code object variable and method
-   - DEFERRED Icons for widgets
   - IN PROGRESS Usefulness fixes - without which widgets are pointless
-   - TEST Global widget and context extension auto detection by classes
-    - DEFERRED requires a lot of config loading work, may wait until OWL/SKOS support added - tripleconfig ontologies
-    - DEFERRED not dynamically loaded yet - custom workplace contexts
+   - TEST Global widget and context extension auto detection by classestom js files list (page config section?)
     - TEST custom workplace widgets
     - TEST custom workplace layouts
     - TEST custom renderers in searchresults - com.marklogic.widgets.searchresultsext.NAME.customrenderers = {};
-    - DEFERRED custom search layouts in searchresults
-    - DEFERRED custom workplace config wrapper types and config renderers
-    - DEFERRED semanticcontext.setContentContext(searchcontext)
-    - DEFERRED Have workplace widget add and load a script line for page custom js files list (page config section?)
    - DONE Missing basics
     - DONE geocontext
     - DONE Support other basic types in widget/context config
      - DONE as double - decimal
      - DONE as positiveInteger - integer
-     - DEFERRED JSON complex type (for options config)
    - TEST Context extra config parameters
     - TEST geocontext.home
-    - DEFERRED geocontext.inform
     - TEST doccontext.addAllowableProperty
-    - DEFERRED requires a lot of work - Configure tripleconfig in semanticcontext
-    - DEFERRED contributeQuery mode for custom page query in to searchcontext (base query)
     - NA just add both to a page and register the widget with both - Link semantic context to document context for MarkLogic Document ontology links
-    - DEFERRED configuration of registering one context with another, of any type, as a sendTo, receiveFrom, or biDirectional link
    - IN PROGRESS Widget extra configuration parameters
     - NA achieveing via default iriHandler loading subjectFacts through semantic context - sparqlresults.iriHandler(pattern)
     - TEST tagcloud.setFacet(facetName)
@@ -349,19 +289,12 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
     - DONE openlayers.addSeries
     - DONE co-occurence
      - DONE title, displayTuple
-     - DEFERRED setTupleConstraints
     - DONE entityfacts.iriHandler(pattern)
-   - DEFERRED Copy query URL for searchbar widget to clipboard (deep link to searchcontext page config)
   - DONE Widgets: Application Navigation widget
    - DONE One tab per Workplace in current app, sends to appropriate URL
-   - DEFERRED Allow workplaces to be kept instead in a drop down menu
-   - DEFERRED Menu Editor
-    - DEFERRED Also allow fixed tabs at start and end (list for each). E.g. Settings, Home, etc. for non-workplace dynamic pages - display text, url
    - DONE Create new Workplace page dialogue - name, based on - then load in page editor
    - DONE via app configure link on navbar - New workplace page button on end of nav widget
   - DONE Practicality updates
-   - DEFERRED Options builder UI widget - read from ML if possible
-   - DEFERRED Query builder UI widget (base query for search, default query for page load)
    - DONE Docs: OOTB Workplace demo app - no data
  - DONE Widgets: UI Consistency
   - DONE Widgets: Update all for Bootstrap CSS support
@@ -396,27 +329,16 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
    - DONE widget config
    - DONE widget drop zone
    - NA new workplace page dialogue (workplace app)
-   - DEFERRED options builder widget
-   - DEFERRED query builder widget
    - DONE create
-    - DEFERRED Can't style file upload button or input file name box
     - DONE Document create/edit fields
-   - DEFERRED markings (non prod)
-   - DEFERRED rdb2rdf (non prod)
-   - DEFERRED Bootstrap CSS toggles/options in Workplace configuration?
    - DONE Hints at top of test pages in mljsrest
   - IN PROGRESS Docs: Update MLJSREST app framework for bootstrap support
-  - Docs: Get hold of MarkLogic bootstrap theme CSS from MY (License?)
   - Get MY to review app, workplace and widget UX
    - Ask about info panel headings on interaction vs. results panels
  - DONE Docs: Workplace standalone app
   - DONE Roxy base rest only project
   - DONE Update build scripts to send latest files in to project
-  - DEFERRED Special security roles for application, and app wide security settings
   - DONE Generic page template
-  - DEFERRED Logged out page (with login area)
-   - DEFERRED Requires app level security and default role
-  - DEFERRED logged in welcome page, with logout button
   - DONE Special re-writer for security and workplace pages
  - DONE Docs: Deprecate mldbwebtest app as primary source of widget files in build, remove app itself
  - IN PROGRESS Docs: Remove mldbwebtest from tutorials, documentation, wiki
@@ -434,10 +356,6 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
   - latest tutorials
  - DONE Docs: Various doc issues
   - DONE Docs: Wiki: Image previews of all widgets, linking to pages with code examples (Like d3.js' home page)
-  - DEFERRED Workplace page configuration JSON download/upload too?
-  - DEFERRED Sample content for testing bundle too? (MLCP archive? Version dependent?)
-  - DEFERRED Workplace page search and share app (hosting?)
-  - DEFERRED Workplace widget NPM like search and install app (hosting?)
  - IN PROGRESS Bower support
   - DONE Add bower repo support for PH
   - IN PROGRESS Fix bower repo for new mljs repo foldering layout
@@ -602,6 +520,112 @@ Targets for 1.8 (Sep 2014) - Theme: Visualisations
   - Related content below
   - Related subjects to right
   - Navigating onward redraws, shows parent (previous) Subject above new subject of interest
+
+
+Deferred from 1.6 (Theme: MLJS Ease of Use)
+ - DEFERRED future improvements
+  - DEFERRED Make contexts in workplace admin config driven, not hard coded
+  - DEFERRED geocontext: add updateHome event
+   - DEFERRED Widgets: openlayers: support this event to move focus
+   - DEFERRED Widgets: openlayers: advanced - if multiple home points, ensure all are visible on the map
+  - DEFERRED Widgets: Consistent workplace page ordering in navigation and list on edit app page
+  - DEFERRED Widgets: Workplace page list - make name click button take you to page for viewing, not editing, it
+ - DEFERRED Docs: API documentation
+  - DEFERRED document all namespaces
+  - DEFERRED document all type defs
+  - DEFERRED document all return values
+ - Workplace searchpage enhancements
+  - DEFERRED Ensure thinthick layout with embedded column layout works
+   - DEFERRED create 2 columns layout for workplace
+ - page context
+  - DEFERRED use method calls instead of setConfiguration on workplace widgets
+ - mljsrest app
+  - DEFERRED sparqlbar page: add explorer link to entityfacts config
+ - Docs - videos
+  - DEFERRED Workplace App Video - Mix and match 01 - Map, text search, tag cloud -> requires search context linking
+  - DEFERRED Workplace App Video - Plugging in your own widgets - requires dynamic javascript widget registration
+ - Bugs
+  - DEFERRED BUG MINOR UX left hand nav height not same as right hand - see JWs fix
+  - DEFERRED BUG MINOR UX Widgets: searchbar suggestions appear within div, not hovering over it (CSS? modal?)
+  - DEFERRED BUG MINOR PERFORMANCE workplacecontext - cache all pages if loadMyPages called - so loadPage just reads cache
+   - DEFERRED NB may need to tell loadPage to wait until other returns
+  - DEFERRED BUG Docs: mljsrest: why aren't there any suggestions on infobox page?
+  - DEFERRED BUG MINOR PERFORMANCE Too many REST requests - Kill suggestions request before issuing another request (one per letter typed)
+  - DEFERRED BUG mljsrest: main.js - commented out use of GET graph as it returns HTML not JSON, causing conversion error
+  - DEFERRED BUG Core: HEAD /v1/graphs takes 240ms rather than 18ms for fetching static imagery or suggest - why?
+  - DEFERRED BUG REST API Bug: Search doesn't like ampersand @ character in constraint value in combined query - escape?
+ - Bootstrap support
+  - DEFERRED review widget headings, whether to have them, do we want a generic heading item?
+  - DEFERRED Can't style file upload button or input file name box
+ - DEFERRED Widgets: Workplace UI feedback
+  - DEFERRED auto expand/collapse drop zones on widget page
+  - DEFERRED 'preview' settings from page edit overlay (perhaps by collapsing overlay to just a bar 25 px high)
+ - DEFERRED Widgets: Future Workplace enhancement
+  - DEFERRED Lookup/drop down of highcharts facets from linked searchcontext(s) and their associated options
+  - DEFERRED Saved introspection of content for content value fields in highcharts configuration
+  - DEFERRED Allow specification of hard coded categories when not using auto categories
+  - DEFERRED Make hard coded categories driven from introspection of that field (lexicon or just range index required?)
+  - Workplace search options visual config
+   - DEFERRED List all available range indexes to make in to facets/sort ordering
+  - DEFERRED Visual configuration of extracted metadata for search results, with boolean logic for matches
+  - DEFERRED Allow XSLT specification for individual search result custom rendering
+ - Workplace context config
+  - DEFERRED alert context
+ - workplace page load actions
+  - DEFERRED query builder construction of query
+   - DEFERRED dynamic structured queries
+   - DEFERRED see openlayers page with byDistance and byRating
+  - DEFERRED Options builder UI widget - read from ML if possible
+  - DEFERRED Query builder UI widget (base query for search, default query for page load)
+  - DEFERRED Arbitrary code object variable and method
+  - DEFERRED input from page query string parameter
+ - Widgets to build
+  - DEFERRED options builder widget
+  - DEFERRED query builder widget
+  - searchbar
+   - DEFERRED Copy query URL for searchbar widget to clipboard (deep link to searchcontext page config)
+  - cooccurence
+   - DEFERRED setTupleConstraints
+ - Widgets supported in workplace
+   - DEFERRED Icons for widgets
+   - DEFERRED markings (non prod)
+   - DEFERRED rdb2rdf (non prod)
+   - DEFERRED Bootstrap CSS toggles/options in Workplace configuration?
+    - DEFERRED create
+    - DEFERRED markings (non prod)
+    - DEFERRED rdb2rdf (non prod)
+    - DEFERRED TEST Add all production ready widgets as admissable in the Workplace widget's default configuration
+     - NA Files not included in Workplace demo - BUG cooccurence has no getConfigurationDefinition function
+ - Workplace ease of use
+  - DEFERRED come up with sensible auto registration for widgets with contexts on page (for multi contexts)
+ - Workplace app nav widget
+   - DEFERRED Allow workplaces to be kept instead in a drop down menu
+   - DEFERRED Menu Editor
+    - DEFERRED Also allow fixed tabs at start and end (list for each). E.g. Settings, Home, etc. for non-workplace dynamic pages - display text, url
+ - workplace contexts
+  - DEFERRED geocontext.inform
+  - DEFERRED requires a lot of work - Configure tripleconfig in semanticcontext
+  - DEFERRED contributeQuery mode for custom page query in to searchcontext (base query)
+  - DEFERRED configuration of registering one context with another, of any type, as a sendTo, receiveFrom, or biDirectional link
+  - DEFERRED JSON complex type (for options config)
+ - Global extension registration
+  - DEFERRED requires a lot of config loading work, may wait until OWL/SKOS support added - tripleconfig ontologies
+  - DEFERRED not dynamically loaded yet - custom workplace contexts
+  - DEFERRED custom search layouts in searchresults
+  - DEFERRED custom workplace config wrapper types and config renderers
+  - DEFERRED semanticcontext.setContentContext(searchcontext)
+  - DEFERRED Have workplace widget add and load a script line for page cus
+ - Docs
+  - DEFERRED Workplace page configuration JSON download/upload too?
+  - DEFERRED Sample content for testing bundle too? (MLCP archive? Version dependent?)
+  - DEFERRED Workplace page search and share app (hosting?)
+  - DEFERRED Workplace widget NPM like search and install app (hosting?)  
+  - DEFERRED Not ready yet - Docs: Get hold of MarkLogic bootstrap theme CSS from MY (License?)
+  - DEFERRED Special security roles for application, and app wide security settings
+  - DEFERRED Logged out page (with login area)
+   - DEFERRED Requires app level security and default role
+  - DEFERRED logged in welcome page, with logout button
+
 
 DEFERRED from 1.8 Theme: Visualisations
  - Widgets: Refactor remaining for Bootstrap CSS
