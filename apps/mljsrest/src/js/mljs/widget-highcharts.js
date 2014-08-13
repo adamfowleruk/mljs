@@ -641,7 +641,7 @@ com.marklogic.widgets.highcharts.prototype._addPointClickHandler = function(char
       click: function() {
         // this = data object
         var data = this.series.data[this.x].name;
-        console.log("Point clicked: x:" + this.x + ", series name:'" + this.series.name + "', y:" + this.y, " data: " + data);
+        console.log("Point clicked: x:" + this.x + ", series name:'" + this.series.name + "', y:" + this.y, " data name: " + data);
         if (undefined == data) {
           // non pie chart
           data = this.category; // category axis => x value

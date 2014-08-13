@@ -34,7 +34,7 @@ com.marklogic.widgets.searchoptions = function(container) {
     // TODO mode for customisation vs. configuration?
     // TODO version allowable options?
   };
-
+/*
   var range = {
           childDefinitions: {
             annotation: {},
@@ -327,7 +327,7 @@ com.marklogic.widgets.searchoptions = function(container) {
       }
     }
 
-  };
+  };*/
 
   this._searchContext = mljs.defaultConnection.createSearchContext();
   this._options = {};

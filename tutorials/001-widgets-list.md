@@ -34,6 +34,23 @@ Example widgets not meant for generic re-use, but useful for learning how to ext
 | docsemlink | widget-docsemlink.js | Example widget that responds to content results and performs a lookup of related SPARQL information. In an example app this populates a Kratu table with triple information on entities mentioned within claims documents. |
 
 
+There are also other internal widgets used for Workplace configuration. These are not intended for public consumption, but may be useful for examplecode:-
+
+| Widget names | Widget file | Description |
+| --- | --- | --- |
+| workplace | widget-workplace.js | Loads a workplace page configuration and renders all widgets within it |
+| workplaceadmin | widget-workplace.js | Performs editing of a workplace page via drag and drop |
+| thinthick | widget-workplace.js | Layout widget with two columns, left one thinner |
+| thickthin | widget-workplace.js | Layout widget with two columns, right one thinner |
+| column | widget-workplace.js | Layout widget with a single full width column |
+| orderedconfig | widget-workpalce.js | New config widget showing multiple configwrapper widgets in order. Will eventually replace most buggy workplace widget drag/drop code. |
+| dropzone | widget-workplace.js | Acts as a dropzone for other UI elements. Fires events. Used for widget drag drop |
+| configwrapper | widget-workplace.js | Wraps a JSON object given a specific configuration description. Generically applicable and used throughout workplace |
+| actioncreator | widget-workplace.js | Allows selection of an actionable class and function to add to an order list of actions (via orderedconfig) |
+| workplacenavbar | widget-workplace.js | Shows all available workplace pages within a horizontal nav bar widget. Bootstrap required. |
+| workplacepagelist | widget-workplace.js | Lists and allows creation/deletion of workplace pages within an application |
+
+
 - - - -
 
 [Back to All Tutorials list](tutorial-all.html)

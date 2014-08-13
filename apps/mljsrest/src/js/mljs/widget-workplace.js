@@ -99,7 +99,7 @@ com.marklogic.widgets.workplace.prototype.editable = function(editme) {
 /**
  * Loads the specified configuration
  *
- * @param {json|string} jsonOrString - The JSON config object, or json string, representing the page configuration
+ * @param {json|string} jsonOrString - The JSON config object's URI, or json string representing the page configuration
  * @param {json} json_opt - Optional fall back JSON configuration, if remote workplace config does not exist. Useful for new applications.
  */
 com.marklogic.widgets.workplace.prototype.loadPage = function(jsonOrString,json_opt) {
@@ -122,7 +122,7 @@ mljs.defaultconnection.logger.debug("workplace.updateWorkplace: UPDATING PAGE");
 
   // load top level layout for this page (or panel we are managing, at least)
   mljs.defaultconnection.logger.debug("workplace.updateWorkplace: Creating layout");
-  var layout = new (com.marklogic.widgets.layouts[json.layout])(this.container + "-layout");
+  var layout = new (com.marklogic.widgets.layouts[json.layout] || com.marklogic.widgets.layoutsext[json.layout])(this.container + "-layout");
 
   // generate named areas for widgets to be contained
   mljs.defaultconnection.logger.debug("workplace.updateWorkplace: Creating zones");
@@ -206,7 +206,7 @@ mljs.defaultconnection.logger.debug("workplace.updateWorkplace: UPDATING PAGE");
       actionObject.setConfiguration(action.config);
       mljs.defaultconnection.logger.debug("workplace.updateWorkplace: Finished configuring. Caling execute(this)...");
       var result = actionObject.execute(this);
-      mljs.defaultconnection.logger.debug("workplace.updateWorkplace: Got result: " + JSON.stringify(result));
+      // CYCLIC mljs.defaultconnection.logger.debug("workplace.updateWorkplace: Got result: " + JSON.stringify(result));
       // TODO do something with result
     }
     mljs.defaultconnection.logger.debug("workplace.updateWorkplace: COMPLETE processing onload actions");
@@ -488,11 +488,12 @@ com.marklogic.widgets.layouts.helper.extendLayout = function(layoutInstance,cont
     var ass = [];
     for (var zone in self.zones) {
       var z = self.zones[zone];
+      var nextOrder = 1;
       self._eliminateBlanks(z); // should fix orders and gaps in new widget placements
       for (var o = 2, max = z.length, wgt;o < max;o += 2) {
         wgt = z[o];
         if (undefined != z[o]) {
-          ass.push({widget: wgt.widget, zone: zone, order: (o / 2)});
+          ass.push({widget: wgt.widget, zone: zone, order: (nextOrder++)});
         }
       }
     }
@@ -674,17 +675,24 @@ com.marklogic.widgets.layouts.helper.extendLayout = function(layoutInstance,cont
     // decrement by two each wiget after this in same zone
     var z = self.zones[me.zone];
     // remove widget and drop zone html elements
+    var lastWWithWidget = 0;
     for (var w = 1, maxw = z.length,moveme; w < z.length;w++) {
       moveme = z[w];
-      if (moveme.order > me.order) {
-        z[w-2] = moveme;
-        moveme.order = w - 2;
-        //z[w] = undefined;
+      if (undefined != moveme) {
+        lastWWithWidget = w;
+        if (moveme.order > me.order) {
+          z[w-2] = moveme;
+          moveme.order = w - 2;
+          z[w] = undefined;
+        }
       }
     }
     // sanity check fix if widget being removed is last one in zone
-    z[z.length - 2] = undefined;
-    z[z.length - 1] = undefined;
+    z[lastWWithWidget - 1] = undefined;
+    z[lastWWithWidget] = undefined;
+    // NB above commented out because if deleting more than one per workplace admin load, multiple undefined's are possible
+    // - NEED above in case deleted item is at end of zone
+
     self._eliminateBlanks(z);
     // remove html
     var meel = document.getElementById(me.elementid);
@@ -698,17 +706,25 @@ com.marklogic.widgets.layouts.helper.extendLayout = function(layoutInstance,cont
   };
   // TODO make this not dependant upon spacers as per workplaceadmin
   self.moveToPosition = function(widgetName,newZone,newIndexOneBased) {
+    var z = self.zones[newZone];
+
+    // eliminate blanks now
+    self._eliminateBlanks(z);
+
     // get element currently at position
     mljs.defaultconnection.logger.debug("layout<subclass>.moveToPosition: Entered");
     var wgt = self._elementAt(newZone,newIndexOneBased);
     var me = self.getAssignmentByWidgetName(widgetName).item;
     var spacer = self._elementAt(me.zone,me.order - 1); // TODO detect spacer
     var oldZone = me.zone;
+    if (undefined != oldZone) {
+      var zOldZone = self.zones[oldZone];
+      self._eliminateBlanks(zOldZone);
+    }
     var oldOrder = me.order;
 
     mljs.defaultconnection.logger.debug("layout<subclass>.moveToPosition: Got Widget at target position. Moving those afterwards");
     //var z = self._getZone(newZone);
-    var z = self.zones[newZone];
 
     var lastWidget = null;
     // find last index with a widget in it
@@ -718,7 +734,6 @@ com.marklogic.widgets.layouts.helper.extendLayout = function(layoutInstance,cont
         lastWidget = moveme;
       }
     }
-    self._eliminateBlanks(z);
     if (undefined == newIndexOneBased) {
       lastWidget = z[lastWidget.order - 2]; // new two elements at end right now
 
@@ -781,7 +796,7 @@ com.marklogic.widgets.layouts.helper.extendLayout = function(layoutInstance,cont
     z[newIndexOneBased] = spacer; // assumes new index is valid
     z[newIndexOneBased + 1] = me;
 
-    if (null == lastWidget || lastWidget.elementid != wgt.elementid) {
+    if (null == lastWidget || null == wgt || lastWidget.elementid != wgt.elementid) {
       // blank out old positions
       var diff = 0;
       if (newZone == oldZone) {
@@ -816,6 +831,7 @@ com.marklogic.widgets.layouts.helper.extendLayout = function(layoutInstance,cont
     }
 
     self._eliminateBlanks(z);
+    self._eliminateBlanks(z); // horrible, horrible hack
 
 
     mljs.defaultconnection.logger.debug("layout<subclass>.moveToPosition: Moving HTML element");
@@ -1039,7 +1055,7 @@ com.marklogic.widgets.actions.javascript.prototype.execute = function(executionC
   if ((null == this._config.target) || (null == this._config.method)) {
     return {executed: false, details: "targetObject or methodName are null"};
   }
-  var obj = executionContext.getContextObject(this._config.target);
+  var obj = executionContext.getInstance(this._config.target); // context or widget
   mljs.defaultconnection.logger.debug("Got target object?: " + obj);
   mljs.defaultconnection.logger.debug("Fetching method name: " + this._config.method);
   var func = (obj[this._config.method]);
@@ -1396,6 +1412,10 @@ com.marklogic.widgets.workplacecontext.prototype.save = function(callback) { // 
  * TODO docs
  */
 com.marklogic.widgets.workplacecontext.prototype.getWorkplace = function(name,callback) {
+  if (undefined == name) {
+    // loaded a page with default json and no name
+    callback(this._json);
+  }
   if (-1 == name.indexOf(".json")) {
     this.db.get("/admin/workplace/" + encodeURI(name) + ".json", callback);
   } else {
@@ -1803,7 +1823,7 @@ com.marklogic.widgets.workplacecontext.prototype.loadPage = function(jsonOrStrin
       if (result.inError && undefined != json_opt) {
         mljs.defaultconnection.logger.debug("workplacecontext.loadPage: findWorkplace call resulted in error: " + result.detail);
         // fall back to default
-        self._uri = jsonOrString;
+        self._uri = null;
         self._json = json_opt;
       } else {
         // could have succeeded, but found none!
@@ -1814,7 +1834,7 @@ com.marklogic.widgets.workplacecontext.prototype.loadPage = function(jsonOrStrin
           self._json = result.doc.content;
         } else {
           mljs.defaultconnection.logger.debug("workplacecontext.loadPage: findWorkplace worked, but with no result");
-          self._uri = jsonOrString;
+          self._uri = null;
           self._json = json_opt;
         }
       }
@@ -1989,37 +2009,39 @@ com.marklogic.widgets.workplaceadmin = function(container) {
   };
 
   // load in globally registered widgets and contexts and layouts too
-  var widgets = com.marklogic.widgets.workplaceadminext.widgets;
-  if (undefined != widgets) {
-    for (var module in widgets) {
-      var mod = widgets[module];
-      if (Array.isArray(mod)) {
-        // mix these in
-        for (var w = 0,maxw = mod.length,wgt;w < maxw;w++) {
-          wgt = mod[w];
-          this._config.widgetList.push(wgt);
+  var exts = com.marklogic.widgets.workplaceadminext;
+  if (undefined != exts) {
+    var widgets = exts.widgets;
+    if (undefined != widgets) {
+      for (var module in widgets) {
+        var mod = widgets[module];
+        if (Array.isArray(mod)) {
+          // mix these in
+          for (var w = 0,maxw = mod.length,wgt;w < maxw;w++) {
+            wgt = mod[w];
+            this._config.widgetList.push(wgt);
+          }
         }
       }
     }
-  }
-  // TODO sort widget list by title
-  var layouts = com.marklogic.widgets.workplaceadminext.layouts;
-  if (undefined != layouts) {
-    for (var module in layouts) {
-      var mod = layouts[module];
-      if (Array.isArray(mod)) {
-        // mix these in
-        for (var w = 0,maxw = mod.length,layout;w < maxw;w++) {
-          layout = mod[w];
-          this._config.layoutList.push(layout);
+    // TODO sort widget list by title
+    var layouts = exts.layouts;
+    if (undefined != layouts) {
+      for (var module in layouts) {
+        var mod = layouts[module];
+        if (Array.isArray(mod)) {
+          // mix these in
+          for (var w = 0,maxw = mod.length,layout;w < maxw;w++) {
+            layout = mod[w];
+            this._config.layoutList.push(layout);
+          }
         }
       }
     }
+    // TODO sort layout list by title
+
+    // TODO mixin contexts
   }
-  // TODO sort layout list by title
-
-  // TODO mixin contexts
-
 
 
   this.closePublisher = new com.marklogic.events.Publisher();
@@ -2350,7 +2372,7 @@ com.marklogic.widgets.workplaceadmin.prototype._refresh = function() {
 
     // update layout
     // get new layout zones supported
-    var newLayout = new (com.marklogic.widgets.layouts[val])(self.container + "-config-layout");
+    var newLayout = new (com.marklogic.widgets.layouts[val] || com.marklogic.widgets.layoutsext[val])(self.container + "-config-layout");
     var newZoneList = newLayout.getZoneList();
     var lastZone = newZoneList[newZoneList.length - 1];
 
@@ -2673,7 +2695,7 @@ com.marklogic.widgets.workplaceadmin.prototype.updateWorkplace = function(ctx) {
   // load top level layout for this page (or panel we are managing, at least)
   mljs.defaultconnection.logger.debug("workplaceadmin.updateWorkplace: Creating layout");
   mljs.defaultconnection.logger.debug("workplaceadmin.updateWorkplace: Got JSON: " + JSON.stringify(json));
-  this._layout = new (com.marklogic.widgets.layouts[json.layout])(this.container + "-config-layout");
+  this._layout = new (com.marklogic.widgets.layouts[json.layout] || com.marklogic.widgets.layoutsext[json.layout])(this.container + "-config-layout");
   com.marklogic.widgets.hide(document.getElementById(this.container + "-config-layout"),false);
   com.marklogic.widgets.hide(document.getElementById(this.container + "-config-contexts"),true);
 
@@ -2954,6 +2976,13 @@ com.marklogic.widgets.workplaceadmin.prototype._drawActions = function(actionLis
 
 
 
+
+
+
+
+
+
+
 /**
  * Generic ordered config widget. Takes an array of config description objects (widgets, action list, etc) and
  * renders that list, with drop zones for re-ordering and new items.
@@ -3095,7 +3124,12 @@ com.marklogic.widgets.orderedconfig.prototype._addWrapper = function(item) {
   var dz = new com.marklogic.widgets.dropzone(value.element + "-dz"); // TODO configure dropzone
   var wrapper = new com.marklogic.widgets.configwrapper(value.element + "-config");
   wrapper.addWidgetRemovedListener(function(data){
-    // TODO handle removal event
+    //self._widgetRemoved(data);}
+    self._ordered.remove(item.getName());
+    var meel = document.getElementById(item.getValue().element);
+    meel.parentNode.removeChild(meel);
+    // fire order update
+    self._fireNewOrder();
   });
 
   // update workplace config and register event handlers
@@ -3105,6 +3139,19 @@ com.marklogic.widgets.orderedconfig.prototype._addWrapper = function(item) {
 
   wrapper.wrap(item.getName(),value.type,value.def,value.config); // widgetName,classname,configDescription,currentConfig
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 /**
@@ -3820,6 +3867,8 @@ com.marklogic.widgets.actionorderer.prototype.wrap = function(actions) {
         wrapper.wrap(action.action,action.type,desc,action.config); // TODO check these params
       }
     }
+
+    // TODO add remove listener
   }
 };
 

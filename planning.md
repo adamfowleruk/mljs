@@ -31,7 +31,11 @@ Interim demo targets
 
 Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
  - DONE Node: mlwatcher: Write a frickin' auto app deploy directory watching app
- - TEST Docs: Generate build of Workplace app in dist folder, with
+ - IN PROGRESS
+  - TEST Docs: Generate build of Workplace app in dist folder, with node deployment code
+   - Docs: get workplace node working OOTB
+  - TEST Docs: Create rest server script for workplace webapp
+   - Ensure authentication and default user set on rest server
  - Record Workplace app showcase demos
   - Introduction - build an app in 5 minutes
   - Workplace App 001 - Installing Workplace against your database (include within the DB at end too)
@@ -42,8 +46,8 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
   - Workplace App 006 - Adding Linking content search to semantic search with infobox
   - Workplace App 007 - Adding a analytics dashboard page, with multiple search contexts, charts, co-occurence and tag clouds
   - Workplace App 008 - Using a custom bootstrap theme
- - TEST Docs: mljsrest demo app improvements
-  - TEST BUG sparqlbar page: make document links use mentioned_in link with correct IRI for search results rendering
+ - DONE Docs: mljsrest demo app improvements
+  - DONE BUG sparqlbar page: make document links use mentioned_in link with correct IRI for search results rendering
   - DONE via page context - explorer page: accept incoming IRI link in url ?iri=, where not specified use existing default
   - DONE remove extraneous entity facts rendering logging code lightweight initial deployment scripts
  - DONE Demo Jam updates
@@ -69,6 +73,7 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
   - DONE BUG not loading facets on MarkLogic Document on workplace explorer page
   - DONE BUG page urls not showing up on app edit page
   - BUG MAJOR REST API ignoring collection parameter when POST ing search (and likely other query string params) - make this a query parameter when using post
+   - Check with 7.0-3 that this has been fixed - may not need to fix this in MLJS
   - DONE BUG Configure page link not working in Workplace app
   - DONE BUG page navbar or page list not updating when existing page edited to have new page url
   - DONE BUG Home location settings on geocontext (none appear)
@@ -110,6 +115,8 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
    - DONE Update workplace configuration options
  - IN PROGRESS Widgets: Various Widget Bugs / performance enhancements
   - HIGH
+   - DONE BUG Widgets: Workplace widget layout after widget delete is fragile
+   - DONE BUG Widgets: Workplace delete all in column leaves hanging assignments
    - BUG Docs: mljsrest Openlayers demo page hovering over marker causes null reference looking for result area by id to change css classes
    - BUG google maps address lookup longitude not working again (check latest social media code for fix - back port)
    - BUG changing zoom or otherwise altering openlayer search forces collection constraint (any text query) to be forgotten - same is true in reverse
@@ -120,11 +127,10 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
    - DONE Widgets: Gracefully handle RDF types that have not been configured in the triple config
    - DONE BUG why don't suggestions show facet values, only facet names?
    - DONE BUG Make links appear for related subjects where iriHandler is set
-  - BUG mljsrest: chartsearch.html: Clicking on Bar chart value gives: Point clicked: x:0, series name:'animal', y:3 data: undefined
+  - NA bad log message BUG mljsrest: chartsearch.html: Clicking on Bar chart value gives: Point clicked: x:0, series name:'animal', y:3 data: undefined
   - DONE BUG searchbar: Clicking on suggestion repeats facet name twice
-  - BUG workplace repeatedly dragging new widget classes on to layout causes top widget only to be rendered, to first two parts of zone
-  - BUG explorer widget scroll bar should be at top when needed
-  - BUG explorer widget should respond to swipe gestures
+  - NA Can't reproduce BUG MAJOR workplace repeatedly dragging new widget classes on to layout causes top widget only to be rendered, to first two parts of zone
+  - DONE BUG MAJOR can only remove one widget in zone - moveme is undefined
   - DONE BUG Core: Find way of doing version() call without requiring custom rest extension - sniff HEAD /v1/graphs
   - DONE BUG Core: HEAD call results in JSON parse error for empty string ""
   - DONE BUG highcharts configuration in Workplace 'thin' column overflows container
@@ -153,10 +159,8 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
   - DONE BUG explorer widget doesn't handle non known rdfTypes gracefully
   - DONE BUG explorer widget doesn't show more than one instance for a particular predicate
   - DONE BUG infobox page: empty sparql results does not empty entity facts area of facts
- - Workplace UI
-  - IN PROGRESS Visual configuration of search options - widget-searchoptions.js
-   - IN PROGRESS Basic support to start - just wrap JSON as any other JSON object configuration, no advanced support
- - DONE BUG mljs.returnFacets returns true instead of this, breaking chaining
+  - BUG workplace nav buttons do not gracefully wrap on to next line
+ - DONE BUG MINOR UX mljs.returnFacets returns true instead of this, breaking chaining
  - IN PROGRESS Widgets: Workplace completion
   - IN PROGRESS Basics
    - DONE drag/drop reordering of widgets working
@@ -243,49 +247,52 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
     - DONE docheadproperties
     - DONE BUG null appearing as text when used as default value for string fields
    - DONE remove widget button on heading for each widget on UI
-   - TEST Page load actions
+   - DONE Page load actions
     - DONE Hard coded ones in this edition (use JSON config object array though so later it can be easily added)
     - DONE BUG doSimpleQuery as action somehow bypassing ctx.setConfiguration()s setting of optioneName to "all"
     - DONE searchcontext.doSimpleQuery(string)
      - DONE input from hard coded string
      - DONE BUG string parameter being ignored
     - DONE searchcontext.doStructuredQuery()
-    - TEST graphexplorer.drawSubject(iri,null,1,1)
-    - TEST semanticcontext.subjectQuery(sparql,offset,limit)
-    - TEST semanticcontext.subjectFacts(iri)
-    - TEST semanticcontext.queryFacts(sparql)
-    - TEST geocontext.go (lon,lat, zoom)
-    - TEST doccontext.getContent(docuri)
-    - TEST doccontext.getProperties(docuri)
-    - TEST doccontext.getFacts(docuri,optionsName)
-  - IN PROGRESS Usefulness fixes - without which widgets are pointless
+    - DONE graphexplorer.drawSubject(iri,null,1,1)
+    - DONE semanticcontext.subjectQuery(sparql,offset,limit)
+    - DONE semanticcontext.subjectFacts(iri)
+    - DONE semanticcontext.queryFacts(sparql)
+    - DONE doccontext.getContent(docuri)
+    - DONE doccontext.getProperties(docuri)
+    - DONE doccontext.getFacts(docuri,optionsName)
+  - TEST Usefulness fixes - without which widgets are pointless
    - TEST Global widget and context extension auto detection by classestom js files list (page config section?)
-    - TEST custom workplace widgets
-    - TEST custom workplace layouts
+    - DONE custom workplace widgets
+    - DONE custom workplace layouts
     - TEST custom renderers in searchresults - com.marklogic.widgets.searchresultsext.NAME.customrenderers = {};
+    - DEFERRED BUG MINOR UX on workplace-custom page, searchbar1 appears twice when defined from json rather than loaded from server
    - DONE Missing basics
     - DONE geocontext
     - DONE Support other basic types in widget/context config
      - DONE as double - decimal
      - DONE as positiveInteger - integer
-   - TEST Context extra config parameters
-    - TEST geocontext.home
-    - TEST doccontext.addAllowableProperty
+   - DONE Context extra config parameters
+    - DONE geocontext.home
+     - DONE sideaffect of layout fix BUG cannot remove first parameter in js call config (reappears)
+     - DONE BUG cannot remove js call on actions page (button has no effect)
+    - DONE via layout correction BUG Check reliability of whole properties functionality first TEST doccontext.addAllowableProperty
     - NA just add both to a page and register the widget with both - Link semantic context to document context for MarkLogic Document ontology links
-   - IN PROGRESS Widget extra configuration parameters
+   - TEST Widget extra configuration parameters
     - NA achieveing via default iriHandler loading subjectFacts through semantic context - sparqlresults.iriHandler(pattern)
-    - TEST tagcloud.setFacet(facetName)
-    - TEST Add tag cloud to workplace
+    - DONE tagcloud.setFacet(facetName)
+    - DONE Add tag cloud to workplace
     - DONE how to handle create (upload) forms widget?
      - DONE template (in doccontext, not widget)
      - DONE list of field definitions
     - TEST addressbar.radius
-    - TEST add address bar to workplace widget list
+    - DONE add address bar to workplace widget list
     - DONE openlayers.setGeoSelectionConstraint
     - DONE openlayers.go (lon,lat, zoom)
     - DONE openlayers.setHeatmapGranularity(number)
     - TEST searchselection.setMode
-    - searchselection.addQuery - use JSON as string initially until query builder ready?
+    - TEST searchselection.addQuery - use title and JSON as string initially until query builder ready?
+     - Use openlayers attractions distance/rating example
     - DONE openlayers.addSeries
     - DONE co-occurence
      - DONE title, displayTuple
@@ -332,9 +339,6 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
    - DONE create
     - DONE Document create/edit fields
    - DONE Hints at top of test pages in mljsrest
-  - IN PROGRESS Docs: Update MLJSREST app framework for bootstrap support
-  - Get MY to review app, workplace and widget UX
-   - Ask about info panel headings on interaction vs. results panels
  - DONE Docs: Workplace standalone app
   - DONE Roxy base rest only project
   - DONE Update build scripts to send latest files in to project
@@ -351,9 +355,9 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
   - DONE Need to also cache links between docuri (key) and subject IRI, so documentcontext listener can match subject correctly
  - IN PROGRESS Docs: Put latest doc updates front and centre of MLJS main page and API home page
   - DONE aka release notes
+  - IN PROGRESS 1.6 release notes
   - youtube videos
-  - blog (news) items
-  - latest tutorials
+  - IN PROGRESS blog (news) items
  - DONE Docs: Various doc issues
   - DONE Docs: Wiki: Image previews of all widgets, linking to pages with code examples (Like d3.js' home page)
  - IN PROGRESS Bower support
@@ -376,7 +380,7 @@ Targets for 1.7 (Aug 2014) - Theme: Minor Workplace and styling improvements
    - Add this to My Workplaces option on non-owned workplace page load
   - Edit limited to owner of workplace
 
-Targets for 1.8 (Sep 2014) - Theme: Visualisations
+Targets for 1.8 (Oct 2014) - Theme: Visualisations
  - Workplace additions
   - Advanced workplace functionality
    - application wide settings
@@ -521,7 +525,6 @@ Targets for 1.8 (Sep 2014) - Theme: Visualisations
   - Related subjects to right
   - Navigating onward redraws, shows parent (previous) Subject above new subject of interest
 
-
 Deferred from 1.6 (Theme: MLJS Ease of Use)
  - DEFERRED future improvements
   - DEFERRED Make contexts in workplace admin config driven, not hard coded
@@ -554,6 +557,8 @@ Deferred from 1.6 (Theme: MLJS Ease of Use)
   - DEFERRED BUG mljsrest: main.js - commented out use of GET graph as it returns HTML not JSON, causing conversion error
   - DEFERRED BUG Core: HEAD /v1/graphs takes 240ms rather than 18ms for fetching static imagery or suggest - why?
   - DEFERRED BUG REST API Bug: Search doesn't like ampersand @ character in constraint value in combined query - escape?
+  - DEFERRED BUG MINOR UX explorer widget scroll bar should be at top when needed
+  - DEFERRED BUG MINOR UX explorer widget should respond to swipe gestures
  - Bootstrap support
   - DEFERRED review widget headings, whether to have them, do we want a generic heading item?
   - DEFERRED Can't style file upload button or input file name box
@@ -566,11 +571,14 @@ Deferred from 1.6 (Theme: MLJS Ease of Use)
   - DEFERRED Allow specification of hard coded categories when not using auto categories
   - DEFERRED Make hard coded categories driven from introspection of that field (lexicon or just range index required?)
   - Workplace search options visual config
+   - DEFERRED Visual configuration of search options - widget-searchoptions.js
+    - DEFERRED Basic support to start - just wrap JSON as any other JSON object configuration, no advanced support
    - DEFERRED List all available range indexes to make in to facets/sort ordering
   - DEFERRED Visual configuration of extracted metadata for search results, with boolean logic for matches
   - DEFERRED Allow XSLT specification for individual search result custom rendering
  - Workplace context config
   - DEFERRED alert context
+  - DEFERRED zoom makes no sense outside of openlayers widget - BUG method does not exist on context! - geocontext.go (lon,lat, zoom)
  - workplace page load actions
   - DEFERRED query builder construction of query
    - DEFERRED dynamic structured queries
@@ -625,7 +633,9 @@ Deferred from 1.6 (Theme: MLJS Ease of Use)
   - DEFERRED Logged out page (with login area)
    - DEFERRED Requires app level security and default role
   - DEFERRED logged in welcome page, with logout button
-
+  - DEFERRED Docs: Update MLJSREST app framework for full bootstrap support
+  - Get MY to review app, workplace and widget UX
+   - Ask about info panel headings on interaction vs. results panels
 
 DEFERRED from 1.8 Theme: Visualisations
  - Widgets: Refactor remaining for Bootstrap CSS

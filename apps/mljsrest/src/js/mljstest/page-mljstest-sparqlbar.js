@@ -29,6 +29,7 @@ window.onload = function() {
   //trip.addResultsListener(function(res) {tripResults.updateResults(res)});
 
   var info = new com.marklogic.widgets.entityfacts("facts");
+  info.setProvenanceSparqlMentioned();
   semctx.register(info);
   //info.addErrorListener(error.updateError);
   tripResults.iriHandler(function(iri) {info.updateEntity(iri)});

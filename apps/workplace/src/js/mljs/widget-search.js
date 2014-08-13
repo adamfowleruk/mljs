@@ -3010,13 +3010,14 @@ com.marklogic.widgets.searchselection = function(container) {
 
   this._config = {
     title: "Relevancy Method: ",
-    mode: "replace"
+    mode: "replace",
+    queries: []
   };
 
   // TODO support both query mode and contribution mode
   // TODO support JSON (fixed query) and function(dynamic query) methods
 
-  this._queries = {}; // { queryname: jsonOrFunction, ...}
+  this._queries = {}; // { queryname: jsonOrFunction, ...} - holds PROCESSED version of config queries // TODO refactor this so just config.queries
   this._selectedQuery = null; // queryname value from above array
 
   this._refresh();
@@ -3037,6 +3038,13 @@ com.marklogic.widgets.searchselection.getConfigurationDefinition = function() {
         {value: "replace", title: "Replace", description: "Replace the search with the one selected"},
         {value: "contribute", title: "Contribute", description: "Contribute this query to the search"}
       ]
+    },
+    queries: {type: "multiple", minimum: 0, default: [], title: "Queries", description: "JSON Structured queries to select",
+          childDefinitions: {
+            //title,searchcontext,latsrc,lonsrc,titlesrc,summarysrc,icon_source_opt,heatmap_constraint
+            title: {type: "string", default: "", title: "Title", description: "Title to show in drop down"},
+            query: {type: "string",default: "", title: "Query", description: "JSON string query to execute"}
+          }
     }
   };
 };
@@ -3049,6 +3057,15 @@ com.marklogic.widgets.searchselection.getConfigurationDefinition = function() {
 com.marklogic.widgets.searchselection.prototype.setConfiguration = function(config) {
   for (var prop in config) {
     this._config[prop] = config[prop];
+  }
+
+  // parse queries
+  var queries = config.queries;
+  if (undefined != queries && Array.isArray(queries)) {
+    for (var q = 0,maxq = queries.length,query;q < maxq;q++) {
+      query = queries[q];
+      this._queries[query.title] = JSON.parse(query.query);
+    }
   }
 
   // refresh display

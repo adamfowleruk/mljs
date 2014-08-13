@@ -1415,12 +1415,13 @@ com.marklogic.widgets.sparqlresults.prototype._provenance = function() {
             binding = this.results.results.bindings[b];
             for (var et = 0, maxent = entities.length, entityValue;et < maxent;et++) {
               entityValue = binding[entities[et]];
+              console.log("PROV et: " + et + ", ent: " + entities[et] + ", entityValue: " + entityValue);
               if (first) {
                 first = false;
               } else {
                 sparql += " UNION ";
               }
-              sparql += " {<" + entityValue.value + "> <http://marklogic.com/semantics/ontology/mentioned_in> ?docuri . } \n";
+              sparql += " {<" + entityValue.value + "> <http://marklogic.com/semantics/ontology/mentioned_in> ?dociri . ?dociri <http://marklogic.com/semantics/ontology/Document#uri> ?docuri . } \n";
             }
           }
 
@@ -1518,6 +1519,8 @@ com.marklogic.widgets.entityfacts = function(container) {
   //this._contentWidget = null; // JS content results widget to update with fact provenance content
 
   this.reverse = false;
+
+  this._nextID = 1;
 
   this._refresh();
 };
@@ -1727,6 +1730,7 @@ com.marklogic.widgets.entityfacts.prototype._refresh = function() {
 
 
   var irilinks = new Array();
+  var iriclicklinks = new Array();
   // LIST SUBJECT(s) FACTS
 
   if (this.facts != null && this.facts != undefined) {
@@ -1744,7 +1748,7 @@ com.marklogic.widgets.entityfacts.prototype._refresh = function() {
         s += "<hr />";
       }
 
-      s += this._generateSubjectHTML(sub,irilinks);
+      s += this._generateSubjectHTML(sub,irilinks,iriclicklinks);
     }
   } else {
     if (this.loading === false) {
@@ -1768,17 +1772,35 @@ com.marklogic.widgets.entityfacts.prototype._refresh = function() {
 
   var self = this;
   if (this.semanticcontext.hasContentContext()) {
-    var el = document.getElementById(this.container + "-contentlink");
+    /*
+    var el = document.getElementById(this.container + "-contentlink"); // TODO support multiple subjects with own content links
     mljs.defaultconnection.logger.debug("CONTENTLINK: " + el);
     if (null != el) {
       mljs.defaultconnection.logger.debug("ADDING CLICK HANDLER TO CONTENTLINK");
       el.onclick = function() {self._provenance();};
     }
+    */
+
+    var addClickHandler = function(iri,elid) {
+      var el = document.getElementById(elid);
+      el.onclick = function(evt) {
+        // do provenance for this iri
+        self._provenance(iri);
+
+        evt.stopPropagation();
+        return false;
+      };
+    };
+
+    for (var i = 0,maxi = iriclicklinks.length,cl;i < maxi;i++) {
+      cl = iriclicklinks[i];
+      addClickHandler(cl.iri,cl.elid);
+    }
   }
 };
 
 
-com.marklogic.widgets.entityfacts.prototype._generateSubjectHTML = function(sub,irilinks) {
+com.marklogic.widgets.entityfacts.prototype._generateSubjectHTML = function(sub,irilinks,iriclicklinks) {
   var scfg = this.semanticcontext.getTripleConfiguration();
   var s = "";
 
@@ -1833,13 +1855,15 @@ com.marklogic.widgets.entityfacts.prototype._generateSubjectHTML = function(sub,
   s += "<div class='h4'>" + namevalue + " <span class='small'>" + entityInfo.title + "</span>";
 
   if (this.semanticcontext.hasContentContext()) {
-    s += " <a href='#' id='" + this.container + "-contentlink'><span class='glyphicon glyphicon-file' title='Load related content'> </span></a>";
+    var iriclickid = this.container + "-contentlink-" + this._nextID++;
+    iriclicklinks.push({iri: sub, elid: iriclickid});
+    s += " <a href='#' id='" + iriclickid + "'><span class='glyphicon glyphicon-file' title='Load related content'> </span></a>";
   }
   if (this._config.explorerUrlSpec != null) {
     // show facts explorer link with #IRI# in it
     s += " <a href='";
     s += this._config.explorerUrlSpec.replace("#IRI#",encodeURI(sub)); // replace #IRI# with THIS subject's IRI
-    s += "' id='" + this.container + "-explorerlink'><span class='glyphicon glyphicon-eye-open' title='Explore Subject links'> </span></a>";
+    s += "' id='" + this.container + "-explorerlink-" + (this._nextID++) + "'><span class='glyphicon glyphicon-eye-open' title='Explore Subject links'> </span></a>";
   }
   s += "</div>";
 
@@ -1950,14 +1974,14 @@ com.marklogic.widgets.entityfacts.prototype.removeErrorListener = function(lis) 
 };
 
 com.marklogic.widgets.entityfacts.prototype.setProvenanceSparqlMentioned = function() {
-  this.provenanceSparql = "SELECT ?docuri WHERE {<#IRI#> <http://marklogic.com/semantics/ontology/mentioned_in> ?docuri .}";
+  this.provenanceSparql = "SELECT ?docuri WHERE {<#IRI#> <http://marklogic.com/semantics/ontology/mentioned_in> ?dociri . ?dociri <http://marklogic.com/semantics/ontology/Document#uri> ?docuri . }";
 };
 
-com.marklogic.widgets.entityfacts.prototype._provenance = function() {
-  mljs.defaultconnection.logger.debug("_provenance called for: " + this.facts.subjectIri);
+com.marklogic.widgets.entityfacts.prototype._provenance = function(iri) {
+  mljs.defaultconnection.logger.debug("_provenance called for: " + iri);
   var sparql = this.provenanceSparql;
   if (undefined != sparql) {
-    sparql = sparql.replace(/#IRI#/, this.iri);
+    sparql = sparql.replace(/#IRI#/, iri);
   }
-  this.semanticcontext.subjectContent(this.iri,sparql);
+  this.semanticcontext.subjectContent(iri,sparql);
 };

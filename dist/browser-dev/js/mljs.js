@@ -8248,9 +8248,9 @@ mljs.prototype.semanticcontext.prototype.register = function(obj) {
 
 
   // also register with the content search context, if it exists
-  if (null != this._contentSearchContext) {
-    this._contentSearchContext.register(obj);
-  }
+  //if (null != this._contentSearchContext) {
+  //  this._contentSearchContext.register(obj);
+  //}
 };
 
 
