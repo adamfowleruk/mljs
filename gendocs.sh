@@ -32,9 +32,9 @@ cp $MD/*/*.png $P/widgets/images/
 
 echo "Pushing docs to GitHub Pages"
 cd ../mljs-pages
-# git add apidocs
-# git commit -a -m "link fix"
-# git push origin gh-pages
+git add apidocs
+git commit -a -m "link fix"
+git push origin gh-pages
 cd ../mljs
 
 echo "Done All."

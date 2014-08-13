@@ -95,10 +95,11 @@ AlertServer.prototype.close = function() {
 
 
 
-var WebServer = function(port,connectionManager,appBaseDirectory,restServer,restPort) {
+var WebServer = function(port,connectionManager,appBaseDirectory,restServer,restPort,defaultPath) {
   this.port = port;
   this.manager = connectionManager;
   this.base = appBaseDirectory;
+  this.defaultPath = defaultPath;
 
   // require here in case some things aren't supported
   var WebSocketServer = require('websocket').server;
@@ -240,9 +241,29 @@ function parseCookies (request) {
       fs.readFile(path, function (err, data) {
         if (err) {
           console.log("404 File Not Found: " + path);
-          res.writeHead(404, {'Content-Type': 'text/html'});
-          res.write("<html><head><title>404 not found</title></head><body><h1>File Not Found</h1></body></html>");
+          if (undefined != defaultPath) {
+            fs.readFile(self.base + defaultPath,function (err2,data2) {
+              if (err2) {
+                res.writeHead(404, {'Content-Type': 'text/html'});
+                res.write("<html><head><title>404 not found</title></head><body><h1>File Not Found</h1></body></html>");
+                res.end();
+                // 404
+              } else {
+          res.writeHead(200, {
+            'Content-Type': mime,
+            'Transfer-Encoding': 'chunked',
+    'Set-Cookie': 'mljsWebServerClientId=' + clientid,
+          });
+          //console.log(data);
+          res.write(data2);
           res.end();
+              }
+            });
+          } else {
+            res.writeHead(404, {'Content-Type': 'text/html'});
+            res.write("<html><head><title>404 not found</title></head><body><h1>File Not Found</h1></body></html>");
+            res.end();
+          }
         } else {
           // write header and content type
           res.writeHead(200, {
@@ -342,9 +363,9 @@ this.httpServer.listen(this.port, function() {
 
 // now overall MLJSServer object
 
-var MLJSWebServer = function(webPort,alertPort,appBaseDirectory,restServer,restPort) {
+var MLJSWebServer = function(webPort,alertPort,appBaseDirectory,restServer,restPort,defaultPath) {
   this.manager = new ConnectionManager();
-  this.webServer = new WebServer(webPort,this.manager,appBaseDirectory,restServer,restPort); // TODO support this
+  this.webServer = new WebServer(webPort,this.manager,appBaseDirectory,restServer,restPort,defaultPath); // TODO support this
   this.alertServer = new AlertServer(alertPort,this.manager);
 };
 

@@ -29,3 +29,5 @@ WEBPORT=5001
 ALERTPORT=5002
 # Relative or absolute path to the SRC folder of your REST app
 APPPATH=./src
+# default fallback path
+DEFAULTPATH=/workplace.html5
