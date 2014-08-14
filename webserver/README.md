@@ -28,6 +28,7 @@ Also install the following modules using these commands:-
 
 1. npm install crypto
 2. npm install underscore
+3. npm install websocket
 
 ## Configure options for your environment
 

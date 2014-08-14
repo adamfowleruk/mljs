@@ -356,15 +356,13 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
  - IN PROGRESS Docs: Put latest doc updates front and centre of MLJS main page and API home page
   - DONE aka release notes
   - IN PROGRESS 1.6 release notes
-  - youtube videos
   - IN PROGRESS blog (news) items
  - DONE Docs: Various doc issues
   - DONE Docs: Wiki: Image previews of all widgets, linking to pages with code examples (Like d3.js' home page)
- - IN PROGRESS Bower support
-  - DONE Add bower repo support for PH
-  - IN PROGRESS Fix bower repo for new mljs repo foldering layout
-   - DONE foldering fix
-   - IN PROGRESS re-register mljs-bower with bower guys
+ - IN PROGRESS Test: Run Node.js tests against this release and fix problems
+  - DONE Fix http 403 responses in indexes, do, keyvalue tests
+  - Fix n-triples test script error
+  - DONE All other tests
 
 Targets for 1.7 (Aug 2014) - Theme: Minor Workplace and styling improvements
  - Workplace Security review
@@ -379,6 +377,11 @@ Targets for 1.7 (Aug 2014) - Theme: Minor Workplace and styling improvements
   - Share workplace via URL
    - Add this to My Workplaces option on non-owned workplace page load
   - Edit limited to owner of workplace
+ - DEFERRED IN PROGRESS Bower support
+  - DONE Add bower repo support for PH
+  - IN PROGRESS Fix bower repo for new mljs repo foldering layout
+   - DONE foldering fix
+   - IN PROGRESS re-register mljs-bower with bower guys
 
 Targets for 1.8 (Oct 2014) - Theme: Visualisations
  - Workplace additions

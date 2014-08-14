@@ -1,4 +1,4 @@
-var mljs = require("../../mljs"),
+var mljs = require("mljs"),
     tests = exports,
     configurator = require('../../testconfig'),
     assert = require('chai').assert,
@@ -18,9 +18,9 @@ describe("003-search-query",function() {
   var db = new mljs(); // default options
   configurator.configure(db);
   db.setLogger(logger);
-  
+
   // add three docs to the collection
-  var col = {collection: "searchcol"};
+  var col = {collection: "searchcol", contentType: "application/json"};
   var uris = ["/search/1","/search/2","/search/3"];
   db.save({name:"first whippet"},uris[0],col,function(result) {
     assert(!result.inError,"Error saving doc 1");
@@ -28,7 +28,7 @@ describe("003-search-query",function() {
       assert(!result.inError,"Error saving doc 2");
       db.save({name:"third wolf"},uris[2],col,function(result) {
         assert(!result.inError,"Error saving doc 3");
-        
+
         logger.debug("TEST: SEARCH: Third save complete. Results object: " + JSON.stringify(result));
         // get docs in collection
         db.search("squirrel",function(result) {
@@ -39,7 +39,7 @@ describe("003-search-query",function() {
           } else {
             var isOne = (1==result.doc.total);
             assert(isOne,"There should only be one document with squirrel in " + col.collection);
-          
+
             if (isOne){
               // now remove docs in collection
               db.delete(uris[0],function(result) {
@@ -59,5 +59,5 @@ describe("003-search-query",function() {
       });
     });
   });
-  
+
 });});

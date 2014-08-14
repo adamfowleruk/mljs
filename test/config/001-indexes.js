@@ -1,4 +1,4 @@
-var mljs = require("../../mljs"),
+var mljs = require("mljs"),
     tests = exports,
     configurator = require('../../testconfig'),
     assert = require('chai').assert,
@@ -14,18 +14,18 @@ var mljs = require("../../mljs"),
      });
 
 describe("001-indexes",function() {
-  
+
   describe("#indexes()", function(){
-   
+
     it("Should complete entirely",function(done){
       var db = new mljs(); // default options
   configurator.configure(db);
       db.setLogger(logger);
-      
+
       db.indexes(function(result) {
         if (result.inError) logger.debug("ERROR: " + JSON.stringify(result));
-        assert.equal(result.inError,false,"indexes() should not be in error");
-        
+        assert.equal(result.inError,false,"indexes() should not be in error: " + JSON.stringify(result));
+
         var summaries = result.doc["index-summaries"];
         assert(undefined != summaries,"index-summaries should not be undefined in result");
         if (undefined != summaries ) {
@@ -37,11 +37,11 @@ describe("001-indexes",function() {
           assert(undefined != complete,"complete should not be undefined in index-summaries");
           assert(("false"==complete || "true"==complete),"complete should be true or false");
         }
-        
+
         done();
       });
-      
+
     }); // it
   });// describe plain
-  
+
 });
