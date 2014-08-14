@@ -31,21 +31,11 @@ Interim demo targets
 
 Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
  - DONE Node: mlwatcher: Write a frickin' auto app deploy directory watching app
- - IN PROGRESS
-  - TEST Docs: Generate build of Workplace app in dist folder, with node deployment code
-   - Docs: get workplace node working OOTB
-  - TEST Docs: Create rest server script for workplace webapp
-   - Ensure authentication and default user set on rest server
- - Record Workplace app showcase demos
-  - Introduction - build an app in 5 minutes
-  - Workplace App 001 - Installing Workplace against your database (include within the DB at end too)
-  - Workplace App 002 - Configuring search options - xml upload with Roxy deployer, with mlwatcher, or json copy/paste. Also cover indexes.
-  - Workplace App 003 - Adding a facetted search page
-  - Workplace App 004 - Adding a geospatial search page with address lookup, heatmaps, selection
-  - Workplace App 005 - Adding Semantic search and explorer pages
-  - Workplace App 006 - Adding Linking content search to semantic search with infobox
-  - Workplace App 007 - Adding a analytics dashboard page, with multiple search contexts, charts, co-occurence and tag clouds
-  - Workplace App 008 - Using a custom bootstrap theme
+ - DONE Docs: sample apps
+  - DONE Docs: Generate build of Workplace app in dist folder, with node deployment code
+   - DONE Docs: get workplace node working OOTB
+  - DONE Docs: Create rest server script for workplace webapp
+   - DONE via docs - Ensure authentication and default user set on rest server
  - DONE Docs: mljsrest demo app improvements
   - DONE BUG sparqlbar page: make document links use mentioned_in link with correct IRI for search results rendering
   - DONE via page context - explorer page: accept incoming IRI link in url ?iri=, where not specified use existing default
@@ -119,7 +109,7 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
    - DONE BUG Widgets: Workplace delete all in column leaves hanging assignments
    - BUG Docs: mljsrest Openlayers demo page hovering over marker causes null reference looking for result area by id to change css classes
    - BUG google maps address lookup longitude not working again (check latest social media code for fix - back port)
-   - BUG changing zoom or otherwise altering openlayer search forces collection constraint (any text query) to be forgotten - same is true in reverse
+   - BUG changing zoom or otherwise altering openlayers search forces collection constraint (any text query) to be forgotten - same is true in reverse
     - We don't cache text query as a contributed query?
    - BUG UX Usefulness - OpenLayers needs to be easily configurable to show a marker - what data can be mapped? (At moment just document value path)
     - Need to support metadata, including lon/lat geo pair data, summary or title string data, description data, as a minimum
@@ -262,11 +252,11 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
     - DONE doccontext.getProperties(docuri)
     - DONE doccontext.getFacts(docuri,optionsName)
   - TEST Usefulness fixes - without which widgets are pointless
-   - TEST Global widget and context extension auto detection by classestom js files list (page config section?)
+   - TEST Global widget and context extension auto detection by classes custom js files list
     - DONE custom workplace widgets
     - DONE custom workplace layouts
     - TEST custom renderers in searchresults - com.marklogic.widgets.searchresultsext.NAME.customrenderers = {};
-    - DEFERRED BUG MINOR UX on workplace-custom page, searchbar1 appears twice when defined from json rather than loaded from server
+    - DONE fixed as a side effect of workplace work BUG MINOR UX on workplace-custom page, searchbar1 appears twice when defined from json rather than loaded from server
    - DONE Missing basics
     - DONE geocontext
     - DONE Support other basic types in widget/context config
@@ -345,9 +335,9 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
   - DONE Generic page template
   - DONE Special re-writer for security and workplace pages
  - DONE Docs: Deprecate mldbwebtest app as primary source of widget files in build, remove app itself
- - IN PROGRESS Docs: Remove mldbwebtest from tutorials, documentation, wiki
-  - replace with Workplace app initially
-  - also show mljsrest app via Node.js webserver
+ - DONE Docs: Remove mldbwebtest from tutorials, documentation, wiki
+  - DONE replace with Workplace app initially
+  - DONE also show mljsrest app via Node.js webserver
  - DONE BUG Widgets: searchbar - When contributing query as term query for structured search, if text blank need to send and-query not term-query("") - else nothing is returned!
  - DONE BUG Core: version being called multiple times per page (when version endpoint doesn't exist)
  - DONE BUG Docs: Explorer widget not loading document facet data on mljsrest app
@@ -359,10 +349,21 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
   - IN PROGRESS blog (news) items
  - DONE Docs: Various doc issues
   - DONE Docs: Wiki: Image previews of all widgets, linking to pages with code examples (Like d3.js' home page)
+ - Docs: Record Workplace app showcase demos
+  - Introduction - build an app in 5 minutes
+  - Workplace App 001 - Installing Workplace against your database (include within the DB at end too)
+  - Workplace App 002 - Configuring search options - xml upload with Roxy deployer, with mlwatcher, or json copy/paste. Also cover indexes.
+  - Workplace App 003 - Adding a facetted search page
+  - Workplace App 004 - Adding a geospatial search page with address lookup, heatmaps, selection
+  - Workplace App 005 - Adding Semantic search and explorer pages
+  - Workplace App 006 - Adding Linking content search to semantic search with infobox
+  - Workplace App 007 - Adding a analytics dashboard page, with multiple search contexts, charts, co-occurence and tag clouds
+  - Workplace App 008 - Using a custom bootstrap theme
  - IN PROGRESS Test: Run Node.js tests against this release and fix problems
   - DONE Fix http 403 responses in indexes, do, keyvalue tests
   - Fix n-triples test script error
   - DONE All other tests
+ - Fix mljsme.sh app
 
 Targets for 1.7 (Aug 2014) - Theme: Minor Workplace and styling improvements
  - Workplace Security review

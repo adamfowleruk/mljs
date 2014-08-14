@@ -16,7 +16,7 @@ to snippeting). Read below for more details.
 
 ## Source information modes
 
-When you define a chart you specify where MLJS should find the data from. In most cases this will be aggregations 
+When you define a chart you specify where MLJS should find the data from. In most cases this will be aggregations
 calculated as facet values by MarkLogic. To do this for your own data you call this method:-
 
 ```javascript
@@ -38,8 +38,8 @@ wgt.setAggregateFunction("count");
 In the above example we're still hard coding a single series called 'Animals' but we are extracting the XML or JSON
 category name 'animal' and counting the number of results (hence also passing 'animal' as a values source).
 
-WARNING: Your JSON options document MUST have a page size greater than the total result set for you to receive 
-accurate aggregations using in-document values. If the page size is set to the default 10, for example, then the 
+WARNING: Your JSON options document MUST have a page size greater than the total result set for you to receive
+accurate aggregations using in-document values. If the page size is set to the default 10, for example, then the
 aggregations will only be ran on the first 10 documents. Note you must also be in search options RAW result mode.
 
 This can be extended to create several series automatically. Effectively this works like a group by in sql but in chart
@@ -48,12 +48,9 @@ form. This can be seen in the following example:-
 ```javascript
   var tempcolumn = new com.marklogic.widgets.highcharts("tempcolumn");
   tempcolumn.addErrorListener(error.updateError);
+  tempcolumn.addErrorListener(error.updateError);
   tempcolumn.setSeriesSources("city","month","reading.temp");
-  tempcolumn.options.title.text = "Column: City temperature means";
-  tempcolumn.options.subtitle.text = "Degrees C";
-  tempcolumn.options.yAxis.title.text = "C";
-  tempcolumn.options.chart.type = "column";
-  tempcolumn.options.plotOptions = {column: {pointPadding: 0.2,borderWidth: 0}};
+  tempcolumn.column({pointPadding: 0.2,borderWidth: 0}).title("Column: City temperature means").subtitle("Degrees C").yTitle("C");
 ```
 
 Here you see that a series is created per city returned in the result document. These are then split in to month
@@ -61,12 +58,16 @@ categories. This category set is automatically resolved by the highcharts widget
 Note the value is from the temp property in the child reading JSON object of each result JSON document. (Note: XML
 support is included which basically turns each . in to a / in XPath, and adds a leading /).
 
-WARNING: Your JSON options document MUST have a page size greater than the total result set for you to receive 
-accurate aggregations using in-document values. If the page size is set to the default 10, for example, then the 
+WARNING: Your JSON options document MUST have a page size greater than the total result set for you to receive
+accurate aggregations using in-document values. If the page size is set to the default 10, for example, then the
 aggregations will only be ran on the first 10 documents. Note you must also be in search options RAW result mode.
 
 As you can also see from the above example, you can access the highcharts options JSON object directly to specify low
 level information. This means that the widget should be adaptable to any HighChart configuration available.
+
+## Workplace support
+
+All the above series options are now visually configurable in the MLJS Workplace widget.
 
 - - - -
 

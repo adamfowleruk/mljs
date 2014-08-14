@@ -44,6 +44,7 @@ In various widgets I have support for related documents using a MarkLogic Docume
 | --- | --- | --- | --- |
 | RDF Type | a | http://marklogic.com/semantics/ontology/Document | Specifies this Subject is a MarkLogic document itself |
 | Has URI | http://marklogic.com/semantics/ontology/Document#uri | E.g. /some/path/to/mydoc.xml | The document's URI within this MarkLogic database |
+| Mentions | http://marklogic.com/semantics/ontology/mentions | Links this document to a Subject mentioned within it |
 
 Note: It may be advantageous to use predicates within W3C PROV-O to relate Subjects to a MarkLogic Document, or to describe the document
 itself. (E.g. generated_by)
@@ -61,11 +62,11 @@ There are then a set of predicates to be used within other Subjects in order to 
 
 These recommendations are personal notes and opinions. Please read them with an open mind and decide whether - in your scenario
  - it makes sense to follow them.
- 
+
 - For triples that should always be modified when the document content is modified, store within the document (or a document property) - Example: You have done entity extraction on a document and found a &lt;person-name&gt;Adam Fowler&lt;/person-name&gt; and a &lt;organisation-name&gt;MarkLogic&lt;/organisation-name&gt; and your document creation process also expresses the fact 'Adam Fowler member_of MarkLogic' (issues around automatic assertions aside…)
 - Conversely, only ever store triples in a document that should be replaced/updated every time the document is updated. Specifically, do NOT embed 'reference facts' that are not directly implied by the document. (i.e. don't 'enrich' your extracted facts within the document by adding wider facts around them) - to do so means you may inadvertantly blow away reference facts, or duplicate them across multiple documents.
 - Some document extracted 'facts' may require different security settings to the document, or different security to other facts extracted from the document. In this case store them in an XML document (NOT just a named graph) tightly linked to the document. This is easy to update via triggers or similar when you update the document - Example: /some/path/to/mydoc.xml/paragraph1.xml or /some/path/to/mydoc.xml/topsecret.xml), with the appropriate security set on it
-- Add a derived_from fact to named graphs you create to link the whole lot of facts as a single set back to the MarkLogic document) 
+- Add a derived_from fact to named graphs you create to link the whole lot of facts as a single set back to the MarkLogic document)
 - Create a MarkLogic ontology that has RDF types including MarkLogicDocument with predicates like 'mentioned_in' and 'derived_from' (See: https://github.com/adamfowleruk/mljs/blob/oct13/tutorials/901-ontology.md - this is a work in progress, should be finished at the end of the month)
 - Whether embedding facts or storing them separately, always link back to the 'originating' document (where applicable) via a 'derived_from' to a MarkLogicDocument entity
 - Never rely on extracting the graph name for any target subject/fact - E.g. if in the below example we perform some complex SPARQL to find our Originating Document subject, we should store a 'has_uri' predicate on that subject, NOT require knowing the name of the graph (which is the document uri, in the below example) in order to find the originating document
@@ -74,7 +75,7 @@ These recommendations are personal notes and opinions. Please read them with an 
 I believe we should also take a look at PROV-O when it comes to asserting facts about how a named graph / triple was derived.
 
 I would also like to see a MarkLogic specific extension to the REST graph store endpoint allowing multiple named graphs rather than the single one required by the W3C spec… I'll get around to documenting all this soon and them submit relevant RFEs as required and chat to Buxton et al.
- 
+
 ## Appendix B: Using PROV-O with MarkLogic
 
 The below is from an email I sent detailing where PROV-O may be of use to a customer of MarkLogic.
@@ -92,12 +93,12 @@ sem:sparql( "select distinct ?subject, ?custnum where { ?subject a /ns/Customer 
 Pretty easy… But what if you want to combine this with checking their associated balance was &lt; 100… you may be tempted to alter the Sparql to do this:-
 
 ```sparql
-select distinct ?subject, ?custnum where { 
-  ?subject a /ns/Customer . 
-  ?subject has_customer_number ?custnum . 
+select distinct ?subject, ?custnum where {
+  ?subject a /ns/Customer .
+  ?subject has_customer_number ?custnum .
   ?subject has_account ?acc .
   ?acc has_balance ?bal .
-  FILTER (?bal &lt; "100"^^&lt;xs:double&gt; ) 
+  FILTER (?bal &lt; "100"^^&lt;xs:double&gt; )
 }
 ```
 
@@ -109,7 +110,7 @@ This leaves you with needing a way to answer the sparql query first to return a 
 &lt;/ns/Customer/1234&gt; &lt;mentioned_in&gt; "/mydocs/some/uri/claim.xml" .
 ```
 
-The problem with this though is that you cannot hang other facts off of the URI. E.g. generated_by etc from PROV-O. This leaves us with having to use some sort of Entity class for MarkLogic documents. Indeed, if we do this and adopt the PROV-O relationships we find they are actually a very good fit. They support use cases of documents being updated over time, and altered as part of software processes. They can handle things like original documents, xhtml renderings, versions of documents, or alterations (E.g. enrichments) via external software agents. 
+The problem with this though is that you cannot hang other facts off of the URI. E.g. generated_by etc from PROV-O. This leaves us with having to use some sort of Entity class for MarkLogic documents. Indeed, if we do this and adopt the PROV-O relationships we find they are actually a very good fit. They support use cases of documents being updated over time, and altered as part of software processes. They can handle things like original documents, xhtml renderings, versions of documents, or alterations (E.g. enrichments) via external software agents.
 
 So in the above example, you would embed facts like these in the document:-
 
@@ -126,12 +127,12 @@ Elsewhere in the triple store you have this customers record, accounts and balan
 You can now do this in just sparql:-
 
 ```sparql
-select distinct ?subject, ?custnum, ?claimsdocuri where { 
-  ?subject a /ns/Customer . 
-  ?subject has_customer_number ?custnum . 
+select distinct ?subject, ?custnum, ?claimsdocuri where {
+  ?subject a /ns/Customer .
+  ?subject has_customer_number ?custnum .
   ?subject has_account ?acc .
   ?acc has_balance ?bal .
-  FILTER (?bal &lt; "100"^^&lt;xs:double&gt; ) 
+  FILTER (?bal &lt; "100"^^&lt;xs:double&gt; )
   ?subject mentioned_in ?mldoc .
   ?mldoc has_uri ?claimsdocuri .
 }

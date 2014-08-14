@@ -1,10 +1,12 @@
 [Back to All Tutorials list](tutorial-all.html)
 # Core API Samples
 
+*** WARNING ALL THE BELOW ARE DEPRECATED TUTORIAL FILES ***
+
 Below are all the functions available in the public core API. Private API and internal methods are not covered. See the raw JS files for code comments on these. For details on the Browser Widget UI libraries, see the <a href="Widget-Api">Widget Api</a> page.
 
 ##Conventions used in this document
-Any variable with _opt in the name is optional. You can either not provide a value or provide undefined. mljs will introspect other variables to correctly deduce the required function. E.g. if no docuri_opt provided by callback_opt should be - if docuri_opt is a function, mljs correctly sets callback_opt to this.
+Any variable with \_opt in the name is optional. You can either not provide a value or provide undefined. mljs will introspect other variables to correctly deduce the required function. E.g. if no docuri_opt provided by callback_opt should be - if docuri_opt is a function, mljs correctly sets callback_opt to this.
 
 ##Function categories
 
@@ -145,7 +147,7 @@ Returns a search api response contain a paged list of documents, with their cont
 
 ```javascript
 var db = new mljs(); // default options
-  
+
 // add three docs to the collection
 var col = {collection: "testcol"};
 var uris = ["/collections/1","/collections/2","/collections/3"];
@@ -179,9 +181,9 @@ Configures the database driver to access a particular database. You can supply a
 
 ```javascript
 var options = {
-  host: "localhost", port: 9090, adminport: 8002, 
-  ssl: false, auth: "digest", username: "admin",password: "admin", 
-  database: "mljstest", 
+  host: "localhost", port: 9090, adminport: 8002,
+  ssl: false, auth: "digest", username: "admin",password: "admin",
+  database: "mljstest",
   searchoptions: {}, fastthreads: 10, fastparts: 100
 };
 var db = new mljs();
@@ -198,7 +200,7 @@ db.configure(options);
 
 Links: [REST API](https://docs.marklogic.com/REST/POST/v1/rest-apis)
 
-- - - - 
+- - - -
 <a name="mljs.init">#</a> mljs <b>Constructor</b>()
 
 Creates an instance of the database driver with the default (vanilla local server) configuration
@@ -256,12 +258,12 @@ Performs the specified REST API call. This is a wrapper around the internal mljs
 
 ```javascript
 var db = new mljs(); // default options
-  
+
 var options = {
   path: "/v1/search?q=squirrel&format=json",
   method: "GET"
 };
-  
+
 db.do(options,function(result) {
   console.log("Number of results: " + result.doc.total);
 });
@@ -331,7 +333,7 @@ Performs a simple key-value search. Useful if you want a list of documents (typi
 
 ```javascript
 var db = new mljs(); // default options
-  
+
 // add three docs to the collection
 var col = {collection: "kvcol"};
 var uris = ["/kv/1","/kv/2","/kv/3"];
@@ -381,7 +383,7 @@ var json1 = {name: "first whippet"};
 var json2 = {weight: "120lbs"};
 db.save(json1,uris[0],col,function(result) {
 
-// merge the weight into the same document as name 
+// merge the weight into the same document as name
 db.merge(json2,uris[0],function(result) {
 db.get(uris[0],function(result) {
   console.log("TEST: MERGE: merged doc: " + JSON.stringify(result.doc));
@@ -414,7 +416,7 @@ Abandons a currently open transaction.
 
 ```javascript
 var db = new mljs(); // default options
-  
+
 db.begin(function(result) {
 var txid = result.txid;
 
@@ -422,10 +424,10 @@ var txid = result.txid;
 var uri = "/trans/rollback/5";
 var json = {title: "Transaction commit test doc"};
 db.save(json,uri,function(result) {
-      
+
 // now abandon transaction
 db.rollback(function(result) {
-      
+
 // see if the document doesn't exist (i.e. the transaction has been abandoned)
 db.get(uri, function(result) {
   console.log("Document exists?: " + !result.inError);
@@ -452,12 +454,12 @@ __See [fast()](#mljs.fast) above__
 
 Links: [FAST mode](#mljs.fast)
 
-- - - - 
+- - - -
 <a name="mljs.saveSearchOptions">#</a> mljs.<b>saveSearchOptions</b>(name,searchoptions,callback_opt)
 
 Persists a search options JSON object with the specified name. This can be referred to in any of the search methods (the options_opt variable) to control the results of a search operation.
 
-Links:  [REST API](https://docs.marklogic.com/REST/PUT/v1/config/query/*) 
+Links:  [REST API](https://docs.marklogic.com/REST/PUT/v1/config/query/*)
 
 - - - -
 <a name="mljs.search">#</a> mljs.<b>search</b>(query_opt,options_opt,start_opt,sprops_opt,callback)
@@ -466,14 +468,14 @@ Performs a free text search using the default built in grammar of MarkLogic. Ret
 
 ```javascript
 var db = new mljs(); // default options
-  
+
 // add three docs to the collection
 var col = {collection: "searchcol"};
 var uris = ["/search/1","/search/2","/search/3"];
 db.save({name:"first whippet"},uris[0],col,function(result) {
 db.save({name:"second squirrel"},uris[1],col,function(result) {
 db.save({name:"third wolf"},uris[2],col,function(result) {
-        
+
 // search
 db.search("squirrel",function(result) {
   console.log("TEST: SEARCH results object: " + JSON.stringify(result));
@@ -489,14 +491,14 @@ Performs a free text search using the default built in grammar of MarkLogic. Res
 
 ```javascript
 var db = new mljs(); // default options
-  
+
 // add three docs to the collection
 var col = {collection: "searchcol"};
 var uris = ["/search/1","/search/2","/search/3"];
 db.save({name:"first whippet"},uris[0],col,function(result) {
 db.save({name:"second squirrel"},uris[1],col,function(result) {
 db.save({name:"third wolf"},uris[2],col,function(result) {
-        
+
 // search
 db.searchCollection("searchcol","squirrel",function(result) {
   console.log("TEST: SEARCH results object: " + JSON.stringify(result));
@@ -535,7 +537,7 @@ Performs a structured search using the REST API.
 
 ```javascript
 var db = new mljs(); // default options
-  
+
 // add three docs to the collection
 var col = {collection: "ssearchcol"};
 var query = {"query":
@@ -549,7 +551,7 @@ var uris = ["/ssearch/1","/ssearch/2","/ssearch/3"];
 db.save({name:"first elephant"},uris[0],col,function(result) {
 db.save({name:"second rhino"},uris[1],col,function(result) {
 db.save({name:"third penguin"},uris[2],col,function(result) {
-        
+
 // get docs in collection
 db.structuredSearch(query,function(result) {
   console.log("TEST: STRUCTUREDSEARCH results object: " + JSON.stringify(result));
@@ -591,7 +593,7 @@ db.values(query,"movie-year-tuple","movie-search-options",function(result) {
 });
 ```
 
-Links: [REST API](http://docs.marklogic.com/REST/GET/v1/values/*) 
+Links: [REST API](http://docs.marklogic.com/REST/GET/v1/values/*)
 
 - - - -
 
