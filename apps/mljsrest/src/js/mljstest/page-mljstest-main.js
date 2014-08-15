@@ -4,40 +4,40 @@ window.onload = function() {
   // initialise mljs
   var db = new mljs(); // calls default configure
   db.logger.setLogLevel("debug");
-  
+
   var error = new com.marklogic.widgets.error("errors");
-  
+
   try {
-  
+
   var logel = document.getElementById("log");
   var log = function(msg) {
     logel.innerHTML = "<p>" + msg + "</p>" + logel.innerHTML;
   };
-  
+
   // check if db needs initialising
-  
+
   var ob = db.createOptions();
   ob.pageLength(100);
   ob.collection().returnResults(false);
   var options = ob.toJson();
-  
+
   var optionsName = "mldbtest-content-options";
-  
+
   var qb = new db.query();
   qb.query(qb.collection("testdata"));
   var query = qb.toJson();
-  
+
   var tripcheck = function() {
     log("Checking for sample triple graphs");
-    
+
     var alldone = function() {
       log("ALL DONE. Click on one of the links above to use the demonstration.");
     };
-    
-    db.graph("mljs-test-graph-1", function(result) {
-      if (result.inError) {
+
+    //db.graph("mljs-test-graph-1", function(result) {
+  //    if (result.inError) {
         log(" - Test graphs do not exist. Creating.");
-        
+
         var triples1 = [
           {subject: "http://marklogic.com/semantic/targets/people/adam", predicate: "likes", object: "http://marklogic.com/semantic/targets/foodstuffs/cheese"},
           {subject: "http://marklogic.com/semantic/targets/people/adam", predicate: "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", object: "http://xmlns.com/foaf/0.1/Person"},
@@ -47,7 +47,7 @@ window.onload = function() {
           {subject: "/mixed/4", predicate: "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", object: "http://marklogic.com/semantics/ontology/Document"},
           {subject: "/mixed/4", predicate: "http://marklogic.com/semantics/ontology/Document#uri", string: "/mixed/4", locale: "en"}
         ];
-        
+
         var triples2 = [
           {subject: "http://marklogic.com/semantic/targets/people/adam", predicate: "http://xmlns.com/foaf/0.1/knows", object: "http://marklogic.com/semantic/targets/people/wendy"},
           {subject: "http://marklogic.com/semantic/targets/people/wendy", predicate: "http://xmlns.com/foaf/0.1/knows", object: "http://marklogic.com/semantic/targets/people/adam"},
@@ -55,11 +55,20 @@ window.onload = function() {
           {subject: "http://marklogic.com/semantic/targets/people/wendy", predicate: "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", object: "http://xmlns.com/foaf/0.1/Person"},
           {subject: "http://marklogic.com/semantic/targets/people/wendy", predicate: "http://xmlns.com/foaf/0.1/name", string: "Wendy Fowler", locale: "en"},
           {subject: "http://marklogic.com/semantic/targets/people/wendy", predicate: "likes", object: "http://marklogic.com/semantic/targets/foodstuffs/cheese"},
-          {subject: "http://marklogic.com/semantic/targets/people/wendy", predicate: "mentioned_in", object: "/mixed/4"},
+          {subject: "http://marklogic.com/semantic/targets/people/wendy", predicate: "http://marklogic.com/semantics/ontology/mentioned_in", object: "/mixed/4"},
+          {subject: "/mixed/4", predicate: "http://marklogic.com/semantics/ontology/mentions", object: "http://marklogic.com/semantic/targets/people/wendy"},
+          {subject: "/mixed/4", predicate: "http://marklogic.com/semantics/ontology/mentions", object: "http://marklogic.com/semantic/targets/people/adam"},
+          {subject: "/mixed/4", predicate: "http://marklogic.com/semantics/ontology/mentions", object: "http://marklogic.com/semantic/targets/foodstuffs/cheese"},
+          {subject: "http://marklogic.com/semantic/targets/animals/penguin",predicate: "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", object: "http://marklogic.com/semantic.rdfTypes/animal"},
+          {subject: "http://marklogic.com/semantic/targets/animals/penguin",predicate: "called", string: "Polly", locale: "en"},
+          {subject: "http://marklogic.com/semantic/targets/people/adam",predicate: "likes", object: "http://marklogic.com/semantic/targets/animals/penguin"},
+          {subject: "http://marklogic.com/semantic/targets/people/wendy", predicate: "http://marklogic.com/semantics/ontology/mentioned_in", object: "/mixed/4"},
+          {subject: "http://marklogic.com/semantic/targets/people/adam", predicate: "http://marklogic.com/semantics/ontology/mentioned_in", object: "/mixed/4"},
+          {subject: "http://marklogic.com/semantic/targets/foodstuffs/cheese", predicate: "http://marklogic.com/semantics/ontology/mentioned_in", object: "/mixed/4"},
           {subject: "http://marklogic.com/semantic/targets/foodstuffs/cheese", predicate: "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", object: "http://marklogic.com/semantic/rdfTypes/foodstuff"},
           {subject: "http://marklogic.com/semantic/targets/foodstuffs/cheese", predicate: "foodname", string: "Cheese", locale: "en"}
         ];
-        
+
         var triples3 = [
           {subject: "http://marklogic.com/semantic/targets/movies/1", predicate: "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", object: "http://marklogic.com/semantic/rdfTypes/movie"},
           {subject: "http://marklogic.com/semantic/targets/movies/1", predicate: "hastitle", string: "The Goonies", locale: "en"},
@@ -82,19 +91,19 @@ window.onload = function() {
           {subject: "http://marklogic.com/semantic/targets/movies/4", predicate: "hasgenre", string: "Drama", locale: "en"},
           {subject: "http://marklogic.com/semantic/targets/movies/4", predicate: "releasedin",  number: 2007}
         ];
-        
+
         db.saveGraph(triples1,"mljs-test-graph-1",function(result) {
           if (result.inError) {
             log("ERROR creating test graph 1: " + result.detail);
           } else {
             log(" - Created test graph 1");
-            
+
             db.saveGraph(triples2,"mljs-test-graph-2",function(result) {
               if (result.inError) {
                 log("ERROR creating test graph 2: " + result.detail);
               } else {
                 log(" - Created test graph 2");
-                
+
                 db.saveGraph(triples3,"mljs-test-graph-3",function(result) {
                   if (result.inError) {
                     log("ERROR creating test graph 3: " + result.detail);
@@ -107,32 +116,32 @@ window.onload = function() {
             });
           }
         });
-      } else {
-        alldone();
-      }
-    });
+      //} else {
+      //  alldone();
+      //}
+    //});
   };
-  
+
   var doload = function() {
     logel.innerHTML = "";
-    
+
     log("Installing search options...");
     var ob1 = db.createOptions();
     ob1.defaultCollation("http://marklogic.com/collation/en")
       .pageLength(100)
-      .collectionConstraint() // default constraint name of 'collection' 
-      .jsonRangeConstraint("animal",["item-order"]) // constraint name defaults to that of the range element name 
-      .jsonRangeConstraint("family",["item-frequency"]); // constraint name defaults to that of the range element name 
-    
+      .collectionConstraint() // default constraint name of 'collection'
+      .jsonRangeConstraint("animal",["item-order"]) // constraint name defaults to that of the range element name
+      .jsonRangeConstraint("family",["item-frequency"]); // constraint name defaults to that of the range element name
+
     var ob2 = db.createOptions();
     ob2.tuples("actor-year","actor","year"); // first is tuple name. defaults to string, json namespace
     var ob3 = db.createOptions();
     ob3.tuples("actor-genre","actor","genre"); // first is tuple name. defaults to string, json namespace
     var ob4 = db.createOptions();
     ob4.defaultCollation("http://marklogic.com/collation/en")
-      .collectionConstraint() // default constraint name of 'collection' 
-      .jsonRangeConstraint("animal",["item-order"]) // constraint name defaults to that of the range element name 
-      .jsonRangeConstraint("family",["item-frequency"]) // constraint name defaults to that of the range element name 
+      .collectionConstraint() // default constraint name of 'collection'
+      .jsonRangeConstraint("animal",["item-order"]) // constraint name defaults to that of the range element name
+      .jsonRangeConstraint("family",["item-frequency"]) // constraint name defaults to that of the range element name
       .jsonRangeConstraint("actor","xs:string","http://marklogic.com/collation/",["item-frequency"])
       .jsonRangeConstraint("year","xs:string","http://marklogic.com/collation/",["item-order"])
       .jsonRangeConstraint("city","xs:string","http://marklogic.com/collation/",["item-order"])
@@ -144,14 +153,14 @@ window.onload = function() {
       .annotate("DateReceived","Received On")
       .geoElementPairConstraint("location","location","http://marklogic.com/xdmp/json/basic",
         "lat","http://marklogic.com/xdmp/json/basic","lon","http://marklogic.com/xdmp/json/basic");
-    
+
     var alloptions = [
       "page-charts-search",ob1.toJson(),
       "actor-genre",ob3.toJson(),
       "actor-year",ob2.toJson(),
       "mljstest-page-search-options",ob4.toJson()
     ];
-    
+
     var saveCount = 0;
     var nextSave0 = function() {
       if (saveCount == alloptions.length) {
@@ -163,14 +172,14 @@ window.onload = function() {
         });
       }
     };
-  
+
     var complete0 = function() {
       log("- Done.");
-    
-    
+
+
       log("Checking database for required indexes...");
-      
-      
+
+
       var donefunc = function(result) {
         // check result doc
         var indexes = result.doc["index-summaries"]["index-summary"];
@@ -181,7 +190,7 @@ window.onload = function() {
             missing.push(indexes[i]);
           }
         }
-        
+
         if (missing.length > 0) {
           for (var i = 0;i < missing.length;i++) {
             var s = "- *** MISSING INDEX: " + JSON.stringify(missing[i]);
@@ -189,7 +198,7 @@ window.onload = function() {
             if (undefined != missing[i].range) {
               s += "Range: Type: " + missing[i].range.type;
               if (undefined != missing[i].range["path-index"]) {
-                
+
               }
               if (undefined != missing[i].range["element"]) {
                 s += " Element: " + JSON
@@ -200,18 +209,18 @@ window.onload = function() {
           }
           log("- Abandoning content set up. Create indexes below then refresh page.");
           log("- NB for json-key, create an Element Range Index with the namespace http://marklogic.com/xdmp/json/basic and the local name the same as the json-key value, and the root collation (http://marklogic.com/collation/).");
-          
+
         } else {
           log("- Done. All indexes present and correct");
-        
+
         // if not indexes, then report index issues and stop processing
-        
+
         // if indexes here, continue with checking content
-    
+
           log("Adding test content to database...");
           log("[1 of 7] Adding temperature test data...");
-          
-          
+
+
           // save then get doc
           var docs = [
             {city: "London", month: "Jan", reading: { temp: 0}},
@@ -248,7 +257,7 @@ window.onload = function() {
             {city: "Derby", month: "Nov", reading: { temp: 2.5}},
             {city: "Derby", month: "Dec", reading: { temp: -1}}
           ];
-  
+
           saveCount = 0;
           var nextSave1 = function() {
             if (saveCount == docs.length) {
@@ -260,11 +269,11 @@ window.onload = function() {
               });
             }
           };
-  
+
           var complete1 = function() {
             log("- Done.");
             log("[2 of 7] Adding movie test data...");
-            
+
             docs = [
               {title: "The Goonies",actor: "Sean Astin", genre: "Comedy", year: "1985"},
               {title: "50 First Dates",actor: "Sean Astin", genre: "Comedy", year: "2004"},
@@ -295,11 +304,11 @@ window.onload = function() {
                 });
               }
             };
-  
+
             var complete2 = function() {
               log("- Done.");
               log("[3 of 7] Adding animals test data...");
-              
+
               docs = [
                 {title: "Polly the Penguin", summary: "Penguins are awesome", animal: "penguin", family: "bird", age: 15},
                 {title: "Olly the Ostrich", summary: "Tasty and lean", animal: "ostrich", family: "bird", age: 12},
@@ -315,9 +324,9 @@ window.onload = function() {
                 {title: "Gregory the Guinea Pig", summary: "Only live a couple of years", animal: "guinea pig", family: "pet", age: 5},
                 {title: "Adam the MarkLogician", summary: "Adam has no imagination", animal: "homosapien", family: "marklogician", age: 21}
               ];
-              
+
               // TODO save hurtbat.svg
-              
+
               saveCount = 0;
               var nextSave3 = function() {
                 if (0 == docs.length || saveCount == docs.length) {
@@ -329,15 +338,15 @@ window.onload = function() {
                   });
                 }
               };
-  
+
               var complete3 = function() {
                 log("- Done.");
-              
+
                 log("[4 of 7] Adding semantic test data...");
                 log("- N/A - no semantic data adding script written yet.");
-                
+
                 log("[5 of 7] Adding plain text test data...");
-              
+
                 docs = [
                   "There once was a poet named Fred.",
                   "Who wrote poems until he was dead.",
@@ -345,7 +354,7 @@ window.onload = function() {
                   "And found his poem stencil.",
                   "And realised he had ran out of lead."
                 ];
-              
+
                 saveCount = 0;
                 var nextSave5 = function() {
                   if (0 == docs.length || saveCount == docs.length) {
@@ -357,21 +366,21 @@ window.onload = function() {
                     });
                   }
                 };
-  
+
                 var complete5 = function() {
                   log("- Done.");
                   log("[6 of 7] Adding mixed test data...");
-              
+
                   docs = [
                     /*"I am a plain text file",*/
                     textToXML("<documentelement><title>I am an XML file</title><summary>Some XML summary</summary><dt:datereceived xmlns:dt='http://marklogic.com/ns/dt'>2013-01-25</dt:datereceived></documentelement>"),
                     textToXML("<documentelement2><name>I am a generic XML file</name><desc>Generic XML description</desc><dt:datereceived xmlns:dt='http://marklogic.com/ns/dt'>2013-01-18</dt:datereceived></documentelement2>"),
                     textToXML("<documentelement3><wibble>Generic XML wibble file</wibble><flibble>Generic XML flibble element</flibble><dt:datereceived xmlns:dt='http://marklogic.com/ns/dt'>2013-02-14</dt:datereceived></documentelement3>"),
-                    textToXML("<html xmlns='http://www.w3.org/1999/xhtml'><head><title>XHTML test doc</title><meta name='Author' content='Adam Fowler'/></head><body><h1>XHTML doc h1</h1><p>Lorem ipsum dolar sit amet</p><h2>Consecutor</h2><p>Wibble de flibble</p></body></html>"),
+                    textToXML("<html xmlns='http://www.w3.org/1999/xhtml'><head><title>XHTML test doc</title><meta name='Author' content='Adam Fowler'/></head><body><h1>XHTML doc h1</h1><p>Lorem ipsum dolar sit amet</p><h2>Consecutor</h2><p>Wibble de flibble</p><h2>Facts for triples</h2><p>Adam likes Cheese</p><p>Wendy likes Cheese lots</p><p>Adam is married to Wendy</p></body></html>"),
                     {title: "Some JSON title", summary: "Some JSON summary"},
                     {name: "Generic JSON name", desc: "Generic JSON description"}
                   ];
-              
+
                   saveCount = 0;
                   var nextSave6 = function() {
                     if (0 == docs.length || saveCount == docs.length) {
@@ -383,10 +392,10 @@ window.onload = function() {
                       });
                     }
                   };
-  
+
                   var complete6 = function() {
                     log("- Done.");
-                    
+
                     log("[7 of 7] Adding tourist attractions test data...");
                     // get points using address search at http://itouchmap.com/latlong.html - NB uses EPSG:900913 NOT WGS84(EPSG:4326)???
                     docs = [
@@ -398,7 +407,7 @@ window.onload = function() {
                       {title: "The London Eye", location:{ lat: 51.503400,lon: -0.119519},stars: 5, description: "Great views"},
                       {title: "Oxford Street", location:{ lat: 51.515220,lon: -0.141880},stars: 3, description: "Lots of Shops"}
                     ];
-                    
+
                     saveCount = 0;
                     var nextSave7 = function() {
                       if (0 == docs.length || saveCount == docs.length) {
@@ -410,52 +419,52 @@ window.onload = function() {
                         });
                       }
                     };
-    
+
                     var complete7 = function() {
                       log("- Done.");
-                  
+
                       tripcheck();
                     };
-                    
+
                     log("- Saving " + docs.length + " documents...");
                     nextSave7();
                   };
-                
+
                   log("- Saving " + docs.length + " documents...");
                   nextSave6();
                 };
-                
+
                 log("- Saving " + docs.length + " documents...");
                 nextSave5();
-                
-                
+
+
               }; // end complete 3
-              
+
               log("- Saving " + docs.length + " documents...");
               nextSave3();
-              
+
             }; // end complete 2
-            
-  
+
+
             log("- Saving " + docs.length + " documents...");
             nextSave2();
-            
+
           } // end complete1
-  
+
           log("- Saving " + docs.length + " documents...");
           nextSave1();
-          
+
         }
-        
+
       };
-      
-        
+
+
       db.indexes(donefunc);
     };
-    
+
     nextSave0();
   };
-  
+
   db.saveSearchOptions(optionsName,options,function(result) {
     db.structuredSearch(query,optionsName,function(result) {
       if (result.inError) {
@@ -471,11 +480,11 @@ window.onload = function() {
       }
     });
   });
-  
+
   document.getElementById("forcereload").onclick = function(e) {
     doload();
   };
-  
+
   } catch (err) {
     error.show(err.message);
   }

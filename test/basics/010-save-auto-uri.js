@@ -1,4 +1,4 @@
-var mljs = require("../../mljs"),
+var mljs = require("mljs"),
     tests = exports,
     configurator = require('../../testconfig'),
     assert = require('chai').assert,
@@ -18,18 +18,18 @@ describe("010-save-auto-uri",function() {
   var db = new mljs(); // default options
   configurator.configure(db);
   db.setLogger(logger);
-  
+
   logger.debug("****** Creating doc");
-  db.save({from: "test", to: "all", body: "wibble"}, null, {collection: "messages"},function(result) {
+  db.save({from: "test", to: "all", body: "wibble"}, null, {collection: "messages",contentType: "application/json"},function(result) {
     var uri = result.docuri;
     logger.debug("TEST: Generated docuri: " + uri);
-    
+
     // now fetch it
     logger.debug("****** Doc created. Fetching doc.");
     var doc = db.get(uri, function(result) {
       // now print it
       //logger.debug("****** Doc content: " + JSON.stringify(result.doc));
-      
+
       // now delete it
       logger.debug("****** deleting doc");
       db.delete(uri, function(result) {
@@ -40,5 +40,5 @@ describe("010-save-auto-uri",function() {
       });
     });
   });
-  
+
 });});

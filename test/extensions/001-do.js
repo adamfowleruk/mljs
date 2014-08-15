@@ -1,4 +1,4 @@
-var mljs = require("../../mljs"),
+var mljs = require("mljs"),
     tests = exports,
     configurator = require('../../testconfig'),
     assert = require('chai').assert,
@@ -18,12 +18,12 @@ describe("001-do",function() {
   var db = new mljs(); // default options
   configurator.configure(db);
   db.setLogger(logger);
-  
+
   var options = {
     path: "/v1/search?q=squirrel&format=json",
     method: "GET"
   };
-  
+
   db.do(options,function(result) {
     assert.equal(false,result.inError,"result should not be in error: " + JSON.stringify(result));
     done();

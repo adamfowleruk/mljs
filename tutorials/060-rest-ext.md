@@ -3,19 +3,6 @@
 
 This tutorial describes the REST extensions supported by MLJS core and their purpose
 
-## version
-Core: db.version(function(result) { console.log(result.doc.version); });
-
-The version extension exposes the MarkLogic server version identifier so that MLJS can use the most appropriate function. This is particularly
-useful if a new version makes some enhancement to existing functionality.
-
-An example of this is in V6 search options had to be saved before issuing a query that used them. In V7 it is possible to instead submit
-a combined query, with one request containing both query options and the query itself in a single call. MLJS' various search functions
-check for whether the server is at V7 or not to determine the most appropriate action.
-
-If this extension isn't installed them MLJS will silently fall back to V6 functionality. Note you may see a HTTP 500 error in your browser's
-debugging console, but this is normal and trapped by MLJS.
-
 ## RDB2RDF
 Core: db.samListSchema(), db.samSchemaInfo(), db.samRdb2Rdf()
 

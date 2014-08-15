@@ -19,10 +19,21 @@ standard widget configuration pattern to define concepts of a 'page' with a 'lay
 of that layout.
 
 Thus the concept of a configurable Workplace was born... A page with a single configured widget (The Workplace) that either loads
-the page configuration from the server based on the current URL, or provides an 'edit' button to allow the users themselves to 
+the page configuration from the server based on the current URL, or provides an 'edit' button to allow the users themselves to
 drag and drop a palette of widgets on to the page.
 
-## Configuration
+## Download the app!
+
+There is now an MLJS Workplace app. This contains all the HTML5 pages and JavaScript code allowing visual configuration
+of an entire web application WITHOUT A SINGLE LINE OF CODE!
+
+This is deployed locally, not on MarkLogic, allowing for blazing fast loading of a web app. This uses the MLJS WebServer
+Node.js application.
+
+To get started, download the app-workplace.tar.gz file from the dist folder of the MLJS GitHub repo. This contains a
+simple README file with the procedure for getting up and running.
+
+## Alternative: Manual Configuration
 
 A page, its widgets, contexts and onload actions can be configured within a straightforward and consistent JSON structure. Below
 is an example of that configuration for a search page with searchbar, chart, results and facets all shown:-
@@ -36,7 +47,7 @@ is an example of that configuration for a search page with searchbar, chart, res
       {widget: "searchbar1", type: "com.marklogic.widgets.searchbar", config: {}},
       {widget: "highcharts1", type: "com.marklogic.widgets.highcharts", config: {
         title: "Animal Family", subtitle: "", xTitle: "Family", yTitle: "Count", type: "pie",
-        series: [{nameSourceType: "fixed",nameSource: "Family",autoCategories: true,categorySourceType: "facet", 
+        series: [{nameSourceType: "fixed",nameSource: "Family",autoCategories: true,categorySourceType: "facet",
           categorySource: "family", valueSourceType: "element", valueSource: null, aggregateFunction: "none"
        }]
       }},
@@ -58,7 +69,7 @@ is an example of that configuration for a search page with searchbar, chart, res
         {type: "javascript", config: {targetObject: "searchcontext1", methodName: "doSimpleQuery", parameters: []}}
       ]
     }};
-    
+
     var workplace = new com.marklogic.widgets.workplace("workplace");
     workplace.loadPage(page);
 ```
@@ -68,33 +79,6 @@ load, it's actually pretty straightforward.
 
 Also, the ultimate aim is for this JSON to be created visually via drag and drop, not in code as in the above example. This JSON would be stored on
 MarkLogic server and loaded based on the URL of the page (as you can see on the first line with /mljstest/workplace).
-
-## Drag and drop
-
-Below are mock ups of the edit screen for the MLJS Workplace.
-
-![MLJS Basic Page Settings](./images/mljs-diagrams.007.png "MLJS Basic Page Settings")
-
-The basic page screen allows assignment of the top level layout, page name, and URLs this page should match against. In future this will also include
-read (view page) and modify (edit page configuration) permissions.
-
-![MLJS Widget Layout](./images/mljs-diagrams.008.png "MLJS Widget Layout")
-
-This section is a drag and drop assignment of widgets to layout zones. Note the appending functionality in all zones in this layout. Some layout (E.g. grid)
-may have a fixed maximum number of zones.
-
-In this mock up only the widget ID is shown, but in the real screen this is where you would be able to edit widget settings.
-
-![MLJS Context Assignment](./images/mljs-diagrams.009.png "MLJS Context Assignment")
-
-This is where contexts are assigned to widgets. This is the equivalent of calling the context.register(widget) function. Note that it is possible
-for contexts to be chained together. E.g. a semantic search widget may be linked to a content search widget in order to search for all documents
-linked to a Subject (via a mentioned_in predicate to a MarkLogicDocument RDF Type - basically a document-uri query).
-
-![MLJS Page Actions](./images/mljs-diagrams.010.png "MLJS Page Actions")
-
-This page shows actions configured. At the moment this is limited to on page load actions, but could be extended in the future to include
-any events exposed by any widgets, and a variety of out of the box actions (E.g. 'go to page <URL>').
 
 - - - -
 

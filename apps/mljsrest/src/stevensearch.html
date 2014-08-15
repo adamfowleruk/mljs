@@ -1,0 +1,101 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <title>Chart Search</title>
+    <link href="/css/bootstrap.css" rel="stylesheet"/>
+    <link href="/css/bootstrap-theme.css" rel="stylesheet"/>
+
+    <link href="/css/960/reset.css" type="text/css" rel="stylesheet"/>
+    <link href="/css/960/960.css" type="text/css" rel="stylesheet"/>
+
+    <link href="/css/one-column.css" rel="stylesheet"/>
+
+</head>
+<body>
+    <div class="home" id="home">
+      <a class="text" href="index.html" title="Home">MLJS Samples Application</a>
+    </div>
+
+
+    <div class="canvas">
+      <div class="header" arcsize="5 5 0 0">
+        V6+:
+        <a href="search.html">Search</a> |
+        <a href="snippets.html">Search with Snippets</a> |
+        <a href="charts.html">Charts</a> |
+        <a href="chartsearch.html">Chart + Search</a> |
+        <a href="movies.html">Co-occurence</a> |
+        <a href="error.html">Error</a> |
+        <a href="kratu.html">Kratu</a>  |
+        <a href="upload.html">Upload</a> |
+        <a href="docview.html">View Doc</a> |
+        <a href="docedit.html">Edit Doc</a> |
+        <a href="openlayers.html">Maps</a> |
+        <a href="address.html">Address</a> |
+        <a href="tagcloud.html">Tag Cloud</a>
+        <br/>
+      V7+:
+        <a href="sparqlbar.html">Semantic (SPARQL) Search</a> |
+        <a href="explorer.html">Explorer</a> |
+        <a href="infobox.html">Infobox</a>
+        <br/>
+      REST Extensions:
+        <a href="rdb2rdf.html">RDB2RDF</a>
+        <br/>
+      In Development:
+        <a href="docbuilder.html">Document Builder</a> |
+        <a href="workplace.html">Workplace</a> |
+        <a href="collectionuris.html">Collection URIs</a> |
+        <a href="dnd.html">Drag &amp; Drop</a> |
+        <a href="angular.html">Angular.js</a>
+      </div>
+
+      <div class="content">
+
+
+
+
+<div xmlns="http://www.w3.org/1999/xhtml" class="mldbtest chartsearch">
+
+<link rel="stylesheet" type="text/css" href="/css/mljs/widgets.css" />
+<script type="text/javascript" src="/js/lib/jquery-1.7.1.min.js"></script>
+<script type="text/javascript" src="/js/mljs/mljs.js"></script>
+<script type="text/javascript" src="/js/mljs/mljs-xhr2.js"></script>
+
+<script type="text/javascript" src="/js/mljs/widgets.js"></script>
+<script type="text/javascript" src="/js/mljs/widget-search.js"></script>
+<script type="text/javascript" src="/js/highcharts.js"></script>
+<script type="text/javascript" src="/js/mljs/widget-highcharts.js"></script>
+
+<script type="text/javascript" src="/js/mljstest/page-mljstest-stevensearch.js"></script>
+
+ <div class="container_12">
+  <div id="cs-hint" class="grid_12 alert alert-info">Hint: Type 'family:pet' and click Search</div>
+ </div>
+ <div class="container_12">
+  <div id="errors" class="grid_12"></div>
+</div>
+ <div class="container_12">
+  <div id="cs-bar" class="grid_12">search bar</div>
+</div>
+ <div class="container_12">
+  <div id="metrics" class="grid_12">search metrics</div>
+</div>
+ <div class="container_12">
+  <div id="results" class="grid_12">search results</div>
+ </div>
+</div>
+
+
+
+      </div>
+      <div class="footer" arcsize="0 0 5 5"><span class="copyright">Copyright 2012, MarkLogic Corporation, All Rights Reserved.</span>
+        <a href="/page/help">My Application Help</a>
+        <span class="pipe"> </span>
+        <a href="/page/contact">Contact Us</a>
+        <span class="pipe"> </span>
+        <a href="/page/terms">Terms of Use</a>
+      </div>
+    </div>
+</body>
+</html>

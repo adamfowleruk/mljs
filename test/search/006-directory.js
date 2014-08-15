@@ -1,4 +1,4 @@
-var mljs = require("../../mljs"),
+var mljs = require("mljs"),
     tests = exports,
     configurator = require('../../testconfig'),
     assert = require('chai').assert,
@@ -18,9 +18,9 @@ describe("006-directory",function() {
   var db = new mljs(); // default options
   configurator.configure(db);
   db.setLogger(logger);
-  
+
   // add three docs to the collection
-  var col = {collection: "testcol"};
+  var col = {collection: "testcol", contentType: "application/json"};
   var uris = ["/collections/1","/collections/2","/collections/3"];
   db.save({name:"first"},uris[0],col,function(result) {
     assert(!result.inError,"Error saving doc 1");
@@ -28,7 +28,7 @@ describe("006-directory",function() {
       assert(!result.inError,"Error saving doc 2");
       db.save({name:"third"},uris[2],col,function(result) {
         assert(!result.inError,"Error saving doc 3");
-        
+
         logger.debug("TEST: list() Third save complete. Results object: " + JSON.stringify(result));
         // get docs in collection
         db.list("/collections",function(result) {
@@ -39,7 +39,7 @@ describe("006-directory",function() {
           } else {
             var isThree = (3==result.doc.total);
             assert(isThree,"There should only be three documents in " + col.collection);
-          
+
             if (isThree){
               // now remove docs in collection
               db.delete(uris[0],function(result) {

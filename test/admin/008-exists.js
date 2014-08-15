@@ -1,4 +1,4 @@
-var mljs = require("../../mljs"),
+var mljs = require("mljs"),
     tests = exports,
     configurator = require('../../testconfig'),
     assert = require('chai').assert,
@@ -18,7 +18,7 @@ describe("008-exists",function() {
   var db = new mljs(); // default options
   configurator.configure(db);
   db.setLogger(logger);
-  
+
   // assume db exists before this test
   db.exists(function(result) {
     assert.equal(false,result.inError,"Error checking if db exists");
@@ -26,6 +26,6 @@ describe("008-exists",function() {
     assert.equal(true,result.exists,"Database exists, but reports it does not");
     done();
   });
-  
+
 });
 });

@@ -1,4 +1,4 @@
-var mljs = require("../../mljs"),
+var mljs = require("mljs"),
     tests = exports,
     configurator = require('../../testconfig'),
     assert = require('chai').assert,
@@ -18,20 +18,20 @@ describe("006-save-get-delete-in-loop",function() {
   var db = new mljs(); // default options
   configurator.configure(db);
   db.setLogger(logger);
-  
+
   var results = new Array();
-  
-  for(var i = 0;i < 100;i++) {
+
+  for(var i = 0;i < 10;i++) {
     results[i] = "starting";
     logger.debug("****** Creating doc: " + i);
-    db.save({from: "test", to: "all", body: "wibble"},"/messages/" + i, {collection: "messages"},function(result) {
+    db.save({from: "test", to: "all", body: "wibble"},"/messages/" + i + ".json", {collection: "messages"},function(result) {
       // now fetch it
       var uri = result.docuri;
       logger.debug("****** Doc created. Fetching doc.: " + uri);
       db.get(uri, function(result) {
         // now print it
         logger.debug("****** Doc content: " + result.docuri + ": " + JSON.stringify(result.doc));
-        
+
         // now delete it
         logger.debug("****** deleting doc");
         var uri2 = result.docuri;
@@ -44,14 +44,14 @@ describe("006-save-get-delete-in-loop",function() {
       });
     });
   }
-  
+
   // pause for 3 minutes (should be plenty)
   var sleep = require('sleep');
-  sleep.sleep(180);
-  
+  sleep.sleep(10);
+
   var result = true;
   var truecount = 0;
-  for (var i = 0;i < 100;i++) {
+  for (var i = 0;i < 10;i++) {
     result = result && (true == results[i]);
     if (true == results[i]) {
       truecount++;
@@ -59,5 +59,5 @@ describe("006-save-get-delete-in-loop",function() {
   }
   logger.debug("Complete truecount: " + truecount);
   done();
-  
+
 });});

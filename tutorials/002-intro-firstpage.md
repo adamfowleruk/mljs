@@ -18,7 +18,7 @@ You first need to ensure that all CSS and JS files are included on your page. Th
 <script type="text/javascript" src="/js/mljstest/page-mljstest-search.js"></script>
 ```
 
-The first part includes the MLJS Widgets CSS. Note also if you want to use MLJS' default layout styles then you will need to include 960.css too. 
+The first part includes the MLJS Widgets CSS. Note also if you want to use MLJS' default layout styles then you will need to include 960.css too.
 Specifically the 12 column wide version. MLJS Widgets use those classes for laying out. If you don't want to use 960.css then you will have to
 specify width and padding yourself for each widget, or override the 960.css classes for your need.
 
@@ -32,8 +32,8 @@ The two widgets JS files are for core widget functions and the search widgets, r
 The final JS include is for page initialisation. I always like to externalise this so as to not muddy the page with inline JavaScript. I use a
 naming convention of page-CONTROLLER-OPERATION.js so as to keep easy track of my page JS files.
 
-This separation is 
-especially important is generating your HTML within an XQuery page, as XQuery requires every { and } character to be double escaped {{ like this }}. 
+This separation is
+especially important is generating your HTML within an XQuery page, as XQuery requires every { and } character to be double escaped {{ like this }}.
 Which is a pain for code highlighting and maintenance.
 
 ## Set up the page JavaScript
@@ -45,13 +45,13 @@ $(document).ready(function() {
   // initialise mljs
   var db = new mljs(); // calls default configure
   db.logger.setLogLevel("debug");
-  
+
   var error = new com.marklogic.widgets.error("errors");
-  
+
   try {
-    
+
     // DO SOMETHING WIDGETY HERE
-    
+
   } catch (err) {
     error.show(err.message);
   }
@@ -90,18 +90,17 @@ two search widgets, and link those widgets together using a search context objec
 ```javascript
     var searchbar = new com.marklogic.widgets.searchbar("mysearchbar");
     var searchresults = new com.marklogic.widgets.searchresults("mysearchresults");
-    
+
     var ctx = db.createSearchContext();
-    
+
     ctx.register(searchbar);
     ctx.register(searchresults);
-    
+
     var ob = db.createOptions();
-    ob.collectionConstraint() // default constraint name of 'collection' 
+    ob.collectionConstraint() // default constraint name of 'collection'
       .snippet(); // generate snippets rather than returning the whole document
-    var options = ob.toJson();
-  
-    ctx.setOptions("default",options);
+
+    ctx.setOptions("default",ob);
     ctx.addErrorListener(error.updateError);
     ctx.doSimpleQuery("",1);
 ```
@@ -117,10 +116,10 @@ in case they do not already exist.
 
 We also register the context with the error widget in case any problems are encountered performing the search.
 
-doSimpleQuery instructs MLJS to perform a search immediately on page load with a blank query and starting at the first returned 
+doSimpleQuery instructs MLJS to perform a search immediately on page load with a blank query and starting at the first returned
 document. This effectively loads (by default) the first page of documents ordered by relevancy.
 
-You now have a working MLJS Search page! Type in any phrase to find documents on your REST API endpoint that match. 
+You now have a working MLJS Search page! Type in any phrase to find documents on your REST API endpoint that match.
 
 - - - -
 

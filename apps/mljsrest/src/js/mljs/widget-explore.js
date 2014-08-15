@@ -25,7 +25,7 @@ com.marklogic.widgets = window.com.marklogic.widgets || {};
  * The widget is also capable of showing each node's properties, and relationship information.
  * Additionally, if a node is of type MarkLogicDocument then it's facet information is loaded
  * as property values.
- * 
+ *
  * This widget will also support dynamically generating SPARQL and structured queries necessary
  * to create a report. This will be done by dragging and dropping properties/facets on to a
  * receiver object. Each receiver object will have it's semantic context updated with the dropped
@@ -39,31 +39,40 @@ com.marklogic.widgets.graphexplorer = function(container) {
 
   this.documentContext = null;
   this.semanticContext = null; // used for querying for information to display ONLY
-  
+
   this.entities = new Array(); // {"subjectparam": "ent1", "", queryterms : {semantic:  some query, content: some config}, parentiri: , subjectiri: , docuri: , subjectsfacts: , column: , row: , jswrapper: }
 
   this.properties = new Array(); // {htmlid: "span3456", parentid: "div1234", predicate: ""}
-  
+
   this.propertyCache = new Array(); // subjectiri -> facts json
-  this.facetCache = new Array(); // subjectIri -> facets json
-  
+  this.facetCache = new Array(); // documentUri -> facets json
+
   this.drawWhenComplete = new Array(); // JSON object {subject: iri, dependencies: [string dep iri]}
-  
+
   this.columnCount = new Array(); // 1 based column number > count of widgets drawn in there
-  
-  this.searchOptionsName = "default";
-  
+
+  this.searchOptionsName = "all";
+
   this.columnWidths = new Array(); // colnumber -> pixel width maximum in column
   this.rowHeights = new Array(); // crownumber -> pixel height maximum in row
-  
+
   this._existingPaths = {}; // this._existingPaths[parentiri][childiri] = path
+
+  this._messageBoxes = new Array(); // list of msgboxes shown, to destroy!!!
 
   this._init();
 };
 
+com.marklogic.widgets.graphexplorer.prototype.setConfiguration = function(config) {
+  // TODO REPLACE THIS UGLY HACK
+  if (undefined != config.iri) {
+    this.drawSubject(config.iri);
+  }
+};
+
 /**
  * Ensures that a drawn column (to place Subject rectangles in) is at least so many pixels wide.
- * 
+ *
  * @param {integer} colnum - The column number (1 based)
  * @param {double} width - The minimum column width in pixels
  */
@@ -80,7 +89,7 @@ com.marklogic.widgets.graphexplorer.prototype.checkColumnWidth = function(colnum
 
 /**
  * Ensures that a drawn row (to place Subject rectangles in) is at least so many pixels high.
- * 
+ *
  * @param {integer} num - The row number (1 based)
  * @param {double} height - The minimum row height in pixels
  */
@@ -97,7 +106,7 @@ com.marklogic.widgets.graphexplorer.prototype.checkRowHeight = function(num,heig
 
 /**
  * Adding all column's widths up before the specified column. Used to find an appropriate left css style value.
- * 
+ *
  * @param {integer} column - The column index to determine the left pixel for
  */
 com.marklogic.widgets.graphexplorer.prototype.widthBefore = function(column) {
@@ -111,7 +120,7 @@ com.marklogic.widgets.graphexplorer.prototype.widthBefore = function(column) {
 
 /**
  * Adding all row's heights up before the specified row. Used to find an appropriate top css style value.
- * 
+ *
  * @param {integer} row - The row index to determine the top pixel for
  */
 com.marklogic.widgets.graphexplorer.prototype.heightBefore = function(row) {
@@ -125,7 +134,7 @@ com.marklogic.widgets.graphexplorer.prototype.heightBefore = function(row) {
 
 /**
  * Sets the name of the search options to use for retrieving viewable document facets.
- * 
+ *
  * @param {string} name - The name of the search options saved on the server
  */
 com.marklogic.widgets.graphexplorer.prototype.setSearchOptionsName = function(name) {
@@ -141,7 +150,7 @@ com.marklogic.widgets.graphexplorer.prototype.getSearchOptionsName = function() 
 
 /**
  * Sets the document context for this widget
- * 
+ *
  * @param {documentcontext} ctx - The document context instance
  */
 com.marklogic.widgets.graphexplorer.prototype.setDocumentContext = function(ctx) {
@@ -157,7 +166,7 @@ com.marklogic.widgets.graphexplorer.prototype.getDocumentContext = function() {
 
 /**
  * Sets the semantic context for this widget
- * 
+ *
  * @param {semanticcontext} ctx - The semantic context instance
  */
 com.marklogic.widgets.graphexplorer.prototype.setSemanticContext = function(ctx) {
@@ -173,37 +182,41 @@ com.marklogic.widgets.graphexplorer.prototype.getSemanticContext = function() {
 
 com.marklogic.widgets.graphexplorer.prototype._init = function() {
   var id = this.container + "-graphexplorer";
-  var html = "<div id='" + id + "' class='mljswidget graphexplorer'></div>";
-  
+  var html = "<div id='" + id + "' class='mljswidget panel panel-info graphexplorer'>";
+  html += "  <div class='title panel-heading graphexplorer-title'>Graph Explorer</div>";
+  html += "  <div id='" + id + "-content' class='panel-body graphexplorer-content'></div>";
+  html += "</div>";
+
   document.getElementById(this.container).innerHTML = html;
-  
+
   // set up highcharts
-  
+
     var chart = new Highcharts.Chart({
+      /*
         title: {
-            text: 'Graph Explorer',
+            text: '',
             align: "left"
-        },
+        },*/
         chart: {
-            renderTo: id,
+            renderTo: id + "-content",
             events: {
                 load: function () {
-                    
+
           }
         },
         width: 2000,
         height: 2000
       }
     });
-    
-  var chartdiv = document.getElementById(this.container).childNodes[0];
+
+  var chartdiv = document.getElementById(this.container + "-graphexplorer-content").childNodes[0];
   chartdiv.style.overflow = "scroll";
   chartdiv.style.width = "100%";
   chartdiv.style.height = "2050px";
-  
+
   this.chart = chart;
   this.renderer = chart.renderer;
-  
+
   /*
                     // Draw the flow chart
                     var ren = chart.renderer,
@@ -212,15 +225,15 @@ com.marklogic.widgets.graphexplorer.prototype._init = function() {
                         leftArrow = ['M', 100, 0, 'L', 0, 0, 'L', 5, 5, 'M', 0, 0, 'L', 5, -5],
                         seArrow = ['M', 145, 115, 'L', 220, 235, 'L',215,235,'M',220,230,'L',220,235],
                         swAnti = ['M',80,120,'L',80,245,'C',80,270,80,270,105,270,'L',210,270,'L',205,265,'M',205,275,'L',210,270];
-                        
-                        ren.path(['M', 235, 185, 'L', 235, 155, 'C', 235, 130, 235, 130, 215, 130, 
+
+                        ren.path(['M', 235, 185, 'L', 235, 155, 'C', 235, 130, 235, 130, 215, 130,
                               'L', 95, 130, 'L', 100, 125, 'M', 95, 130, 'L', 100, 135])
                          .attr({
                              'stroke-width': 2,
                              stroke: colors[3]
                          })
                          .add();
-                    
+
                     var jc = ren.label('<b>Adam Fowler</b><br/><b><i>(Joint Customer)</i></b><br/><br/><b>Prop 1:</b> Value 1<br/><b>Prop 2:</b> Value 2', 20, 40)
                         .attr({
                             fill: "white",
@@ -234,7 +247,7 @@ com.marklogic.widgets.graphexplorer.prototype._init = function() {
                         })
                         .add()
                         .shadow(true);
-                    
+
                     // Headers
                     var nkb = ren.label('<b>Fowler</b><br/><b><i>(NKB Customer)</i></b><br/><br/><b>Prop 1:</b> Value 1<br/><b>Prop 2:</b> Value 2', 220, 40)
                         .attr({
@@ -249,8 +262,8 @@ com.marklogic.widgets.graphexplorer.prototype._init = function() {
                         })
                         .add()
                         .shadow(true);
-                        
-                        
+
+
                     var nic = ren.label('<b>A Fowler</b><br/><b><i>(NIC Client)</i></b><br/><br/><b>Prop 1:</b> Value 1', 220, 240)
                         .attr({
                             fill: "white",
@@ -264,12 +277,12 @@ com.marklogic.widgets.graphexplorer.prototype._init = function() {
                         })
                         .add()
                         .shadow(true);
-                        
+
                   var jcbb = jc.getBBox();
                   mljs.defaultconnection.logger.debug("JCBB: " + JSON.stringify(jcbb));
                   var nicbb = nic.getBBox();
                   mljs.defaultconnection.logger.debug("NICBB: " + JSON.stringify(nicbb));
-                        
+
                   ren.path(swAnti
                     //['M',(jcbb.x + (0.5 * jcbb.width)),(jcbb.y + jcbb.height + 10),'L',80,245,'C',80,270,80,270,105,270,'L',210,270,'L',205,265,'M',205,275,'L',210,270]
                     ).attr({
@@ -277,16 +290,16 @@ com.marklogic.widgets.graphexplorer.prototype._init = function() {
                              stroke: colors[4]
                          })
                          .add();
-                         
+
                   ren.path(seArrow).attr({
                              'stroke-width': 2,
                              stroke: colors[4]
                          })
                          .add();
-  
+
   */
-  
-  
+
+
 };
 
 com.marklogic.widgets.graphexplorer.prototype._entityFromUI = function(elid) {
@@ -309,6 +322,16 @@ com.marklogic.widgets.graphexplorer.prototype._entityFromIRI = function(iri) {
   return null;
 };
 
+com.marklogic.widgets.graphexplorer.prototype._iriFromUri = function(uri) {
+  for (var i = 0, max = this.entities.length, ent;i < max;i++) {
+    ent = this.entities[i];
+    if (ent.docuri == uri) {
+      return ent.subjectiri;
+    }
+  }
+  return null;
+};
+
 com.marklogic.widgets.graphexplorer.prototype._propertyFromUI = function(elid) {
   for (var i = 0, max = this.properties.length, prop;i < max;i++) {
     prop = this.properties[i];
@@ -326,7 +349,7 @@ com.marklogic.widgets.graphexplorer.prototype._loadSubjectInformation = function
 /**
  * Indicates that a subject's facets have been received by the semantic context and the subject should be redrawn
  * UNUSED
- * 
+ *
  * @param {string} subjectIri - The IRI of the subject to display
  */
 com.marklogic.widgets.graphexplorer.prototype.updateSelectedSubject = function(subjectIri) {
@@ -354,27 +377,33 @@ com.marklogic.widgets.graphexplorer.prototype._getColumnCount = function(column)
 
 /**
  * Draw the specified subject in this widget. Determines position from parent property.
- * 
+ *
  * @param {string} subjectIri - The IRI of the primary subject to draw
  * @param {string} parentIri - The IRI of the parent to draw this subject under
  * @param {integer} column - The column to draw this subject in
  * @param {integer} row - The row to draw this subject in
  */
 com.marklogic.widgets.graphexplorer.prototype.drawSubject = function(subjectIri,parentIri,column,row) {
+  if (undefined == column) {
+    column = 1;
+  }
+  if (undefined == row) {
+    row = 1;
+  }
     if (1 == column && 1 == row) {
       this._incrementColumnCount(1);
     }
     //var x = 20 + (200 * (column - 1));
     //var y = 40 + (200 * (row - 1));
-    
+
     var x = 20 + (100 * (column - 1)) + this.widthBefore(column);
     var y = 40 + (20 * (row - 1)) + this.heightBefore(row);
     mljs.defaultconnection.logger.debug("drawSubject: x=" + x + ", y=" + y);
-    
+
     // draw subject box itself
     var ren = this.renderer;
     var colors = Highcharts.getOptions().colors;
-    
+
     // show 'properties/rels loading'
     var box = ren.label('<b>Loading...</b>', x, y).attr({
       fill: "white",
@@ -385,15 +414,15 @@ com.marklogic.widgets.graphexplorer.prototype.drawSubject = function(subjectIri,
     }).css({
       color: colors[0]
     }).add().shadow(true);
-    
+
     // save our config in a JS object
     var ent = {parentiri: parentIri, subjectiri: subjectIri, docuri: null , subjectsfacts:new Array(), column:column , row: row, jswrapper: box, jslinkboxes: []};
     this.entities.push(ent);
     // load properties of subject
     this.semanticContext.getFacts(subjectIri,false);
-    
+
     return ent;
-    
+
     /*
   if (null == this.propertyCache[subjectIri]) {
   } else {
@@ -416,46 +445,46 @@ com.marklogic.widgets.graphexplorer.prototype._drawSubjectDetail = function(subj
     }
     ent.jslinkboxes = [];
   }
-  
+
   var ren = this.renderer;
   var colors = Highcharts.getOptions().colors;
-  
+
   // get JS box
   // remove from graph
-  
+
   // generate new box
   var column = ent.column;
   var row = ent.row;
-  
+
     //var x = 20 + (200 * (column - 1));
     //var y = 40 + (200 * (row - 1));
-    
+
     var x = 20 + (100 * (column - 1)) + this.widthBefore(column);
     var y = 40 + (20 * (row - 1)) + this.heightBefore(row);
     mljs.defaultconnection.logger.debug("_drawSubjectDetail: x=" + x + ", y=" + y);
-  
+
   // draw subject box itself
-  
+
   // use semantic config to find common name and type (use summarise into code)
-  var scfg = this.semanticContext.getConfiguration();
-  
-  
+  var scfg = this.semanticContext.getTripleConfiguration();
+
+
   var propValues = new Array();
-    
+
   // show properties within box
   var props = "";
   var title = subjectIri;
   var docuri = null; // only applicable to MarkLogic document entities - see later code in this function
   var type = "Unknown";
-    for (var b = 0,bindings = facts.results.bindings, max = bindings.length, predicate, obj, binding;b < max;b++) {
+    for (var b = 0,bindings = facts, max = bindings.length, predicate, obj, binding;b < max;b++) {
       binding = bindings[b];
       predicate = binding.predicate;
-      //mljs.defaultconnection.logger.debug("OUR PREDICATE: " + JSON.stringify(predicate));
+      mljs.defaultconnection.logger.debug("OUR PREDICATE: " + JSON.stringify(predicate));
       var pinfo = scfg.getPredicateFromIRI(predicate.value);
-      //mljs.defaultconnection.logger.debug("OUR PINFO: " + JSON.stringify(pinfo));
+      mljs.defaultconnection.logger.debug("OUR PINFO: " + JSON.stringify(pinfo));
       var obj = binding.object;
-      //mljs.defaultconnection.logger.debug("OUR OBJECT: " + JSON.stringify(obj));
-      //mljs.defaultconnection.logger.debug("OUR BINDING: " + JSON.stringify(binding));
+      mljs.defaultconnection.logger.debug("OUR OBJECT: " + JSON.stringify(obj));
+      mljs.defaultconnection.logger.debug("OUR BINDING: " + JSON.stringify(binding));
 
       if (predicate.value != "http://www.w3.org/1999/02/22-rdf-syntax-ns#type") {
         var t = predicate.value;
@@ -466,10 +495,15 @@ com.marklogic.widgets.graphexplorer.prototype._drawSubjectDetail = function(subj
         if (ttitle == predicate.value) {
           ttitle = this._shortenSubjectIri(predicate.value);
         }
-        
+
         //props += "<b>" + t + ":</b> " + obj.value + "<br/>";
-        propValues[predicate.value] = {value: obj.value, title: ttitle, type: obj.type};
-        
+        // WARNING the below REMOVES multiple relations with the same PREDICATE!!!
+        var pv = propValues[predicate.value];
+        if (undefined == pv) {
+          pv = propValues[predicate.value] = [];
+        }
+        propValues[predicate.value].push({value: obj.value, title: ttitle, type: obj.type});
+
         if (predicate.value == "http://marklogic.com/semantics/ontology/Document#uri") {
           docuri = obj.value;
         }
@@ -480,7 +514,7 @@ com.marklogic.widgets.graphexplorer.prototype._drawSubjectDetail = function(subj
         type = obj.value;
       }
     }
-  
+
   var predEntity = scfg.getEntityFromIRI(type);
   var baseType = type;
   mljs.defaultconnection.logger.debug("***PREDENTITY: " + JSON.stringify(predEntity));
@@ -489,10 +523,10 @@ com.marklogic.widgets.graphexplorer.prototype._drawSubjectDetail = function(subj
     var namepredicate = scfg.getNameProperty(predEntity.name).iri;
     //mljs.defaultconnection.logger.debug("Got name predicate: " + namepredicate);
     if (undefined != namepredicate) {
-      
+
       var predValue = propValues[namepredicate];
       if (undefined != predValue) {
-        title = predValue.value;
+        title = predValue[0].value;
       } else {
         // leave title as iri
       }
@@ -500,58 +534,74 @@ com.marklogic.widgets.graphexplorer.prototype._drawSubjectDetail = function(subj
   } else {
     type = this._shortenSubjectIri(type);
   }
-  
+
   if (title == subjectIri) {
     title = this._shortenSubjectIri(subjectIri);
   }
-  
+
   mljs.defaultconnection.logger.debug("Type Processing: " + type);
   mljs.defaultconnection.logger.debug("Base Type Processing: " + baseType);
-  
+
   var loadingContent = false;
-  
+
   if ("http://marklogic.com/semantics/ontology/Document" == baseType) {
     var uri = docuri; // SEE EARLIER CODE - OLD: //subjectIri.substring(48);
-    
+    ent.docuri = uri;
+
     // check the subject cache for this IRI (done earlier in function)
     // <http://marklogic.com/semantics/ontology/Document#uri>
-    
+
     var facets = this.facetCache[uri];
     if (null == facets) {
-      mljs.defaultconnection.logger.debug("PROCESSING ML DOCUMENT SUBJECT: " + subjectIri);
-      
+      mljs.defaultconnection.logger.debug("WE: NO FACETS CACHE. PROCESSING ML DOCUMENT SUBJECT: " + subjectIri);
+
       loadingContent = true;
-      
+
       this.documentContext.getFacets(uri,this.searchOptionsName); // TODO in future may change this to the URI property rather than relying on the URI as the subjectIri (incase many entities link to the same doc)
     } else {
+
+        mljs.defaultconnection.logger.debug("WE: Got facet values in cache");
       for (facet in facets) {
+        mljs.defaultconnection.logger.debug("WE: facet name: " + facet);
         var values = facets[facet].facetValues;
-        var max = values.length;
         var facetValues = "";
-        for (var v = 0;v < max;v++) {
-          var fv = values[v];
-          if (v > 0) {
-            facetValues += ", ";
+        if (undefined != values) {
+          var max = values.length;
+          for (var v = 0;v < max;v++) {
+            var fv = values[v];
+            if (v > 0) {
+              facetValues += ", ";
+            }
+              mljs.defaultconnection.logger.debug("WE: facet value: " + fv.name);
+            facetValues += fv.name;
           }
-          facetValues += fv.name;
         }
         if ("" != facetValues) {
-          propValues[facet] = {value: facetValues, title: facet, type: "facet"};
+
+            mljs.defaultconnection.logger.debug("WE: setting prop values");
+          propValues[facet] = [{value: facetValues, title: facet, type: "facet"}];
         }
       }
     }
   }
-  
-  
+
+
   var summaries = new Array(); // holds {subject: iri, element: elid} objects
-  
+
   var relnum = 0;
-  
+
   var self = this;
   var addshow = function(relbox,rn,left,top,piri,riri) {
-    var msgbox;
+    var destroyBoxes = function() {
+      for (var bn = 0,maxbn = self._messageBoxes.length,thebox;bn < maxbn;bn++) {
+        thebox = self._messageBoxes[bn];
+        thebox.destroy();
+      }
+      self._messageBoxes = new Array();
+    };
     relbox.on("mouseover",function(){
-      msgbox = ren.label(rn,left+18,top-7).attr({
+      destroyBoxes();
+      var msgbox = ren.label(rn,left+18,top-7).attr({
         fill: "white",
         stroke: colors[4],
         'stroke-width': 4,
@@ -560,12 +610,13 @@ com.marklogic.widgets.graphexplorer.prototype._drawSubjectDetail = function(subj
       }).css({
         color: colors[0]
       }).add().shadow(true);
+      self._messageBoxes.push(msgbox);
     }).on("mouseout",function() {
-      msgbox.destroy();
+      destroyBoxes();
     }).on("click",function() {
       // TODO load related object
       mljs.defaultconnection.logger.debug("RELATION CLICKED: piri: " + piri + ", riri: " + riri);
-      
+
       // Check if subject has already been drawn. If so, just draw arrow to the subject's box.
       var existingent = self._entityFromIRI(riri);
       var targetrow = 1;
@@ -579,12 +630,15 @@ com.marklogic.widgets.graphexplorer.prototype._drawSubjectDetail = function(subj
       } else {
         targetrow = existingent.row;
         targetcol = existingent.column;
-        
-        if (undefined != self._existingPaths[piri][riri]) {
+
+        if (undefined != self._existingPaths[subjectIri] && undefined != self._existingPaths[subjectIri][piri] &&
+            undefined != self._existingPaths[subjectIri][piri][riri]) {
+          // don't redraw existing link
+          // WRONG is showing ANY subject with this path, not OUR subject!
           return;
         }
       }
-      
+
       // now draw a connector from mini box to top left of box
       var starttop = top + 5;
       var startleft = left + 5;
@@ -614,41 +668,50 @@ com.marklogic.widgets.graphexplorer.prototype._drawSubjectDetail = function(subj
       var aRightLeft = (1.0*endleft) - (length * Math.sin(beta));
       var pth = ren.path(['M', startleft, starttop, 'L', endleft, endtop, 'L',aLeftLeft,aLeftTop,'M',aRightLeft,aRightTop,'L',endleft,endtop]).attr({
         'stroke-width': 2,stroke: colors[0] }).add();
-        
+
       // add to existing to ensure duplicate paths are not drawn
-      self._existingPaths[piri] = self._existingPaths[piri] || {};
-      self._existingPaths[piri][riri] = pth;
+      self._existingPaths[subjectIri] = self._existingPaths[subjectIri] || {};
+      self._existingPaths[subjectIri][piri] = self._existingPaths[subjectIri][piri] || {};
+      self._existingPaths[subjectIri][piri][riri] = pth;
     });
-    
+
   };
-  
+
   var infos = new Array();
-  
+
   for (var propname in propValues) {
-    if (propValues.hasOwnProperty(propname)) { // ensure property, not function
+    //if (propValues.hasOwnProperty(propname)) { // ensure property, not function
+    mljs.defaultconnection.logger.debug("PROPERTY VALUE: " + JSON.stringify(propValues[propname]));
+    mljs.defaultconnection.logger.debug("PROPERTY VALUE TYPE: " + typeof(propValues[propname]));
+    if (Array.isArray(propValues[propname])) {
       mljs.defaultconnection.logger.debug("PROPERTY TO LIST: " + propname);
       prop = propValues[propname];
-      var propShow = prop.value;
-      if ("uri" == prop.type) {
-        // FIRST CHECK TO SEE IF THE RELATED OBJECT'S PROPERTIES ARE CACHED
-        // IF NOT, LOAD
-        var relname = this._generateNameLink(prop.value);
-        if (null == relname) {
-          // load description later
-          var propCount = this.propertyCount++;
-          var elid = this.container + "-loadname-" + propCount;
-          //propShow = "<span id='" + elid + "'>" + "<i>Loading...</i>" + "</span>"; // not showing loading as we dont get a callback if there is no further details
-          propShow = "<span id='" + elid + "'>" + this._shortenSubjectIri(prop.value) + "</span>";
-          summaries.push(prop.value);
-        } else {
-          propShow = relname;
-          infos.push({relname: relname, propname:propname,propvalue:prop.value});
+      // TODO list multiples as indiviual rows
+      for (var p = 0,maxp = prop.length,prp;p <maxp;p++) {
+        prp = prop[p];
+        var propShow = prp.value;
+        if ("uri" == prp.type) {
+          // FIRST CHECK TO SEE IF THE RELATED OBJECT'S PROPERTIES ARE CACHED
+          // IF NOT, LOAD
+          var relname = this._generateNameLink(prp.value);
+          if (null == relname) {
+            // load description later
+            var propCount = this.propertyCount++;
+            var elid = this.container + "-loadname-" + propCount;
+            //propShow = "<span id='" + elid + "'>" + "<i>Loading...</i>" + "</span>"; // not showing loading as we dont get a callback if there is no further details
+            propShow = "<span id='" + elid + "'>" + this._shortenSubjectIri(prp.value) + "</span>";
+            summaries.push(prp.value);
+          } else {
+            propShow = relname;
+            infos.push({relname: relname, propname:propname,propvalue:prp.value});
+          }
         }
-      }
-      props += "<b>" + prop.title + ":</b> " + propShow + "<br/>";
+        props += "<b>" + prp.title + ":</b> " + propShow + "<br/>";
+
+      } // end prop multiple for
     }
   }
-    
+
   var drawrel = function(x,y,info) {
     // draw relationship box instead
     var left = x + 5 + 6; // X BOX POS - was 158? or 325 (wide) (6 is for the rect border not being taken into account with box.width)
@@ -658,15 +721,15 @@ com.marklogic.widgets.graphexplorer.prototype._drawSubjectDetail = function(subj
     }).add();
     ent.jslinkboxes.push(relbox);
     addshow(relbox,info.relname,left,top,info.propname,info.propvalue);
-    
+
   };
-    
-    
+
+
   var s = "<b>" + title + "</b><br/><i>" + type + "</i><br/><br/>" + props;
   if (loadingContent) {
     s += "<br/><b><i>Loading...</i></b>";
   }
-  
+
   // if an ML document, go load the facets (or show if already loaded)
   var box = ren.label(s, x, y).attr({
     fill: "white",
@@ -677,17 +740,17 @@ com.marklogic.widgets.graphexplorer.prototype._drawSubjectDetail = function(subj
   }).css({
     color: colors[0]
   }).add().shadow(true);
-  
+
   ent.jswrapper = box;
-  
+
   for (var i = 0, max = infos.length,info;i < max;i++) {
     info = infos[i];
     drawrel(x + box.width,y,info);
   }
-  
+
   this.checkColumnWidth(column,box.width);
   this.checkRowHeight(row,box.height);
-  
+
   // load descriptions, element handler
   // CHECK DRAW ON COMPLETE DOESN'T ALREADY HOLD US - PREVENT WEIRD CIRCULAR REFERENCES AND INFINITE LOOPS
   var exists = false;
@@ -701,7 +764,7 @@ com.marklogic.widgets.graphexplorer.prototype._drawSubjectDetail = function(subj
       this.semanticContext.getFacts(summary);
     }
   }
-  
+
 };
 
 com.marklogic.widgets.graphexplorer.prototype._shortenSubjectIri = function(iri) {
@@ -736,15 +799,15 @@ com.marklogic.widgets.graphexplorer.prototype._getSubjectName = function(subject
   if (null == cache) {
     return null;
   }
-  
+
   var type = this._getSubjectPredicate(cache,"http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
   if (null == type) {
     mljs.defaultconnection.logger.debug("getSubjectName: type null, returning shortened subject iri");
     return this._shortenSubjectIri(subjectIri);
   }
-  
-  var scfg = this.semanticContext.getConfiguration();
-  
+
+  var scfg = this.semanticContext.getTripleConfiguration();
+
   var predEntity = scfg.getEntityFromIRI(type);
   if (undefined == predEntity || undefined == predEntity.name) {
     mljs.defaultconnection.logger.debug("getSubjectName: predEntity null, returning shortened subject iri");
@@ -755,7 +818,7 @@ com.marklogic.widgets.graphexplorer.prototype._getSubjectName = function(subject
     mljs.defaultconnection.logger.debug("getSubjectName: namepredicate null, returning shortened subject iri");
     return this._shortenSubjectIri(subjectIri);
   }
-  
+
   var pred = this._getSubjectPredicate(cache,namepredicate);
   if (null == pred) {
     mljs.defaultconnection.logger.debug("getSubjectName: Cached predicate null, returning shortened subject iri");
@@ -766,8 +829,8 @@ com.marklogic.widgets.graphexplorer.prototype._getSubjectName = function(subject
 
 com.marklogic.widgets.graphexplorer.prototype._getSubjectPredicate = function(cache,predIri) {
   mljs.defaultconnection.logger.debug("_getSubjectPredicate: loading predicate from cache. Predicate: " + predIri + " cache:- " + JSON.stringify(cache));
-  
-  for (var b = 0,bindings = cache.results.bindings, max = bindings.length, predicate, obj, binding;b < max;b++) {
+
+  for (var b = 0,bindings = cache, max = bindings.length, predicate, obj, binding;b < max;b++) {
     binding = bindings[b];
     predicate = binding.predicate;
     if (predIri == predicate.value) {
@@ -779,18 +842,23 @@ com.marklogic.widgets.graphexplorer.prototype._getSubjectPredicate = function(ca
 
 /**
  * Called by a semantic context to indicate facts have been received from a SPARQL endpoint about a specified subject
- * 
+ *
  * @param {object} result - The MLJS result wrapper. result.doc contains the SPARQL result in a JSON expression
  */
 com.marklogic.widgets.graphexplorer.prototype.updateSubjectFacts = function(result) {
-  mljs.defaultconnection.logger.debug("graphexplorer.updateSubjectFacts: " + result.subject);
-  
+  if (true === result || false === result) {
+    return; // TODO clear display
+  }
+  mljs.defaultconnection.logger.debug("graphexplorer.updateSubjectFacts: " + JSON.stringify(result));
+  var subjects = com.marklogic.widgets.semantichelper.calculateUniqueSubjects(result);
+
   // get parentiri, subjectiri, rdftype and group facts to these three
   // find relevant parent-subject iri nodes on the display
   // update this particular data node
-  this.propertyCache[result.subject] = result.facts;
-  this._drawSubjectDetail(result.subject,result.facts);
-  
+  var facts = this.semanticContext.getCachedFacts(subjects[0]).facts
+  this.propertyCache[subjects[0]] = facts;
+  this._drawSubjectDetail(subjects[0],facts);
+
   // check against draw when complete too
   // TODO make this more efficient by removing subjects that have been complete from dependencies
   var newDrawWhenComplete = new Array();
@@ -798,7 +866,7 @@ com.marklogic.widgets.graphexplorer.prototype.updateSubjectFacts = function(resu
   for (var i = 0, max = this.drawWhenComplete.length,doc;i < max;i++) {
     doc = this.drawWhenComplete[i];
     mljs.defaultconnection.logger.debug("graphexplorer.updateSubjectFacts: drawWhenComplete subject: " + doc.subject);
-    
+
     // check all child IRIs
     var gotall = true;
     for (var s = 0, smax = doc.dependencies.length,dep;s < smax && gotall;s++) {
@@ -808,13 +876,13 @@ com.marklogic.widgets.graphexplorer.prototype.updateSubjectFacts = function(resu
         gotall = false;
       }
     }
-    
+
     if (gotall) {
       mljs.defaultconnection.logger.debug("graphexplorer.updateSubjectFacts: Got All for: " + doc.subject + ", redrawing");
       // redraw subject
       this._drawSubjectDetail(doc.subject,this.propertyCache[doc.subject]);
     } else {
-      mljs.defaultconnection.logger.debug("graphexplorer.updateSubjectFacts: Not got all for: " + doc.subject + " after loading facts for: " + result.subject);
+      mljs.defaultconnection.logger.debug("graphexplorer.updateSubjectFacts: Not got all for: " + doc.subject + " after loading facts for: " + subjects[0]);
       newDrawWhenComplete.push(doc);
     }
   }
@@ -824,7 +892,7 @@ com.marklogic.widgets.graphexplorer.prototype.updateSubjectFacts = function(resu
 
 /**
  * Called by a document context to indicate facets have been received describing a document
- * 
+ *
  * @param {object} result - The MLJS result wrapper. result.doc contains the search API response JSON expression containing (only?) facet information
  */
 com.marklogic.widgets.graphexplorer.prototype.updateDocumentFacets = function(result) {
@@ -834,8 +902,9 @@ com.marklogic.widgets.graphexplorer.prototype.updateDocumentFacets = function(re
   var uri = result.docuri;
   console.log("graphexplorer.updateDocumentFacets: URI: " + uri);
   this.facetCache[uri] = result.facets;
-  
-  var iri = "http://marklogic.com/semantics/ontology/Document" + uri; // TODO replace with URI -> subject cache
+
+  //var iri = "http://marklogic.com/semantics/ontology/Document" + uri; // TODO replace with URI -> subject cache
+  var iri = this._iriFromUri(uri);
   var flen = 0;
   if (undefined != result.facets) {
     flen = result.facets.length;
@@ -852,17 +921,13 @@ com.marklogic.widgets.graphexplorer.prototype.updateDocumentFacets = function(re
 com.marklogic.widgets.graphexplorer.prototype._dropped = function(propelid) {
   var prop = this._propertyFromUI(propelid);
   var entity = this._entityFromUI(prop.parentid);
-  
+
   // get predicate info from semantic configuration object
-  var scfg = this.semanticContext.getConfiguration();
+  var scfg = this.semanticContext.getTripleConfiguration();
   var predicate = scfg.getPredicateInfo(prop.predicate); // TODO verify this call is correct name
-  
+
   // add predicate to our built SPARQL query
   // TODO if a Document Facet, save parent's docuri predicate as SPARQL query value, link name to new supplementary content query
-  
+
   // Fire semantic query builder update event
 };
-
-
-
-

@@ -17,6 +17,13 @@ The next tutorial is used to install mljs and the browser widgets in to a Roxy a
 
 This tutorial includes video and audio, with a full set of text instructions.
 
+## Easier app creation
+
+There is now an MLJS WebServer application that uses Node.js to create a web application. If you already have a REST API
+instance, this is a much easier way to get started with a pure REST API MLJS based application.
+
+See the app-workplace.tar.gz. file in the dist folder of the GitHub repo for an example, with README documentation.
+
 - - - -
 
 [Back to All Tutorials list](tutorial-all.html)

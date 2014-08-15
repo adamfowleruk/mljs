@@ -1,4 +1,4 @@
-var mljs = require("../../mljs"),
+var mljs = require("mljs"),
     tests = exports,
     configurator = require('../../testconfig'),
     assert = require('chai').assert,
@@ -18,10 +18,10 @@ describe("002-structured-search",function() {
   var db = new mljs(); // default options
   configurator.configure(db);
   db.setLogger(logger);
-  
+
   // add three docs to the collection
-  var col = {collection: "ssearchcol"};
-  
+  var col = {collection: "ssearchcol", contentType: "application/json"};
+
   var query = {"query":
     {"term-query":
       {"text":
@@ -36,7 +36,7 @@ describe("002-structured-search",function() {
       assert(!result.inError,"Error saving doc 2");
       db.save({name:"third penguin"},uris[2],col,function(result) {
         assert(!result.inError,"Error saving doc 3");
-        
+
         logger.debug("TEST: STRUCTUREDSEARCH: Third save complete. Results object: " + JSON.stringify(result));
         // get docs in collection
         db.structuredSearch(query,function(result) {
@@ -47,7 +47,7 @@ describe("002-structured-search",function() {
           } else {
             var isOne = (1==result.doc.total);
             assert(isOne,"There should only be one document with rhino in " + col.collection);
-          
+
             if (isOne){
               // now remove docs in collection
               db.delete(uris[0],function(result) {

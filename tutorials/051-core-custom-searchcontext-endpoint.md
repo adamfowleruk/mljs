@@ -10,7 +10,7 @@ var myfunc = function(searchcontext,textQuery,structuredQuery,optionsName,startI
   // The below shows the ‘loading’ images on your widgets, letting them know new results / facets are pending
   searchcontext.resultsPublisher.publish(true);
   searchcontext.facetsPublisher.publish(true);
-  
+
   var options = {
     path: “/my/custom/endpoint/url”,
     method: “PUT”,

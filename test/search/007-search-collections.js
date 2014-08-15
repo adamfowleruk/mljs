@@ -1,4 +1,4 @@
-var mljs = require("../../mljs"),
+var mljs = require("mljs"),
     tests = exports,
     configurator = require('../../testconfig'),
     assert = require('chai').assert,
@@ -14,19 +14,19 @@ var mljs = require("../../mljs"),
      });
 
 describe("007-search-collections",function() {
-  
-  
-  var col = {collection: "testcol"};
+
+
+  var col = {collection: "testcol", contentType: "application/json"};
   var uris = ["/collections/1","/collections/2","/collections/3"];
-  
+
   var db = new mljs(); // default options
   configurator.configure(db);
   db.setLogger(logger);
-      
-  
+
+
 before(function(done) {
   // This is where global DB setup happens
-  
+
   db.save({name:"first"},uris[0],col,function(result) {
     assert(!result.inError,"Error saving doc 1");
     db.save({name:"second"},uris[1],col,function(result) {
@@ -46,40 +46,40 @@ after(function(done){
                   assert(!result.inError,"Error deleting doc 2");
                   db.delete(uris[2],function(result) {
                     assert(!result.inError,"Error deleting doc 3");
-                    
+
                     done();
                   });
                   });
                   });
 });
-  
+
   describe("#searchCollection()", function(){
-   
+
     it("Should complete entirely",function(done){
       //var db = new mljs(); // default options
       //db.setLogger(logger);
-      
+
       // requires global.js before() to be called
       db.searchCollection("testcol","","all",null,function(result) {
         logger.debug("JSON result: " + JSON.stringify(result));
         assert.equal(result.inError,false,"searchCollection() should not be in error");
-        
+
         var results = result.doc;
-        
+
         assert(undefined != results,"Search results JSON object should not be undefined");
         logger.debug("JSON result total: " + JSON.stringify(results.total));
-        
+
         if (undefined != results) {
           assert(undefined != results.total,"results.total should not be undefined");
           if (undefined != results.total) {
             //assert(results.total > 0,"Should be at least one document result for 'testcol' and word 'third'");
           }
         }
-        
+
         done();
       });
-      
+
     }); // it
   });// describe plain
-  
+
 });

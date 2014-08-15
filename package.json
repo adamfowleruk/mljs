@@ -1,7 +1,8 @@
 { "name": "mljs"
-, "description": "MarkLogic V6+7 REST API Driver for Node.js. Replaces MLDB."
+, "description": "MarkLogic V6+7+8 REST API Driver for Node.js. Replaces MLDB."
 , "homepage": "https://github.com/adamfowleruk/mljs"
-, "version": "1.4.4"
+, "version": "1.6.0"
+, "repository": "https://github.com/adamfowleruk/mljs.git"
 , "author": "Adam Fowler <adamfowleruk@gmail.com> (http://adamfowlerml.wordpress.com)"
 , "keywords": ["MarkLogic", "mldb", "search", "data", "xml", "json", "nosql", "nodejs", "mljs"]
 , "dependencies": { "request": "~2.1.1", "underscore": "~1.1.7", "winston": "~0.6.2", "jsdom": "~0.6.5", "xmldom": "~0.1.17"}
