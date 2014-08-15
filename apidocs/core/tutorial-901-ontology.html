@@ -318,6 +318,11 @@ that the fact they are contained within a document is never exposed. You need an
 <td>E.g. /some/path/to/mydoc.xml</td>
 <td>The document's URI within this MarkLogic database</td>
 </tr>
+<tr>
+<td>Mentions</td>
+<td>http://marklogic.com/semantics/ontology/mentions</td>
+<td>Links this document to a Subject mentioned within it</td>
+</tr>
 </tbody>
 </table>
 <p>Note: It may be advantageous to use predicates within W3C PROV-O to relate Subjects to a MarkLogic Document, or to describe the document
@@ -352,7 +357,7 @@ itself. (E.g. generated_by)</p>
 <li>For triples that should always be modified when the document content is modified, store within the document (or a document property) - Example: You have done entity extraction on a document and found a <person-name>Adam Fowler</person-name> and a <organisation-name>MarkLogic</organisation-name> and your document creation process also expresses the fact 'Adam Fowler member_of MarkLogic' (issues around automatic assertions aside…)</li>
 <li>Conversely, only ever store triples in a document that should be replaced/updated every time the document is updated. Specifically, do NOT embed 'reference facts' that are not directly implied by the document. (i.e. don't 'enrich' your extracted facts within the document by adding wider facts around them) - to do so means you may inadvertantly blow away reference facts, or duplicate them across multiple documents.</li>
 <li>Some document extracted 'facts' may require different security settings to the document, or different security to other facts extracted from the document. In this case store them in an XML document (NOT just a named graph) tightly linked to the document. This is easy to update via triggers or similar when you update the document - Example: /some/path/to/mydoc.xml/paragraph1.xml or /some/path/to/mydoc.xml/topsecret.xml), with the appropriate security set on it</li>
-<li>Add a derived_from fact to named graphs you create to link the whole lot of facts as a single set back to the MarkLogic document) </li>
+<li>Add a derived_from fact to named graphs you create to link the whole lot of facts as a single set back to the MarkLogic document)</li>
 <li>Create a MarkLogic ontology that has RDF types including MarkLogicDocument with predicates like 'mentioned_in' and 'derived_from' (See: https://github.com/adamfowleruk/mljs/blob/oct13/tutorials/901-ontology.md - this is a work in progress, should be finished at the end of the month)</li>
 <li>Whether embedding facts or storing them separately, always link back to the 'originating' document (where applicable) via a 'derived_from' to a MarkLogicDocument entity</li>
 <li>Never rely on extracting the graph name for any target subject/fact - E.g. if in the below example we perform some complex SPARQL to find our Originating Document subject, we should store a 'has_uri' predicate on that subject, NOT require knowing the name of the graph (which is the document uri, in the below example) in order to find the originating document</li>
@@ -367,17 +372,17 @@ itself. (E.g. generated_by)</p>
 <p>Now let's say you want to pull back all customers with claims that mention pedestrians… Pretty straightforward in XQuery… something like this (cant remember exact syntax) :-</p>
 <pre><code class="lang-xquery">sem:sparql( &quot;select distinct ?subject, ?custnum where { ?subject a /ns/Customer . ?subject has_customer_number ?custnum . }&quot;, cts:term-query(&quot;pedestrian&quot;) )</code></pre>
 <p>Pretty easy… But what if you want to combine this with checking their associated balance was < 100… you may be tempted to alter the Sparql to do this:-</p>
-<pre><code class="lang-sparql">select distinct ?subject, ?custnum where { 
-  ?subject a /ns/Customer . 
-  ?subject has_customer_number ?custnum . 
+<pre><code class="lang-sparql">select distinct ?subject, ?custnum where {
+  ?subject a /ns/Customer .
+  ?subject has_customer_number ?custnum .
   ?subject has_account ?acc .
   ?acc has_balance ?bal .
-  FILTER (?bal < &quot;100&quot;^^<xs:double> ) 
+  FILTER (?bal < &quot;100&quot;^^<xs:double> )
 }</code></pre>
 <p>All fine… except it will never return any results, because the cts:term-query is restricting the documents that the triples are checked against. Because the account and balance facts exist external to a matching document, they will never be present, thus the above query will always return nothing.</p>
 <p>This leaves you with needing a way to answer the sparql query first to return a list of candidate document URIs instead - basically the pattern in reverse. Now you could just do this:-</p>
 <pre><code></ns/Customer/1234> <mentioned_in> &quot;/mydocs/some/uri/claim.xml&quot; .</code></pre>
-<p>The problem with this though is that you cannot hang other facts off of the URI. E.g. generated_by etc from PROV-O. This leaves us with having to use some sort of Entity class for MarkLogic documents. Indeed, if we do this and adopt the PROV-O relationships we find they are actually a very good fit. They support use cases of documents being updated over time, and altered as part of software processes. They can handle things like original documents, xhtml renderings, versions of documents, or alterations (E.g. enrichments) via external software agents. </p>
+<p>The problem with this though is that you cannot hang other facts off of the URI. E.g. generated_by etc from PROV-O. This leaves us with having to use some sort of Entity class for MarkLogic documents. Indeed, if we do this and adopt the PROV-O relationships we find they are actually a very good fit. They support use cases of documents being updated over time, and altered as part of software processes. They can handle things like original documents, xhtml renderings, versions of documents, or alterations (E.g. enrichments) via external software agents.</p>
 <p>So in the above example, you would embed facts like these in the document:-</p>
 <p>/docs/some/uri/claim.xml:-</p>
 <pre><code></docs/some/uri/claim.xml> a <MarkLogicDocument> .
@@ -386,12 +391,12 @@ itself. (E.g. generated_by)</p>
 </ns/Customer1234> mentioned_in </docs/some/uri/claim.xml></code></pre>
 <p>Elsewhere in the triple store you have this customers record, accounts and balances.</p>
 <p>You can now do this in just sparql:-</p>
-<pre><code class="lang-sparql">select distinct ?subject, ?custnum, ?claimsdocuri where { 
-  ?subject a /ns/Customer . 
-  ?subject has_customer_number ?custnum . 
+<pre><code class="lang-sparql">select distinct ?subject, ?custnum, ?claimsdocuri where {
+  ?subject a /ns/Customer .
+  ?subject has_customer_number ?custnum .
   ?subject has_account ?acc .
   ?acc has_balance ?bal .
-  FILTER (?bal < &quot;100&quot;^^<xs:double> ) 
+  FILTER (?bal < &quot;100&quot;^^<xs:double> )
   ?subject mentioned_in ?mldoc .
   ?mldoc has_uri ?claimsdocuri .
 }</code></pre>
@@ -422,7 +427,7 @@ itself. (E.g. generated_by)</p>
 					
 		<span class="jsdoc-message">
 		Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.3-dev</a>
-		on Wed Aug 13 2014 15:48:04 GMT+0100 (BST) using the <a href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
+		on Fri Aug 15 2014 09:31:57 GMT+0100 (BST) using the <a href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
 		</span>
 				</footer>
 			</div>
