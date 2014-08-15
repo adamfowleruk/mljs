@@ -40,6 +40,7 @@ Targets for 1.7 (Aug 2014) - Theme: Minor Workplace and styling improvements
    - Need to support metadata, including lon/lat geo pair data, summary or title string data, description data, as a minimum
   - BUG MAJOR REST API ignoring collection parameter when POST ing search (and likely other query string params) - make this a query parameter when using post
    - Check with 7.0-3 that this has been fixed - may not need to fix this in MLJS
+ - BUG Widgets: title on tweets isn't working, showing XML error on Mac Safari
  - Workplace app fixes
   - TEST custom renderers in searchresults - com.marklogic.widgets.searchresultsext.NAME.customrenderers = {};
   - TEST Widget extra configuration parameters
@@ -47,7 +48,6 @@ Targets for 1.7 (Aug 2014) - Theme: Minor Workplace and styling improvements
   - TEST searchselection.setMode
   - TEST searchselection.addQuery - use title and JSON as string initially until query builder ready?
    - Use openlayers attractions distance/rating example
- - BUG Widgets: title on tweets isn't working, showing XML error on Mac Safari
  - Test: Run Node.js tests against this release and fix problems
   - Fix n-triples test script error
  - Fix mljsme.sh app
