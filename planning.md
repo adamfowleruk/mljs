@@ -360,7 +360,7 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
   - Workplace App 007 - Adding a analytics dashboard page, with multiple search contexts, charts, co-occurence and tag clouds
   - Workplace App 008 - Using a custom bootstrap theme
  - IN PROGRESS Test: Run Node.js tests against this release and fix problems
-  - DONE Fix http 403 responses in indexes, do, keyvalue tests
+  - DONE Fix http 403 responses in indexes, do, keyvalue tests - was a problem with save() doc JSON format detection
   - Fix n-triples test script error
   - DONE All other tests
  - Fix mljsme.sh app

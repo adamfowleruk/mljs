@@ -28,7 +28,8 @@ Also install the following modules using these commands:-
 
 1. npm install crypto
 2. npm install underscore
-3. npm install websocket
+3. npm install restify
+4. npm install websocket
 
 ## Configure options for your environment
 
@@ -68,6 +69,11 @@ A helper script has been created for you. To use that do the following:-
 3. execute ./add-search-options.sh all all.xml xml
 
 Note in the above all is the search options name, all.xml is the file, and xml is the type (json also permitted).
+
+Documentation on search options allowed are here:-
+
+- XML: http://docs.marklogic.com/guide/rest-dev/appendixb
+- JSON: http://docs.marklogic.com/guide/rest-dev/appendixa
 
 ## Execute the web server
 
