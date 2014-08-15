@@ -1976,7 +1976,7 @@ com.marklogic.widgets.workplaceadmin = function(container) {
       {title: "Document Properties", classname: "com.marklogic.widgets.docproperties", description: "Shows the MarkLogic Properties of a Document."},
       {title: "XHTML Head Viewer", classname: "com.marklogic.widgets.docheadviewer", description: "Shows the Meta data elements within an XHTML document."},
       {title: "XHTML Content Viewer", classname: "com.marklogic.widgets.docviewer", description: "Displays XHTML content inline within a page."},
-      {title: "Data Explorer", classname: "com.marklogic.widgets.graphexplorer", description: "HighCharts powered node diagram to explore semantic subjects and related document facets."},
+      {title: "Graph Explorer", classname: "com.marklogic.widgets.graphexplorer", description: "HighCharts powered node diagram to explore semantic subjects and related document facets."},
       {title: "HighCharts", classname: "com.marklogic.widgets.highcharts", description: "HighCharts powered charting."},
       {title: "Google Kratu", classname: "com.marklogic.widgets.kratu", description: "Google Kratu tabular display of content and semantic search results."},
       /*

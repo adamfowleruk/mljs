@@ -383,6 +383,10 @@ Targets for 1.7 (Aug 2014) - Theme: Minor Workplace and styling improvements
   - IN PROGRESS Fix bower repo for new mljs repo foldering layout
    - DONE foldering fix
    - IN PROGRESS re-register mljs-bower with bower guys
+ - Workplace UX
+  - images for widgets
+  - make popup help on config elements more obvious
+  - link widgets to youtube videos? And timestamps within?
 
 Targets for 1.8 (Oct 2014) - Theme: Visualisations
  - Workplace additions

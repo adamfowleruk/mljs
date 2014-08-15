@@ -1970,13 +1970,11 @@ com.marklogic.widgets.workplaceadmin = function(container) {
     widgetList: [
       {title: "Address Bar", classname: "com.marklogic.widgets.addressbar", description: "Update geocontext home by looking up text address."},
       {title: "Co-occurence", classname: "com.marklogic.widgets.cooccurence", description: "Shows two way co-occurence between elements in a document."},
-      /*
       {title: "Create Document", classname: "com.marklogic.widgets.create", description: "Form builder used to generate a new document on submission."},
-      */
       {title: "Document Properties", classname: "com.marklogic.widgets.docproperties", description: "Shows the MarkLogic Properties of a Document."},
       {title: "XHTML Head Viewer", classname: "com.marklogic.widgets.docheadviewer", description: "Shows the Meta data elements within an XHTML document."},
       {title: "XHTML Content Viewer", classname: "com.marklogic.widgets.docviewer", description: "Displays XHTML content inline within a page."},
-      {title: "Data Explorer", classname: "com.marklogic.widgets.graphexplorer", description: "HighCharts powered node diagram to explore semantic subjects and related document facets."},
+      {title: "Graph Explorer", classname: "com.marklogic.widgets.graphexplorer", description: "HighCharts powered node diagram to explore semantic subjects and related document facets."},
       {title: "HighCharts", classname: "com.marklogic.widgets.highcharts", description: "HighCharts powered charting."},
       {title: "Google Kratu", classname: "com.marklogic.widgets.kratu", description: "Google Kratu tabular display of content and semantic search results."},
       /*
@@ -1990,6 +1988,7 @@ com.marklogic.widgets.workplaceadmin = function(container) {
       {title: "Search Sorter", classname: "com.marklogic.widgets.searchsort", description: "Sort search results based on existing sorting options."},
       {title: "Search Pager", classname: "com.marklogic.widgets.searchpager", description: "Page through search results."},
       {title: "Search Facets", classname: "com.marklogic.widgets.searchfacets", description: "Show facets returned from a search, and allow their selection."},
+      /* TODO add search metrics */
       {title: "Search Results", classname: "com.marklogic.widgets.searchresults", description: "Show search results. Supports built in and custom rendering."},
       {title: "Search Results Selection", classname: "com.marklogic.widgets.selection", description: "List documents selected in Search Results."},
       {title: "Refresh Search", classname: "com.marklogic.widgets.refreshsearch", description: "Refresh button for a search on this page."},

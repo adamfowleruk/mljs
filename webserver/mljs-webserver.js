@@ -1,6 +1,7 @@
 var http = require('http'),
     crypto = require('crypto'),
     _und = require('underscore'),
+    url = require('url'),
     mljs = require('mljs');
 
 // Provides a set of classes and server framework to run MLJS powered HTML5 apps with WebSocket and alerting support in a Node.js web server.
@@ -228,7 +229,7 @@ function parseCookies (request) {
 
       console.log("Public files requested");
       // get relative file path
-      var path = self.base + request.url;
+      var path = self.base + url.parse(request.url).pathname;
 
       // determine MIME from file ext
       var dotpos = path.lastIndexOf(".");

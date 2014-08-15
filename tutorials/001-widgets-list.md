@@ -11,7 +11,6 @@ Below is a complete list and description of what web widgets are available:-
 | docheadviewer | widget-documents.js | Views the contents of a XHTML document's head meta tags. |
 | docproperties | widget.documents.js | Shows a list of MarkLogic metadata properties of a document. Allows editing. |
 | docviewer | widget-documents.js | Renders the content of an XHTML document (just inside the body tag) |
-| searchpage | widget-search.js | Links together the search bar, pager, sort, facets, and results widgets in a single page. Convenience widget. |
 | searchbar | widget-search.js | Provides a search input bar supporting the default grammar, including a search button |
 | searchresults | widget-search.js | Draws the results of a search. Support for snippeting, generic XML, JSON and plain text documents with no configuration. |
 | searchmetrics | widget-search.js | Example tutorial widget to show search speed information |
@@ -19,6 +18,7 @@ Below is a complete list and description of what web widgets are available:-
 | searchpager | widget-search.js | Shows 'returned 1 to 10 of 55' results, previous, next, first and last pages links. |
 | searchselection | widget-search.js | Allows selection of one of several configured structured searches. Useful for contributing range relevance terms to a search |
 | searchsort | widget-search.js | Drop down to select sort order defined in search options |
+| searchrefresh | widget-search.js | Simple refresh button to execute last search again. Useful for forcing page refresh |
 | cooccurence | widget-cooccurence.js | 2 way co-occurence widget. Uses MarkLogic Search co-occurence computed on the server |
 | highcharts | widget-highcharts.js | Renders JSON and XML document content or facet information as charts using the built in HighCharts library. Tested Line, bar, stacked bar, pie, column, stacked column charts |
 | openlayers | widget-openlayers.js | An OpenLayers 2 map rendering linked to search results. Can show heatmaps and allows creation of geospatial query terms. |
