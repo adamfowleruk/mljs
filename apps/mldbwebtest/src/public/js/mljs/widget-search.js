@@ -1216,7 +1216,7 @@ com.marklogic.widgets.searchresults = function(container) {
   // MIXIN custom processors at this point
   var custom = com.marklogic.widgets.searchresultsext;
   if (undefined != custom) {
-    for (var named in custom) {
+    for (var name in custom) {
       var cust = custom[name];
       if (undefined != cust.customerrenderers) {
         var renderers = cust.customrenderers;

@@ -349,8 +349,9 @@ Targets for 1.6 (Jul 2014) - Theme: MLJS Ease of Use in the Browser
   - IN PROGRESS blog (news) items
  - DONE Docs: Various doc issues
   - DONE Docs: Wiki: Image previews of all widgets, linking to pages with code examples (Like d3.js' home page)
- - Docs: Record Workplace app showcase demos
-  - Introduction - build an app in 5 minutes
+ - BUG Widgets: title on tweets isn't working, showing XML error on Mac
+ - IN PROGRESS Docs: Record Workplace app showcase demos
+  - DONE Introduction - build an app in 5 minutes
   - Workplace App 001 - Installing Workplace against your database (include within the DB at end too)
   - Workplace App 002 - Configuring search options - xml upload with Roxy deployer, with mlwatcher, or json copy/paste. Also cover indexes.
   - Workplace App 003 - Adding a facetted search page

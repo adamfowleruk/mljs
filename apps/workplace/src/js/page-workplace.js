@@ -1,3 +1,4 @@
+
 window.onload = function() {
   var db = new mljs();
   db.logger.setLogLevel("debug");
@@ -29,7 +30,7 @@ window.onload = function() {
 
         workplace.loadPage(pageurl); // could instead use loadPage() to determine automatically via window.location, or loadPage("/my/path") to load via search in content database
         // TODO use context instead of widget above
-        
+
   } catch (err) {
     errors.show(err);
   }
