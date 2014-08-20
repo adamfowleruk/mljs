@@ -23,7 +23,7 @@ var EventEmitter = require('events').EventEmitter;
 
 /**
  * Wraps a HTTP request to the ML server for a particular user. Not to be instantiated directly.
- * 
+ *
  * @constructor
  */
 var DigestWrapper = function(){
@@ -52,7 +52,7 @@ DigestWrapper.prototype.configure = function(username,password,logger) {
 DigestWrapper.prototype.request = function(options, callback_opt) {
   //var cnonce = Math.floor(Math.random()*100000000);
   //this.logger.debug("DigestWrapper: in request() for " + options.host + ":" + options.port);
-  
+
   var digestWrapper = this;
   var reqWrapper = new RequestWrapper(this.logger);
 
@@ -78,7 +78,7 @@ DigestWrapper.prototype.request = function(options, callback_opt) {
       h += "indefined";
     } else {
     }*/
-    
+
     // contentType header usage
     if (undefined != options.contentType) {
       options.headers["Content-type"] = options.contentType;
@@ -107,30 +107,30 @@ DigestWrapper.prototype.request = function(options, callback_opt) {
     options.headers['Authorization']= 'Digest username="' + digestWrapper.username + '", realm="' + digestWrapper.realm + '", nonce="' + digestWrapper.nonce + '", uri="' + options.path + '",' + // TODO check if we remove query ? params from uri
       ' cnonce="' + digestWrapper.cnonce + '", nc=' + ncUse + ', qop="' + digestWrapper.qop + '", response="' + response + '", opaque="' + digestWrapper.opaque + '"';
     //digestWrapper.logger.debug("DigestWrapper: Auth header: " + options.headers["Authorization"]);
-    
+
     //digestWrapper.logger.debug("DigestWrapper: request options: " + JSON.stringify(options));
     //digestWrapper.logger.debug("DigestWrapper: Calling http request...");
     var finalReq = http.request(options,(callback_opt || noop));
     //digestWrapper.logger.debug("DigestWrapper: Returned from http request.");
-    
+
     // to wrap sending of content by client code after when this request is created
     finalReq.on("end", function(res) {
       reqWrapper.doEnd(res); // NEVER GETS CALLED - EVENT END DOES NOT EXIST ON CLIENTREQUEST
-    });  
+    });
     finalReq.on('error', function(e) {
       //digestWrapper.logger.debug('DigestWrapper: finalReq.error: problem with request: ' + JSON.stringify(e));
       // pass error up
       reqWrapper.error(e);
     });
-    
+
     reqWrapper.finalReq = finalReq;
     reqWrapper.finaliseRequest();
-    
+
     //digestWrapper.logger.debug("DigestWrapper: completed doRequest()");
-    
+
 /*
     if ('GET' == options.method) {
-      
+
     } else if ('POST' == options.method) {
       //http.post(options,func);
       // TODO
@@ -151,7 +151,7 @@ DigestWrapper.prototype.request = function(options, callback_opt) {
       host: options.host,
       port: options.port
     }
-    
+
     var self = this;
     var get = http.get(myopts,function(res) {
       //self.logger.debug("Check: " + res.statusCode);
@@ -159,11 +159,11 @@ DigestWrapper.prototype.request = function(options, callback_opt) {
         // check if http 401
         //self.logger.debug("DigestWrapper: Got HTTP response: " + res.statusCode);
         // if so, extract WWW-Authenticate header information for later requests
-        //self.logger.debug("DigestWrapper: Header: www-authenticate: " + res.headers["www-authenticate"]); 
+        //self.logger.debug("DigestWrapper: Header: www-authenticate: " + res.headers["www-authenticate"]);
         // E.g. from ML REST API:  Digest realm="public", qop="auth", nonce="5ffb75b7b92c8d30fe2bfce28f024a0f", opaque="b847f531f584350a"
 
         digestWrapper.nc = 1;
-        
+
         // response may have failed - check response code prior to calling doRequest
         if (403 == res.statusCode) {
           // server does not exist - failed
@@ -180,10 +180,10 @@ DigestWrapper.prototype.request = function(options, callback_opt) {
           digestWrapper.realm = params.realm;
           digestWrapper.qop = params.qop;
           digestWrapper.opaque = params.opaque;
-  
+
           doRequest();
         }
-      }); 
+      });
       res.on('readable', function() {
         //self.logger.debug("response read");
         // do nothing with the response
@@ -192,7 +192,7 @@ DigestWrapper.prototype.request = function(options, callback_opt) {
       //res.on('close', function() { this.logger.debug("DigestWrapper: CLOSE");});
       //res.on('data',  function() { this.logger.debug("DigestWrapper: DATA");});
     });
-    
+
     get.on("error",function(e) {
       reqWrapper.error(e);
     });
@@ -240,7 +240,7 @@ RequestWrapper.prototype.error = function(e) {
 
 RequestWrapper.prototype.finaliseRequest = function() {
   //this.logger.debug("DigestWrapper.finaliseRequest called");
-  if (this.ended && this.finalReq != undefined){ 
+  if (this.ended && this.finalReq != undefined){
     if (this.writeData != undefined && this.writeData.length > 0) {
       //this.logger.debug("DigestWrapper: Sending POST data: " + this.writeData);
       var data = this.writeData;
@@ -288,13 +288,13 @@ ErrorResponse.prototype.on = function(evt,callback) {
  *
  * @param {string} header - the raw http auth header to parse
  */
-function parseDigest(header) {  
+function parseDigest(header) {
   return _und(header.substring(7).split(/,\s+/)).reduce(function(obj, s) {
     var parts = s.split('=')
     obj[parts[0]] = parts[1].replace(/"/g, '')
     return obj
-    }, {})  
-  }
+    }, {})
+  };
 
 /**
  * Functions to pad the nc value. E.g. turns '1' in to '00000001'.
@@ -307,4 +307,4 @@ function parseDigest(header) {
     var ret = pad + num;
     //this.logger.debug("pad: " + ret);
     return ret;
-  }
+  };

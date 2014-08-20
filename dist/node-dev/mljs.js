@@ -9440,7 +9440,11 @@ mljs.prototype.configurationcontext = function(parent) {
 
 
 
-
+/**
+ * Supports the MLJS WebServer W3C WebSockets based alert channel capability. Requires Node.js running the MLJS web server.
+ * This provides for real time alerting from the database directly to (multiple) browser clients.
+ * This alert context is very low level, leaving higher level message unpacking to application specific plugins.
+ */
 mljs.prototype.alertcontext = function() {
   this.supported = false;
   this.state = "initialising"; // also testing, connected, disconnected, connection_error
@@ -9461,7 +9465,7 @@ mljs.prototype.alertcontext.prototype._init = function() {
   }
 };
 
-mljs.prototype.alertcontext.prototype._connect = function() {
+mljs.prototype.alertcontext.prototype._connect = function() { // TODO support Node.js native connections
   try {
     var self = this;
     //var host = "ws://localhost:8080/"; // choose same as current window host/port
@@ -9473,6 +9477,7 @@ mljs.prototype.alertcontext.prototype._connect = function() {
     if (-1 != colonPos) {
       if (-1 == slashPos) {
         // no ending slash or :, so assume port 80
+        host = host.substring(startPos);
       } else {
         port = 1 * host.substring(colonPos + 1,slashPos);
         host = host.substring(startPos,colonPos);

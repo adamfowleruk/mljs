@@ -6,6 +6,5 @@ return reqWrapper;};module.exports=function(){return new DigestWrapper();};var R
 this.finalReq.end();}
 if(this.ended&&this.__response!=undefined){var response=this.__response;var cb=this.__callback;this.__response=undefined;this.__callback=undefined;(cb||noop)(response);}};RequestWrapper.prototype.doEnd=function(res){this.emitter.emit("end",res);};var ErrorResponse=function(response){this.response=response;this.statusCode=response.statusCode;this.emitter=new EventEmitter();};ErrorResponse.prototype.on=function(evt,callback){this.emitter.on(evt,callback);if(evt=="error"){this.emitter.emit(evt,this.response);}};function parseDigest(header){return _und(header.substring(7).split(/,\s+/)).reduce(function(obj,s){var parts=s.split('=')
 obj[parts[0]]=parts[1].replace(/"/g,'')
-return obj},{})}
-function padNC(num){var pad="";for(var i=0;i<(8-(""+num).length);i++){pad+="0";}
-var ret=pad+num;return ret;}
+return obj},{})};function padNC(num){var pad="";for(var i=0;i<(8-(""+num).length);i++){pad+="0";}
+var ret=pad+num;return ret;};

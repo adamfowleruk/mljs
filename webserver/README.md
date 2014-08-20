@@ -1,7 +1,20 @@
 # Running your application
 
 The MLJS Web Server package you are currently look at was built so you could quickly get started with
-a MarkLogic REST application. In order to do this you need to follow the below instructions:-
+a MarkLogic REST application. In order to do this you need to follow the below instructions.
+
+Note all instructions assume you have downloaded an MLJS Web Server app - so all the files and paths are relative
+to the folder containing this README file.
+
+## Install Node.js
+
+*WARNING*: Ensure you have Node.js set up and installed.
+
+- On Windows, go to http://nodejs.org/download/ and install Node.js
+- On Mac, either do brew install node OR download from the above link
+- On Linux, either do yum install node OR download from the above link
+
+This will give you the runtime files and the npm utility for installing modules.
 
 ## Install MLJS
 
@@ -9,7 +22,7 @@ a MarkLogic REST application. In order to do this you need to follow the below i
 
 The preferred route:-
 
-1. npm install mljs
+1. npm install -g mljs
 
 ### Route B: Latest development MLJS
 
@@ -22,15 +35,14 @@ Useful if in pre-sales and wanting the latest features
 
 ## Installing dependencies
 
-Ensure you have Node.js set up and installed.
-
 Also install the following modules using these commands:-
 
-1. npm install crypto
-2. npm install underscore
-3. npm install restify
-4. npm install url
-5. npm install websocket
+1. cd dist/<myappname>
+2. npm install crypto
+3. npm install underscore
+4. npm install restify
+5. npm install url
+6. npm install websocket
 
 ## Configure options for your environment
 
@@ -48,16 +60,15 @@ If you don't already have a REST server pointing to your content database then u
 
 You will see a confirmation that the server has been created.
 
-## Workaround: set security on webapp
+## A note on security
 
-This is needed because currently the web server does not support passing through HTTP 401 security auth requests. This
-will be added in an upcoming release.
+The mljs-webserver automatically handles authentication requests from MarkLogic, passing them back to the client browser.
+Basically the mljs-webserver acts as a HTTP proxy.
 
-1. Login to http://localhost:8001/
-2. Find the HTTP server for your REST Server
-3. Change authentication type to 'application'
-4. Change default user to 'admin'
-5. Save settings
+This has been tested again application level security, digest, basic, and digestbasic on MarkLogic 7. All work well.
+
+The webserver currently uses HTTP only, not HTTPS. This may be added in future. Certificate or Kerberos based auth is
+not yet supported. Please log an issue on the MLJS GitHub site if you want this adding.
 
 ## Configure search options
 

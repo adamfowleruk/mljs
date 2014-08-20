@@ -172,15 +172,52 @@ function parseCookies (request) {
 
         var complete = function() {
 
-          console.log("Got response from REST server: " + response.statusCode);
-          res.writeHead(response.statusCode, {
-            'Content-Type': response.headers["Content-Type"],
-            'Set-Cookie': 'mljsWebServerClientId=' + clientid
-          });
-          //console.log(data);
-          if (data.length > 0) {
-            console.log("writing data: " + data);
-            res.write(data);
+          // Check for HTTP 401 Unauthorized header
+          if (401 == response.statusCode) {
+            // determine authorisation method and cache in connection
+            var reqAuth = response.headers["www-authenticate"];
+            console.log("HTTP 401 Unauthorized received. Auth request header: " + reqAuth);
+            console.log("HTTP 401 Unauthorized received. All headers: " + JSON.stringify(response.headers));
+            var firstSpace = reqAuth.indexOf(" ");
+            var reqMethod = reqAuth.substring(0,firstSpace);
+            console.log("Auth method: " + reqMethod);
+            /*var reqRemainder = reqAuth.substring(firstSpace + 1);
+            var reqVars = {};
+            var parts = reqRemainder.split(",");
+            for (var p = 0,maxp = parts.length,part,els;p < maxp;p++) {
+              part = parts[p];
+              els = part.split("=");
+              els[0] = els[0].trim();
+              els[1] = els[1].trim();
+              if (els[1].substring(0,1) == "\"") {
+                els[1] = els[1].substring(1);
+              }
+              if (els[1].substring(els[1].length - 1,els[1].length) == "\"") {
+                els[1] = els[1].substring(0,els[1].length - 1);
+              }
+              //els[1] = els[1].substring(1,els[1].length - 1);
+              reqVars[els[0]] = els[1];
+            }
+            for (var reqVarName in reqVars) {
+              console.log("Auth Var: " + reqVarName + " = " + reqVars[reqVarName]);
+            }*/
+            // send on response to client request
+            res.writeHead(response.statusCode, {
+              'Content-Type': response.headers["Content-Type"],
+              'Set-Cookie': 'mljsWebServerClientId=' + clientid,
+              'www-authenticate': reqAuth
+            })
+          } else {
+            console.log("Got response from REST server: " + response.statusCode);
+            res.writeHead(response.statusCode, {
+              'Content-Type': response.headers["Content-Type"],
+              'Set-Cookie': 'mljsWebServerClientId=' + clientid
+            });
+            //console.log(data);
+            if (data.length > 0) {
+              console.log("writing data: " + data);
+              res.write(data);
+            }
           }
           res.end();
           console.log("End of sending rest proxy response");

@@ -2,6 +2,20 @@
 
 ## Upcoming releases
 
+Tech Summit
+ - Docs: Situational Awarness demo moved to Workplace based app with OOTB app config
+   - Widgets: Situational Awareness: Ensure OpenLayers map supports features of existing SVG map viewer. If not then create SVG based map based on existing demo
+    - Shows live map tiles feeds. Support for multiple tile layers overlapping
+    - Vector drawing of information
+    - Rotation, translation (lateral movement) of map
+    - Edge of screen flashing alerts for new information of importance just out of view
+    - Command letter shortcuts (scroll, zoom, show/hide features)
+    - Mini map to show activity just out of view (Like the game Z)
+ - Widgets: OpenLayers Multiple series
+ - Docs: YouTube tutorial on creating new widget and adding to Workplace using global registration
+ - Docs: YouTube tutorial on Deploying Workplace app to a modules DB
+ - Widgets: Create: Multiple element instances permitted
+
 Interim demo targets
  - IN PROGRESS Needed for upcoming demo
   - Widgets: Time series Bar chart for bucketed time by date, value y series
@@ -29,7 +43,7 @@ Interim demo targets
    - draggable position after initial render
    - Pick a library - d3.js OR ...
 
-Targets for 1.7 (Aug 2014) - Theme: Minor Workplace and styling improvements
+Targets of opportunity (non timed)
  - Bugs
   - BUG workplace nav buttons do not gracefully wrap on to next line
   - BUG Docs: mljsrest Openlayers demo page hovering over marker causes null reference looking for result area by id to change css classes
@@ -42,6 +56,7 @@ Targets for 1.7 (Aug 2014) - Theme: Minor Workplace and styling improvements
    - Check with 7.0-3 that this has been fixed - may not need to fix this in MLJS
  - BUG Widgets: title on tweets isn't working, showing XML error on Mac Safari
  - Workplace app fixes
+  - Windows batch files for mljs webserver app and settings (David Lee)
   - TEST custom renderers in searchresults - com.marklogic.widgets.searchresultsext.NAME.customrenderers = {};
   - TEST Widget extra configuration parameters
   - TEST addressbar.radius
@@ -52,6 +67,7 @@ Targets for 1.7 (Aug 2014) - Theme: Minor Workplace and styling improvements
   - Fix n-triples test script error
  - Fix mljsme.sh app
  - Docs: YouTube videos for Workplace App
+  - Workplace App 000 - Install pre-requisites - Node.js, npm modules (David Lee)
   - Workplace App 001 - Installing Workplace against your database (include within the DB at end too)
   - Workplace App 002 - Configuring search options - xml upload with Roxy deployer, with mlwatcher, or json copy/paste. Also cover indexes.
   - Workplace App 003 - Adding a facetted search page
@@ -60,6 +76,15 @@ Targets for 1.7 (Aug 2014) - Theme: Minor Workplace and styling improvements
   - Workplace App 006 - Adding Linking content search to semantic search with infobox
   - Workplace App 007 - Adding a analytics dashboard page, with multiple search contexts, charts, co-occurence and tag clouds
   - Workplace App 008 - Using a custom bootstrap theme
+ - DEFERRED IN PROGRESS Bower support
+  - DONE Add bower repo support for PH
+  - IN PROGRESS Fix bower repo for new mljs repo foldering layout
+   - DONE foldering fix
+   - IN PROGRESS re-register mljs-bower with bower guys
+ - Workplace UX
+  - images for widgets
+  - make popup help on config elements more obvious
+  - link widgets to youtube videos? And timestamps within?
  - Workplace Security review
   - Ensure all documents are created such that all app users can read them
   - Ensure users can specify sharing constraints for workplace pages
@@ -72,42 +97,27 @@ Targets for 1.7 (Aug 2014) - Theme: Minor Workplace and styling improvements
   - Share workplace via URL
    - Add this to My Workplaces option on non-owned workplace page load
   - Edit limited to owner of workplace
- - DEFERRED IN PROGRESS Bower support
-  - DONE Add bower repo support for PH
-  - IN PROGRESS Fix bower repo for new mljs repo foldering layout
-   - DONE foldering fix
-   - IN PROGRESS re-register mljs-bower with bower guys
- - Workplace UX
-  - images for widgets
-  - make popup help on config elements more obvious
-  - link widgets to youtube videos? And timestamps within?
 
-Targets for 1.8 (Oct 2014) - Theme: Visualisations
- - Workplace additions
-  - Advanced workplace functionality
-   - application wide settings
-    - DONE in all search options - By default exclude all workplace admin collection documents from search (additionalProperties, searchoptions, in searchcontext)
-    - Widget: list/create/remove search options
-     - automatically used a textarea instead of an input box if large string used
-    - Widget: edit search options
-     - handle basic search options
-      - options name
-      - number of results per page
-      - document transform
-      - additionalQuery
-     - list available indexes for constraints/facets (possible without priviliges or admin port?)
-     - search for a document and introspect to identify facets/constraints
-      - element value constraint
-      - indexed constraints
-      - validation feedback on the fly of indexed constraints
-      - allow specification of extracted metadata
-      - allow co-occurence specification
-  - Allow using other existing pages as template (copy and edit)
-   - template search well and results
-   - workplace page preview?
-  - Allow sublayouts
-   - Have all layouts mixin getConfigurationDefinition and setConfiguration functions
-   - Add layouts to widgets class list in own section at top
+Targets for 1.7 (Aug 2014) - Theme: External WebServer and Alerting
+ - MLJS Web Server and Alert Server
+  - DONE mljs-webserver.js: Allow pass through of Digest/Basic auth challenges and responses
+   - DONE digest, basic, digestbasic, applicationlevel all work fine
+ - Widgets: For alerting
+  - Core: Alert Context for managing connection and responding to alerts
+  - Widgets: Alerting client widget (Requires Alerting API) with popups - desktop notifications bar / window
+  - DONE Core: Node.js Alerting middleware support - MLJS webserver
+  - Pluggable UI JavaScript for different message types
+   - Map tile
+   - Person (category)
+   - Noise detection
+   - Target of interest notification
+  - Widgets: OpenLayers update
+   - rendering of information sent as an alert layer (vector layer above map layers, sensible order)
+  - Pluggable message format handling JavaScript for different document types
+   - Default Alert Wrapper XML object support
+ - Docs: Simple test page in mljsrest app
+
+Targets for 1.8 (Oct 2014) - Theme: Visualisations Sprint 1
  - Track code commented TODOs in this document
  - BUG Widgets: combined query - test against latest MarkLogic 7 build
  - BUG Widgets: Address Lookup: Google geocoder needs to fail gracefully if google libraries not available (offline mode)
@@ -147,6 +157,23 @@ Targets for 1.8 (Oct 2014) - Theme: Visualisations
    - IN PROGRESS Make it easier to add event handlers like click to navigate, view (as html via XSLT), download
    - Allow passing of custom parameters to event handlers in addition to document uri
    - Externalise constraint name to display name (search option annotations on constraints) - constraintTitle function on manager
+ - Docs: Create mock sample search pages
+  - Use bootstrap CSS throughout
+  - wordpress like demo summary view for documents
+  - google like summary, with similar stories indented
+  - tabular view - http://www.webdesignerdepot.com/2010/02/showcase-of-great-web-app-interfaces/
+  - google images like summary view, and detail on click
+ - DEFERRED Widgets: Search Results: Allow rendering with other layouts rather than just a simple column
+  - Widgets: 2 column across-first cell rendering layout
+  - Widgets: 3 column across-first cell rendering layout
+  - Widgets: zoomable n row rendering layout (like on springer images website)
+ - DEFERRED Add support for result drag and drop to other areas
+ - Widgets: Search Results: Default Rendering improvements
+  - hierarchical XML viewing (down three levels?)
+  - IN PROGRESS triple support (with summary?)
+ - Docs: Update sample apps to make best use of search presentation features
+
+Targets for 1.9 (Nov 2014) - Theme: Visualisations Sprint 2
   - IN PROGRESS Core: data series context
    - Handles series calculation and parsing external to any particular widget
    - reliant upon multiple source contexts - e.g. searchcontext (and options builder) object
@@ -172,12 +199,9 @@ Targets for 1.8 (Oct 2014) - Theme: Visualisations
     - requires replacing dynamic category names with value (E.g. PROD1234 => YellowAnorak) when category sources differ
    - fire series update event for individual series (need depends upon widget)
    - TEST fire all series update event for overall results (need depends upon widget)
- - Widgets: Workplace
-  - Allow user personalisation for widgets on a page (auto save and load via workplace context)
-  - Allow showing of live data against configuration options (E.g. list the facets from options that are selectable for a highchart)
  - Widgets: Highcharts
   - Use bootstrap CSS throughout
-  - editable flag on chart - uses widget personalisation
+  - DEFERRED editable flag on chart - uses widget personalisation
   - Select chart type dynamically
   - Multiple source support
    - Facet totals
@@ -191,28 +215,13 @@ Targets for 1.8 (Oct 2014) - Theme: Visualisations
   - Quick altering - aka Pivot Charts
    - select value y source
    - select dynamic series source
- - Docs: Create mock sample search pages
-  - Use bootstrap CSS throughout
-  - wordpress like demo summary view for documents
-  - google like summary, with similar stories indented
-  - tabular view - http://www.webdesignerdepot.com/2010/02/showcase-of-great-web-app-interfaces/
-  - google images like summary view, and detail on click
  - Widgets: Sparqlbar: Allow relatedFrom relationships as well as current relatedTo
   - Use Bootstrap CSS
  - Widgets: Explorer: Save URI to/from IRI mapping prior to calling document facets fetch (currently based on name substring - dangerous)
- - DEFERRED Widgets: Search Results: Allow rendering with other layouts rather than just a simple column
-  - Widgets: 2 column across-first cell rendering layout
-  - Widgets: 3 column across-first cell rendering layout
-  - Widgets: zoomable n row rendering layout (like on springer images website)
- - DEFERRED Add support for result drag and drop to other areas
- - Widgets: Search Results: Default Rendering improvements
-  - hierarchical XML viewing (down three levels?)
-  - IN PROGRESS triple support (with summary?)
- - Docs: Update sample apps to make best use of search presentation features
  - Widgets: OpenLayers
   - Use Bootstrap CSS for surrounding areas
   - Support multiple result types (series) from same searchcontext. E.g. matcher() and series() functions (use same pattern as searchresults for simplicity)
- - Missed 1.2 (Dec 2013) - High Priority - targets
+ - Missed 1.2 (Dec 2013) - targets
   - IN PROGRESS Widgets: Data Explorer improvements
    - DONE: Widgets: Data explorer widget shows "Loading..." when attempting to draw a link to an entity that already exists in the visible graph. Should just draw an arrow.
    - ? Widgets: Data explorer widget: Need to ensure arrows are drawn behind boxes z-order
@@ -226,6 +235,36 @@ Targets for 1.8 (Oct 2014) - Theme: Visualisations
   - Related content below
   - Related subjects to right
   - Navigating onward redraws, shows parent (previous) Subject above new subject of interest
+
+Targets for 2.0 (Dec 2014) - Theme: Shared Application Workplace
+ - Workplace additions
+  - Advanced workplace functionality
+   - application wide settings
+    - DONE in all search options - By default exclude all workplace admin collection documents from search (additionalProperties, searchoptions, in searchcontext)
+    - Widget: list/create/remove search options
+     - automatically used a textarea instead of an input box if large string used
+    - Widget: edit search options
+     - handle basic search options
+      - options name
+      - number of results per page
+      - document transform
+      - additionalQuery
+     - list available indexes for constraints/facets (possible without priviliges or admin port?)
+     - search for a document and introspect to identify facets/constraints
+      - element value constraint
+      - indexed constraints
+      - validation feedback on the fly of indexed constraints
+      - allow specification of extracted metadata
+      - allow co-occurence specification
+  - Allow using other existing pages as template (copy and edit)
+   - template search well and results
+   - workplace page preview?
+  - Allow sublayouts
+   - Have all layouts mixin getConfigurationDefinition and setConfiguration functions
+   - Add layouts to widgets class list in own section at top
+ - Widgets: Workplace
+  - Allow user personalisation for widgets on a page (auto save and load via workplace context)
+  - Allow showing of live data against configuration options (E.g. list the facets from options that are selectable for a highchart)
 
 Deferred from 1.6 (Theme: MLJS Ease of Use)
  - DEFERRED future improvements
@@ -382,8 +421,6 @@ DEFERRED from 1.8 Theme: Visualisations
    - NA Widgets: Use highcharts explore instead - Widgets: InfoVis network diagram
    - Widgets: Node diagram. Show images, other metadata. Force directed using selectable methods. Support for clustering. Navigable (not all drawn at once)
    - Widgets: XML/JSON document creation-by-example (via HTML form generator)
-   - Widgets: Alerting client widget (Requires Alerting API, CORS) with popups
-    - Core: Node.js Alerting middleware support
    - Widgets: 2 way Co-occurence drawn as x by y grid, with size and colour of points relating to values
    - Widgets: Setting up system alerts (NOT V7 REST alerts) to send new docs to specified URL (as PUT or POST requests, configurable)
    - Widgets: Interactive query builder
@@ -396,13 +433,6 @@ DEFERRED from 1.8 Theme: Visualisations
    - Widgets: Sparql + content search + values results download
     - Download CSV file of results
     - Download generated PNG from current visualisation div
-   - Widgets: Situational Awareness: Ensure OpenLayers map supports features of existing SVG map viewer. If not then create SVG based map based on existing demo
-    - Shows live map tiles feeds. Support for multiple tile layers overlapping
-    - Vector drawing of information
-    - Rotation, translation (lateral movement) of map
-    - Edge of screen flashing alerts for new information of importance just out of view
-    - Command letter shortcuts (scroll, zoom, show/hide features)
-    - Mini map to show activity just out of view (Like the game Z)
   - Widgets: Existing widget improvements
    - Widgets: HighCharts: Support multiple series, axes and searchcontexts (how?) -> Use work in OpenLayers as a base
    - Widgets: HighCharts: Support 'diving down' within a result set in a single chart. E.g. different 'series' settings and queries for different 'zoom' levels
