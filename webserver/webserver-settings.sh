@@ -17,8 +17,8 @@ DATABASE=Documents
 MLADMINUSER=admin
 MLADMINPASS=admin
 # The below are a temporary hack for the lack of pass through authentication in the webserver node code
-MLAUTH=application
-MLDEFAULTUSER=$MLADMIN
+MLAUTH=digest
+MLDEFAULTUSER=nobody
 
 
 # 3. Only alter the below if you know what you are doing

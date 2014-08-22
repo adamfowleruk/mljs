@@ -2260,6 +2260,7 @@ com.marklogic.widgets.workplaceadmin.prototype._refresh = function() {
   str += "  <option value='SemanticContext' title='Semantic Context' id='" + this.container + "-contextselect-semanticcontext'>Semantic Context</option>";
   str += "  <option value='DocumentContext' title='Document Context' id='" + this.container + "-contextselect-documentcontext'>Document Context</option>";
   str += "  <option value='GeoContext' title='Geo Context' id='" + this.container + "-contextselect-geocontext'>Geo Context</option>";
+  str += "  <option value='AlertContext' title='Alert Context' id='" + this.container + "-contextselect-alertcontext'>Alert Context</option>";
   str += "</select>";
   str += "</div>"; // form group
   str += "<button class='btn btn-default' id='" + this.container + "-contexts-add-button'>";
@@ -2875,6 +2876,8 @@ com.marklogic.widgets.workplaceadmin.prototype._updateContextsList = function() 
         classConfig = mljs.defaultconnection.documentcontext.getConfigurationDefinition();
       } else if ("GeoContext" == ctxjson.type) {
         classConfig = mljs.defaultconnection.geocontext.getConfigurationDefinition();
+      } else if ("AlertContext" == ctxjson.type) {
+        classConfig = mljs.defaultconnection.alertcontext.getConfigurationDefinition();
       }
       wrapper.wrap(ctxjson.context,ctxjson.type,classConfig,ctxjson.config);
 
@@ -3527,7 +3530,7 @@ com.marklogic.widgets.configwrapper.prototype._genConfigHTMLConf = function(json
 
 
 
-  } else if ("SearchContext"==d.type||"GeoContext"==d.type||"DocumentContext" == d.type||"SemanticContext"==d.type) {
+  } else if ("SearchContext"==d.type||"GeoContext"==d.type||"DocumentContext" == d.type||"SemanticContext"==d.type||"AlertContext"==d.type) {
     // TODO handle dynamic context class names
 
     // drop down of instances of correct context type

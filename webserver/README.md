@@ -48,7 +48,7 @@ Also install the following modules using these commands:-
 
 1. Edit webserver-settings.sh
 2. Alter the settings for your system - typically just RESTHOST and RESTPORT
-3. Save and clost the file
+3. Save and close the file
 4. Ensure you can execute it and other scripts by changing it's permissions. Execute this: chmod u+x \*.sh
 
 ## Optional: Create a REST server instance

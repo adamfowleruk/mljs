@@ -136,6 +136,7 @@ function parseCookies (request) {
       // check and set cookie with client id
       var cookies = parseCookies(request);
       var cookie = cookies["mljsWebServerClientId"];
+      // TODO fix cookie to IP address of originator
       var clientid = cookie;
       if (null == cookie) {
         // create client reference
@@ -206,7 +207,7 @@ function parseCookies (request) {
               'Content-Type': response.headers["Content-Type"],
               'Set-Cookie': 'mljsWebServerClientId=' + clientid,
               'www-authenticate': reqAuth
-            })
+            });
           } else {
             console.log("Got response from REST server: " + response.statusCode);
             res.writeHead(response.statusCode, {
@@ -264,7 +265,7 @@ function parseCookies (request) {
     } else /* if (request.url.indexOf("/public/") == 0) */ {
 
 
-      console.log("Public files requested");
+      console.log("Web application static files requested");
       // get relative file path
       var path = self.base + url.parse(request.url).pathname;
 
@@ -290,7 +291,7 @@ function parseCookies (request) {
           res.writeHead(200, {
             'Content-Type': mime,
             'Transfer-Encoding': 'chunked',
-    'Set-Cookie': 'mljsWebServerClientId=' + clientid,
+            'Set-Cookie': 'mljsWebServerClientId=' + clientid
           });
           //console.log(data);
           res.write(data2);
@@ -307,7 +308,7 @@ function parseCookies (request) {
           res.writeHead(200, {
             'Content-Type': mime,
             'Transfer-Encoding': 'chunked',
-    'Set-Cookie': 'mljsWebServerClientId=' + clientid,
+            'Set-Cookie': 'mljsWebServerClientId=' + clientid
           });
           //console.log(data);
           res.write(data);
@@ -339,7 +340,7 @@ this.httpServer.listen(this.port, function() {
   });
 
   function originIsAllowed(origin) {
-    // TODO put logic here to detect whether the specified origin is allowed.
+    // TODO put logic here to detect whether the specified origin is allowed - has session cookie and correct IP
     return true;
   };
 
@@ -363,18 +364,18 @@ this.httpServer.listen(this.port, function() {
         if (message.type === 'utf8') {
 
 
-          // TODO handle combined query submitted as JSON document string {request: "search", content: combinedQueryJson}
+          // NA to be done as REST extension handle combined query submitted as JSON document string {request: "search", content: combinedQueryJson}
 
-          // TODO also handle {request: "subscribe", content: combinedQueryJson}
+          // NA to be done as REST extension also handle {request: "subscribe", content: combinedQueryJson}
 
-          // TODO handle {request: "test"}
+          // handle {request: "test"}
           var json = JSON.parse(message.stringData); // TODO verify this is right line
           if ("test" == json.request) {
             socketClientConnection.sendUTF(JSON.stringify({response:"test"}));
           } else if ("subscribe" == json.request) {
-            // do via rest call instead?
+            // NA do via rest call instead
           } else if ("search" == json.request) {
-            // do via rest call instead?
+            // NA do via rest call instead
           }
 
         }

@@ -54,7 +54,7 @@ Targets of opportunity (non timed)
    - Need to support metadata, including lon/lat geo pair data, summary or title string data, description data, as a minimum
   - BUG MAJOR REST API ignoring collection parameter when POST ing search (and likely other query string params) - make this a query parameter when using post
    - Check with 7.0-3 that this has been fixed - may not need to fix this in MLJS
- - BUG Widgets: title on tweets isn't working, showing XML error on Mac Safari
+  - BUG if doing 'text sender:"@something"' it fails. If doing 'text' its fine, if 'sender:"@something"' its fine
  - Workplace app fixes
   - Windows batch files for mljs webserver app and settings (David Lee)
   - TEST custom renderers in searchresults - com.marklogic.widgets.searchresultsext.NAME.customrenderers = {};
@@ -66,16 +66,14 @@ Targets of opportunity (non timed)
  - Test: Run Node.js tests against this release and fix problems
   - Fix n-triples test script error
  - Fix mljsme.sh app
- - Docs: YouTube videos for Workplace App
-  - Workplace App 000 - Install pre-requisites - Node.js, npm modules (David Lee)
-  - Workplace App 001 - Installing Workplace against your database (include within the DB at end too)
-  - Workplace App 002 - Configuring search options - xml upload with Roxy deployer, with mlwatcher, or json copy/paste. Also cover indexes.
+ - IN PROGRESS Docs: YouTube videos for Workplace App
+  - DONE Workplace App 002 - Installing Workplace against your database (include within the DB at end too) (David Lee)
   - Workplace App 003 - Adding a facetted search page
   - Workplace App 004 - Adding a geospatial search page with address lookup, heatmaps, selection
   - Workplace App 005 - Adding Semantic search and explorer pages
   - Workplace App 006 - Adding Linking content search to semantic search with infobox
-  - Workplace App 007 - Adding a analytics dashboard page, with multiple search contexts, charts, co-occurence and tag clouds
-  - Workplace App 008 - Using a custom bootstrap theme
+  - Workplace App 007 - Adding an analytics dashboard page, with multiple search contexts, charts, co-occurence and tag clouds
+  - Workplace App 008 - Using a custom bootstrap CSS theme
  - DEFERRED IN PROGRESS Bower support
   - DONE Add bower repo support for PH
   - IN PROGRESS Fix bower repo for new mljs repo foldering layout
@@ -102,9 +100,20 @@ Targets for 1.7 (Aug 2014) - Theme: External WebServer and Alerting
  - MLJS Web Server and Alert Server
   - DONE mljs-webserver.js: Allow pass through of Digest/Basic auth challenges and responses
    - DONE digest, basic, digestbasic, applicationlevel all work fine
+  - Handle ECONNREFUSED from server if it's down, and send on to client webapp
+  - Ability to add alerts in MarkLogic (REST Extension)
+   - Generic alert wrapping format - JSON
+   - REST ext: Complete alert creation rest extension
+   - Widgets: Save search as alertwidget - uses alert creation widget for popup
+   - alert sending config - uri and content or just uri
+   - location detection within alert context - option to save with radius against named constraint for alert
+  - Display of existing alerts
+   - Widgets: Alert list widget
+   - Widgets: OpenLayers to show (hidden) layer for alerts in alert context
+  - mljs-webserver.js: Add file caching in RAM to speed access to static files
  - Widgets: For alerting
-  - Core: Alert Context for managing connection and responding to alerts
-  - Widgets: Alerting client widget (Requires Alerting API) with popups - desktop notifications bar / window
+  - TEST Core: Alert Context for managing connection and responding to alerts
+  - IN PROGRESS Widgets: Alerting client widget (Requires Alerting API) with popups - desktop notifications bar / window
   - DONE Core: Node.js Alerting middleware support - MLJS webserver
   - Pluggable UI JavaScript for different message types
    - Map tile
@@ -115,7 +124,21 @@ Targets for 1.7 (Aug 2014) - Theme: External WebServer and Alerting
    - rendering of information sent as an alert layer (vector layer above map layers, sensible order)
   - Pluggable message format handling JavaScript for different document types
    - Default Alert Wrapper XML object support
- - Docs: Simple test page in mljsrest app
+ - Docs: videos for release
+  - Introduction to the MLJS WebServer, and distribution build script
+  - Situational awareness app video
+ - Docs: Workplace app enhancements
+  - One context of each type by default
+  - Support globally registered context extensions in workplace widget and sub widgets
+ - Docs: JSdoc better use
+  - returned objects
+  - JSON structures
+  - links to other docs
+   - ML REST API JSON and XML structures
+   - tutorials where function mentioned
+ - Bugs
+  - DONE XML parsing bug with hack fix BUG Widgets: title on tweets isn't working, showing XML error on Mac Safari
+  - DONE BUG generic widget image doesn't show in Node.js mljs webserver
 
 Targets for 1.8 (Oct 2014) - Theme: Visualisations Sprint 1
  - Track code commented TODOs in this document

@@ -3340,6 +3340,16 @@ mljs.prototype.createGeoContext = function() {
 
 
 /**
+ * Factory pattern. Creates an alert context object referring back to the current database connection. Useful to link to the correct logger, and db settings.
+ */
+mljs.prototype.createAlertContext = function() {
+  var obj = new this.alertcontext();
+  obj.db = this;
+  return obj;
+};
+
+
+/**
  * Factory pattern. Creates a content search context object referring back to the current database connection. Useful to link to the correct logger, and db settings.
  */
 mljs.prototype.createDocumentContext = function() {
@@ -9450,10 +9460,37 @@ mljs.prototype.alertcontext = function() {
   this.state = "initialising"; // also testing, connected, disconnected, connection_error
   this.socket = null;
 
+  this._config = {};
+
   this._alertPublisher = new com.marklogic.events.Publisher();
   this._statePublisher = new com.marklogic.events.Publisher();
 
   this._init();
+};
+
+
+/**
+ * Returns the MLJS Workplace configuration definition listing config properties supported by this context
+ *
+ * @static
+ */
+mljs.prototype.alertcontext.getConfigurationDefinition = function() {
+  return {
+  }
+};
+
+/**
+ * Sets the configuration for this instance of a context in an MLJS Workplace
+ *
+ * @param {json} config - The JSON Workplace context configuration to apply
+ */
+mljs.prototype.alertcontext.prototype.setConfiguration = function(config) {
+  for (var prop in config) {
+    this._config[prop] = config[prop];
+  }
+
+  // refresh display
+  //this._refresh();
 };
 
 mljs.prototype.alertcontext.prototype._init = function() {
