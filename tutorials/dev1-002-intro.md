@@ -28,5 +28,5 @@ https://github.com/adamfowleruk/mljs
 
 - - - -
 
-[Course Home Page](tutorial-dev1-001-overview.html) | 
-[Next - 3. First Page](tutorial-dev1-003-first-page.html)
+[Course Home Page](dev1-001-overview.html) |
+[Next - 3. First Page](dev1-003-first-page.md)

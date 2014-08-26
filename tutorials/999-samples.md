@@ -1,4 +1,4 @@
-[Back to All Tutorials list](tutorial-all.html)
+[Back to All Tutorials list](all.md)
 # Core API Samples
 
 *** WARNING ALL THE BELOW ARE DEPRECATED TUTORIAL FILES ***
@@ -597,4 +597,4 @@ Links: [REST API](http://docs.marklogic.com/REST/GET/v1/values/*)
 
 - - - -
 
-[Back to All Tutorials list](tutorial-all.html)
+[Back to All Tutorials list](all.md)

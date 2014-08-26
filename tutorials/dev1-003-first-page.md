@@ -222,5 +222,5 @@ If you're feeling adventurous, investigate the bucket() and calculateBucket() me
 
 - - - -
 
-[Course Home Page](tutorial-dev1-001-overview.html) | 
-[Next - 4. First Widget](tutorial-dev1-004-first-widget.html)
+[Course Home Page](dev1-001-overview.md) | 
+[Next - 4. First Widget](dev1-004-first-widget.md)

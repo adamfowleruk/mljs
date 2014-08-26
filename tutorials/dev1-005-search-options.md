@@ -100,5 +100,5 @@ The first parameter is the constraint name, the second is a JSON object with val
 
 - - - -
 
-[Course Home Page](tutorial-dev1-001-overview.html) | 
-[Next - 6. Structured Query](tutorial-dev1-006-structured-query.html)
+[Course Home Page](dev1-001-overview.md) | 
+[Next - 6. Structured Query](dev1-006-structured-query.md)

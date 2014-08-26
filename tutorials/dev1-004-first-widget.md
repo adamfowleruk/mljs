@@ -131,5 +131,5 @@ If you have time, alter your widget to show that information too.
 
 - - - -
 
-[Course Home Page](tutorial-dev1-001-overview.html) | 
-[Next - 5. Search Options](tutorial-dev1-005-search-options.html)
+[Course Home Page](dev1-001-overview.md) | 
+[Next - 5. Search Options](dev1-005-search-options.md)

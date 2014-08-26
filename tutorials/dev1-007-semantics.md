@@ -146,5 +146,5 @@ Now reconfigure the test page's tripleconfig object to support your ontology.
 
 - - - -
 
-[Course Home Page](tutorial-dev1-001-overview.html) | 
-[Next - 8. Lunch](tutorial-dev1-008-lunch.html)
+[Course Home Page](dev1-001-overview.md) | 
+[Next - 8. Lunch](dev1-008-lunch.md)

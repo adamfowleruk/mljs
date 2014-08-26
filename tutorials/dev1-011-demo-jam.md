@@ -6,5 +6,5 @@ So no pressure...
 
 - - - -
 
-[Course Home Page](tutorial-dev1-001-overview.html) | 
-[Next - 12. Home Time](tutorial-dev1-012-home-time.html)
+[Course Home Page](dev1-001-overview.md) | 
+[Next - 12. Home Time](dev1-012-home-time.md)

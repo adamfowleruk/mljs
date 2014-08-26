@@ -84,5 +84,5 @@ Now for the cool stuff...
 
 - - - -
 
-[Course Home Page](tutorial-dev1-001-overview.html) | 
-[Next - 7. Semantics](tutorial-dev1-007-semantics.html)
+[Course Home Page](dev1-001-overview.md) | 
+[Next - 7. Semantics](dev1-007-semantics.md)

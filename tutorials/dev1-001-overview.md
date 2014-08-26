@@ -1,4 +1,4 @@
-[Back to All Tutorials list](tutorial-all.html)
+[Back to All Tutorials list](all.md)
 # MarkLogic JavaScript API Developer 1 course
 
 Rough outline for ‘MLJS Developer 1’:-
@@ -18,5 +18,5 @@ Rough outline for ‘MLJS Developer 1’:-
 
 - - - - 
 
-[Course Home Page](tutorial-dev1-001-overview.html) | 
-[Next - 2. Introduction](tutorial-dev1-002-intro.html)
+[Course Home Page](dev1-001-overview.md) | 
+[Next - 2. Introduction](dev1-002-intro.md)

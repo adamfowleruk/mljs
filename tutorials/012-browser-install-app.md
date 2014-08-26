@@ -1,4 +1,4 @@
-[Back to All Tutorials list](tutorial-all.html)
+[Back to All Tutorials list](all.md)
 # Installing MLJS in to an existing application
 
 WARNING: Currently MLJS can only run in a REST API application installed directly in to MarkLogic server. 
@@ -60,4 +60,4 @@ Please let me know how you get on with this script.
 
 - - - -
 
-[Back to All Tutorials list](tutorial-all.html)
+[Back to All Tutorials list](all.md)
