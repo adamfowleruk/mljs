@@ -19,6 +19,12 @@ This will give you the runtime files and the npm utility for installing modules.
 
 ## Install MLJS
 
+There are two options for installing MLJS - the latest stable version, or the in progress DEV branch. If you are in
+pre-sales in MarkLogic, or wish to contribute code to MLJS, then work on the DEV version by following Route B below.
+The vast majority of people will go Route A though.
+
+Choose ONE route only.
+
 ### Route A: Latest stable MLJS
 
 The preferred route:-

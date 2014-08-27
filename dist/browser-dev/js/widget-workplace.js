@@ -1008,6 +1008,89 @@ com.marklogic.widgets.layouts.column.prototype._init = function() {
 };
 
 
+/**
+ * A two column. uses bootstrap css.
+ * @constructor
+ *
+ * @param {string} container - The HTML ID of the container to render this layout within
+ */
+com.marklogic.widgets.layouts.twocolumns = function(container) {
+  com.marklogic.widgets.layouts.helper.extendLayout(this,container,["A","B"]);
+
+  this._init();
+};
+
+com.marklogic.widgets.layouts.twocolumns.prototype._init = function() {
+  var s = "<div id='" + this.container + "-layout' class='container_12 row mljswidget layout twocolumns'>";
+  s += "<div id='" + this.container + "-A' class='grid_6 col-md-6 col-xs-12 twocolumns-left'></div>";
+  s += "<div id='" + this.container + "-B' class='grid_6 col-md-6 col-xs-12 twocolumns-right'></div>";
+  s += "</div>";
+  var el = document.getElementById(this.container);
+  if (undefined == el) {
+    console.log("WARNING: ATTEMPTING TO SET NON EXISTENT LAYOUT ELEMENT: " + this.container);
+  } else {
+    el.innerHTML = s;
+  }
+};
+
+
+
+/**
+ * A three column. uses bootstrap css.
+ * @constructor
+ *
+ * @param {string} container - The HTML ID of the container to render this layout within
+ */
+com.marklogic.widgets.layouts.threecolumns = function(container) {
+  com.marklogic.widgets.layouts.helper.extendLayout(this,container,["A","B"]);
+
+  this._init();
+};
+
+com.marklogic.widgets.layouts.threecolumns.prototype._init = function() {
+  var s = "<div id='" + this.container + "-layout' class='container_12 row mljswidget layout threecolumns'>";
+  s += "<div id='" + this.container + "-A' class='grid_4 col-md-4 col-xs-12 threecolumns-left'></div>";
+  s += "<div id='" + this.container + "-B' class='grid_4 col-md-4 col-xs-12 threecolumns-center'></div>";
+  s += "<div id='" + this.container + "-C' class='grid_4 col-md-4 col-xs-12 threecolumns-right'></div>";
+  s += "</div>";
+  var el = document.getElementById(this.container);
+  if (undefined == el) {
+    console.log("WARNING: ATTEMPTING TO SET NON EXISTENT LAYOUT ELEMENT: " + this.container);
+  } else {
+    el.innerHTML = s;
+  }
+};
+
+
+
+/**
+ * A thinthickthin layout. uses bootstrap css.
+ * @constructor
+ *
+ * @param {string} container - The HTML ID of the container to render this layout within
+ */
+com.marklogic.widgets.layouts.thinthickthin = function(container) {
+  com.marklogic.widgets.layouts.helper.extendLayout(this,container,["A","B"]);
+
+  this._init();
+};
+
+com.marklogic.widgets.layouts.thinthickthin.prototype._init = function() {
+  var s = "<div id='" + this.container + "-layout' class='container_12 row mljswidget layout thinthickthin'>";
+  s += "<div id='" + this.container + "-A' class='grid_3 col-md-3 col-xs-12 thinthickthin-left'></div>";
+  s += "<div id='" + this.container + "-B' class='grid_6 col-md-6 col-xs-12 thinthickthin-center'></div>";
+  s += "<div id='" + this.container + "-C' class='grid_3 col-md-3 col-xs-12 thinthickthin-right'></div>";
+  s += "</div>";
+  var el = document.getElementById(this.container);
+  if (undefined == el) {
+    console.log("WARNING: ATTEMPTING TO SET NON EXISTENT LAYOUT ELEMENT: " + this.container);
+  } else {
+    el.innerHTML = s;
+  }
+};
+
+
+
 
 
 
@@ -2003,7 +2086,10 @@ com.marklogic.widgets.workplaceadmin = function(container) {
     layoutList: [
       {title: "Thin Thick", classname: "com.marklogic.widgets.layouts.thinthick", description: "Sidebar column on left of main column"},
       {title: "Thick Thin", classname: "com.marklogic.widgets.layouts.thickthin", description: "Sidebar column on right of main column"},
-      {title: "Column", classname: "com.marklogic.widgets.layouts.column", description: "Single column, content widgets are horizontal panels"}
+      {title: "Column", classname: "com.marklogic.widgets.layouts.column", description: "Single column, content widgets are horizontal panels"},
+      {title: "Two Columns", classname: "com.marklogic.widgets.layouts.twocolumns", description: "Two columns, equal widths"},
+      {title: "Three columns", classname: "com.marklogic.widgets.layouts.threecolumns", description: "Three columns, equal widths"},
+      {title: "Thin Thick Thin", classname: "com.marklogic.widgets.layouts.thinthickthin", description: "Three columns, center column wider"}
     ]
   };
 
@@ -2260,6 +2346,7 @@ com.marklogic.widgets.workplaceadmin.prototype._refresh = function() {
   str += "  <option value='SemanticContext' title='Semantic Context' id='" + this.container + "-contextselect-semanticcontext'>Semantic Context</option>";
   str += "  <option value='DocumentContext' title='Document Context' id='" + this.container + "-contextselect-documentcontext'>Document Context</option>";
   str += "  <option value='GeoContext' title='Geo Context' id='" + this.container + "-contextselect-geocontext'>Geo Context</option>";
+  str += "  <option value='AlertContext' title='Alert Context' id='" + this.container + "-contextselect-alertcontext'>Alert Context</option>";
   str += "</select>";
   str += "</div>"; // form group
   str += "<button class='btn btn-default' id='" + this.container + "-contexts-add-button'>";
@@ -2875,6 +2962,8 @@ com.marklogic.widgets.workplaceadmin.prototype._updateContextsList = function() 
         classConfig = mljs.defaultconnection.documentcontext.getConfigurationDefinition();
       } else if ("GeoContext" == ctxjson.type) {
         classConfig = mljs.defaultconnection.geocontext.getConfigurationDefinition();
+      } else if ("AlertContext" == ctxjson.type) {
+        classConfig = mljs.defaultconnection.alertcontext.getConfigurationDefinition();
       }
       wrapper.wrap(ctxjson.context,ctxjson.type,classConfig,ctxjson.config);
 
@@ -3527,7 +3616,7 @@ com.marklogic.widgets.configwrapper.prototype._genConfigHTMLConf = function(json
 
 
 
-  } else if ("SearchContext"==d.type||"GeoContext"==d.type||"DocumentContext" == d.type||"SemanticContext"==d.type) {
+  } else if ("SearchContext"==d.type||"GeoContext"==d.type||"DocumentContext" == d.type||"SemanticContext"==d.type||"AlertContext"==d.type) {
     // TODO handle dynamic context class names
 
     // drop down of instances of correct context type
@@ -4385,7 +4474,15 @@ com.marklogic.widgets.workplacepagelist.prototype.updateMyPages = function(pages
 
   // Add click handler
   document.getElementById(this.container + "-addpage").onclick = function(evt) {
-    var json = {title: document.getElementById(self.container + "-pagename").value, actions: {onload:[],onunload:[]}};
+    var json = {title: document.getElementById(self.container + "-pagename").value, actions: {onload:[],onunload:[]},
+      contexts: [
+        {context: "searchcontext1", type: "SearchContext",config:{}},
+        {context: "semanticcontext1", type: "SemanticContext",config:{}},
+        {context: "geocontext1", type: "GeoContext",config:{}},
+        {context: "doccontext1", type: "DocumentContext",config:{}},
+        {context: "alertcontext1", type: "AlertContext",config:{}}
+      ]
+    };
     self._workplaceContext.createPage(json);
     evt.stopPropagation();
     return false;
