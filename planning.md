@@ -581,7 +581,7 @@ Floating Targets
     - Default REST Server search options set up (constraints)
    - Refactor: Move widgets' use of 960.css out in to a Layout instance, as config options on the assignment itself (not widget or layout)
 
-Targets for 1.9 (Sep 2014) Interim Release - Theme: Documentation
+Targets for 2.1 (Jan 2015) Interim Release - Theme: Documentation
  - Missed 1.2 (Dec 2013) - Medium Priority - targets
   - Docs: Tutorials
    - (Emil Zegers) RDB2RDF quick start tutorial
@@ -640,7 +640,7 @@ Targets for 1.9 (Sep 2014) Interim Release - Theme: Documentation
    - IN PROGRESS lowerCamelCase for functions (searchcontext and mljs have some alllowercase methods)
    - DONE Using Factory pattern. See mljs.create*() methods. Changed mljs.defaultconnection in core MLJS to instead access parent MLJS instance
    - DONE Using logger mixin. Logger's attached to DB, so have had to link tripleconfig to creating db via factory method. keep tripleconfig separate from core MLJS instantiator (as it never requires a connection to use), but allow a way to specify a logger and check for this (to avoid defaultconnection.logger)
-   - DONE better way to access logging functionality by default - define _i(), _d() prototype methods for each subobject? Via a core mixin utility func?
+   - DONE better way to access logging functionality by default - define i(), d() prototype methods for each subobject? Via a core mixin utility func?
     - DONE (Could use same mechanism to provide correct 'this' reference from constructor function.)
     - DONE Using mljs.create*() factory methods. Have mljs.prototype. constructor functions add a db property pointer to all created children
    - NA Using factory pattern instead. Add check in constructor functions to ensure if not called via new MyObject(), that it returns a new instance anyway (location 1051)
@@ -710,7 +710,7 @@ Targets for 1.9 (Sep 2014) Interim Release - Theme: Documentation
    - Widgets: DLS add retention rule widget
    - DONE Widgets: DLS declare search results as record widget
 
-Targets for 2.0 (Oct 2014) - Theme: Lifecycle
+Targets for 2.2 (Feb 2015) - Theme: Lifecycle
  - MarkLogic version 8 support completed
  - Widgets: HTML content editing widget (new doc, and existing document with specified element (E.g. body, comments) and configuration for what is permissable as content)
  - Widgets: Situational awareness and search renderer app (from BF sim)
@@ -726,7 +726,7 @@ Targets for 2.0 (Oct 2014) - Theme: Lifecycle
   - Refactor logging to make it less typing
   - Allow general logging configuration so as to hide/show messages easily for particular actions (for easier debugging)
 
-Targets for 2.1 (Nov 2014) Interim Release - Theme: Ease of migration to MLJS
+Targets for 2.3 (Mar 2015) Interim Release - Theme: Ease of migration to MLJS
  - MarkLogic version 8 fixes and additions
  - IN PROGRESS NodeJS: Node.js tests for all functionality now in core MLJS
   - DONE Convert all assert usage to  assert = require('chai').assert (better exception handling)
