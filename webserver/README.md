@@ -105,7 +105,7 @@ This will keep a terminal window open showing that it is running, and on which p
 
 Point your browser at http://localhost:5001/index.html5
 
-Note the above assumes your app in it's SRC folder has an index.html5. Alter this URL for your paticular application.
+Note the above assumes your app has an index.html5 file in its SRC folder. Alter this URL for your paticular application.
 
 
 ## Getting help
