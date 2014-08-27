@@ -18,6 +18,8 @@ com = window.com || {};
 com.marklogic = window.com.marklogic || {};
 com.marklogic.widgets = window.com.marklogic.widgets || {};
 
+com.marklogic.widgets.alertsext = window.com.marklogic.widgets.alertsext || {};
+
 /**
  * OpenLayers mapping widget.
  *
@@ -50,6 +52,24 @@ com.marklogic.widgets.openlayers = function(container) {
   this._allLayers = new Array(); // so define layers BEFORE map is rendered, so they are added on map creation (e.g. via workplace)
 
   this._selectionLayer = null;
+
+
+
+
+  this._alertLayer = null;
+
+  this._processors = [];
+
+  for (var module in com.marklogic.widgets.alertsext) {
+    for (var ren in com.marklogic.widgets.alertsext[module]) {
+      renderer = com.marklogic.widgets.alertsext[module][ren]; // TODO save name somewhere for debugging
+      this._processors.push(renderer);
+    }
+  }
+
+
+
+
   //this._drawControls = {};
   this._polyControl = null; // regular polygon (circle and bounding box)
   this._polygonControl = null; // irregular polygon (free hand polygon)
@@ -641,8 +661,9 @@ com.marklogic.widgets.openlayers.prototype._refresh = function() {
     self.ensureHeatmap(); // add this underneath selection layer and markers layer
 
     self._selectionLayer = new OpenLayers.Layer.Vector("Selection Layer");
+    self._alertLayer = new OpenLayers.Layer.Vector("Alert Layer");
 
-    map.addLayers([self._selectionLayer]);
+    map.addLayers([self._selectionLayer,self._alertLayer]);
     //map.addControl(new OpenLayers.Control.MousePosition());
     /*
     self._drawControls = {
@@ -949,6 +970,30 @@ com.marklogic.widgets.openlayers.prototype.updateLocale = function(locale) {
   mljs.defaultconnection.logger.debug("openlayers.updateLocale: Called with: " + JSON.stringify(locale));
   // use center position to set map center
   this.map.setCenter(new OpenLayers.LonLat(locale.center.longitude, locale.center.latitude).transform(this.transformWgs84,this.map.projection),this.map.getZoom(),true,true);
+};
+
+/**
+ * Responds to alert context update notifications, rendering alert on the map
+ */
+com.marklogic.widgets.openlayers.prototype.updateAlert = function(alertInfo) {
+
+  var found = false;
+  for (var r = 0, maxr = this._processors.length, ren;!found && r < maxr;r++) {
+    ren = this._processors[r];
+    if (true == (found = ren.matcher(alertJson))) {
+      // render alert
+      // create div
+      // prepend to alertpanel data
+      var inst = new ren(id,alertJson);
+      if (undefined != inst.renderOpenLayers) {
+        ren.renderOpenLayers(this._alertLayer);
+      } else {
+        console.log("ERROR: Not renderOpenLayers(layer) function for renderer");
+      }
+
+    }
+  }
+
 };
 
 /**

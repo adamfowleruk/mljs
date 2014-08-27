@@ -18,6 +18,8 @@ com = window.com || {};
 com.marklogic = window.com.marklogic || {};
 com.marklogic.widgets = window.com.marklogic.widgets || {};
 
+com.marklogic.widgets.alertsext = window.com.marklogic.widgets.alertsext || {};
+
 com.marklogic.widgets.workplaceadminext = window.com.marklogic.widgets.workplaceadminext || {};
 com.marklogic.widgets.workplaceadminext.widgets = window.com.marklogic.widgets.workplaceadminext.widgets || {};
 
@@ -41,10 +43,9 @@ com.marklogic.widgets.alertpanel = function(container) {
   this._processors = [];
 
   for (var module in com.marklogic.widgets.alertsext) {
-    var renderers = com.marklogic.widgets.alertsext[module];
-    for (var r = 0,maxr = renderers.length,ren;r < maxr;r++) {
-      ren = renderers[r];
-      this._processors.push(ren);
+    for (var ren in com.marklogic.widgets.alertsext[module]) {
+      renderer = com.marklogic.widgets.alertsext[module][ren]; // TODO save name somewhere for debugging
+      this._processors.push(renderer);
     }
   }
 
@@ -86,8 +87,9 @@ com.marklogic.widgets.alertpanel.prototype.setAlertContext = function(ctx) {
 
 com.marklogic.widgets.alertpanel.prototype._init = function() {
   var s = "<div class='mljswidget panel panel-info alertpanel' id='" + this.container + "-outer'>";
+  s += "<div class='panel-body alertpanel-body' id='" + this.container + "-inner'>";
   s += "<div>Awaiting first alert</div>";
-  s += "</div>";
+  s += "</div></div>";
   document.getElementById(this.container).innerHTML = s;
 };
 
@@ -123,7 +125,7 @@ com.marklogic.widgets.alertpanel.prototype.updateAlertState = function(newState)
 com.marklogic.widgets.alertpanel.prototype._drawMessage = function(str) {
       var div = document.createElement("div");
       div.innerHTML = str;
-      var parent = document.getElementById(this.container + "-outer");
+      var parent = document.getElementById(this.container + "-inner");
       parent.insertBefore(div,parent.childNodes[0]);
 
 };

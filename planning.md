@@ -68,12 +68,14 @@ Targets of opportunity (non timed)
  - Fix mljsme.sh app
  - IN PROGRESS Docs: YouTube videos for Workplace App
   - DONE Workplace App 002 - Installing Workplace against your database (include within the DB at end too) (David Lee)
-  - Workplace App 003 - Adding a facetted search page
-  - Workplace App 004 - Adding a geospatial search page with address lookup, heatmaps, selection
-  - Workplace App 005 - Adding Semantic search and explorer pages
-  - Workplace App 006 - Adding Linking content search to semantic search with infobox
-  - Workplace App 007 - Adding an analytics dashboard page, with multiple search contexts, charts, co-occurence and tag clouds
-  - Workplace App 008 - Using a custom bootstrap CSS theme
+  - DONE Workplace App 003 - Adding a facetted search page
+  - DONE Workplace App 004 - Adding a geospatial search page with address lookup, heatmaps, selection
+  - DONE Workplace App 005 - Adding Semantic search and explorer pages
+  - DONE Workplace App 006 - Adding an analytics dashboard page, with multiple search contexts, charts, co-occurence
+  - DONE Workplace App 007 - Using a custom bootstrap CSS theme
+  - Workplace App 008 - Tag clouds
+  - PENDING Workplace App 009 - Adding Linking content search to semantic search with infobox
+   - BUG bugtrack 28905 - finding subjects mentioned in documents gives HTTP 400 on POST /v1/graphs/sparql
  - DEFERRED IN PROGRESS Bower support
   - DONE Add bower repo support for PH
   - IN PROGRESS Fix bower repo for new mljs repo foldering layout
@@ -101,6 +103,7 @@ Targets for 1.7 (Aug 2014) - Theme: External WebServer and Alerting
   - DONE mljs-webserver.js: Allow pass through of Digest/Basic auth challenges and responses
    - DONE digest, basic, digestbasic, applicationlevel all work fine
   - Handle ECONNREFUSED from server if it's down, and send on to client webapp
+   - BUG HEAD /v1/graphs never returns if MarkLogic not running, or on wrong port - set shorter time out
   - Ability to add alerts in MarkLogic (REST Extension)
    - Generic alert wrapping format - JSON
    - REST ext: Complete alert creation rest extension
@@ -108,28 +111,45 @@ Targets for 1.7 (Aug 2014) - Theme: External WebServer and Alerting
    - alert sending config - uri and content or just uri
    - location detection within alert context - option to save with radius against named constraint for alert
   - Display of existing alerts
+   - DONE copy over existing sprites and client js useful code
+   - TEST copy over SVG rendering support
+   - DONE add support for sprite rendering plugins
+   - TEST example sprite renderings
    - Widgets: Alert list widget
    - Widgets: OpenLayers to show (hidden) layer for alerts in alert context
   - mljs-webserver.js: Add file caching in RAM to speed access to static files
- - Widgets: For alerting
+ - IN PROGRESS Widgets: For alerting
   - TEST Core: Alert Context for managing connection and responding to alerts
   - IN PROGRESS Widgets: Alerting client widget (Requires Alerting API) with popups - desktop notifications bar / window
+   - DONE basics
+   - Make scroll after certain amount of messages/height
+   - Facebook like popup from bottom of page
   - DONE Core: Node.js Alerting middleware support - MLJS webserver
-  - Pluggable UI JavaScript for different message types
-   - Map tile
-   - Person (category)
-   - Noise detection
-   - Target of interest notification
-  - Widgets: OpenLayers update
-   - rendering of information sent as an alert layer (vector layer above map layers, sensible order)
-  - Pluggable message format handling JavaScript for different document types
-   - Default Alert Wrapper XML object support
+  - TEST Pluggable UI JavaScript for different message types
+  - TEST Widgets: OpenLayers update
+   - TEST rendering of information sent as an alert layer (vector layer above map layers, sensible order)
+  - TEST Pluggable message format handling JavaScript for different document types
+   - TEST Default Alert Wrapper XML object support
  - Docs: videos for release
   - Introduction to the MLJS WebServer, and distribution build script
   - Situational awareness app video
- - Docs: Workplace app enhancements
-  - One context of each type by default
+ - Tests: Alert context and alert subscription tests
+  - Subscribe and save search
+  - Unsubscribe
+  - Unsubscribe and delete
+  - Subscribe to existing saved search
+  - List saved searches and alert enabled status
+  - Receive alert status test
+  - Receive alert test
+   - JSON doc send
+   - XML doc send
+   - Binary image thumbnail map tile send
+ - IN PROGRESS Docs: Workplace app enhancements
+  - TEST One context of each type by default
   - Support globally registered context extensions in workplace widget and sub widgets
+  - DONE two column layout
+  - DONE three column layout
+  - DONE thinthickthin layout
  - Docs: JSdoc better use
   - returned objects
   - JSON structures
@@ -139,6 +159,7 @@ Targets for 1.7 (Aug 2014) - Theme: External WebServer and Alerting
  - Bugs
   - DONE XML parsing bug with hack fix BUG Widgets: title on tweets isn't working, showing XML error on Mac Safari
   - DONE BUG generic widget image doesn't show in Node.js mljs webserver
+  - BUG open layers map layer comments appearing too high again - copy old css fix over
 
 Targets for 1.8 (Oct 2014) - Theme: Visualisations Sprint 1
  - Track code commented TODOs in this document
