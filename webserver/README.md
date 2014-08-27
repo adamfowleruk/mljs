@@ -3,8 +3,9 @@
 The MLJS Web Server package you are currently look at was built so you could quickly get started with
 a MarkLogic REST application. In order to do this you need to follow the below instructions.
 
-Note all instructions assume you have downloaded an MLJS Web Server app - so all the files and paths are relative
-to the folder containing this README file.
+*WARNING: All instructions assume you have downloaded an MLJS Web Server based app.
+If instead you are reading this README on the GitHub website, then please download
+the dist/app-<myapp>.tar.gz or zip file before proceeding.*
 
 ## Install Node.js
 
@@ -38,7 +39,7 @@ Useful if in pre-sales and wanting the latest features
 
 Also install the following modules using these commands:-
 
-1. cd dist/<myappname>
+1. cd dist/<myappname> (Or the folder you have unzipped your app in to - the one that contains this README.md file)
 2. npm install crypto
 3. npm install underscore
 4. npm install restify
