@@ -22,7 +22,8 @@ This will give you the runtime files and the npm utility for installing modules.
 
 The preferred route:-
 
-1. npm install -g mljs
+1. sudo npm install -g mljs
+2. When prompted, enter your administrator password
 
 ### Route B: Latest development MLJS
 
