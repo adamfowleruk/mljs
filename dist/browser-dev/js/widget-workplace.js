@@ -137,9 +137,14 @@ mljs.defaultconnection.logger.debug("workplace.updateWorkplace: UPDATING PAGE");
     ctx = json.contexts[c];
     mljs.defaultconnection.logger.debug("workplace.updateWorkplace: Context: " + c + " is " + JSON.stringify(ctx));
 
+    /*
     var creator = mljs.defaultconnection["create" + ctx.type];
     mljs.defaultconnection.logger.debug("workplace.updateWorkplace: Is creator function of type function?: " + (typeof creator));
     var inst = creator.call(mljs.defaultconnection);
+    */
+
+    var inst = this._workplaceContext.getContextInstance(ctx.type);
+
     this._configurationContext.register(inst);
     contexts[ctx.context] = inst;
     mljs.defaultconnection.logger.debug("workplace.updateWorkplace: Is context instance valid?: is object?: " + (typeof inst));
@@ -1236,6 +1241,32 @@ com.marklogic.widgets.workplacecontext = function() {
   ]; // TODO read this on instance creation from extensions library(ies)
 };
 
+com.marklogic.widgets.workplacecontext.prototype.getContextClass = function(type) {
+
+      // get context class
+      var wobj = com;
+      var splits = type.split(".");
+      if (1 == splits.length) {
+        // old style short names - SearchConfig
+        wobj = mljs.defaultconnection[splits[0].toLowerCase()];
+      } else {
+        // global style JS namespaces
+        for (var i = 1, max = splits.length,split;i < max;i++) {
+          split = splits[i];
+          wobj = wobj[split];
+          //mljs.defaultconnection.logger.debug("workplace._getWidgetClass: split: " + split + " has type: " + (typeof wobj) + " and value: " + JSON.stringify(wobj));
+        }
+      }
+      return wobj;
+};
+
+com.marklogic.widgets.workplacecontext.prototype.getContextInstance = function(type) {
+  var cls = this.getContextClass(type);
+  var inst = new cls();
+  mljs.defaultconnection.linkContext(inst);
+  return inst;
+};
+
 com.marklogic.widgets.workplacecontext.prototype.getInstancesOf = function(cname) {
   var instances = new Array();
   for (var i = 0,maxi = this._json.widgets.length,wgt;i < maxi;i++) {
@@ -2090,6 +2121,13 @@ com.marklogic.widgets.workplaceadmin = function(container) {
       {title: "Two Columns", classname: "com.marklogic.widgets.layouts.twocolumns", description: "Two columns, equal widths"},
       {title: "Three columns", classname: "com.marklogic.widgets.layouts.threecolumns", description: "Three columns, equal widths"},
       {title: "Thin Thick Thin", classname: "com.marklogic.widgets.layouts.thinthickthin", description: "Three columns, center column wider"}
+    ],
+    contextList: [
+      {title: "Search Context", shortname: "SearchContext", classname: null,description: "Content Search Context"},
+      {title: "Semantic Context", shortname: "SemanticContext", classname: null,description: "Semantic Search Context"},
+      {title: "Document Context", shortname: "DocumentContext", classname: null,description: "Individual Document properties and content Context"},
+      {title: "Geo Context", shortname: "GeoContext", classname: null,description: "Geospatial position Context"},
+      {title: "Alert Context", shortname: "AlertContext", classname: null,description: "Alert configuration and receiving Context"}
     ]
   };
 
@@ -2125,7 +2163,20 @@ com.marklogic.widgets.workplaceadmin = function(container) {
     }
     // TODO sort layout list by title
 
-    // TODO mixin contexts
+    // mixin contexts
+    var contexts = exts.contexts;
+    if (undefined != contexts) {
+      for (var module in contexts) {
+        var mod = contexts[module];
+        if (Array.isArray(mod)) {
+          // mix these in
+          for (var w = 0,maxw = mod.length,context;w < maxw;w++) {
+            context = mod[w];
+            this._config.contextList.push(context);
+          }
+        }
+      }
+    }
   }
 
 
@@ -2142,6 +2193,7 @@ com.marklogic.widgets.workplaceadmin = function(container) {
 
 /**
  * Adds a list of custom supported widgets to the MLJS defaults
+ * @deprecated use global registration method instead
  * @param {Array} widgetDefArray - The JSON array of widget definitions
  */
 com.marklogic.widgets.workplaceadmin.prototype.addSupportedWidgets = function(widgetDefArray) {
@@ -2153,6 +2205,7 @@ com.marklogic.widgets.workplaceadmin.prototype.addSupportedWidgets = function(wi
 
 /**
  * Adds a list of custom supported layouts to the MLJS defaults
+ * @deprecated use global registration method instead
  * @param {Array} layoutDefArray - The JSON array of layout definitions
  */
 com.marklogic.widgets.workplaceadmin.prototype.addSupportedLayouts = function(layoutDefArray) {
@@ -2342,11 +2395,22 @@ com.marklogic.widgets.workplaceadmin.prototype._refresh = function() {
   str += " <div class='form-group'>";
   //str += "<label>Add</label>";
   str += "<select id='" + this.container + "-contexts-add-dropdown' class='form-control workplaceadmin-contexts-add-dropdown'>";
+
+
+  for (var i = 0, maxi = this._config.contextList.length,ctx;i < maxi;i++) {
+    ctx = this._config.contextList[i];
+    str += "<option value='" + (ctx.classname || ctx.shortname) + "' title='" + ctx.title + "' id='" +
+      this.container + "-contextselect-" + (ctx.classname || ctx.shortname) + "'>" + ctx.title + "</option>";
+  }
+
+  /*
   str += "  <option value='SearchContext' title='Search Context' id='" + this.container + "-contextselect-searchcontext'>Search Context</option>";
   str += "  <option value='SemanticContext' title='Semantic Context' id='" + this.container + "-contextselect-semanticcontext'>Semantic Context</option>";
   str += "  <option value='DocumentContext' title='Document Context' id='" + this.container + "-contextselect-documentcontext'>Document Context</option>";
   str += "  <option value='GeoContext' title='Geo Context' id='" + this.container + "-contextselect-geocontext'>Geo Context</option>";
   str += "  <option value='AlertContext' title='Alert Context' id='" + this.container + "-contextselect-alertcontext'>Alert Context</option>";
+  */
+
   str += "</select>";
   str += "</div>"; // form group
   str += "<button class='btn btn-default' id='" + this.container + "-contexts-add-button'>";
@@ -2953,7 +3017,11 @@ com.marklogic.widgets.workplaceadmin.prototype._updateContextsList = function() 
       // load content
       var wrapper = new com.marklogic.widgets.configwrapper(self.container + "-config-contexts-context");
       wrapper.hideRemoveButton();
-      var classConfig = null;
+
+      var widgetClass = self._workplaceContext.getContextClass(ctxjson.type);
+      // get configuration definition
+      var classConfig = widgetClass.getConfigurationDefinition();
+      /*
       if ("SearchContext" == ctxjson.type) {
         classConfig = mljs.defaultconnection.searchcontext.getConfigurationDefinition();
       } else if ("SemanticContext" == ctxjson.type) {
@@ -2965,6 +3033,7 @@ com.marklogic.widgets.workplaceadmin.prototype._updateContextsList = function() 
       } else if ("AlertContext" == ctxjson.type) {
         classConfig = mljs.defaultconnection.alertcontext.getConfigurationDefinition();
       }
+      */
       wrapper.wrap(ctxjson.context,ctxjson.type,classConfig,ctxjson.config);
 
       // NOW LINKED WIDGETS LIST
@@ -3615,41 +3684,6 @@ com.marklogic.widgets.configwrapper.prototype._genConfigHTMLConf = function(json
 
 
 
-
-  } else if ("SearchContext"==d.type||"GeoContext"==d.type||"DocumentContext" == d.type||"SemanticContext"==d.type||"AlertContext"==d.type) {
-    // TODO handle dynamic context class names
-
-    // drop down of instances of correct context type
-    var instances = this._workplaceContext.getInstancesOf(d.type); // returns string array of instance names
-
-    addtitle();
-    var val = c;
-    var hasSelected = false;
-    if (undefined == c) {
-      val = d.default;
-      usedDefault = true;
-    }
-    str += "<select class='form-control' id='" + this.container + "-" + conf.id + "'>";
-    for (var i = 0,opt,max=instances.length; i < max;i++) {
-      opt = instances[i];
-      str += "<option value='" + opt + "' title='" + opt + "' ";
-      if (opt === val) {
-        str += "selected='selected' ";
-        hasSelected = true;
-      }
-      str += ">" + opt + "</option>";
-    }
-    if (!hasSelected && /*null == d.default &&*/ undefined != instances[0]) {
-      json[name] = instances[0];
-      usedDefault = false;
-    }
-    str += "</select>";
-    conf.addhandler = function() {
-      var el = document.getElementById(self.container + "-" + conf.id);
-      el.onchange = function() {
-        json[name] = el.value;
-      };
-    };
   } else if ("jstype" == d.type) {
     var instances = ["null","string","number","instance"];
 
@@ -3715,7 +3749,44 @@ com.marklogic.widgets.configwrapper.prototype._genConfigHTMLConf = function(json
       };
 
 
-  } // other types here
+  } else {
+    //else if ("SearchContext"==d.type||"GeoContext"==d.type||"DocumentContext" == d.type||"SemanticContext"==d.type||"AlertContext"==d.type) {
+
+    // assume global class name - try to get context class name
+    var cls = this._workplaceContext.getContextClass(d.type);
+    if (null != cls) {
+
+    // drop down of instances of correct context type
+    var instances = this._workplaceContext.getInstancesOf(d.type); // returns string array of instance names
+
+    addtitle();
+    var val = c;
+    var hasSelected = false;
+    if (undefined == c) {
+      val = d.default;
+      usedDefault = true;
+    }
+    str += "<select class='form-control' id='" + this.container + "-" + conf.id + "'>";
+    for (var i = 0,opt,max=instances.length; i < max;i++) {
+      opt = instances[i];
+      str += "<option value='" + opt + "' title='" + opt + "' ";
+      if (opt === val) {
+        str += "selected='selected' ";
+        hasSelected = true;
+      }
+      str += ">" + opt + "</option>";
+    }
+    if (!hasSelected && /*null == d.default &&*/ undefined != instances[0]) {
+      json[name] = instances[0];
+      usedDefault = false;
+    }
+    str += "</select>";
+    conf.addhandler = function() {
+      var el = document.getElementById(self.container + "-" + conf.id);
+      el.onchange = function() {
+        json[name] = el.value;
+      };
+    };
 
 
   if (usedDefault) {
@@ -3725,6 +3796,9 @@ com.marklogic.widgets.configwrapper.prototype._genConfigHTMLConf = function(json
   str += "</div>"; // form group
   confslist.push(conf);
   return str;
+} else {
+  console.log("WARNING: UNKNOWN d.type: " + d.type);
+}
 };
 
 com.marklogic.widgets.configwrapper.prototype._addDelHandler = function(del,c) {

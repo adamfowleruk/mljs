@@ -144,9 +144,9 @@ Targets for 1.7 (Aug 2014) - Theme: External WebServer and Alerting
    - JSON doc send
    - XML doc send
    - Binary image thumbnail map tile send
- - IN PROGRESS Docs: Workplace app enhancements
+ - TEST Docs: Workplace app enhancements
   - TEST One context of each type by default
-  - Support globally registered context extensions in workplace widget and sub widgets
+  - TEST Support globally registered context extensions in workplace widget and sub widgets
   - DONE two column layout
   - DONE three column layout
   - DONE thinthickthin layout
