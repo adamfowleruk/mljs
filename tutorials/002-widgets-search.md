@@ -1,4 +1,4 @@
-[Back to All Tutorials list](tutorial-all.html)
+[Back to All Tutorials list](all.md)
 # How Search Widgets work
 
 The following diagram explains the main code workflow for a search app.
@@ -91,4 +91,4 @@ TODO
 
 - - - -
 
-[Back to All Tutorials list](tutorial-all.html)
+[Back to All Tutorials list](all.md)

@@ -1,4 +1,4 @@
-[Back to All Tutorials list](tutorial-all.html)
+[Back to All Tutorials list](all.md)
 # REST Extensions supported by MLJS
 
 This tutorial describes the REST extensions supported by MLJS core and their purpose
@@ -55,4 +55,4 @@ subscribe and unsubscribe are generic methods that do as you would expect. unsub
 
 - - - -
 
-[Back to All Tutorials list](tutorial-all.html)
+[Back to All Tutorials list](all.md)

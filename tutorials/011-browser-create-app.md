@@ -1,4 +1,4 @@
-[Back to All Tutorials list](tutorial-all.html)
+[Back to All Tutorials list](all.md)
 # Creating a new Web application with Roxy
 
 Roxy is a framework created by the Vanguard team within MarkLogic. It has the capability to deploy a set of application code in to a MarkLogic REST instance.
@@ -26,4 +26,4 @@ See the app-workplace.tar.gz. file in the dist folder of the GitHub repo for an 
 
 - - - -
 
-[Back to All Tutorials list](tutorial-all.html)
+[Back to All Tutorials list](all.md)

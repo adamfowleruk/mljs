@@ -1,4 +1,4 @@
-[Back to All Tutorials list](tutorial-all.html)
+[Back to All Tutorials list](all.md)
 # All about Context objects
 
 Context objects are used to bridge the gap between web widgets / Node JS objects and the underlying MLJS remote API calls. They are useful as brokers
@@ -38,4 +38,4 @@ Useful for passing selected subject/document information to a context. Enabled o
 
 - - - -
 
-[Back to All Tutorials list](tutorial-all.html)
+[Back to All Tutorials list](all.md)

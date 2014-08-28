@@ -1,4 +1,4 @@
-[Back to All Tutorials list](tutorial-all.html)
+[Back to All Tutorials list](all.md)
 # Search Results Rendering
 
 The com.marklogic.widgets.searchresults widget supports pluggable rendering. This means if you know how to identify a
@@ -60,4 +60,4 @@ All this functionality will be documented in the Oct 2014 release.
 
 - - - -
 
-[Back to All Tutorials list](tutorial-all.html)
+[Back to All Tutorials list](all.md)

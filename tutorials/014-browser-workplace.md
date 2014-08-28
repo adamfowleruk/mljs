@@ -1,4 +1,4 @@
-[Back to All Tutorials list](tutorial-all.html)
+[Back to All Tutorials list](all.md)
 # Workplace - An MLJS application without coding
 
 One I created a whole bunch of widgets with test pages that you could mix together on a page there was an obvious next step.
@@ -82,4 +82,4 @@ MarkLogic server and loaded based on the URL of the page (as you can see on the 
 
 - - - -
 
-[Back to All Tutorials list](tutorial-all.html)
+[Back to All Tutorials list](all.md)

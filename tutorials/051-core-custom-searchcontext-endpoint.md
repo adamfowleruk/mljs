@@ -1,4 +1,4 @@
-[Back to All Tutorials list](tutorial-all.html)
+[Back to All Tutorials list](all.md)
 # Custom SearchContext endpoints
 
 A custom search context endpoint allows you to invoke your own REST API extension rather than the default /v1/search or /v1/values endpoints.
@@ -46,4 +46,4 @@ You can now link your context to widgets as normal.
 
 - - - -
 
-[Back to All Tutorials list](tutorial-all.html)
+[Back to All Tutorials list](all.md)

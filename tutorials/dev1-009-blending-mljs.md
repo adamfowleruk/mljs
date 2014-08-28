@@ -8,5 +8,5 @@ This will be completed when Mr Cassel trains the team on Angular.js (He has MLJS
 
 - - - -
 
-[Course Home Page](tutorial-dev1-001-overview.html) | 
-[Next - 10. Building a demo](tutorial-dev1-010-building-demo.html)
+[Course Home Page](dev1-001-overview.md) | 
+[Next - 10. Building a demo](dev1-010-building-demo.md)
