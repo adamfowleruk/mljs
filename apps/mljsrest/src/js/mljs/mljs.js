@@ -6281,6 +6281,12 @@ mljs.prototype.searchcontext.prototype._parseQuery = function(q) {
       } else if (-1 != parts[i].indexOf(":")) {
         this.__d("searchcontext._parseQuery: FOUND A FACET IN QUERY: " + parts[i]);
         var fv = parts[i].split(":");
+        if (fv.length > 2) {
+          // value contains : so combine
+          for (var fvi = 2;fvi < fv.length;fvi++) {
+            fv[1] += ":" + fv[fvi];
+          }
+        }
         this.__d("searchcontext._parseQuery: Facet name: " + fv[0] + " value: " + fv[1]);
         if (0 == fv[1].indexOf("\"")) {
           fv[1] = fv[1].substring(1);
