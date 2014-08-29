@@ -28,3 +28,9 @@ samples
 bower.json
 npm-debug.log
 Gruntfile.js
+src/css
+src/images
+src/rest-api
+src/js/widget*.js
+src/js/mljs-*.js
+webserver

@@ -13,7 +13,7 @@ the dist/app-<myapp>.tar.gz or zip file before proceeding.*
 
 - On Windows, go to http://nodejs.org/download/ and install Node.js
 - On Mac, either do brew install node OR download from the above link
-- On Linux, either do yum install node OR download from the above link
+- On Linux, either download from the above link, or follow instructions here: https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager
 
 This will give you the runtime files and the npm utility for installing modules.
 

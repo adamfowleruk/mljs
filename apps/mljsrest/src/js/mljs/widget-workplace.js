@@ -3755,39 +3755,42 @@ com.marklogic.widgets.configwrapper.prototype._genConfigHTMLConf = function(json
     // assume global class name - try to get context class name
     var cls = this._workplaceContext.getContextClass(d.type);
     if (null != cls) {
+      // drop down of instances of correct context type
+      var instances = this._workplaceContext.getInstancesOf(d.type); // returns string array of instance names
 
-    // drop down of instances of correct context type
-    var instances = this._workplaceContext.getInstancesOf(d.type); // returns string array of instance names
-
-    addtitle();
-    var val = c;
-    var hasSelected = false;
-    if (undefined == c) {
-      val = d.default;
-      usedDefault = true;
-    }
-    str += "<select class='form-control' id='" + this.container + "-" + conf.id + "'>";
-    for (var i = 0,opt,max=instances.length; i < max;i++) {
-      opt = instances[i];
-      str += "<option value='" + opt + "' title='" + opt + "' ";
-      if (opt === val) {
-        str += "selected='selected' ";
-        hasSelected = true;
+      addtitle();
+      var val = c;
+      var hasSelected = false;
+      if (undefined == c) {
+        val = d.default;
+        usedDefault = true;
       }
-      str += ">" + opt + "</option>";
-    }
-    if (!hasSelected && /*null == d.default &&*/ undefined != instances[0]) {
-      json[name] = instances[0];
-      usedDefault = false;
-    }
-    str += "</select>";
-    conf.addhandler = function() {
-      var el = document.getElementById(self.container + "-" + conf.id);
-      el.onchange = function() {
-        json[name] = el.value;
+      str += "<select class='form-control' id='" + this.container + "-" + conf.id + "'>";
+      for (var i = 0,opt,max=instances.length; i < max;i++) {
+        opt = instances[i];
+        str += "<option value='" + opt + "' title='" + opt + "' ";
+        if (opt === val) {
+          str += "selected='selected' ";
+          hasSelected = true;
+        }
+        str += ">" + opt + "</option>";
+      }
+      if (!hasSelected && /*null == d.default &&*/ undefined != instances[0]) {
+        json[name] = instances[0];
+        usedDefault = false;
+      }
+      str += "</select>";
+      conf.addhandler = function() {
+        var el = document.getElementById(self.container + "-" + conf.id);
+        el.onchange = function() {
+          json[name] = el.value;
+        };
       };
-    };
 
+    } else {
+      console.log("WARNING: UNKNOWN d.type: " + d.type);
+    } // null cls else
+  } // end type else
 
   if (usedDefault) {
     json[name] = d.default;
@@ -3796,9 +3799,6 @@ com.marklogic.widgets.configwrapper.prototype._genConfigHTMLConf = function(json
   str += "</div>"; // form group
   confslist.push(conf);
   return str;
-} else {
-  console.log("WARNING: UNKNOWN d.type: " + d.type);
-}
 };
 
 com.marklogic.widgets.configwrapper.prototype._addDelHandler = function(del,c) {
