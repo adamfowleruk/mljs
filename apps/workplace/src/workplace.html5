@@ -101,6 +101,7 @@ and its
     <script type="text/javascript" src="/js/mljs/widget-tagcloud.js"></script>
     <script type="text/javascript" src="/js/mljs/widget-triples.js"></script>
     <script type="text/javascript" src="/js/mljs/widget-highcharts.js"></script>
+    <script type="text/javascript" src="/js/mljs/widget-alerts.js"></script>
     <script type="text/javascript" src="/js/ext-workplace.js"></script>
 
     <script src="/js/page-workplace.js"></script>

@@ -3,8 +3,9 @@
 The MLJS Web Server package you are currently look at was built so you could quickly get started with
 a MarkLogic REST application. In order to do this you need to follow the below instructions.
 
-Note all instructions assume you have downloaded an MLJS Web Server app - so all the files and paths are relative
-to the folder containing this README file.
+*WARNING: All instructions assume you have downloaded an MLJS Web Server based app.
+If instead you are reading this README on the GitHub website, then please download
+the dist/app-<myapp>.tar.gz or zip file before proceeding.*
 
 ## Install Node.js
 
@@ -12,17 +13,24 @@ to the folder containing this README file.
 
 - On Windows, go to http://nodejs.org/download/ and install Node.js
 - On Mac, either do brew install node OR download from the above link
-- On Linux, either do yum install node OR download from the above link
+- On Linux, either download from the above link, or follow instructions here: https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager
 
 This will give you the runtime files and the npm utility for installing modules.
 
 ## Install MLJS
 
+There are two options for installing MLJS - the latest stable version, or the in progress DEV branch. If you are in
+pre-sales in MarkLogic, or wish to contribute code to MLJS, then work on the DEV version by following Route B below.
+The vast majority of people will go Route A though.
+
+Choose ONE route only.
+
 ### Route A: Latest stable MLJS
 
 The preferred route:-
 
-1. npm install -g mljs
+1. sudo npm install -g mljs
+2. When prompted, enter your administrator password
 
 ### Route B: Latest development MLJS
 
@@ -37,7 +45,7 @@ Useful if in pre-sales and wanting the latest features
 
 Also install the following modules using these commands:-
 
-1. cd dist/<myappname>
+1. cd dist/<myappname> (Or the folder you have unzipped your app in to - the one that contains this README.md file)
 2. npm install crypto
 3. npm install underscore
 4. npm install restify
@@ -48,7 +56,7 @@ Also install the following modules using these commands:-
 
 1. Edit webserver-settings.sh
 2. Alter the settings for your system - typically just RESTHOST and RESTPORT
-3. Save and clost the file
+3. Save and close the file
 4. Ensure you can execute it and other scripts by changing it's permissions. Execute this: chmod u+x \*.sh
 
 ## Optional: Create a REST server instance
@@ -97,7 +105,7 @@ This will keep a terminal window open showing that it is running, and on which p
 
 Point your browser at http://localhost:5001/index.html5
 
-Note the above assumes your app in it's SRC folder has an index.html5. Alter this URL for your paticular application.
+Note the above assumes your app has an index.html5 file in its SRC folder. Alter this URL for your paticular application.
 
 
 ## Getting help

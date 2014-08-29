@@ -1884,6 +1884,9 @@ com.marklogic.widgets.defaulthtmlrenderer = {
               if (undefined != evalResult && null != evalResult && undefined != evalResult.stringValue && "" != evalResult.stringValue) {
                 title = evalResult.stringValue;
               }
+              if (0 == title.indexOf("This page contains the following errors")) { // XML parse hack
+                title = result.uri;
+              }
             manager.ctx.db.logger.debug("title after eval: " + title);
               // check for common snippet names - summary, synopsis, description, details
               evalResult = xmlDoc.evaluate("//summary[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
@@ -1921,7 +1924,7 @@ com.marklogic.widgets.defaulthtmlrenderer = {
               snippet = com.marklogic.widgets.searchhelper.xmltohtml(xmlDoc); // TODO
             }
 
-            if (null == snippet) {
+            if (null == snippet || 0 == snippet.indexOf("error on line 1 at column 1")) {
               snippet = result.content;
             }
             manager.ctx.db.logger.debug("content finally: " + snippet);

@@ -3318,9 +3318,19 @@ mljs.prototype.createQuery = function() {
   return obj;
 };
 
+/**
+ * Links context instance to current DB (MLJS) connection instance.
+ * Replaces all create<name>Context() functions
+ */
+mljs.prototype.linkContext = function(contextInstance) {
+  contextInstance.db = this;
+  return contextInstance;
+};
+
 
 /**
  * Factory pattern. Creates a content search context object referring back to the current database connection. Useful to link to the correct logger, and db settings.
+ * @deprecated Instantiate externally (See Workplace Context) then call linkContext(contextInstance).
  */
 mljs.prototype.createSearchContext = function() {
   var obj = new this.searchcontext();
@@ -3331,6 +3341,7 @@ mljs.prototype.createSearchContext = function() {
 
 /**
  * Factory pattern. Creates a geo (locale) context object referring back to the current database connection. Useful to link to the correct logger, and db settings.
+ * @deprecated Instantiate externally (See Workplace Context) then call linkContext(contextInstance).
  */
 mljs.prototype.createGeoContext = function() {
   var obj = new this.geocontext();
@@ -3340,7 +3351,19 @@ mljs.prototype.createGeoContext = function() {
 
 
 /**
+ * Factory pattern. Creates an alert context object referring back to the current database connection. Useful to link to the correct logger, and db settings.
+ * @deprecated Instantiate externally (See Workplace Context) then call linkContext(contextInstance).
+ */
+mljs.prototype.createAlertContext = function() {
+  var obj = new this.alertcontext();
+  obj.db = this;
+  return obj;
+};
+
+
+/**
  * Factory pattern. Creates a content search context object referring back to the current database connection. Useful to link to the correct logger, and db settings.
+ * @deprecated Instantiate externally (See Workplace Context) then call linkContext(contextInstance).
  */
 mljs.prototype.createDocumentContext = function() {
   var obj = new this.documentcontext();
@@ -3351,6 +3374,7 @@ mljs.prototype.createDocumentContext = function() {
 
 /**
  * Factory pattern. Creates a semantic config object referring back to the current database connection. Useful to link to the correct logger, and db settings.
+ * @deprecated Instantiate externally (See Workplace Context) then call linkContext(contextInstance) for semantic context, which has an instance of this.
  */
 mljs.prototype.createTripleConfig = function() {
   var obj = new com.marklogic.semantic.tripleconfig();
@@ -3361,6 +3385,7 @@ mljs.prototype.createTripleConfig = function() {
 
 /**
  * Factory pattern. Creates a semantic context object referring back to the current database connection. Useful to link to the correct logger, and db settings.
+ * @deprecated Instantiate externally (See Workplace Context) then call linkContext(contextInstance).
  */
 mljs.prototype.createSemanticContext = function() {
   var obj = new this.semanticcontext();
@@ -9450,10 +9475,37 @@ mljs.prototype.alertcontext = function() {
   this.state = "initialising"; // also testing, connected, disconnected, connection_error
   this.socket = null;
 
+  this._config = {};
+
   this._alertPublisher = new com.marklogic.events.Publisher();
   this._statePublisher = new com.marklogic.events.Publisher();
 
   this._init();
+};
+
+
+/**
+ * Returns the MLJS Workplace configuration definition listing config properties supported by this context
+ *
+ * @static
+ */
+mljs.prototype.alertcontext.getConfigurationDefinition = function() {
+  return {
+  }
+};
+
+/**
+ * Sets the configuration for this instance of a context in an MLJS Workplace
+ *
+ * @param {json} config - The JSON Workplace context configuration to apply
+ */
+mljs.prototype.alertcontext.prototype.setConfiguration = function(config) {
+  for (var prop in config) {
+    this._config[prop] = config[prop];
+  }
+
+  // refresh display
+  //this._refresh();
 };
 
 mljs.prototype.alertcontext.prototype._init = function() {

@@ -54,7 +54,7 @@ Targets of opportunity (non timed)
    - Need to support metadata, including lon/lat geo pair data, summary or title string data, description data, as a minimum
   - BUG MAJOR REST API ignoring collection parameter when POST ing search (and likely other query string params) - make this a query parameter when using post
    - Check with 7.0-3 that this has been fixed - may not need to fix this in MLJS
- - BUG Widgets: title on tweets isn't working, showing XML error on Mac Safari
+  - BUG if doing 'text sender:"@something"' it fails. If doing 'text' its fine, if 'sender:"@something"' its fine
  - Workplace app fixes
   - Windows batch files for mljs webserver app and settings (David Lee)
   - TEST custom renderers in searchresults - com.marklogic.widgets.searchresultsext.NAME.customrenderers = {};
@@ -66,16 +66,16 @@ Targets of opportunity (non timed)
  - Test: Run Node.js tests against this release and fix problems
   - Fix n-triples test script error
  - Fix mljsme.sh app
- - Docs: YouTube videos for Workplace App
-  - Workplace App 000 - Install pre-requisites - Node.js, npm modules (David Lee)
-  - Workplace App 001 - Installing Workplace against your database (include within the DB at end too)
-  - Workplace App 002 - Configuring search options - xml upload with Roxy deployer, with mlwatcher, or json copy/paste. Also cover indexes.
-  - Workplace App 003 - Adding a facetted search page
-  - Workplace App 004 - Adding a geospatial search page with address lookup, heatmaps, selection
-  - Workplace App 005 - Adding Semantic search and explorer pages
-  - Workplace App 006 - Adding Linking content search to semantic search with infobox
-  - Workplace App 007 - Adding a analytics dashboard page, with multiple search contexts, charts, co-occurence and tag clouds
-  - Workplace App 008 - Using a custom bootstrap theme
+ - IN PROGRESS Docs: YouTube videos for Workplace App
+  - DONE Workplace App 002 - Installing Workplace against your database (include within the DB at end too) (David Lee)
+  - DONE Workplace App 003 - Adding a facetted search page
+  - DONE Workplace App 004 - Adding a geospatial search page with address lookup, heatmaps, selection
+  - DONE Workplace App 005 - Adding Semantic search and explorer pages
+  - DONE Workplace App 006 - Adding an analytics dashboard page, with multiple search contexts, charts, co-occurence
+  - DONE Workplace App 007 - Using a custom bootstrap CSS theme
+  - Workplace App 008 - Tag clouds
+  - PENDING Workplace App 009 - Adding Linking content search to semantic search with infobox
+   - BUG bugtrack 28905 - finding subjects mentioned in documents gives HTTP 400 on POST /v1/graphs/sparql
  - DEFERRED IN PROGRESS Bower support
   - DONE Add bower repo support for PH
   - IN PROGRESS Fix bower repo for new mljs repo foldering layout
@@ -102,20 +102,64 @@ Targets for 1.7 (Aug 2014) - Theme: External WebServer and Alerting
  - MLJS Web Server and Alert Server
   - DONE mljs-webserver.js: Allow pass through of Digest/Basic auth challenges and responses
    - DONE digest, basic, digestbasic, applicationlevel all work fine
- - Widgets: For alerting
-  - Core: Alert Context for managing connection and responding to alerts
-  - Widgets: Alerting client widget (Requires Alerting API) with popups - desktop notifications bar / window
+  - Handle ECONNREFUSED from server if it's down, and send on to client webapp
+   - BUG HEAD /v1/graphs never returns if MarkLogic not running, or on wrong port - set shorter time out
+  - Ability to add alerts in MarkLogic (REST Extension)
+   - Generic alert wrapping format - JSON
+   - REST ext: Complete alert creation rest extension
+   - Widgets: Save search as alertwidget - uses alert creation widget for popup
+   - alert sending config - uri and content or just uri
+   - location detection within alert context - option to save with radius against named constraint for alert
+  - Display of existing alerts
+   - DONE copy over existing sprites and client js useful code
+   - TEST copy over SVG rendering support
+   - DONE add support for sprite rendering plugins
+   - TEST example sprite renderings
+   - Widgets: Alert list widget
+   - Widgets: OpenLayers to show (hidden) layer for alerts in alert context
+  - mljs-webserver.js: Add file caching in RAM to speed access to static files
+ - IN PROGRESS Widgets: For alerting
+  - TEST Core: Alert Context for managing connection and responding to alerts
+  - IN PROGRESS Widgets: Alerting client widget (Requires Alerting API) with popups - desktop notifications bar / window
+   - DONE basics
+   - Make scroll after certain amount of messages/height
+   - Facebook like popup from bottom of page
   - DONE Core: Node.js Alerting middleware support - MLJS webserver
-  - Pluggable UI JavaScript for different message types
-   - Map tile
-   - Person (category)
-   - Noise detection
-   - Target of interest notification
-  - Widgets: OpenLayers update
-   - rendering of information sent as an alert layer (vector layer above map layers, sensible order)
-  - Pluggable message format handling JavaScript for different document types
-   - Default Alert Wrapper XML object support
- - Docs: Simple test page in mljsrest app
+  - TEST Pluggable UI JavaScript for different message types
+  - TEST Widgets: OpenLayers update
+   - TEST rendering of information sent as an alert layer (vector layer above map layers, sensible order)
+  - TEST Pluggable message format handling JavaScript for different document types
+   - TEST Default Alert Wrapper XML object support
+ - Docs: videos for release
+  - Introduction to the MLJS WebServer, and distribution build script
+  - Situational awareness app video
+ - Tests: Alert context and alert subscription tests
+  - Subscribe and save search
+  - Unsubscribe
+  - Unsubscribe and delete
+  - Subscribe to existing saved search
+  - List saved searches and alert enabled status
+  - Receive alert status test
+  - Receive alert test
+   - JSON doc send
+   - XML doc send
+   - Binary image thumbnail map tile send
+ - TEST Docs: Workplace app enhancements
+  - TEST One context of each type by default
+  - TEST Support globally registered context extensions in workplace widget and sub widgets
+  - DONE two column layout
+  - DONE three column layout
+  - DONE thinthickthin layout
+ - Docs: JSdoc better use
+  - returned objects
+  - JSON structures
+  - links to other docs
+   - ML REST API JSON and XML structures
+   - tutorials where function mentioned
+ - Bugs
+  - DONE XML parsing bug with hack fix BUG Widgets: title on tweets isn't working, showing XML error on Mac Safari
+  - DONE BUG generic widget image doesn't show in Node.js mljs webserver
+  - BUG open layers map layer comments appearing too high again - copy old css fix over
 
 Targets for 1.8 (Oct 2014) - Theme: Visualisations Sprint 1
  - Track code commented TODOs in this document
@@ -537,7 +581,7 @@ Floating Targets
     - Default REST Server search options set up (constraints)
    - Refactor: Move widgets' use of 960.css out in to a Layout instance, as config options on the assignment itself (not widget or layout)
 
-Targets for 1.9 (Sep 2014) Interim Release - Theme: Documentation
+Targets for 2.1 (Jan 2015) Interim Release - Theme: Documentation
  - Missed 1.2 (Dec 2013) - Medium Priority - targets
   - Docs: Tutorials
    - (Emil Zegers) RDB2RDF quick start tutorial
@@ -596,7 +640,7 @@ Targets for 1.9 (Sep 2014) Interim Release - Theme: Documentation
    - IN PROGRESS lowerCamelCase for functions (searchcontext and mljs have some alllowercase methods)
    - DONE Using Factory pattern. See mljs.create*() methods. Changed mljs.defaultconnection in core MLJS to instead access parent MLJS instance
    - DONE Using logger mixin. Logger's attached to DB, so have had to link tripleconfig to creating db via factory method. keep tripleconfig separate from core MLJS instantiator (as it never requires a connection to use), but allow a way to specify a logger and check for this (to avoid defaultconnection.logger)
-   - DONE better way to access logging functionality by default - define _i(), _d() prototype methods for each subobject? Via a core mixin utility func?
+   - DONE better way to access logging functionality by default - define i(), d() prototype methods for each subobject? Via a core mixin utility func?
     - DONE (Could use same mechanism to provide correct 'this' reference from constructor function.)
     - DONE Using mljs.create*() factory methods. Have mljs.prototype. constructor functions add a db property pointer to all created children
    - NA Using factory pattern instead. Add check in constructor functions to ensure if not called via new MyObject(), that it returns a new instance anyway (location 1051)
@@ -666,7 +710,7 @@ Targets for 1.9 (Sep 2014) Interim Release - Theme: Documentation
    - Widgets: DLS add retention rule widget
    - DONE Widgets: DLS declare search results as record widget
 
-Targets for 2.0 (Oct 2014) - Theme: Lifecycle
+Targets for 2.2 (Feb 2015) - Theme: Lifecycle
  - MarkLogic version 8 support completed
  - Widgets: HTML content editing widget (new doc, and existing document with specified element (E.g. body, comments) and configuration for what is permissable as content)
  - Widgets: Situational awareness and search renderer app (from BF sim)
@@ -682,7 +726,7 @@ Targets for 2.0 (Oct 2014) - Theme: Lifecycle
   - Refactor logging to make it less typing
   - Allow general logging configuration so as to hide/show messages easily for particular actions (for easier debugging)
 
-Targets for 2.1 (Nov 2014) Interim Release - Theme: Ease of migration to MLJS
+Targets for 2.3 (Mar 2015) Interim Release - Theme: Ease of migration to MLJS
  - MarkLogic version 8 fixes and additions
  - IN PROGRESS NodeJS: Node.js tests for all functionality now in core MLJS
   - DONE Convert all assert usage to  assert = require('chai').assert (better exception handling)
