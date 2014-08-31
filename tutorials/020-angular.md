@@ -1,4 +1,4 @@
-[Back to All Tutorials list](tutorial-all.html)
+[Back to All Tutorials list](all.md)
 # Using MLJS with Angular.js
 
 This tutorial is for Sir Dave Cassel of Vanguard. 8o) He loves Angular.js. I've not personally played around with it too
@@ -128,4 +128,4 @@ this.$get = function($q, $http) {
 
 - - - -
 
-[Back to All Tutorials list](tutorial-all.html)
+[Back to All Tutorials list](all.md)

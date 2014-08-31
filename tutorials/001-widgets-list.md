@@ -1,4 +1,4 @@
-[Back to All Tutorials list](tutorial-all.html)
+[Back to All Tutorials list](all.md)
 # What Widgets are available?
 
 There are 23 production widgets, 6 in testing or proof of concept widgets, and 11 administrative widgets.
@@ -70,4 +70,4 @@ There are also other internal widgets used for Workplace configuration. These ar
 
 - - - -
 
-[Back to All Tutorials list](tutorial-all.html)
+[Back to All Tutorials list](all.md)

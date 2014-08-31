@@ -1,4 +1,4 @@
-[Back to All Tutorials list](tutorial-all.html)
+[Back to All Tutorials list](all.md)
 # HighCharts
 
 MarkLogic comes with the JavaScript HighCharts widget library free of charge for use with MarkLogic based applications. This
@@ -71,4 +71,4 @@ All the above series options are now visually configurable in the MLJS Workplace
 
 - - - -
 
-[Back to All Tutorials list](tutorial-all.html)
+[Back to All Tutorials list](all.md)

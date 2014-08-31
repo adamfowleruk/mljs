@@ -1,4 +1,4 @@
-[Back to All Tutorials list](tutorial-all.html)
+[Back to All Tutorials list](all.md)
 # MLJS Introduction
 
 MLJS is a JavaScript wrapper around the MarkLogic REST API in MarkLogic server versions 6 & 7. MLJS consists of
@@ -76,4 +76,4 @@ I have created in MLJS.
 
 - - - -
 
-[Back to All Tutorials list](tutorial-all.html)
+[Back to All Tutorials list](all.md)
