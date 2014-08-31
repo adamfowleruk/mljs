@@ -1,4 +1,4 @@
-[Back to All Tutorials list](tutorial-all.html)
+[Back to All Tutorials list](all.md)
 # A MarkLogic Ontology
 
 I've been working with MarkLogic 7 features a lot recently. These centre around the concept of Subjects, Predicates and Objects - triples. Examples include 'Adam knows Wendy' or 'Wendy likes Cheese'.
@@ -150,4 +150,4 @@ You also get other benefits from using PROV-O in that you can save facts about e
 
 - - - -
 
-[Back to All Tutorials list](tutorial-all.html)
+[Back to All Tutorials list](all.md)

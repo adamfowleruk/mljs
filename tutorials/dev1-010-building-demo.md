@@ -6,5 +6,5 @@ There will be a competition at the end (Demo Jam!) where you can win a Fantastic
 
 - - - -
 
-[Course Home Page](tutorial-dev1-001-overview.html) | 
-[Next - 11. Demo Jam](tutorial-dev1-011-demo-jam.html)
+[Course Home Page](dev1-001-overview.md) | 
+[Next - 11. Demo Jam](dev1-011-demo-jam.md)

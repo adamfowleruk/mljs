@@ -1,4 +1,4 @@
-[Back to All Tutorials list](tutorial-all.html)
+[Back to All Tutorials list](all.md)
 # Installing the MLJS Samples App
 
 ## Using the MLJS Workplace app
@@ -43,4 +43,4 @@ Once this returns 'Done' you will be able to visit any of the sample pages using
 
 - - - -
 
-[Back to All Tutorials list](tutorial-all.html)
+[Back to All Tutorials list](all.md)

@@ -9,5 +9,5 @@ Grab some food, then if you're eager to carry on:-
 
 - - - -
 
-[Course Home Page](tutorial-dev1-001-overview.html) | 
-[Next - 9. Blending MLJS](tutorial-dev1-009-blending-mljs.html)
+[Course Home Page](dev1-001-overview.md) | 
+[Next - 9. Blending MLJS](dev1-009-blending-mljs.md)

@@ -6,4 +6,4 @@ Time for a swift pint at the Union Square bar in Paddington, me thinks.
 
 - - - -
 
-[Course Home Page](tutorial-dev1-001-overview.html)
+[Course Home Page](dev1-001-overview.md)

@@ -1,4 +1,4 @@
-[Back to All Tutorials list](tutorial-all.html)
+[Back to All Tutorials list](all.md)
 # Your first MLJS search page
 
 This tutorial describes how to create an MLJS powered page from scratch.
@@ -123,4 +123,4 @@ You now have a working MLJS Search page! Type in any phrase to find documents on
 
 - - - -
 
-[Back to All Tutorials list](tutorial-all.html)
+[Back to All Tutorials list](all.md)
