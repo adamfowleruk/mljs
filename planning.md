@@ -55,6 +55,7 @@ Targets of opportunity (non timed)
   - BUG MAJOR REST API ignoring collection parameter when POST ing search (and likely other query string params) - make this a query parameter when using post
    - Check with 7.0-3 that this has been fixed - may not need to fix this in MLJS
   - BUG if doing 'text sender:"@something"' it fails. If doing 'text' its fine, if 'sender:"@something"' its fine
+  - BUG failure.png not in app-workplace
  - Workplace app fixes
   - Windows batch files for mljs webserver app and settings (David Lee)
   - TEST custom renderers in searchresults - com.marklogic.widgets.searchresultsext.NAME.customrenderers = {};
@@ -97,6 +98,7 @@ Targets of opportunity (non timed)
   - Share workplace via URL
    - Add this to My Workplaces option on non-owned workplace page load
   - Edit limited to owner of workplace
+ - Widget: Allow disabling camelcase processing on facet names and facet values for search facets widget as config options (PK)
 
 Targets for 1.7 (Aug 2014) - Theme: External WebServer and Alerting
  - MLJS Web Server and Alert Server

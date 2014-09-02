@@ -1218,7 +1218,7 @@ com.marklogic.widgets.searchresults = function(container) {
   if (undefined != custom) {
     for (var name in custom) {
       var cust = custom[name];
-      if (undefined != cust.customerrenderers) {
+      if (undefined != cust.customrenderers) {
         var renderers = cust.customrenderers;
         for (var ren in renderers) {
           this.processors[ren] = renderers[ren]; // copy over in to this object - and custom in code will be added/overridden on top
