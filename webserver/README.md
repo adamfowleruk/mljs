@@ -17,6 +17,18 @@ the dist/app-<myapp>.tar.gz or zip file before proceeding.*
 
 This will give you the runtime files and the npm utility for installing modules.
 
+
+## Installing dependencies
+
+Also install the following modules using these commands:-
+
+1. cd dist/<myappname> (Or the folder you have unzipped your app in to - the one that contains this README.md file)
+2. npm install crypto
+3. npm install underscore
+4. npm install restify
+5. npm install url
+6. npm install websocket
+
 ## Install MLJS
 
 There are two options for installing MLJS - the latest stable version, or the in progress DEV branch. If you are in
@@ -29,8 +41,8 @@ Choose ONE route only.
 
 The preferred route:-
 
-1. sudo npm install -g mljs
-2. When prompted, enter your administrator password
+1. cd dist/<myappname> (Or the folder you have unzipped your app in to - the one that contains this README.md file)
+2. npm install mljs
 
 ### Route B: Latest development MLJS
 
@@ -40,17 +52,6 @@ Useful if in pre-sales and wanting the latest features
 2. run sudo npm link
 3. cd to the folder containing this README file (with the run-webserver.sh file in)
 4. run npm link mljs here
-
-## Installing dependencies
-
-Also install the following modules using these commands:-
-
-1. cd dist/<myappname> (Or the folder you have unzipped your app in to - the one that contains this README.md file)
-2. npm install crypto
-3. npm install underscore
-4. npm install restify
-5. npm install url
-6. npm install websocket
 
 ## Configure options for your environment
 

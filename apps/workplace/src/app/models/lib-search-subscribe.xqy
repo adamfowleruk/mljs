@@ -15,18 +15,18 @@ import module namespace search = "http://marklogic.com/appservices/search"
 
 (: Specific example methods for creating the search object to be saved :)
 
-declare function ss:create-collection-search($collection as xs:string) as element(cts:query) {
+declare function ss:create-collection-search($collection as xs:string)  {
   cts:collection-query($collection)
 };
 
 (: Default search grammar :)
-declare function ss:create-basic-search($query as xs:string) as element(cts:query) {
+declare function ss:create-basic-search($query as xs:string)  {
   search:parse($query)
 };
 
 (: same as from lib-adhoc-alerts.xqy - lon/lat/radius :)
-declare function ss:create-geo-near-search($ns as xs:string,$elname as xs:string, $latattr as xs:string,$lonattr as xs:string, 
-    $lat as xs:double,$lon as xs:double, $radiusmiles as xs:double) as element(cts:query) {
+declare function ss:create-geo-near-search($ns as xs:string,$elname as xs:string, $latattr as xs:string,$lonattr as xs:string,
+    $lat as xs:double,$lon as xs:double, $radiusmiles as xs:double)  {
   cts:element-geospatial-query(fn:QName($ns,$elname),cts:circle($radiusmiles, cts:point($lat, $lon)))
 };
 
@@ -39,9 +39,10 @@ declare function ss:create-geo-near-search($ns as xs:string,$elname as xs:string
 
 (: Search persisting functions :)
 
-declare function ss:save-search($searchdoc as element(cts:query), $searchname as xs:string) as xs:string {
+declare function ss:save-search($searchdoc, $searchname as xs:string) as xs:string {
   (: use current user on app server :)
-  let $search-uri-user := fn:concat("/config/search/",xdmp:get-current-user(),"/",searchname,".xml")
+  let $search-uri-user := fn:concat("/config/search/",xdmp:get-current-user(),"/",$searchname,".xml")
+  let $l := xdmp:log($search-uri-user)
   let $result := xdmp:document-insert($search-uri-user,
     element ss:saved-search {
       attribute name {$searchname},
@@ -54,8 +55,8 @@ declare function ss:save-search($searchdoc as element(cts:query), $searchname as
   return $search-uri-user
 };
 
-declare function ss:save-shared-search($searchdoc as element(cts:query), $searchname as xs:string) as xs:string {
-  let $search-uri-shared := fn:concat("/config/search/shared/",searchname,".xml")
+declare function ss:save-shared-search($searchdoc, $searchname as xs:string) as xs:string {
+  let $search-uri-shared := fn:concat("/config/search/shared/",$searchname,".xml")
   let $result := xdmp:document-insert($search-uri-shared,
     element ss:saved-search {
       attribute name {$searchname},
@@ -77,12 +78,12 @@ declare function ss:get-shared-searches() {
 };
 
 declare function ss:delete-search($searchname) {
-  let $search-uri-user := fn:concat("/config/search/",xdmp:get-current-user(),"/",searchname,".xml")
+  let $search-uri-user := fn:concat("/config/search/",xdmp:get-current-user(),"/",$searchname,".xml")
   return xdmp:document-delete($search-uri-user)
 };
 
 declare function ss:delete-shared-search($searchname) {
-  let $search-uri-shared := fn:concat("/config/search/shared/",searchname,".xml")
+  let $search-uri-shared := fn:concat("/config/search/shared/",$searchname,".xml")
   return xdmp:document-delete($search-uri-shared)
 };
 
@@ -147,7 +148,7 @@ declare function ss:unsubscribe($searchname,$notificationurl) as xs:boolean {
 
 (: internal functions - not to be called by anything outside of this module :)
 
-(: This function intended to be called within a REST server - i.e. known DB 
+(: This function intended to be called within a REST server - i.e. known DB
  : Alert detail can be 'full' or 'snippet' which means either the full doc within the alert info container, or just the snippet information within the alert info container.
  :)
 declare function ss:do-subscribe-check($notificationurl as xs:string,$searchname as xs:string,$alert-detail as xs:string?,$content-type as xs:string?) as xs:boolean {
@@ -157,7 +158,7 @@ declare function ss:do-subscribe-check($notificationurl as xs:string,$searchname
 };
 
 declare function ss:do-add-action-rule($alert-name as xs:string,$notificationurl as xs:string,$alert-module as xs:string?,$alert-detail as xs:string,$content-type as xs:string,$searchname as xs:string,$cpf-domain as xs:string,$dbname as xs:string,$searchdoc as cts:query?) as xs:boolean {
-  
+
   let $e2 := xdmp:eval(
     fn:concat('xquery version "1.0-ml"; declare namespace my="http://marklogic.com/alerts"; import module namespace ah = "http://marklogic.com/search/subscribe" at "/modules/lib-search-subscribe.xqy";',
               'declare variable $my:alert-name as xs:string external;declare variable $my:alert-module as xs:string external;declare variable $my:dbname as xs:string external;',
@@ -199,12 +200,12 @@ declare function ss:do-subscribe($notificationurl as xs:string,$alert-module as 
 
 declare function ss:do-unsubscribe($notificationurl as xs:string,$searchname as xs:string) as xs:boolean {
   let $alert-name := fn:concat("/config/alerts/",xdmp:get-current-user(),"/",$searchname,"/",$notificationurl)
-  
+
   let $rr :=
     for $rule in alert:get-all-rules($alert-name,cts:collection-query($alert-name))
     return
       alert:rule-remove($alert-name,$rule/@id)
-  
+
   let $l := xdmp:eval(
     fn:concat('xquery version "1.0-ml"; declare namespace my="http://marklogic.com/alerts"; import module namespace ah = "http://marklogic.com/search/subscribe" at "/modules/lib-search-subscribe.xqy";',
               'import module namespace alert="http://marklogic.com/xdmp/alert" at "/MarkLogic/alert.xqy";',
@@ -226,7 +227,7 @@ declare function ss:do-unsubscribe($notificationurl as xs:string,$searchname as 
   let $d := alert:config-delete($alert-name):)
   return fn:true()
 };
- 
+
 declare function ss:create-config($notificationurl as xs:string,$searchname as xs:string) as xs:string {
   (: add alert :)
   let $alert-name := fn:concat("/config/alerts/",xdmp:get-current-user(),"/",$searchname,"/",$notificationurl)
@@ -241,10 +242,10 @@ declare function ss:create-config($notificationurl as xs:string,$searchname as x
 
 declare function ss:create-action($alert-name as xs:string,$alert-module as xs:string,$dbname as xs:string) {
   let $action := alert:make-action(
-      fn:concat($alert-name,"-action"), 
+      fn:concat($alert-name,"-action"),
       "Act on new document",
       xdmp:database($dbname),
-      "/", 
+      "/",
       $alert-module,
       <alert:options></alert:options> )
   return alert:action-insert($alert-name, $action)
@@ -256,7 +257,7 @@ declare function ss:create-rule($alert-name as xs:string,$alert-detail as xs:str
   let $searchdoc := if ($searchdoc) then $searchdoc else cts:search(fn:collection("saved-search"),cts:directory-query("/config/search/shared/","1"))/ss:saved-search
   :)
   let $rule := alert:make-rule(
-      fn:concat($alert-name,"-rule"), 
+      fn:concat($alert-name,"-rule"),
       $notificationurl,
       0, (: equivalent to xdmp:user(xdmp:get-current-user()) :)
       $searchdoc,

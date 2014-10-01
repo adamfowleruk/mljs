@@ -2884,17 +2884,22 @@ mljs.prototype.saveBasicSearch = function(searchname,shared,query,callback_opt) 
 };
 
 mljs.prototype._doSaveBasicSearch = function(searchname,shared,query,createmode,notificationurl,callback_opt) {
-  var url = "/v1/resources/subscribe?notificationurl=" + encodeURI(notificationurl) + "&format=json&searchname=" + encodeURI(searchname) +
+  var url = "/v1/resources/subscribe?format=json&searchname=" + encodeURI(searchname) +
     "&create=" + encodeURI(createmode) + "&shared=" + encodeURI(shared) + "&query=" + encodeURI(query) + "&querytype=basic";
   if ("both" == createmode) {
     url += "&notificationurl=" + encodeURI(notificationurl);
   }
+  var doc = {
+    notificationurl: notificationurl,format:"json",searchname: searchname,create: createmode,shared:shared,query:query,
+    querytype: "basic"
+  };
 
   var options = {
     path: url,
-    method: "PUT"
+    method: "PUT",
+    contentType: "application/json"
   };
-  this.__doreq("SAVEBASICSEARCH",options,null,callback_opt);
+  this.__doreq("SAVEBASICSEARCH",options,doc,callback_opt);
 };
 
 /**
@@ -2913,17 +2918,22 @@ mljs.prototype.saveCollectionSearch = function(searchname,shared,collection,call
 };
 
 mljs.prototype._doSaveCollectionSearch = function(searchname,shared,collection,createmode,notificationurl,callback_opt) {
-  var url = "/v1/resources/subscribe?notificationurl=" + encodeURI(notificationurl) + "&format=json&searchname=" + encodeURI(searchname) +
+  var url = "/v1/resources/subscribe?format=json&searchname=" + encodeURI(searchname) +
     "&create=" + encodeURI(createmode) + "&shared=" + encodeURI(shared) + "&collection=" + encodeURI(collection) + "&querytype=collection";
   if ("both" == createmode) {
     url += "&notificationurl=" + encodeURI(notificationurl);
   }
+  var doc = {
+    notificationurl: notificationurl,format:"json",searchname: searchname,create: createmode,shared:shared,
+    querytype: "collection",collection:collection
+  };
 
   var options = {
     path: url,
-    method: "PUT"
+    method: "PUT",
+    contentType: "application/json"
   };
-  this.__doreq("SAVECOLLECTIONSEARCH",options,null,callback_opt);
+  this.__doreq("SAVECOLLECTIONSEARCH",options,doc,callback_opt);
 };
 
 /**
@@ -2935,27 +2945,34 @@ mljs.prototype._doSaveCollectionSearch = function(searchname,shared,collection,c
  *
  * @param {string} searchname - The name of the search
  * @param {boolean} shared - If false, the current user's username is prepended to the search name with a hyphen
+ * @param {JSON} conSpec - The constraint specification JSON. E.g. {type: "element",ns: "",element: "location"}
  * @param {decimal} latitude - The WGS84 latitude for the centre of the radius search
  * @param {decimal} longitude - The WGS84 longitude for the centre of the radius search
  * @param {decimal} radius - The radius in statue (nor nautical) miles
  * @param {function} callback_opt - The optional callback to invoke after the method completes
  */
-mljs.prototype.saveGeoNearSearch = function(searchname,shared,latitude,longitude,radiusmiles,callback_opt) {
-  this._doSaveGeoNearSearch(searchname,shared,latitude,longitude,radiusmiles,"search",null,callback_opt);
+mljs.prototype.saveGeoNearSearch = function(searchname,shared,conSpec,latitude,longitude,radiusmiles,callback_opt) {
+  this._doSaveGeoNearSearch(searchname,shared,conSpec,latitude,longitude,radiusmiles,"search",null,callback_opt);
 };
 
-mljs.prototype._doSaveGeoNearSearch = function(searchname,shared,latitude,longitude,radiusmiles,createmode,notificationurl,callback_opt) {
-  var url = "/v1/resources/subscribe?notificationurl=" + encodeURI(notificationurl) + "&format=json&searchname=" + encodeURI(searchname) +
-    "&create=" + encodeURI(createmode) + "&shared=" + encodeURI(shared) + "&lat=" + encodeURI(latitude)  + "&lon=" + encodeURI(longitude)  + "&radiusmiles=" + encodeURI(radiusmiles) + "&querytype=geonear";
+mljs.prototype._doSaveGeoNearSearch = function(searchname,shared,conSpec,latitude,longitude,radiusmiles,createmode,notificationurl,callback_opt) {
+  var url = "/v1/resources/subscribe?format=json&searchname=" + encodeURI(searchname) +
+    "&create=" + encodeURI(createmode) + "&shared=" + encodeURI(shared) + "&lat=" + encodeURI(latitude)  +
+    "&lon=" + encodeURI(longitude)  + "&radiusmiles=" + encodeURI(radiusmiles) + "&querytype=geonear";
   if ("both" == createmode) {
     url += "&notificationurl=" + encodeURI(notificationurl);
   }
+  var doc = {
+    notificationurl: notificationurl,format:"json",searchname: searchname,create: createmode,shared:shared,
+    querytype: "geonear",lat:latitude,lon:longitude,radiusmiles:radiusmiles, constraint: conSpec
+  };
 
   var options = {
     path: url,
-    method: "PUT"
+    method: "PUT",
+    contentType: "application/json"
   };
-  this.__doreq("SAVEGEONEARSEARCH",options,null,callback_opt);
+  this.__doreq("SAVEGEONEARSEARCH",options,doc,callback_opt);
 };
 
 /**
@@ -2979,12 +2996,17 @@ mljs.prototype._doSaveExistingSearch = function(searchname,shared,searchdocuri,c
   if ("both" == createmode) {
     url += "&notificationurl=" + encodeURI(notificationurl);
   }
+  var doc = {
+    notificationurl: notificationurl,format:"json",searchname: searchname,create: createmode,shared:shared,
+    querytype: "uri",searchdocuri:searchdocuri
+  };
 
   var options = {
     path: url,
-    method: "PUT"
+    method: "PUT",
+    contentType: "application/json"
   };
-  this.__doreq("SAVEEXISTINGSEARCH",options,null,callback_opt);
+  this.__doreq("SAVEEXISTINGSEARCH",options,doc,callback_opt);
 };
 
 /*
@@ -3009,7 +3031,8 @@ mljs.prototype.subscribe = function(notificationurl,searchname,detail,contenttyp
 
   var options = {
     path: url,
-    method: "POST"
+    method: "POST",
+    contentType: "application/json"
   };
   this.__doreq("SUBSCRIBE",options,null,callback_opt);
 };

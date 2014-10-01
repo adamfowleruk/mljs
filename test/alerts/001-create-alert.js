@@ -97,6 +97,8 @@ var AlertServer = function(alertListenPort,done) {
   this.server.listen(this.port, function() {
     logger.debug((new Date()) + ' - MLJS Alert Receiving HTTP Server listening at %s', self.server.url);
   });
+
+  logger.debug("Created alert server");
 };
 
 AlertServer.prototype.close = function() {
@@ -106,7 +108,7 @@ AlertServer.prototype.close = function() {
 
   describe("#saveGeoNearSearch() registering new alert",function() {
     it("Uses rest extension",function(done) {
-      db.saveGeoNearSearch("test-geonear",true,0,0,5,function(result) {
+      db.saveGeoNearSearch("test-geonear",true,{type: "element",ns: "",element: "location"},0,0,5,function(result) {
 
 
         logger.debug("RESULT: " + JSON.stringify(result));
@@ -124,8 +126,13 @@ AlertServer.prototype.close = function() {
     it("Uses rest extension",function(done) {
       // set up server to listen for notifications
       var as = new AlertServer(9898,done);
+
+  var sleep = require('sleep');
+  sleep.sleep(10);
+
       // then subscribe
-      db.subscribe(as.server.url + "/alert/1","test-basic",{},"json",function(result) {
+      logger.debug("calling subscribe for test-basic");
+      db.subscribe(as.server.url + "/alert/1.xml","test-basic",{},"json",function(result) {
 
         logger.debug("RESULT: " + JSON.stringify(result));
         logger.debug("RESULT inError?: " + result.inError);
@@ -133,7 +140,7 @@ AlertServer.prototype.close = function() {
 
 
         // then fire
-        db.save({content:"some wibble test"},"/alerttest/basic.json",{},function(result) {
+        db.save({content:"some wibble test"},"/alerttest/basic.json",{format: "json"},function(result) {
 
 
           logger.debug("RESULT: " + JSON.stringify(result));
