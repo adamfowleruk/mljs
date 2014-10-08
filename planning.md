@@ -2,7 +2,7 @@
 
 ## Upcoming releases
 
-Tech Summit
+Real time functionality
  - Docs: Situational Awarness demo moved to Workplace based app with OOTB app config
    - Widgets: Situational Awareness: Ensure OpenLayers map supports features of existing SVG map viewer. If not then create SVG based map based on existing demo
     - Shows live map tiles feeds. Support for multiple tile layers overlapping
@@ -11,37 +11,54 @@ Tech Summit
     - Edge of screen flashing alerts for new information of importance just out of view
     - Command letter shortcuts (scroll, zoom, show/hide features)
     - Mini map to show activity just out of view (Like the game Z)
- - Widgets: OpenLayers Multiple series
  - Docs: YouTube tutorial on creating new widget and adding to Workplace using global registration
  - Docs: YouTube tutorial on Deploying Workplace app to a modules DB
  - Widgets: Create: Multiple element instances permitted
 
 Interim demo targets
- - IN PROGRESS Needed for upcoming demo
-  - Widgets: Time series Bar chart for bucketed time by date, value y series
-  - IN PROGRESS Widgets: Edit document
-   - DONE New document template
-   - DONE Create document
-   - DONE Edit XML/XHTML document string fields
-    - DONE BUG XPath not returning value for known field, so can't set content
-   - TEST Edit JSON document string fields
-   - Permissions
-   - Properties editing fixed
-   - DONE Small string
-   - DONE Large string
-   - DONE HTML string
-   - Numeric string - int / float (JavaScript limits?)
-   - Drop down for string enum
-   - Drop down for int/float/date
-   - date and time editing, with time zone
-   - DEFERRED Multiple instance elements
-   - Collection and other non-visual doc settings moved in to doccontext (from docbuilder widget)
-   - Rationalise mode settings in docbuilder
-  - Widgets: Semantic Network diagrams
-   - As circles
-   - Force directed distance initially
-   - draggable position after initial render
-   - Pick a library - d3.js OR ...
+ - DONE Widgets: page context linking to a Workplace page
+ - DONE Page configurable to route specific parameters to one or more contexts as different parameters
+ - NA Causes issues with search widget as options not loaded first - Workplace page settings allow customisation of parameter mappings
+ - DONE allow actions to use query string parameter values
+ - Core: tripleconfig
+  - Load ontology from named graph
+ - Widgets: Semantic Network diagrams
+  - As circles
+  - Force directed distance initially
+  - draggable position after initial render
+  - Pick a library - d3.js OR keylines OR other
+ - Widgets: Time series Bar chart for bucketed time by date, value y series, on its own across bottom of screen
+ - Widgets: HighCharts
+  - Update to use latest highcharts library
+  - Regression testing of highcharts library
+  - Support multiple series
+ - Widgets: Workplace
+  - Support chaining updates from one search context to another
+   - support prevention of circular updates via stack (array) mechanism
+ - Core: seriescontext
+  - DONE basic context creation
+  - identity information joining
+  - specification of series data (field named for series)
+ - Widgets: OpenLayers Multiple series
+ - Widgets: OpenLayers marker drawing working via configuration
+ - BL
+  - Widgets: OpenLayers shows image thumbnail as marker
+  - Widgets: semantic widget configuraton from owl
+  - DONE Widgets: document properties widget - get folksonomies working
+  - DEFERRED Widgets: document properties widget - get fixed ontologies (SKOS) working for property (content element) values
+  - DEFERRED Widgets: document properties widget - integrate SKOS in RDF data
+  - DEFERRED Widgets: Saved search for alerts
+  - DEFERRED Widgets: Alerting facebook like messaging popup with links to document view page, configurable
+  - DEFERRED Widgets: Semantic aggregation data source for charts
+   - DEFERRED basic functionality with aggregations
+   - DEFERRED limit results to SPARQL query (contributed)
+ - Widgets: Add HTML generation to new layouts (column there, no drop zone!)
+ - IN PROGRESS Widgets: Document properties
+  - DONE get add properties working
+  - DONE update document context for allowable properties
+  - BUG The second time you edit (add) a property, the Add button does not work - undefined html element (deleted?)
+ - DONE Widgets: Document view
+  - DONE Alter widget to support viewing generic XML, XHTML, JPG, etc.
 
 Targets of opportunity (non timed)
  - Bugs
@@ -281,6 +298,25 @@ Targets for 1.9 (Nov 2014) - Theme: Visualisations Sprint 2
   - Related content below
   - Related subjects to right
   - Navigating onward redraws, shows parent (previous) Subject above new subject of interest
+ - IN PROGRESS Widgets: Document lifecycle
+  - IN PROGRESS Widgets: Edit document
+   - DONE New document template
+   - DONE Create document
+   - DONE Edit XML/XHTML document string fields
+    - DONE BUG XPath not returning value for known field, so can't set content
+   - TEST Edit JSON document string fields
+   - Permissions
+   - Properties editing fixed
+   - DONE Small string
+   - DONE Large string
+   - DONE HTML string
+   - Numeric string - int / float (JavaScript limits?)
+   - Drop down for string enum
+   - Drop down for int/float/date
+   - date and time editing, with time zone
+   - DEFERRED Multiple instance elements
+   - Collection and other non-visual doc settings moved in to doccontext (from docbuilder widget)
+   - Rationalise mode settings in docbuilder
 
 Targets for 2.0 (Dec 2014) - Theme: Shared Application Workplace
  - Workplace additions

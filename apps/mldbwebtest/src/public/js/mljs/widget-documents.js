@@ -32,7 +32,9 @@ com.marklogic.widgets.docproperties = function(container) {
   this.documentcontext = null;
   this._properties = new Array();
 
-  this._config = {};
+  this._config = {
+    showEditControls: false
+  };
 
   this._uriHandlers = new Array();
 
@@ -47,6 +49,7 @@ com.marklogic.widgets.docproperties = function(container) {
 com.marklogic.widgets.docproperties.getConfigurationDefinition = function() {
   var self = this;
   return {
+    showEditControls: {type: "boolean", default:false, title: "Show Edit Controls", description: "Allow editing of properties. Still requires permissions."}
   };
 };
 
@@ -204,7 +207,11 @@ com.marklogic.widgets.docproperties.prototype.updateDocumentProperties = functio
   }
 
   s += "<div class='docproperties-addprop";
+  /**
   if (0 == missingProps.length) {
+    s += " hidden";
+  }*/
+  if (true !== this._config.showEditControls) {
     s += " hidden";
   }
   s += "'>Add Property: <select id='" + this.container + "-docproperties-addprop-select'>";
@@ -787,9 +794,9 @@ com.marklogic.widgets.docviewer.prototype._init = function() {
 
 
 /**
- * Loads the specified (XHTML?) document content from MarkLogic and processes it (if required) for display.
+ * Loads the specified document content from MarkLogic and processes it (if required) for display.
  *
- * @param {JSON} result - Document content to show
+ * @param {mljs.result} result - Document content to show
  */
 com.marklogic.widgets.docviewer.prototype.updateDocumentContent = function(result) {
   this.docuri = result.docuri;
@@ -800,31 +807,58 @@ com.marklogic.widgets.docviewer.prototype.updateDocumentContent = function(resul
 
   // show loading messages
   var cid = this.container + "-docviewer";
-
-  var xml = result.doc;
-
-  var s = "";
-
-  // get contents of Body tag
-  var body = xml.getElementsByTagName("body")[0];
-
-  // TODO Check to see if contents are all <div class="secure-section ...
-  //var topContent = body.childNodes;
-
-
-
-  var divs = null;
   var content = "<div class='title panel-heading docviewer-content-title'>Document Content</div>";
   content += "<div class='panel-body docviewer-content'>";
 
-  if (undefined == body) {
-    content += "<p><b>Document has no content</b></p>";
+  if ("xml" == result.format) {
+    var xml = result.doc;
+    // Turns out the REST API reports text/html for custom XML too!!! Sanity check it now.
+    var root = xml.firstChild;
+    var isXHTML = (root.nodeName == "html") && (root.namespaceURI == "http://www.w3.org/1999/xhtml");
+
+    if (0 == ("" + result.mime).indexOf("text/html") && isXHTML) {
+
+
+      var s = "";
+
+      // get contents of Body tag
+      var body = xml.getElementsByTagName("body")[0];
+
+
+      // TODO Check to see if contents are all <div class="secure-section ...
+      //var topContent = body.childNodes;
+
+      var divs = null;
+
+      if (undefined == body) {
+        content += "<p><b>Document has no content</b></p>";
+      } else {
+        content += "<div class='docviewer-content-display'>";
+        // get its content only
+        content += (new XMLSerializer()).serializeToString(body);
+        content += "</div>";
+      }
+    } else {
+      // generic XML - pretty print response somehow
+      content += com.marklogic.widgets.searchhelper.xmltohtml(result.doc);
+    }
+
+  } else if ("json" == result.format) {
+    // generic JSON - pretty print response somehow
+    content += com.marklogic.widgets.searchhelper.jsontohtml(result.doc);
+  } else if ("text" == result.format) {
+    content += result.doc;
   } else {
-    content += "<div class='docviewer-content-display'>";
-    // get its content only
-    content += (new XMLSerializer()).serializeToString(body);
-    content += "</div>";
+    // binary / unknown - download, or view as image
+    if ((0 == ("" + result.mime).indexOf("image/"))) {
+      content += "<img src='/v1/documents?uri=" + encodeURI(result.docuri) + "' />";
+    } else {
+      // binary download link
+      content += "Document is of type '" + result.mime +
+        "' - <a href='/v1/documents?uri=" + encodeURI(result.docuri) + "'>click to download</a>";
+    }
   }
+
   content += "</div>";
   document.getElementById(cid).innerHTML = content;
 

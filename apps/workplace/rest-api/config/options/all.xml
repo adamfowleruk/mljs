@@ -14,6 +14,8 @@
   <search:debug>false</search:debug>
   <search:extract-metadata>
     <search:constraint-value ref="location"/>
+    <search:constraint-value ref="lat"/>
+    <search:constraint-value ref="lon"/>
     <search:constraint-value ref="sender"/>
     <search:constraint-value ref="participant"/>
     <search:qname elem-ns="http://www.marklogic.com/intel/intercept" elem-name="extract"/>
@@ -42,6 +44,17 @@
       <search:facet-option>descending</search:facet-option>
     </search:range>
   </search:constraint>
+
+  <search:constraint name="lat">
+    <search:range type="xs:string">
+      <search:path-index xmlns:i="http://www.marklogic.com/intel/intercept">/i:intercept/i:sender/i:location/i:coords/i:lat</search:path-index>
+  </search:constraint>
+
+  <search:constraint name="lon">
+    <search:range type="xs:string">
+      <search:path-index xmlns:i="http://www.marklogic.com/intel/intercept">/i:intercept/i:sender/i:location/i:coords/i:lat</search:path-index>
+  </search:constraint>
+
   <search:constraint name="participant">
     <search:range type="xs:string" facet="true">
       <search:path-index xmlns:i="http://www.marklogic.com/intel/intercept">/i:intercept/i:participants/i:identity-ref/i:service-id</search:path-index>

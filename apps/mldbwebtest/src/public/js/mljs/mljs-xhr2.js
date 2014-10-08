@@ -97,6 +97,7 @@ b.xhr2.prototype.request = function(reqname,options,content,callback) {
       if ((undefined == resct  || "undefined" == resct) && "{" == xhr.responseText.substring(0,1)) { // strange firefox specific issue
         resct = "application/json";
       }
+      res.mime = resct;
       self.logger.debug("XHR2: Content-Type Header: " + resct);
 
       // TODO handle 304 etc responses (don't assume a non 200 is a 400/500)

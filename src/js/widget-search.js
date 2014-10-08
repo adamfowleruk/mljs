@@ -188,13 +188,50 @@ com.marklogic.widgets.searchhelper.jsontohtml = function(json) {
 };
 
 /**
- * NOT IMPLEMENTED
+ * Converts any xml to a pretty printed HTML version
+ * @param {XMLDocument} xml - The XML Document object (not string) for an XML node to display;
  */
 com.marklogic.widgets.searchhelper.xmltohtml = function(xml) {
-  // Take first text element as title, second as snippet
-  // TODO if needed - see search results logic itself for xmlDoc.evaluate
-  return "";
+  return "<code>" + com.marklogic.widgets.searchhelper._innerxmltohtml(xml.firstChild, "", null) + "</code>";
 };
+
+com.marklogic.widgets.searchhelper._innerxmltohtml = function(node,indentstring,parent) {
+  var s = "";
+  if ("#text" == node.nodeName) {
+    return node.textContent;
+  }
+  s += indentstring + "&lt;" + node.nodeName;
+  // handle attributes too
+  for (var a = 0,maxa = node.attributes.length,attr;a < maxa;a++) {
+    attr = node.attributes[a];
+    if (-1 == attr.name.indexOf("xmlns")) {
+      // an actual attribute rather than namespace definition (We're handling those separately)
+      s += " " + attr.name + "=\"" + attr.nodeValue + "\"";
+    }
+  }
+  // check for change in namespace
+  if (null != parent && parent.namespaceURI != node.namespaceURI) {
+    s += " xmlns=\"" + node.namespaceURI + "\"";
+  }
+  s += "&gt;";
+  var newindent = indentstring + "&nbsp;";
+  var needNewLine = false;
+  for (var n = 0,maxn = node.childNodes.length,child;n < maxn;n++) {
+    child = node.childNodes[n];
+    var cs = com.marklogic.widgets.searchhelper._innerxmltohtml(child,newindent,node);
+    if (0 == cs.indexOf(newindent + "&lt;")) { // child is a node not text
+      s += "<br/>";
+      needNewLine = true;
+    }
+    s += cs;
+  }
+  if (needNewLine) {
+    s += "<br/>" + indentstring;
+  }
+  s += "&lt;/" + node.nodeName + "&gt;";
+  return s;
+};
+
 /*
 com.marklogic.widgets.searchhelper.htmlRec = function(content) {
     var resStr = "";
@@ -863,12 +900,14 @@ com.marklogic.widgets.searchfacets.prototype._refresh = function() {
   var self = this;
   var fname = function(name) {
     var opts = self.ctx.getOptions();
-    var annotation = opts._findConstraint(name).annotation;
-    if (undefined == annotation) {
-      return self._transformFacetName(name);
-    } else {
-      return annotation[0];
-    }
+//    if (undefined != opts && "" != opts) {
+      var annotation = opts._findConstraint(name).annotation;
+      if (undefined == annotation) {
+        return self._transformFacetName(name);
+      } else {
+        return annotation[0];
+      }
+  //  }
   };
 
   // draw selected facets and deselectors

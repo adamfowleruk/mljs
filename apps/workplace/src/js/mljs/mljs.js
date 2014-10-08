@@ -617,6 +617,16 @@ var m = mljs;
 // CONFIG METHODS
 
 /**
+ * MLJS REST result wrapper object
+ * @typedef {Object} mljs.result - The MLJS Result wrapper object
+ * @property {Object} doc - The document returned, if applicable. XMLDocument or JSON object instance, or text for text docs only
+ * @property {boolean} inError - Whether the call returned an error condition
+ * @property {string} statusCode - The HTTP response code - normally numeric, but some http servers return dot-codes
+ * @property {string} format - The high level format of the response, can be XML, json, text, or binary
+ * @property {string} mime - The MIME content type returned in the content type header of the response
+ */
+
+/**
  * Provide configuration information to this database. This is merged with the defaults.
  *
  * @param {JSON} dboptions - The DB Options to merge with the default options for this connection.
@@ -2884,17 +2894,22 @@ mljs.prototype.saveBasicSearch = function(searchname,shared,query,callback_opt) 
 };
 
 mljs.prototype._doSaveBasicSearch = function(searchname,shared,query,createmode,notificationurl,callback_opt) {
-  var url = "/v1/resources/subscribe?notificationurl=" + encodeURI(notificationurl) + "&format=json&searchname=" + encodeURI(searchname) +
+  var url = "/v1/resources/subscribe?format=json&searchname=" + encodeURI(searchname) +
     "&create=" + encodeURI(createmode) + "&shared=" + encodeURI(shared) + "&query=" + encodeURI(query) + "&querytype=basic";
   if ("both" == createmode) {
     url += "&notificationurl=" + encodeURI(notificationurl);
   }
+  var doc = {
+    notificationurl: notificationurl,format:"json",searchname: searchname,create: createmode,shared:shared,query:query,
+    querytype: "basic"
+  };
 
   var options = {
     path: url,
-    method: "PUT"
+    method: "PUT",
+    contentType: "application/json"
   };
-  this.__doreq("SAVEBASICSEARCH",options,null,callback_opt);
+  this.__doreq("SAVEBASICSEARCH",options,doc,callback_opt);
 };
 
 /**
@@ -2913,17 +2928,22 @@ mljs.prototype.saveCollectionSearch = function(searchname,shared,collection,call
 };
 
 mljs.prototype._doSaveCollectionSearch = function(searchname,shared,collection,createmode,notificationurl,callback_opt) {
-  var url = "/v1/resources/subscribe?notificationurl=" + encodeURI(notificationurl) + "&format=json&searchname=" + encodeURI(searchname) +
+  var url = "/v1/resources/subscribe?format=json&searchname=" + encodeURI(searchname) +
     "&create=" + encodeURI(createmode) + "&shared=" + encodeURI(shared) + "&collection=" + encodeURI(collection) + "&querytype=collection";
   if ("both" == createmode) {
     url += "&notificationurl=" + encodeURI(notificationurl);
   }
+  var doc = {
+    notificationurl: notificationurl,format:"json",searchname: searchname,create: createmode,shared:shared,
+    querytype: "collection",collection:collection
+  };
 
   var options = {
     path: url,
-    method: "PUT"
+    method: "PUT",
+    contentType: "application/json"
   };
-  this.__doreq("SAVECOLLECTIONSEARCH",options,null,callback_opt);
+  this.__doreq("SAVECOLLECTIONSEARCH",options,doc,callback_opt);
 };
 
 /**
@@ -2935,27 +2955,34 @@ mljs.prototype._doSaveCollectionSearch = function(searchname,shared,collection,c
  *
  * @param {string} searchname - The name of the search
  * @param {boolean} shared - If false, the current user's username is prepended to the search name with a hyphen
+ * @param {JSON} conSpec - The constraint specification JSON. E.g. {type: "element",ns: "",element: "location"}
  * @param {decimal} latitude - The WGS84 latitude for the centre of the radius search
  * @param {decimal} longitude - The WGS84 longitude for the centre of the radius search
  * @param {decimal} radius - The radius in statue (nor nautical) miles
  * @param {function} callback_opt - The optional callback to invoke after the method completes
  */
-mljs.prototype.saveGeoNearSearch = function(searchname,shared,latitude,longitude,radiusmiles,callback_opt) {
-  this._doSaveGeoNearSearch(searchname,shared,latitude,longitude,radiusmiles,"search",null,callback_opt);
+mljs.prototype.saveGeoNearSearch = function(searchname,shared,conSpec,latitude,longitude,radiusmiles,callback_opt) {
+  this._doSaveGeoNearSearch(searchname,shared,conSpec,latitude,longitude,radiusmiles,"search",null,callback_opt);
 };
 
-mljs.prototype._doSaveGeoNearSearch = function(searchname,shared,latitude,longitude,radiusmiles,createmode,notificationurl,callback_opt) {
-  var url = "/v1/resources/subscribe?notificationurl=" + encodeURI(notificationurl) + "&format=json&searchname=" + encodeURI(searchname) +
-    "&create=" + encodeURI(createmode) + "&shared=" + encodeURI(shared) + "&lat=" + encodeURI(latitude)  + "&lon=" + encodeURI(longitude)  + "&radiusmiles=" + encodeURI(radiusmiles) + "&querytype=geonear";
+mljs.prototype._doSaveGeoNearSearch = function(searchname,shared,conSpec,latitude,longitude,radiusmiles,createmode,notificationurl,callback_opt) {
+  var url = "/v1/resources/subscribe?format=json&searchname=" + encodeURI(searchname) +
+    "&create=" + encodeURI(createmode) + "&shared=" + encodeURI(shared) + "&lat=" + encodeURI(latitude)  +
+    "&lon=" + encodeURI(longitude)  + "&radiusmiles=" + encodeURI(radiusmiles) + "&querytype=geonear";
   if ("both" == createmode) {
     url += "&notificationurl=" + encodeURI(notificationurl);
   }
+  var doc = {
+    notificationurl: notificationurl,format:"json",searchname: searchname,create: createmode,shared:shared,
+    querytype: "geonear",lat:latitude,lon:longitude,radiusmiles:radiusmiles, constraint: conSpec
+  };
 
   var options = {
     path: url,
-    method: "PUT"
+    method: "PUT",
+    contentType: "application/json"
   };
-  this.__doreq("SAVEGEONEARSEARCH",options,null,callback_opt);
+  this.__doreq("SAVEGEONEARSEARCH",options,doc,callback_opt);
 };
 
 /**
@@ -2979,12 +3006,17 @@ mljs.prototype._doSaveExistingSearch = function(searchname,shared,searchdocuri,c
   if ("both" == createmode) {
     url += "&notificationurl=" + encodeURI(notificationurl);
   }
+  var doc = {
+    notificationurl: notificationurl,format:"json",searchname: searchname,create: createmode,shared:shared,
+    querytype: "uri",searchdocuri:searchdocuri
+  };
 
   var options = {
     path: url,
-    method: "PUT"
+    method: "PUT",
+    contentType: "application/json"
   };
-  this.__doreq("SAVEEXISTINGSEARCH",options,null,callback_opt);
+  this.__doreq("SAVEEXISTINGSEARCH",options,doc,callback_opt);
 };
 
 /*
@@ -3009,7 +3041,8 @@ mljs.prototype.subscribe = function(notificationurl,searchname,detail,contenttyp
 
   var options = {
     path: url,
-    method: "POST"
+    method: "POST",
+    contentType: "application/json"
   };
   this.__doreq("SUBSCRIBE",options,null,callback_opt);
 };
@@ -8655,12 +8688,13 @@ mljs.prototype.documentcontext = function() {
   this._highlighted = null; // docuri
   this._selected = null; // docuri
 
-  this._allowableProperties = new Array(); // [{name: "keyword",title: "Keyword", cardinality: 1 | "*"}, ... ]
-
   this._config = {
     template: {title: "Some title",content: "Some content"},
-    uriPattern: null // means decided by server entirely
-  }; // TODO update Configuration to include these, and refactor allowableProperties in to this
+    uriPattern: null, // means decided by server entirely
+    allowableProperties: [
+      {name: "tag",namespace: "", title: "Tag",parentName: "tags",parentNamespace: "",type: "element", cardinality: "*"}
+    ]
+  };
 
   this._constructed = null; // holds the content of the document being constructed/edited
   this._properties = new Array(); // [{property: "" OR element: "", namespaces: [], content: ""}, ...]
@@ -8681,17 +8715,35 @@ mljs.prototype.documentcontext = function() {
  */
 mljs.prototype.documentcontext.getConfigurationDefinition = function() {
   return {
-    allowableProperties: {type: "multiple", minimum: 0, default: [], title: "Allowable Properties", description: "Properties to allow (none listed means all allowed)",
+    allowableProperties: {type: "multiple", minimum: 0, default: [
+      {name: "tag",namespace: "", parentName: "tags",parentNamespace: "",type: "element", cardinality: "*"}
+    ], title: "Allowable Properties", description: "Properties to allow adding/editing of.",
       childDefinitions: {
-        name: {type: "string", default: "", title: "Property Name", description: "RDF full name of the property"},
+        name: {type: "string", default: "tag", title: "Name", description: "Element or attribute name of the property."},
+        namespace: {type: "string", default: "", title: "Namespace", description: "XML namespace of element or attribute."},
         title: {type: "string", default: "", title: "Property Title", description: "Human readable property title"},
-        cardinality: {type: "enum", default: "1", title: "Cardinality", description: "How many instances are possible",
+        parentName: {type: "string", default: "tags", title: "Parent Name", description: "Name of the parent element of this property."},
+        parentNamespace: {type: "string", default: "", title: "Parent Namespace", description: "XML namespace of the parent of the element or attribute."},
+        type: {type: "enum", default: "element", title: "Type", description: "Type of property",
           options: [
-            {value: "1", title: "One", description: "Maximum of a single instance only"},
-            {value: "*", title: "Many", description: "No maximum"}
+            {value: "element", title: "Element", description: "XML Element"},
+            {value: "attribute", title: "Attribute", description: "XML Attribute"},
+            {value: "property", title: "Property", description: "JSON Property"}
+          ]
+        },
+        cardinality: {type:"enum",default:"1",title:"Cardinality", description: "Number of instances to allow",
+          options: [
+            {value: "1",title:"1",description:"One instance only"},
+            {value: "*",title:"*",description:"Multiple instances"}
           ]
         }
-
+        /*,
+        source: {type: "enum", default: "none", title: "Source", description: "Where to list potential options from.",
+          options: [
+            {value: "none", title: "None", description: "A static text field."},
+            {value: "lexicon", title: "Lexicon", description: "The lexicon associated with the field."}
+          ]
+        }*/
       }
     }
   };
@@ -8704,16 +8756,22 @@ mljs.prototype.documentcontext.getConfigurationDefinition = function() {
  * @param {JSON} config - The JSON configuration of this context.
  */
 mljs.prototype.documentcontext.prototype.setConfiguration = function(config) {
-  this._allowableProperties = new Array();
+  for (var prop in config) {
+    this._config[prop] = config[prop];
+  }
+  /*
+
+  this._config.allowableProperties = new Array();
   var props = config.allowableProperties;
   if (null != props) {
     for (var p, maxp = props.legth,prop;p < maxp;p++) {
       prop = props[p];
       if (undefined != prop) { // array could have been modified. Sanity check only.
-        this._allowableProperties.push(prop);
+        this._config.allowableProperties.push(prop);
       }
     }
   }
+  */
 };
 
 /**
@@ -8722,7 +8780,7 @@ mljs.prototype.documentcontext.prototype.setConfiguration = function(config) {
  * @param {json} json - The properties JSON to use - [{name: "keyword",title: "Keyword", cardinality: 1 | "*"}, ... ]
  */
 mljs.prototype.documentcontext.prototype.addAllowableProperty = function(json) {
-  this._allowableProperties.push(json);
+  this._config.allowableProperties.push(json);
 };
 
 /**
@@ -8732,8 +8790,8 @@ mljs.prototype.documentcontext.prototype.addAllowableProperty = function(json) {
  * @return {json} propertyJson - The available property JSON configuration
  */
 mljs.prototype.documentcontext.prototype.getAllowableProperty = function(propname) {
-  for (var i = 0, max = this._allowableProperties.length,prop;i < max;i++) {
-    prop = this._allowableProperties[i];
+  for (var i = 0, max = this._config.allowableProperties.length,prop;i < max;i++) {
+    prop = this._config.allowableProperties[i];
     if (prop.name == propname) {
       return prop;
     }
@@ -8747,7 +8805,7 @@ mljs.prototype.documentcontext.prototype.getAllowableProperty = function(propnam
  * @return {Array} properties - An Array of allowable properties JSON objects
  */
 mljs.prototype.documentcontext.prototype.getAllowableProperties = function() {
-  return this._allowableProperties;
+  return this._config.allowableProperties;
 };
 
 /**
@@ -8823,13 +8881,17 @@ mljs.prototype.documentcontext.prototype.select = function(docuri) {
 mljs.prototype.documentcontext.prototype.getContent = function(docuri) {
   var self = this;
 
+  if (undefined == docuri || ""==docuri || "string"!==typeof(docuri)) {
+    return;
+  }
+
   this.db.get(docuri,function(result) {
     if (result.inError) {
       self._errorPublisher.publish(result.detail);
     } else {
       this._constructed = result.doc;
       this._uri = docuri;
-      self._contentPublisher.publish({docuri: docuri, doc: result.doc});
+      self._contentPublisher.publish(result);
     }
   });
 };
@@ -8841,6 +8903,10 @@ mljs.prototype.documentcontext.prototype.getContent = function(docuri) {
  */
 mljs.prototype.documentcontext.prototype.getProperties = function(docuri) {
   var self = this;
+
+  if (undefined == docuri || ""==docuri || "string"!==typeof(docuri)) {
+    return;
+  }
 
   this.db.properties(docuri,function(result) {
     if (result.inError) {
@@ -8892,6 +8958,9 @@ mljs.prototype.documentcontext.prototype.patchProperty = function(docuri,propert
  * @param {string} optionsName - The pre saved options configuration to use
  */
 mljs.prototype.documentcontext.prototype.getFacets = function(docuri,optionsName) {
+  if (undefined == docuri || ""==docuri || "string"!==typeof(docuri)) {
+    return;
+  }
   // perform a search but just for a single document (uri constraint) in order to load all its facets that are relevant for the interested object/widget
   var b = this.db.createQuery();
   b.query(b.uris("uriconstraint",docuri));
@@ -9640,41 +9709,125 @@ mljs.prototype.seriescontext = function() {
   this.TYPE_COOCCURENCE              = 4;
   this.TYPE_TRIPLES                  = 5;
 
-  this._series = {}; // name => {}
+  this._config = {
+    series: [],
+    defaultCategory: "", // "county"
+    defaultIdentity: "" // "city"
+  };
+
+  this._seriesInfo = {}; // seriesName -> {data: [], listener: lisFunc}
+
+  this._joined = []; // joined data merged from multiple series - {identity: "Derby", fields: {high: 28, low: 18, county: "Derbyshire"}}
+
+  this._data = [] // {category: "Derbyshire", identity: "Derby", fields: {high: 28, low: 18} } // may have one blank category, or several named
+  this._fields = []; // "city", "county", "high", "low"
+  this._category = this._config.defaultCategory;
+  this._identity = this._config.defaultIdentity;
 
   this._dataUpdatePublisher = new com.marklogic.events.Publisher();
 };
 
+mljs.prototype.seriescontext.prototype._findSeries = function(seriesName) {
+  for (var s in this._seriesInfo) {
+    var series = this._seriesInfo[s];
+    if (s == seriesName) {
+      return series;
+    }
+  }
+  var ser = {data: [],listener: null};
+  this._seriesInfo[seriesName] = ser;
+  return ser;
+};
+
+mljs.prototype.seriescontext.prototype.recategorise = function(fieldName) {
+  // reprocess all data using the new category field name
+  this._category = fieldName;
+  this._process();
+};
+
+mljs.prototype.seriescontext.prototype._join = function() {
+  // join data from series
+  var data = []; // {identity: "Derby", fields: {high:28, low: 18}}
+  var find = function(identity) {
+    for (var i = 0, maxi = data.length,row;i < maxi;i++) {
+      row = data[i];
+      if (row.identity == identity) {
+        return row;
+      }
+    }
+    var r = {identity: identity, fields: {}};
+    data.push(row);
+    return row;
+  };
+
+  // loop over every series
+  for (var s = 0,maxs = this._config.series.length,seriesName,series;s < maxs;s++) {
+    seriesName = this._config.series[s].name;
+    series = this._findSeries(seriesName);
+    // for every data item, find the identity row
+    for (var d = 0,maxd = series.data.length,seriesData;d < maxd;d++) {
+      seriesData = series.data[d]; // just a list of fields
+      // get identity field value
+      var identity = seriesData[series.titleSource];
+      if (undefined == identity) {
+        identity = ""; // valid
+      }
+      // copy over fields
+      var row = find(identity);
+      for (var field in seriesData) {
+        row[field] = seriesData[field];
+      }
+    }
+  }
+
+  this._joined = data;
+
+  // process data
+  this._process();
+};
+
+mljs.prototype.seriescontext.prototype._process = function() {
+  // loop through already joined data
+  // split out by category (if applicable)
+  if ("" == this._category) {
+    // shortcut and just copy data over, no evaluation of category value
+  }
+  // update data field
+  // fire data updated event
+};
+
 mljs.prototype.seriescontext.prototype.addSeries = function(name,type,sourceContext,titleSourceType,
   titleSource,categorySourceType,categorySource,valueSourceType,valueSource) {
-  this._series[name] = {
+  var series =  {
     name: name, type: type,sourceContext: sourceContext,titleSourceType: titleSourceType,
-    titleSource: titleSource,categorySourceType: categorySourceType,valueSourceType:valueSourceType,
-    valueSource:valueSource
+    titleSource: titleSource,categorySourceType: categorySourceType,valueSourceType: valueSourceType,
+    valueSource: valueSource,
+    data: [] // {city: "Derby", county: "Derbyshire", high:28, low:18}
   };
+  this._config.series.push(series);
   // set up listeners
   var self = this;
   if (this._TYPE_RESULTS_DOCUMENT_FACETS == type) {
-    this._series[name].listener = {
+    series.listener = {
       updateResults: function(results) {
-        self._updateResultsFacets(self._series[name],results);
+        self._updateResultsFacets(series,results);
       }
     };
-    sourceContext.register(this._series[name].listener);
-  }else if (this._TYPE_RESULTS_DOCUMENT_CONTENT == type) {
-    this._series[name].listener = {
+    sourceContext.register(series[name].listener);
+  } else if (this._TYPE_RESULTS_DOCUMENT_CONTENT == type) {
+    series.listener = {
       updateResults: function(results) {
-        self._updateResultsContent(self._series[name],results);
+        self._updateResultsContent(series,results);
       }
     };
-    sourceContext.register(this._series[name].listener);
+    sourceContext.register(series[name].listener);
   } else if (this._TYPE_COOCCURENCE == type) {
-    this._series[name].listener = {
+    series.listener = {
       updateValues: function(results) {
-        self._updateValuesCooccurence(self._series[name],results);
+        self._updateValuesCooccurence(series,results);
       }
     };
-    sourceContext.register(this._series[name].listener);
+    sourceContext.register(series.listener);
   } else {
     // TODO other source types
   }
@@ -9689,11 +9842,13 @@ mljs.prototype.seriescontext.prototype._updateResultsFacets = function(series,re
 };
 
 mljs.prototype.seriescontext.prototype._updateResultsContent = function(series,results) {
-
+ // process extracted fields first
+ // then process in-content fields
 };
 
 mljs.prototype.seriescontext.prototype._updateValuesCooccurence = function(series,results) {
 
+  this._join();
 };
 
 mljs.prototype.seriescontext.prototype.register = function(widget) {

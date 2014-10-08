@@ -39,6 +39,8 @@ com.marklogic.widgets.workplace = function(container) {
 
   this._workplaceContext = new com.marklogic.widgets.workplacecontext();
 
+  this._loadedPublisher = new com.marklogic.events.Publisher();
+
   this._init();
 
   this._workplaceContext.register(this);
@@ -107,8 +109,16 @@ com.marklogic.widgets.workplace.prototype.loadPage = function(jsonOrString,json_
 };
 
 // configuration context methods
-com.marklogic.widgets.workplace.getInstance = function(instanceName) {
+com.marklogic.widgets.workplace.prototype.getInstance = function(instanceName) {
   return this._widgets[instanceName] || this._contexts[instanceName];
+};
+
+com.marklogic.widgets.workplace.prototype.addPageLoadedListener = function(lis) {
+  this._loadedPublisher.subscribe(lis);
+};
+
+com.marklogic.widgets.workplace.prototype.removePageLoadedListener = function(lis) {
+  this._loadedPublisher.unsubscribe(lis);
 };
 
 /**
@@ -218,6 +228,8 @@ mljs.defaultconnection.logger.debug("workplace.updateWorkplace: UPDATING PAGE");
   }
 
   mljs.defaultconnection.logger.debug("workplace.updateWorkplace: finished loading page");
+
+  this._loadedPublisher.publish(this._workplaceContext);
 };
 
 /**
@@ -1153,7 +1165,20 @@ com.marklogic.widgets.actions.javascript.prototype.execute = function(executionC
   var params = [];
   for (var p = 0,maxp = this._config.parameters.length,par;p < maxp;p++) {
     par = this._config.parameters[p];
-    params.push(par.value); // TODO type conversion based on par.type
+    var parValue = null;
+    if ("string" == par.type) {
+      parValue = par.value;
+    } else if ("number" == par.type) {
+      parValue = 1 * par.value;
+    } else if ("null" == par.type) {
+      parValue = null;
+    } else if ("queryStringParameter" == par.type) {
+      var ins = com.marklogic.widgets.pagecontext.instance;
+      if (undefined != ins) {
+        parValue = ins.getParameter(par.value);
+      }
+    }
+    params.push(parValue);
   }
 
   var result = func.apply(obj,params); // support parameters
@@ -2784,6 +2809,9 @@ com.marklogic.widgets.workplaceadmin.prototype._addClassToZone = function(widget
   var json = this._workplaceContext.getJson();
   for (var c = 0,maxc = json.contexts.length,ctx;c < maxc;c++) {
     ctx = json.contexts[c];
+    if (undefined == ctx.register) {
+      ctx.register = new Array();
+    }
     if (!ctx.register.contains(widget.widget)) {
       ctx.register.push(widget.widget);
     }
@@ -3685,7 +3713,7 @@ com.marklogic.widgets.configwrapper.prototype._genConfigHTMLConf = function(json
 
 
   } else if ("jstype" == d.type) {
-    var instances = ["null","string","number","instance"];
+    var instances = ["null","string","number","instance","queryStringParameter"];
 
           addtitle();
           var val = c;
@@ -4100,7 +4128,7 @@ com.marklogic.widgets.actioncreator.prototype._init = function() {
       // do nothing? show message?
     } else {
       var name = classInstance + "." + funcName; // TODO add an extra number on the end to differentiate same method call (why would there be multiple? series add?)
-      var json = {type: "javascript", action: name, config: {target: classInstance, method: funcName ,parameters:[]}};
+      var json = {type: "javascript", action: name, config: {target: classInstance, method: funcName, parameters:[]}};
       self._newActionPublisher.publish(json);
     }
     evt.stopPropagation();
@@ -4588,22 +4616,49 @@ com.marklogic.widgets.workplacepagelist.prototype.updateMyPages = function(pages
 com.marklogic.widgets.pagecontext = function() {
   this._workplaceContext = null;
   this._workplaceWidget = null;
-  this._config = {
+
+  this._params = null; // lazy parse loading
+
+  // new structure:-
+  this._defaultConfig = {
     mappings: {
-      docuri: {querystring: "docuri", targets: [
-        {class: "DocumentContext", method: "getContent", index: 1},
-        {class: "DocumentContext", method: "getProperties", index: 1}
-      ]},
+      /*
       iri: {querystring: "iri", targets: [
-        {class: "SemanticContext", method: "subjectFacts", index: 1},
-        {class: "com.marklogic.widgets.graphexplorer", method: "drawSubject", index: 1} // TODO have focusSubject setting & update event on semantic context
-      ]},
-      q: {querystring: "q", targets: [{class: "SearchContext", method: "doSimpleQuery", index: 1}]},
-      lat: {querystring: "lat", targets: [{class: "GeoContext", method: "homeRadius", index: 1}]},
-      lon: {querystring: "lon", targets: [{class: "GeoContext", method: "homeRadius", index: 2}]},
-      radius: {querystring: "radius", targets: [{class: "GeoContext", method: "homeRadius", index: 3}]}
-    }
-  }
+        {class: "com.marklogic.widgets.graphexplorer"} // TODO have focusSubject setting & update event on semantic context
+      ]}
+      */
+    },
+    calls : [
+    /*
+      {title: "Perform simple text query", target: {class: "SearchContext", method: "doSimpleQuery", params: [
+        {querystring: "q", required: false}
+      ]}} // optional instance: "widgetname", optional param config default: "someValue"
+      ,
+      {title: "Geo context radius search", target: {class: "GeoContext", method: "homeRadius", params: [
+        {querystring: "lat", required: true},{querystring: "lon", required: true},{querystring: "radius", required: true}
+      ]}}
+      ,
+      {title: "Display subject facts", target: {class: "SemanticContext", method: "subjectFacts", params: [
+        {querystring: "iri", required: true}
+      ]}}
+      ,
+      {title: "Display subject in graph", target: {class: "com.marklogic.widgets.graphexplorer", method: "drawSubject", params: [
+        {querystring: "iri", required: true}
+      ]}}
+      ,
+      {title: "Load document content", target: {class: "DocumentContext", method: "getContent", params: [
+        {querystring: "docuri", required: true}
+      ]}}
+      ,
+      {title: "Load document properties", target: {class: "DocumentContext", method: "getProperties", params: [
+        {querystring: "docuri", required: true}
+      ]}}
+      */ // CAUSES ISSUES WITH SEARCH CONTEXT - OPTIONS NOT BEING LOADED BEFORE CALLING SEARCH
+    ]
+  };
+  this._config = this._defaultConfig;
+
+  com.marklogic.widgets.pagecontext.instance = this;
 };
 
 com.marklogic.widgets.pagecontext.prototype.setWorkplaceWidget = function(wgt) {
@@ -4618,8 +4673,10 @@ com.marklogic.widgets.pagecontext.prototype.setMappings = function(mappings) {
   this._config.mappings = mappings;
 };
 
-com.marklogic.widgets.pagecontext.prototype.process = function() {
+com.marklogic.widgets.pagecontext.prototype.process = function(ctx) {
   var params = this._parse();
+
+  // OLD update object configuration
   var objects = {}; // classname => {widgetName => {param1: val1, param2: val2}}
   for (var name in this._config.mappings) {
     console.log("PC: found mapping name: " + name);
@@ -4670,11 +4727,94 @@ com.marklogic.widgets.pagecontext.prototype.process = function() {
       wgt.setConfiguration(config);
     }
   }
+
+
+
+  // NEW now process function calls too
+  var json = ctx.getJson();
+  if (undefined != json) {
+  var pageMappings = json.pageMappings;
+  if (undefined == pageMappings) {
+    pageMappings = this._config;
+  }
+  var calls = pageMappings.calls;
+  if (undefined != calls) {
+    for (var c = 0, maxc = calls.length,cal;c < maxc;c++) {
+      /*
+      {title: "Perform simple text query", target: {class: "SearchContext", method: "doSimpleQuery", params: [
+        {querystring: "q", required: false}
+      ]}}
+      */
+      cal = calls[c];
+      mljs.defaultconnection.logger.debug("pagecontext.process: processing call: " + cal.title);
+      var instances = new Array();
+      if (undefined != cal.target.instance) {
+        // get named instance
+        instances.push(this._workplaceWidget.getInstance(cal.target.instance));
+      } else {
+        // get all instances of named class
+        if (undefined != cal.target.class) {
+          var instanceNames = ctx.getInstancesOf(cal.target.class);
+          for (var ini = 0,maxini = instanceNames.length, inn; ini < maxini;ini++) {
+            inn = instanceNames[ini];
+            instances.push(this._workplaceWidget.getInstance(inn));
+          }
+        }
+      }
+
+      for (var i = 0, maxi = instances.length, ins;i < maxi;i++) {
+        ins = instances[i];
+        if (undefined != ins) { // sanity check
+          // check all required params exist
+          var validCall = true;
+          var paramValues = [];
+          if (undefined != cal.target.params) {
+            for (var p = 0,maxp = cal.target.params.length,param; p < maxp;p++) {
+              param = cal.target.params[p];
+              var paramValue = params[param.querystring];
+              paramValues[p] = paramValue;
+
+              mljs.defaultconnection.logger.debug("pagecontext.process: param value: " + paramValue);
+
+              validCall = validCall && (!param.required || undefined != paramValue);
+            } // end params for
+          } // end params if
+
+          // call method
+          if (validCall) {
+            mljs.defaultconnection.logger.debug("pagecontext.process: call is valid, checking target method: " + cal.target.method + " on instance: " + ins);
+            var func = ins[cal.target.method];
+            if (undefined != func) {
+              mljs.defaultconnection.logger.debug("pagecontext.process: Calling " + JSON.stringify(cal));
+              func.apply(ins,paramValues);
+            }
+          } else {
+            mljs.defaultconnection.logger.debug("pagecontext.process: Not a valid call for: " + cal.target.instance + "(" + cal.target.class + ")." + cal.target.method);
+          }
+        } // end undefined ins if
+      } // end instance for
+
+
+    } // end calls for
+  } // end calls if
+  } // end json if
 };
 
-com.marklogic.widgets.pagecontext.prototype.updateWorkplace = function() {
+/*
+com.marklogic.widgets.pagecontext.prototype.updateWorkplace = function(ctx) {
   // parse post workplace load
-  this.process();
+  this.process(ctx);
+};*/ // DONE VIA WORKPLACE LOADED LISTENER INSTEAD TO ENSURE CORRECT LOADED ORDER
+
+/**
+ * Retrieve a named parameter from this page
+ * @param {string} name - The parameter name to retreive
+ */
+com.marklogic.widgets.pagecontext.prototype.getParameter = function(name) {
+  if (null == this._params) {
+    this._params = this._parse();
+  }
+  return this._params[name];
 };
 
 com.marklogic.widgets.pagecontext.prototype._parse = function() {

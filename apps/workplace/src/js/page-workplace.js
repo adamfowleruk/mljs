@@ -27,7 +27,7 @@ window.onload = function() {
         var pc = new com.marklogic.widgets.pagecontext();
         pc.setWorkplaceWidget(workplace);
         wpcontext.register(pc); // will call _parse when page loads
-
+        workplace.addPageLoadedListener(function(ctx){pc.process(ctx);});
         workplace.loadPage(pageurl); // could instead use loadPage() to determine automatically via window.location, or loadPage("/my/path") to load via search in content database
         // TODO use context instead of widget above
 
