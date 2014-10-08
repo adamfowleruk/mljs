@@ -35,11 +35,24 @@ Interim demo targets
  - Widgets: Workplace
   - Support chaining updates from one search context to another
    - support prevention of circular updates via stack (array) mechanism
- - Core: seriescontext
+ - Core: datacontext
   - DONE basic context creation
-  - identity information joining
-  - specification of series data (field named for series)
- - Widgets: OpenLayers Multiple series
+  - TEST identity information joining
+  - support multiple configurable sources in Workplace
+ - Widgets: HighCharts rework
+  - Support for Data Context
+  - specification of which fields used for series name, category X, value Y axis
+  - DEFERRED support for multi axes and value Y axes
+  - DEFERRED extra chart types support
+  - WAIT JM Use latest highcharts code
+  - WAIT JM confirm license for latest highcharts code
+ - Widgets: Kratu rework
+  - Support for Data Context
+ - Widgets: OpenLayers rework
+  - Support for Data Context
+  - Specification of field values linked to pins
+  - field linked to summary content
+  - highlighted document uri field
  - Widgets: OpenLayers marker drawing working via configuration
  - BL
   - Widgets: OpenLayers shows image thumbnail as marker
@@ -59,6 +72,7 @@ Interim demo targets
   - BUG The second time you edit (add) a property, the Add button does not work - undefined html element (deleted?)
  - DONE Widgets: Document view
   - DONE Alter widget to support viewing generic XML, XHTML, JPG, etc.
+  - TEST XHTML with links
 
 Targets of opportunity (non timed)
  - Bugs

@@ -9700,9 +9700,8 @@ mljs.prototype.alertcontext.prototype.register = function(wgt) {
  * E.g. one source may be facets from a document query, another triples relating to the subject (reference data),
  * another still may be cooccurence data.
  * This class is an extract of visual functionality in the highcharts and openlayers widgets.
- * WARNING: DEVELOPMENT GRADE CODE - NOT READY FOR PRIME TIME
  */
-mljs.prototype.seriescontext = function() {
+mljs.prototype.datacontext = function() {
   this.TYPE_RESULTS_METRICS          = 1;
   this.TYPE_RESULTS_DOCUMENT_CONTENT = 2;
   this.TYPE_RESULTS_DOCUMENT_FACETS  = 3;
@@ -9710,24 +9709,33 @@ mljs.prototype.seriescontext = function() {
   this.TYPE_TRIPLES                  = 5;
 
   this._config = {
-    series: [],
-    defaultCategory: "", // "county"
-    defaultIdentity: "" // "city"
+    series: []
   };
 
-  this._seriesInfo = {}; // seriesName -> {data: [], listener: lisFunc}
+  // 1. Store sources data
+  this._sourceInfo = {}; // sourceName -> {data: [{field1:val1, field2:val2, ...}, ...], listener: lisFunc}
 
-  this._joined = []; // joined data merged from multiple series - {identity: "Derby", fields: {high: 28, low: 18, county: "Derbyshire"}}
+  // 2. join sources in to a single representation
+  this._joined = []; // joined data merged from multiple sources - {identity: "Derby", fields: {city: "Derby", high: 28, low: 18, county: "Derbyshire", readings: [18,27,45,34,1]}}
 
-  this._data = [] // {category: "Derbyshire", identity: "Derby", fields: {high: 28, low: 18} } // may have one blank category, or several named
-  this._fields = []; // "city", "county", "high", "low"
-  this._category = this._config.defaultCategory;
-  this._identity = this._config.defaultIdentity;
+  // 3. Work on the data. Perform aggregations where applicable, alter values, etc. Also calculate total fields present
+  this._data = [] // {_id: "Derby", city: "Derby", high: 28, low: 18, avgReading: 14 }
+  this._fields = []; // {title: "City", field: "city"}, ... // was , "county", "high", "low", "readings"
 
   this._dataUpdatePublisher = new com.marklogic.events.Publisher();
 };
 
-mljs.prototype.seriescontext.prototype._findSeries = function(seriesName) {
+mljs.prototype.datacontext.getConfigurationDefinition = function() {
+
+};
+
+mljs.prototype.datacontext.prototype.setConfiguration = function(config) {
+  for (var c in config) {
+    this._config[c] = config[c];
+  }
+};
+
+mljs.prototype.datacontext.prototype._findSeries = function(seriesName) {
   for (var s in this._seriesInfo) {
     var series = this._seriesInfo[s];
     if (s == seriesName) {
@@ -9739,13 +9747,13 @@ mljs.prototype.seriescontext.prototype._findSeries = function(seriesName) {
   return ser;
 };
 
-mljs.prototype.seriescontext.prototype.recategorise = function(fieldName) {
+mljs.prototype.datacontext.prototype.recategorise = function(fieldName) {
   // reprocess all data using the new category field name
   this._category = fieldName;
   this._process();
 };
 
-mljs.prototype.seriescontext.prototype._join = function() {
+mljs.prototype.datacontext.prototype._join = function() {
   // join data from series
   var data = []; // {identity: "Derby", fields: {high:28, low: 18}}
   var find = function(identity) {
@@ -9786,83 +9794,117 @@ mljs.prototype.seriescontext.prototype._join = function() {
   this._process();
 };
 
-mljs.prototype.seriescontext.prototype._process = function() {
+mljs.prototype.datacontext.prototype._process = function() {
   // loop through already joined data
-  // split out by category (if applicable)
-  if ("" == this._category) {
-    // shortcut and just copy data over, no evaluation of category value
+  var newFields = new Array();
+  var newData = new Array();
+
+  var hasField = new function(fname) {
+    for (var f = 0,maxf = newFields.length,fi;f < maxf;f++) {
+      fi = newFields[f];
+      if (f.field == fname) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  for (var j = 0,maxj = this._joined.length,row;j < maxj;j++) {
+    row = this._joined[j];
+    for (var field in row.data) {
+      if (!hasField(field)) {
+        newFields.push({title: field, field: field}); // TODO see if a field configuration is available with a human readable title for the field
+      }
+    }
+
+    // TODO process data values and perform aggregations where configured
+    newData.push(row.data);
   }
-  // update data field
+  // update data fields
+  this._data = newData;
+  this._fields = newFields;
+
+  var self = this;
   // fire data updated event
+  this._dataUpdatePublisher.publish({fields: self._fields, data: self._data});
 };
 
-mljs.prototype.seriescontext.prototype.addSeries = function(name,type,sourceContext,titleSourceType,
+mljs.prototype.datacontext.prototype.addDataSource = function(name,type,sourceContext,titleSourceType,
   titleSource,categorySourceType,categorySource,valueSourceType,valueSource) {
-  var series =  {
+  var source =  {
     name: name, type: type,sourceContext: sourceContext,titleSourceType: titleSourceType,
     titleSource: titleSource,categorySourceType: categorySourceType,valueSourceType: valueSourceType,
     valueSource: valueSource,
     data: [] // {city: "Derby", county: "Derbyshire", high:28, low:18}
   };
-  this._config.series.push(series);
+  this._sources.push(series);
   // set up listeners
   var self = this;
   if (this._TYPE_RESULTS_DOCUMENT_FACETS == type) {
     series.listener = {
       updateResults: function(results) {
-        self._updateResultsFacets(series,results);
+        self._updateResultsFacets(source,results);
       }
     };
-    sourceContext.register(series[name].listener);
+    sourceContext.register(source[name].listener);
   } else if (this._TYPE_RESULTS_DOCUMENT_CONTENT == type) {
     series.listener = {
       updateResults: function(results) {
-        self._updateResultsContent(series,results);
+        self._updateResultsContent(source,results);
       }
     };
-    sourceContext.register(series[name].listener);
+    sourceContext.register(source[name].listener);
   } else if (this._TYPE_COOCCURENCE == type) {
     series.listener = {
       updateValues: function(results) {
-        self._updateValuesCooccurence(series,results);
+        self._updateValuesCooccurence(source,results);
       }
     };
-    sourceContext.register(series.listener);
+    sourceContext.register(source.listener);
   } else {
     // TODO other source types
   }
 };
 
-mljs.prototype.seriescontext.prototype._updateSubjectFacts = function(facts) {
+mljs.prototype.datacontext.prototype._updateSubjectFacts = function(facts) {
 
 };
 
-mljs.prototype.seriescontext.prototype._updateResultsFacets = function(series,results) {
+mljs.prototype.datacontext.prototype._updateResultsFacets = function(source,results) {
 
 };
 
-mljs.prototype.seriescontext.prototype._updateResultsContent = function(series,results) {
+mljs.prototype.datacontext.prototype._updateResultsContent = function(source,results) {
  // process extracted fields first
  // then process in-content fields
 };
 
-mljs.prototype.seriescontext.prototype._updateValuesCooccurence = function(series,results) {
+mljs.prototype.datacontext.prototype._updateValuesCooccurence = function(source,results) {
 
   this._join();
 };
 
-mljs.prototype.seriescontext.prototype.register = function(widget) {
-  if (undefined != widget.setSeriesContext) {
-    widget.setSeriesContext(this);
+mljs.prototype.datacontext.prototype.register = function(widget) {
+  if (undefined != widget.setDataContext) {
+    widget.setDataContext(this);
   }
 
   var self = this;
-  if (undefined != widget.updateSeriesData) {
+  if (undefined != widget.updateData) {
     this._dataUpdatePublisher.subscribe(function() {
-      widget.updateSeriesData(self);
+      widget.updateData(self);
     });
   }
 };
+
+
+
+
+
+
+
+
+
 
 
 
