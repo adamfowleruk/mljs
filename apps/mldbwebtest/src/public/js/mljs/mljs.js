@@ -3427,6 +3427,17 @@ mljs.prototype.createSemanticContext = function() {
 };
 
 
+/**
+ * Factory pattern. Creates a data context object referring back to the current database connection. Useful to link to the correct logger, and db settings.
+ * @deprecated Instantiate externally (See Workplace Context) then call linkContext(contextInstance).
+ */
+mljs.prototype.createDataContext = function() {
+  var obj = new this.datacontext();
+  obj.db = this;
+  return obj;
+};
+
+
 
 
 
@@ -9702,61 +9713,236 @@ mljs.prototype.alertcontext.prototype.register = function(wgt) {
  * This class is an extract of visual functionality in the highcharts and openlayers widgets.
  */
 mljs.prototype.datacontext = function() {
-  this.TYPE_RESULTS_METRICS          = 1;
-  this.TYPE_RESULTS_DOCUMENT_CONTENT = 2;
+  //this.TYPE_RESULTS_METRICS          = 1;
+  this.TYPE_RESULTS_RESULTS          = 2;
   this.TYPE_RESULTS_DOCUMENT_FACETS  = 3;
   this.TYPE_COOCCURENCE              = 4;
   this.TYPE_TRIPLES                  = 5;
 
   this._config = {
-    series: []
+    sources: [],
+    splitby: "source", // "source"(default), "field"
+    splitfield: "", // Could be any field name. Use "type" as a good automatic choice, blank for "source" splitby, or no series split
+    fields: []
   };
 
   // 1. Store sources data
   this._sourceInfo = {}; // sourceName -> {data: [{field1:val1, field2:val2, ...}, ...], listener: lisFunc}
 
   // 2. join sources in to a single representation
-  this._joined = []; // joined data merged from multiple sources - {identity: "Derby", fields: {city: "Derby", high: 28, low: 18, county: "Derbyshire", readings: [18,27,45,34,1]}}
-
+  /**
+   * Joined data merged from multiple sources -
+   * {
+   *   series: [
+   *     {name:"", data: [
+   *       {
+   *         identity: "Derby", fields: {
+   *           city: "Derby", high: 28, low: 18, county: "Derbyshire", readings: [18,27,45,34,1]
+   *         }
+   *       }, ...
+   *     ]}, ...
+   *   ]
+   * }
+   */
+  this._joined = [];
   // 3. Work on the data. Perform aggregations where applicable, alter values, etc. Also calculate total fields present
-  this._data = [] // {_id: "Derby", city: "Derby", high: 28, low: 18, avgReading: 14 }
+  this._data = [] // as for joined
   this._fields = []; // {title: "City", field: "city"}, ... // was , "county", "high", "low", "readings"
 
   this._dataUpdatePublisher = new com.marklogic.events.Publisher();
 };
 
+/**
+ * Gets the configuration properties supported by this context
+ */
 mljs.prototype.datacontext.getConfigurationDefinition = function() {
+  return {
+    splitby: {type: "enum", title: "Split Series by", description: "How to split data in to separate series",
+      default: "source", options:[
+        {value:"source", title: "Source name", description: "Use the Source name as the Series name"},
+        {value:"field", title: "Field name", description: "Use a field's value as the Series name"}
+      ]
+    },
+    splitfield: {type: "string", title: "Split Field", description: "The field to split in to series by (if field split mode)", default: ""},
+    sources: {type: "multiple", title: "Sources", description: "Where to extract data from", minimum: 0, default: [],
+      childDefinitions: {
+        name: {type: "string", default: "", title: "Source name", description: "The unique name of the source"},
+        sourceSearchContext: {type: "SearchContext", default: null, title: "Source Search Context", description: "Where to get the data from"},
+        sourceSemanticContext: {type: "SemanticContext", default: null, title: "Source Semantic Context", description: "Where to get the data from"},
+        type: {type: "enum", default: "2", title: "Type", description: "Type of data to place in to result set",
+          options: [
+            {value: "2", title: "Search Results", description: "Search result extracts, metadata, and content"},
+            {value: "3", title: "Search Facets", description: "Search result facet information"},
+            {value: "4", title: "Co-occurence", description: "Co-occurence values"},
+            {value: "5", title: "Semantic Triples", description: "Semantic triples"}
+          ]
+        },
+        identity: {type: "string", default: "", title: "Identity Field", description: "The optional field name to use as the record primary key ID for joining data sets"}
+      }
+    },
+    fields: {type: "multiple", title: "Fields", description: "Field settings", minimum: 0, default: [],
+      childDefinitions: {
+        name: {type: "string", default: "", title: "Field name", description: "Short field name in the data series"},
+        type: {type: "enum", default: "point", title: "Type", description: "Type override",
+          options: [
+            {value: "point", title: "Point", description: "XML point field, comma delimited WGS84 lat,lon point."},
+            {value: "linestring", title: "Line String", description: "GML Line String field."},
+            {value: "uri", title: "Document URI", description: "A string representation a MarkLogic document URI."},
+            {value: "heatmap", title: "Heatmap facet", description: "Facet containing heatmap boxes."}
+          ]
+        }
+      }
+    }
+  };
 
 };
 
+mljs.prototype.datacontext.prototype.getUriFieldData = function(row) {
+  var data = {};
+  for (var f = 0,maxf = this._config.fields.length,field;f < maxf;f++) {
+    field = this._config.fields[f];
+    if (field.type == "uri") {
+      var rowfield = row.fields[field.name];
+      if (undefined != rowfield) {
+        data[field.name] = rowfield;
+      }
+    }
+  }
+  return data;
+};
+
+mljs.prototype.datacontext.prototype.getPointFieldData = function(row) {
+  var data = {};
+  for (var f = 0,maxf = this._config.fields.length,field;f < maxf;f++) {
+    field = this._config.fields[f];
+    if (field.type == "point") {
+      var rowfield = row.fields[field.name];
+      if (undefined != rowfield) {
+        var value = rowfield.split(",");
+        data[field.name] = {lat: value[0], lon: value[1]};
+      }
+    }
+  }
+  return data;
+};
+
+mljs.prototype.datacontext.prototype.getLineStringFieldData = function(row) {
+  var data = {};
+  for (var f = 0,maxf = this._config.fields.length,field;f < maxf;f++) {
+    field = this._config.fields[f];
+    if (field.type == "linestring") {
+      var rowfield = row.fields[field.name];
+      if (undefined != rowfield) {
+        data[field.name] = rowfield;
+      }
+    }
+  }
+  return data;
+
+};
+
+mljs.prototype.datacontext.prototype.getHeatmapFieldData = function(row) {
+  var data = {};
+  for (var f = 0,maxf = this._config.fields.length,field;f < maxf;f++) {
+    field = this._config.fields[f];
+    if (field.type == "heatmap") {
+      var rowfield = row.fields[field.name];
+      if (undefined != rowfield) {
+        data[field.name] = rowfield;
+      }
+    }
+  }
+  return data;
+
+};
+
+mljs.prototype.datacontext.prototype.getLineStringOrderedPoints = function(fielddata) {
+  // TODO extract linestring value in to lon/lat points
+  return [];
+};
+
+
+/**
+ * Sets the configuration parameters for this context
+ * @param {json} config - The JSON configuration for this context
+ */
 mljs.prototype.datacontext.prototype.setConfiguration = function(config) {
   for (var c in config) {
     this._config[c] = config[c];
   }
+  for (var s = 0,maxs = this._config.sources.length,src;s < maxs;s++) {
+    src = this._config.sources[s];
+    var ctx = null;
+    if (5 == src.type) {
+      ctx = src.sourceSemanticContext;
+    } else {
+      ctx = src.sourceSearchContext;
+    }
+    this.addDataSource(src.name,src.type,config.getInstance(ctx), src.identity);
+  }
+  this.reprocess();
 };
 
-mljs.prototype.datacontext.prototype._findSeries = function(seriesName) {
-  for (var s in this._seriesInfo) {
-    var series = this._seriesInfo[s];
-    if (s == seriesName) {
-      return series;
+mljs.prototype.datacontext.prototype.splitBySource = function() {
+  this._config.splitby = "source";
+  return this;
+};
+
+mljs.prototype.datacontext.prototype.splitByField = function(fieldName) {
+  this._config.splitby = "field";
+  this._config.splitfield = fieldName;
+  return this;
+};
+
+mljs.prototype.datacontext.prototype.getSplitBy = function() {
+  return this._config.splitby;
+};
+
+mljs.prototype.datacontext.prototype.getSplitField = function() {
+  return this._config.splitfield;
+};
+
+/**
+ * Reprocess source data based on new settings. Fires data update event
+ */
+mljs.prototype.datacontext.prototype.reprocess = function() {
+  this._join();
+};
+
+mljs.prototype.datacontext.prototype._findSource = function(sourceName) {
+  for (var s in this._sourceInfo) {
+    var source = this._sourceInfo[s];
+    if (s == sourceName) {
+      return source;
     }
   }
-  var ser = {data: [],listener: null};
-  this._seriesInfo[seriesName] = ser;
-  return ser;
-};
-
-mljs.prototype.datacontext.prototype.recategorise = function(fieldName) {
-  // reprocess all data using the new category field name
-  this._category = fieldName;
-  this._process();
+  var src = {data: [],listener: null};
+  this._sourceInfo[sourceName] = src;
+  return src;
 };
 
 mljs.prototype.datacontext.prototype._join = function() {
-  // join data from series
-  var data = []; // {identity: "Derby", fields: {high:28, low: 18}}
-  var find = function(identity) {
+  this.__d("datacontext._join: entered function");
+
+  // join data from sources
+  var seriesData = [];
+
+  var findSeries = function(seriesName) {
+    for (var se = 0,maxse = seriesData.length,ser;se < maxse;se++) {
+      ser = seriesData[se];
+      if (ser.name == seriesName) {
+        return ser;
+      }
+    }
+    // no series yet
+    var newSer = {name: seriesName, data: []};
+    seriesData.push(newSer);
+    return newSer;
+  };
+
+  var findIdentityData = function(seriesName,identity) {
+    var series = findSeries(seriesName); // {identity: "Derby", fields: {high:28, low: 18}}
+    var data = series.data;
     for (var i = 0, maxi = data.length,row;i < maxi;i++) {
       row = data[i];
       if (row.identity == identity) {
@@ -9764,126 +9950,280 @@ mljs.prototype.datacontext.prototype._join = function() {
       }
     }
     var r = {identity: identity, fields: {}};
-    data.push(row);
-    return row;
+    data.push(r);
+    return r;
   };
 
-  // loop over every series
-  for (var s = 0,maxs = this._config.series.length,seriesName,series;s < maxs;s++) {
-    seriesName = this._config.series[s].name;
-    series = this._findSeries(seriesName);
+  // loop over every source
+  this.__d("datacontext._join: processing " + this._config.sources.length + " data sources");
+  for (var s = 0,maxs = this._config.sources.length,sourceName,source,series;s < maxs;s++) {
+    sourceName = this._config.sources[s].name;
+    source = this._findSource(sourceName);
+    series = "";
+    if ("source" == this._config.splitby) {
+      series = sourceName;
+    }
     // for every data item, find the identity row
-    for (var d = 0,maxd = series.data.length,seriesData;d < maxd;d++) {
-      seriesData = series.data[d]; // just a list of fields
+    this.__d("datacontext._join:   processing " + source.data.length + " rows of data in source");
+    for (var d = 0,maxd = source.data.length,sourceData;d < maxd;d++) {
+      sourceData = source.data[d]; // just a list of fields
       // get identity field value
-      var identity = seriesData[series.titleSource];
+      var identity = sourceData[source.identity];
       if (undefined == identity) {
         identity = ""; // valid
       }
       // copy over fields
-      var row = find(identity);
-      for (var field in seriesData) {
-        row[field] = seriesData[field];
+      var row = findIdentityData(series,identity);
+      for (var field in sourceData) {
+        row.fields[field] = sourceData[field];
       }
     }
   }
 
-  this._joined = data;
+  this._joined = seriesData;
 
   // process data
+  this.__d("datacontext._join: joined data: " + JSON.stringify(this._joined));
+  this.__d("datacontext._join: calling process function");
   this._process();
+  this.__d("datacontext._join: exiting function");
 };
 
 mljs.prototype.datacontext.prototype._process = function() {
+  this.__d("datacontext._process: entered function");
   // loop through already joined data
   var newFields = new Array();
   var newData = new Array();
 
-  var hasField = new function(fname) {
+  var self = this;
+  var hasField = function(fname) {
+    //self.__d("datacontext._process: hasField looping over " + newFields.length + " fields");
     for (var f = 0,maxf = newFields.length,fi;f < maxf;f++) {
       fi = newFields[f];
-      if (f.field == fname) {
+      if (fi.field == fname) {
         return true;
       }
     }
     return false;
   };
 
-  for (var j = 0,maxj = this._joined.length,row;j < maxj;j++) {
-    row = this._joined[j];
-    for (var field in row.data) {
-      if (!hasField(field)) {
-        newFields.push({title: field, field: field}); // TODO see if a field configuration is available with a human readable title for the field
+  this.__d("datacontext._process: processing " + this._joined.length + " rows of joined data");
+  for (var s = 0,maxs = this._joined.length,series;s < maxs;s++) {
+    series = this._joined[s];
+    var newSeriesData = new Array();
+
+    this.__d("datacontext._process: processing " + series.data.length + " rows in the " + series.name + " series");
+    for (var j = 0,maxj = series.data.length,row;j < maxj;j++) {
+      row = series.data[j];
+      this.__d("datacontext._process:   row " + j + " data: " + JSON.stringify(row));
+
+      // update master field list
+      for (var field in row.fields) {
+        if (!hasField(field)) {
+          newFields.push({title: field, field: field}); // TODO see if a field configuration is available with a human readable title for the field
+        }
       }
+
+      // TODO process data values and perform aggregations where configured
+      newSeriesData.push(row);
     }
 
-    // TODO process data values and perform aggregations where configured
-    newData.push(row.data);
+    newData.push({name: series.name, data: newSeriesData});
   }
   // update data fields
   this._data = newData;
   this._fields = newFields;
 
   var self = this;
+
+  this.__d("datacontext._process: processed fields: " + JSON.stringify(this._fields) + " with data: " + JSON.stringify(this._data));
+
+  this.__d("datacontext._process: publishing new data");
+
   // fire data updated event
-  this._dataUpdatePublisher.publish({fields: self._fields, data: self._data});
+  this._dataUpdatePublisher.publish(this);
+
+  this.__d("datacontext._process: exiting function");
 };
 
-mljs.prototype.datacontext.prototype.addDataSource = function(name,type,sourceContext,titleSourceType,
-  titleSource,categorySourceType,categorySource,valueSourceType,valueSource) {
+/**
+ * Add a new data source to this data context
+ * @param {string} name - The name to give to this source
+ * @param {integer} type - The type of data source - 2=results,3=facets,4=cooccurence,5=semantic triples
+ * @param {object} sourceContext - The search or semantic context to pull data from
+ * @param {string} identity - The field name in the context's data that is to be used for joining data sets
+ */
+mljs.prototype.datacontext.prototype.addDataSource = function(name,type,sourceContext,identity) {
+  /*old params: ,titleSourceType,titleSource,categorySourceType,categorySource,valueSourceType,valueSource*/
   var source =  {
-    name: name, type: type,sourceContext: sourceContext,titleSourceType: titleSourceType,
+    name: name, type: type, sourceContext: sourceContext, identity: identity,
+    /*titleSourceType: titleSourceType,
     titleSource: titleSource,categorySourceType: categorySourceType,valueSourceType: valueSourceType,
-    valueSource: valueSource,
+    valueSource: valueSource, */
     data: [] // {city: "Derby", county: "Derbyshire", high:28, low:18}
   };
-  this._sources.push(series);
+  //this._sources.push(source);
+  this._sourceInfo[source.name] = source;
   // set up listeners
   var self = this;
-  if (this._TYPE_RESULTS_DOCUMENT_FACETS == type) {
-    series.listener = {
+  if (this.TYPE_RESULTS_DOCUMENT_FACETS == type) {
+    self.__d("datacontext.addDataSource: doc facets listener type");
+    source.listener = {
       updateResults: function(results) {
+        self.__d("datacontext.addDataSource: updateResults called");
         self._updateResultsFacets(source,results);
       }
     };
-    sourceContext.register(source[name].listener);
-  } else if (this._TYPE_RESULTS_DOCUMENT_CONTENT == type) {
-    series.listener = {
+    sourceContext.register(source.listener);
+  } else if (this.TYPE_RESULTS_RESULTS == type) { // TODO support this
+    self.__d("datacontext.addDataSource: results listener type");
+    source.listener = {
       updateResults: function(results) {
+        self.__d("datacontext.addDataSource: updateResults called");
         self._updateResultsContent(source,results);
       }
     };
-    sourceContext.register(source[name].listener);
-  } else if (this._TYPE_COOCCURENCE == type) {
-    series.listener = {
+    sourceContext.register(source.listener);
+  } else if (this.TYPE_COOCCURENCE == type) {
+    self.__d("datacontext.addDataSource: co-occurence listener type");
+    source.listener = {
       updateValues: function(results) {
         self._updateValuesCooccurence(source,results);
       }
     };
     sourceContext.register(source.listener);
-  } else {
+  } else if (this.TYPE_TRIPLES == type) {
+    self.__d("datacontext.addDataSource: triples listener type");
+    source.listener = {
+      updateFacts: function(facts) {
+        self._updateSubjectFacts(source,facts); // TODO verify correct method signature - updateFacts
+      }
+    };
+    sourceContext.register(source.listener);
     // TODO other source types
+  } else {
+    self.__d("datacontext.addDataSource: unknown listener type: " + type);
   }
+
+  return this;
 };
 
 mljs.prototype.datacontext.prototype._updateSubjectFacts = function(facts) {
-
-};
-
-mljs.prototype.datacontext.prototype._updateResultsFacets = function(source,results) {
-
-};
-
-mljs.prototype.datacontext.prototype._updateResultsContent = function(source,results) {
- // process extracted fields first
- // then process in-content fields
-};
-
-mljs.prototype.datacontext.prototype._updateValuesCooccurence = function(source,results) {
+  this.__d("datacontext._updateSubjectFacts: entering function");
+  // TODO support rdf response JSON from SPARQL
+  // pull back human readable named from OWL?
 
   this._join();
 };
 
+mljs.prototype.datacontext.prototype._updateResultsFacets = function(source,results) {
+  this.__d("datacontext._updateResultsFacets: entering function");
+  var rows = new Array();
+
+  // now process facets
+  for (var facetName in results.facets) {
+    var values = results.facets[facetName];
+    if (undefined != values.facetValues) {
+      // normal facet
+      for (var f = 0,maxf = values.facetValues.length,fv;f < maxf;f++) {
+        fv = values.facetValues[f];
+        var row = {};
+        row._index = f;
+        row.facet = facetName;
+        row.count = fv.count;
+        row.name = fv.name;
+        row.value = fv.value;
+        rows.push(row);
+      }
+
+    } else if (undefined != values.boxes) {
+      // heatmap facet
+      for (var b = 0,maxb = values.boxes.length,box;b < maxb;b++) {
+        box = values.boxes[b];
+        var row = {};
+        row._index = b;
+        row.facet = facetName;
+        row.count = box.count;
+        row.e = box.e;
+        row.n = box.n;
+        row.s = box.s;
+        row.w = box.w;
+        rows.push(row);
+      }
+    } else {
+      // unknown facet type
+    }
+  }
+
+  source.data = rows;
+
+  this._join();
+};
+
+mljs.prototype.datacontext.prototype._updateResultsContent = function(source,results) {
+  this.__d("datacontext._updateResultsContent: entering function");
+  if (true === results || false === results) {
+    this.__d("datacontext._updateResultsContent: not processing function");
+    return; // clearing of results
+  }
+  var rows = new Array();
+
+  this.__d("datacontext._updateResultsContent: processing " + results.results.length + " results");
+  for (var r = 0,maxr = results.results.length,result,row;r < maxr;r++) {
+    result = results.results[r];
+    row = {};
+
+    // process extracted fields first
+    for (var m = 0,maxm = result.metadata.length,meta;m < maxm;m++) {
+      meta = result.metadata[m];
+      for (var param in meta) {
+        if ("metadata-type" != param) {
+          var cparam = param;
+          if ("{" == param.substring(0,1)) {
+            cparam = param.substring(param.indexOf("}") + 1);
+          }
+          var pv = meta[param];
+          row[cparam] = pv;
+        }
+      }
+    }
+
+    // then process result summary fields
+    row["_confidence"] = result["confidence"];
+    row["_fitness"] = result["fitness"];
+    row["_format"] = result["format"];
+    row["_href"] = result["href"];
+    row["_index"] = result["index"];
+    row["_mimetype"] = result["mimetype"];
+    row["_score"] = result["score"];
+    row["_uri"] = result["uri"];
+    row["_path"] = result["path"];
+
+    // TODO then process in-content fields
+
+    rows.push(row);
+  }
+
+  source.data = rows;
+
+  this.__d("datacontext._updateResultsContent: calling join function");
+  this._join();
+  this.__d("datacontext._updateResultsContent: exiting function");
+};
+
+mljs.prototype.datacontext.prototype._updateValuesCooccurence = function(source,results) {
+  // TODO support co-occurence values
+  // ISSUE: the field names are NOT included in response JSON - needs to be looked up via URL contents and options
+  // WORKAROUND: Is there a way to replay options in the response?
+  // Aren't options on the source context anyway???
+
+  this._join();
+};
+
+/**
+ * Register a data listening widget with this context
+ * @param {object} widget - The object to introspect for a setDataContext(datacontext) and/or updateData(datacontext) methods
+ */
 mljs.prototype.datacontext.prototype.register = function(widget) {
   if (undefined != widget.setDataContext) {
     widget.setDataContext(this);
@@ -9897,7 +10237,63 @@ mljs.prototype.datacontext.prototype.register = function(widget) {
   }
 };
 
+mljs.prototype.datacontext.prototype.getSeriesNames = function() {
+  var names = new Array();
+  for (var s = 0,maxs = this._data.length,series;s < maxs;s++) {
+    series = this._data[s];
+    names.push(series.name);
+  }
+  return names;
+};
 
+/**
+ * Returns the processed matched data rows as an array of json with field names as properties
+ * @param {Array} ensuredFields_opt - Only return data rows that have all of the specified fields. A String array of field names.
+ */
+mljs.prototype.datacontext.prototype.getData = function(seriesName,ensuredFields_opt) {
+  if (null == seriesName) {
+    if (undefined == this._data || this._data.length == 0) {
+      seriesName = "";
+    } else {
+      seriesName = this._data[0].name; // first name, likely "" if no series extraction taking place
+    }
+  }
+  var series = null;
+  for (var s = 0,maxs = this._data.length;s < maxs && null == series;s++) {
+    series = this._data[s];
+    if (series.name != seriesName) {
+      series = null;
+    }
+  }
+  if (null == series) {
+    return [];
+  }
+
+  if (undefined != ensuredFields_opt) {
+    var matching = new Array();
+    for (var r = 0,maxr = series.data.length,row,allok;r < maxr;r++) {
+      row = series.data[r];
+      allok = true;
+      for (var f = 0,maxf = ensuredFields_opt.length,fieldName;f < maxf;f++) {
+        fieldName = ensuredFields_opt[f];
+        allok = allok && (undefined != row.fields[fieldName]);
+      }
+      if (allok) {
+        matching.push(row);
+      }
+    }
+    return matching;
+  } else {
+    return series.data;
+  }
+};
+
+/**
+ * Returns the list of field names present in the data
+ */
+mljs.prototype.datacontext.prototype.getFields = function() {
+  return this._fields;
+};
 
 
 
@@ -10106,6 +10502,7 @@ com.marklogic.util.linkedlist.prototype.getOrderedItems = function() {
   asLogSink.call(mljs.prototype.documentcontext.prototype);
   asLogSink.call(com.marklogic.semantic.tripleconfig.prototype);
   asLogSink.call(mljs.prototype.semanticcontext.prototype);
+  asLogSink.call(mljs.prototype.datacontext.prototype);
 })();
 
 

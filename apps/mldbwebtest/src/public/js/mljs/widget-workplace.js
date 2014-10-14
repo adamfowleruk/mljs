@@ -138,6 +138,10 @@ mljs.defaultconnection.logger.debug("workplace.updateWorkplace: UPDATING PAGE");
   mljs.defaultconnection.logger.debug("workplace.updateWorkplace: Creating zones");
   layout.createZones(json.assignments);
 
+  var self = this;
+  var getInstance = function(widgetName) {
+    return self.getInstance(widgetName);
+  };
 
   var contexts = {}; //new Array(); // contextid => context object
 
@@ -165,13 +169,6 @@ mljs.defaultconnection.logger.debug("workplace.updateWorkplace: UPDATING PAGE");
     }
     instances.push(inst);
 
-    // initialise context configuration
-    mljs.defaultconnection.logger.debug("workplace.updateWorkplace: Config: " + JSON.stringify(ctx.config));
-    //mljs.defaultconnection.logger.debug("Context Obj: " + JSON.stringify(inst));
-    if (undefined != inst.setConfiguration && undefined != ctx.config) {
-      mljs.defaultconnection.logger.debug("workplace.updateWorkplace: Setting context configuration");
-      inst.setConfiguration(ctx.config);
-    }
 
     // register widgets with contexts - now done in _createWidget instead
     //for (var wid = 0, widmax = ctx.register.length,widgetid;wid < widmax;wid++) {
@@ -182,6 +179,21 @@ mljs.defaultconnection.logger.debug("workplace.updateWorkplace: UPDATING PAGE");
   }
 
   this._contexts = contexts;
+
+  // separate out setting config so that getInstance() works
+  for (var c = 0, max = json.contexts.length,ctx;c < max;c++) {
+    ctx = json.contexts[c];
+    var inst = contexts[ctx.context];
+    // initialise context configuration
+    mljs.defaultconnection.logger.debug("workplace.updateWorkplace: Config: " + JSON.stringify(ctx.config));
+    //mljs.defaultconnection.logger.debug("Context Obj: " + JSON.stringify(inst));
+    if (undefined != inst.setConfiguration && undefined != ctx.config) {
+      mljs.defaultconnection.logger.debug("workplace.updateWorkplace: Setting context configuration");
+      var nc = JSON.parse(JSON.stringify(ctx.config));
+      nc.getInstance = getInstance;
+      inst.setConfiguration(nc);
+    }
+  }
 
 
   var widgets = {}; //new Array(); // widgetid => wgt instance
@@ -195,7 +207,10 @@ mljs.defaultconnection.logger.debug("workplace.updateWorkplace: UPDATING PAGE");
     var item = layout.getAssignmentByWidgetName(widget.widget).item;
     var elementid = item.elementid;
 
-    var wgt = this._createWidget(widget.type,elementid,widget.config,widget.widget);
+      var nc = JSON.parse(JSON.stringify(widget.config));
+      nc.getInstance = getInstance;
+
+    var wgt = this._createWidget(widget.type,elementid,nc,widget.widget);
 
     mljs.defaultconnection.logger.debug("workplace.updateWorkplace: Create widget has returned");
     widgets[widget.widget] = wgt;
@@ -218,7 +233,9 @@ mljs.defaultconnection.logger.debug("workplace.updateWorkplace: UPDATING PAGE");
       mljs.defaultconnection.logger.debug("workplace.updateWorkplace: Processing onload action: " + JSON.stringify(action));
       var actionObject = new(com.marklogic.widgets.actions[action.type])();
       mljs.defaultconnection.logger.debug("workplace.updateWorkplace: Got instance. Calling setConfiguration()...");
-      actionObject.setConfiguration(action.config);
+      var nc = JSON.parse(JSON.stringify(action.config));
+      nc.getInstance = getInstance;
+      actionObject.setConfiguration(nc);
       mljs.defaultconnection.logger.debug("workplace.updateWorkplace: Finished configuring. Caling execute(this)...");
       var result = actionObject.execute(this);
       // CYCLIC mljs.defaultconnection.logger.debug("workplace.updateWorkplace: Got result: " + JSON.stringify(result));
@@ -2152,7 +2169,8 @@ com.marklogic.widgets.workplaceadmin = function(container) {
       {title: "Semantic Context", shortname: "SemanticContext", classname: null,description: "Semantic Search Context"},
       {title: "Document Context", shortname: "DocumentContext", classname: null,description: "Individual Document properties and content Context"},
       {title: "Geo Context", shortname: "GeoContext", classname: null,description: "Geospatial position Context"},
-      {title: "Alert Context", shortname: "AlertContext", classname: null,description: "Alert configuration and receiving Context"}
+      {title: "Alert Context", shortname: "AlertContext", classname: null,description: "Alert configuration and receiving Context"},
+      {title: "Data Context", shortname: "DataContext", classname: null,description: "Data joining and processing context"}
     ]
   };
 
@@ -2778,13 +2796,13 @@ com.marklogic.widgets.workplaceadmin.prototype._addClassToZone = function(widget
 
   // create new config wrapper
   var wgt = new com.marklogic.widgets.configwrapper(wgtElid);
+  wgt.setWorkplaceContext(this._workplaceContext);
   var wAss = this._layout.registerAssignment(wgtElid,instanceName);
   this._configWrappers.push(wgt);
   wgt.addWidgetRemovedListener(function(data){self._widgetRemoved(data);});
 
   // update workplace config and register event handlers
 
-  wgt.setWorkplaceContext(this._workplaceContext);
   wgt.onto("widgetconfig",["layoutposition"],{type: "widgetconfig", data: widget});
   // get json config for this widget
   var cfg = self._workplaceContext.getWidgetInfo(widget.widget);
@@ -2938,6 +2956,7 @@ com.marklogic.widgets.workplaceadmin.prototype.updateWorkplace = function(ctx) {
       // create widget
       var wgtElid = this._layout.createPlaceholder(zone);
       var wgt = new com.marklogic.widgets.configwrapper(wgtElid);
+      wgt.setWorkplaceContext(this._workplaceContext);
       var wgtAss = this._layout.registerAssignment(wgtElid,widget.widget);
       wgt.addWidgetRemovedListener(function(data){self._widgetRemoved(data);});
 
@@ -2947,7 +2966,6 @@ com.marklogic.widgets.workplaceadmin.prototype.updateWorkplace = function(ctx) {
       this._addDzAccept(aDrop, zone, dzAss.order, dzElid); // w ok to use at this point
 
       this._configWrappers.push(wgt);
-      wgt.setWorkplaceContext(this._workplaceContext);
       wgt.onto("widgetconfig",["layoutposition"],{type: "widgetconfig", data: widget}); // SHOULD THIS BE wid INSTEAD??? wid is a JSON assignment object
       // get json config for this widget
       var cfg = this._workplaceContext.getWidgetInfo(widget.widget);
@@ -3044,6 +3062,7 @@ com.marklogic.widgets.workplaceadmin.prototype._updateContextsList = function() 
       // Show context configuration in RHS pane
       // load content
       var wrapper = new com.marklogic.widgets.configwrapper(self.container + "-config-contexts-context");
+      wrapper.setWorkplaceContext(self._workplaceContext);
       wrapper.hideRemoveButton();
 
       var widgetClass = self._workplaceContext.getContextClass(ctxjson.type);
@@ -4009,6 +4028,10 @@ com.marklogic.widgets.actionorderer.prototype._init = function() {
   // TODO Drop zone action handler
 };
 
+com.marklogic.widgets.actionorderer.prototype.setWorkplaceContext = function(ctx) {
+  this._workplaceContext = ctx;
+};
+
 com.marklogic.widgets.actionorderer.prototype.updateWorkplace = function(ctx) {
   this._workplaceContext = ctx;
 
@@ -4037,6 +4060,7 @@ com.marklogic.widgets.actionorderer.prototype.wrap = function(actions) {
     action = actions[a];
     var htmlid = this.container + "-action-" + a;
     var wrapper = new com.marklogic.widgets.configwrapper(htmlid);
+    wrapper.setWorkplaceContext(this._workplaceContext);
     var desc = null;
 
 
@@ -4582,7 +4606,8 @@ com.marklogic.widgets.workplacepagelist.prototype.updateMyPages = function(pages
         {context: "semanticcontext1", type: "SemanticContext",config:{}},
         {context: "geocontext1", type: "GeoContext",config:{}},
         {context: "doccontext1", type: "DocumentContext",config:{}},
-        {context: "alertcontext1", type: "AlertContext",config:{}}
+        {context: "alertcontext1", type: "AlertContext",config:{}},
+        {context: "datacontext1", type: "DataContext",config:{}}
       ]
     };
     self._workplaceContext.createPage(json);

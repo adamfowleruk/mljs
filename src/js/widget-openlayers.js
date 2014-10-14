@@ -50,6 +50,7 @@ com.marklogic.widgets.openlayers = function(container) {
 
   this.series = {}; // {title: "", context: searchcontext,latsource:"location.lat",lonsource:"location.lon",titlesource:"",summarysource:""};
   this._allLayers = new Array(); // so define layers BEFORE map is rendered, so they are added on map creation (e.g. via workplace)
+  this._dataLayers = new Array(); // layer objects created as the result of a data context update
 
   this._selectionLayer = null;
 
@@ -996,6 +997,234 @@ com.marklogic.widgets.openlayers.prototype.updateAlert = function(alertInfo) {
 
 };
 
+com.marklogic.widgets.openlayers.prototype.setDataContext = function(dc) {
+  this._dataContext = dc;
+};
+
+com.marklogic.widgets.openlayers.prototype.updateData = function(datacontext) {
+  mljs.defaultconnection.logger.debug("openlayers.updateData: entered function");
+  this._dataContext = datacontext;
+
+  // remove all data layers
+  //this.map.removeLayer(this._dataLayers); // TODO remove from allLayers too
+  //this._dataLayers = new Array();
+  // don't replace the layer, just remove all markers instead
+
+  var self = this;
+  self._selectedUri = null;
+  self._highlightedUri = null;
+
+  var size = new OpenLayers.Size(21,25);
+  var offset = new OpenLayers.Pixel(-(size.w/2), -size.h);
+  var icon = new OpenLayers.Icon('/js/OpenLayers-2.13.1/img/marker-blue.png', size, offset);
+  // TODO rotate these, and check for OpenLayers markers/line colour widget configuration for specific series names
+  // TODO also have a different highlight and drawing colour for vector shapes
+
+            /*
+             * Green style
+             */
+            var lineStyle = {
+                strokeColor: "#00FF00",
+                strokeWidth: 3,
+                strokeDashstyle: "dashdot",
+                pointRadius: 6,
+                pointerEvents: "visiblePainted",
+                title: "this is a green line"
+            };
+
+
+  var seriesNames = datacontext.getSeriesNames();
+  for (var s = 0,maxs = seriesNames.length,seriesName;s < maxs;s++) {
+    seriesName = seriesNames[s];
+    mljs.defaultconnection.logger.debug("openlayers.updateData: reading series: " + seriesName);
+
+    // make each series a layer
+    var slayers = this.series[seriesName];
+    if (undefined == slayers) {
+      slayers = {};
+      this.series[seriesName] = slayers;
+    }
+    var seriesLayer = slayers.seriesLayer;
+    var seriesLineLayer = slayers.seriesLineLayer;
+    if (undefined == seriesLayer) {
+      seriesLayer = new OpenLayers.Layer.Markers(seriesName + " Markers");
+      slayers.seriesLayer = seriesLayer;
+    } else {
+
+        var oldm = seriesLayer.markers;
+        for (var i = 0;i < oldm.length;i++) {
+          var mark = oldm[i];
+          mark.erase();
+          seriesLayer.removeMarker(mark);
+          mark.destroy();
+        }
+        seriesLayer.clearMarkers();
+    }
+    if (undefined == seriesLineLayer) {
+      seriesLineLayer = new OpenLayers.Layer.Vector(seriesName + " Shapes");
+      slayers.seriesLineLayer = seriesLineLayer;
+    }
+    this._dataLayers.push(seriesLineLayer);
+    this._allLayers.push(seriesLineLayer);
+    this.map.addLayer(seriesLineLayer); // lines first so markers appear on top
+    this._dataLayers.push(seriesLayer);
+    this._allLayers.push(seriesLayer);
+    this.map.addLayer(seriesLayer);
+
+    var data = datacontext.getData(seriesName);
+    // for each series, loop over data rows
+    for (var r = 0,maxr = data.length,row;r < maxr;r++) {
+      row = data[r];
+
+      // for any fields that are geospatial points, plot a marker that is clickable
+      // use an appropriate icon based on field data
+      var pointFields = datacontext.getPointFieldData(row); // returns just the field names and values containing point data. Also converts to "fieldname": {lat: value,lon: value}
+      for (var pf in pointFields) {
+        var pointfield = pointFields[pf];
+        // TODO create marker and display with popup
+        var m = new OpenLayers.Marker(new OpenLayers.LonLat(pointfield.lon,pointfield.lat).transform(self.transformWgs84,self.map.displayProjection),icon.clone());
+
+        // TODO popup/infobox based on search result, extract title and summary
+        seriesLayer.addMarker(m);
+
+
+        var addEvents = function(m,therow) {
+          mljs.defaultconnection.logger.debug("openlayers.updateData: addEvents called");
+          var uriFields = datacontext.getUriFieldData(therow);
+          var uri = null;
+          for (var f in uriFields) {
+            if (null == uri) {
+              uri = uriFields[f];
+            }
+          }
+          mljs.defaultconnection.logger.debug("openlayers.updateData: addEvents uri: " + uri);
+  // TODO use an appopriate title
+  // TODO set up click action and summary popup
+  // TODO provide further details link in summary popup
+          // support hover for highlight, click for select events
+
+          // add hover handlers
+          m.events.register('mouseover', m, function(evt) {
+            mljs.defaultconnection.logger.debug("openlayers.updateData: mouseover event fired for " + uri);
+            self._highlightedUri = uri;
+            self._resultHighlightPublisher.publish({mode: "replace", uri: uri});
+          });
+          //here add mouseout event
+          m.events.register('mouseout', m, function(evt) {
+            mljs.defaultconnection.logger.debug("openlayers.updateData: mouseout event fired for " + uri);
+            self._highlightedUri = null;
+            self._resultHighlightPublisher.publish({mode: "replace", uri: null});
+          });
+          m.events.register('click', m, function(evt) {
+            mljs.defaultconnection.logger.debug("openlayers.updateData: click event fired for " + uri);
+            // TODO change marker icon when selected/unselected (Red?)
+            if (uri == self._selectedUri) {
+              // deselect
+              self._selectedUri = null;
+              self._resultSelectionPublisher.publish({mode: "replace", uri: null});
+            } else {
+              self._selectedUri = uri;
+              self._resultSelectionPublisher.publish({mode: "replace", uri: uri});
+            }
+          });
+        };
+
+        addEvents(m,row);
+      }
+
+      // for any fields that are geospatial lineStrings, plot a line
+      var lineFields = datacontext.getLineStringFieldData(row); // returns just geo line string data fields
+      // TODO override line style title, colours, etc. before drawing any vector for this series
+      for (var lf in lineFields) {
+        var linefield = lineFields[lf];
+        var orderedPoints = datacontext.getLineStringOrderedPoints(linefield);
+        var pointList = [];
+        for (var op = 0,maxop = orderedPoints.length,opoint,newPoint;op < maxop;op++) {
+          opoint = orderedPoints[op];
+          // TODO display line vector for this line string
+          // TODO consider co-ordinate conversion where necessary (likely EPSG900913 to WGS84/EPSG4326 if any)
+          newPoint = new OpenLayers.Geometry.Point(opoint.lon,opoint.lat);
+          pointList.push(newPoint);
+        }
+        var lineFeature = new OpenLayers.Feature.Vector(
+          new OpenLayers.Geometry.LineString(pointList),null,lineStyle);
+        seriesLineLayer.addFeatures([lineFeature]);
+      }
+    }
+
+    // check for heatmap row data (if exists) - only exists in a single row in all likelihood
+
+    // Now add heatmap information, if it exists
+    var heatmapFields = datacontext.getHeatmapFieldData(row);
+    if (null != self.heatmap) {
+    for (var hf in heatmapFields) {
+      //if (undefined != results.facets[heatmap_constraint] && undefined != results.facets[heatmap_constraint].boxes) {
+      var boxes = heatmapFields[hf];
+      // create heatmap box overlays - but they're based on points, not boxes, so how is this done in AppBuilder?
+      //  - Is this the old method used in some older demos, prior to AppBuilder 5?
+      //  - How does AppBuilder 5's heatmaps work? Do they use *all* results? If so, how is this accomplished? (normally there's a limit)
+      // AppBuilder uses the center points of the boxes for points with scores
+      // Convert to heatmap points
+      // in order to use the OpenLayers Heatmap Layer we have to transform our data into
+      // { max: , data: [{lonlat: , count: },...]}
+      //var boxes = results.facets[heatmap_constraint].boxes;
+      var hmdata = []; // not an array object
+      //var max = 0;
+      for (var i = 0, maxb = boxes.length,box,lat,lng,dp;i < maxb;i++) {
+        box = boxes[i];
+        lat = 0.5*(box.s+box.n);
+        lng = 0.5*(box.w+box.e);
+        dp = {lonlat: new OpenLayers.LonLat(lng,lat),count:box.count}; // was*10 // TODO figure out why a scaling factor is needed - can this be calculated generally using total???
+        /*if (box.count > max) {
+          max = box.count;
+        }*/
+        hmdata[i] = dp;
+      }
+      // Do we need to create blank boxes too?
+      mljs.defaultconnection.logger.debug("openlayers.updateData: Heatmap MAX: " + boxes.length);
+
+      self.heatmap.setDataSet({data: hmdata, max: boxes.length});
+
+
+    }
+  } // end heatmap if
+
+  }
+  // TODO for any fields that are geospatial polygons, draw an area outline
+
+  // TODO series settings for icon, title field, summary field, details field, details type, details url
+
+  // TODO heatmaps hard on datacontext - not sure which of potentially many search contexts to send constraint selection to
+  // heatmap update function handlers for openlayers
+  // contribute our heatmap query if required
+  /*
+  if (undefined != this.series[seriesName].constraint) {
+    this.ensureHeatmap();
+
+    var updateHeatmap = function() {
+      var ex = self.map.getExtent().transform(self.map.displayProjection,self.transformWgs84); // Bounds object
+      var amount = self._config.heatmapGranularity;
+      var ratio = Math.sqrt(amount / (self.height*self.width));
+      var up = Math.ceil(ratio*self.height);
+      var across = Math.ceil(ratio*self.width);
+      mljs.defaultconnection.logger.debug("Heatmap Amount: " + amount + ", ratio: " + ratio + ", up: " + up + ", across: " + across);
+      mljs.defaultconnection.logger.debug("Heatmap Bounds: N: " + ex.top + ", South: " + ex.bottom + ", West: " + ex.left + ", East: " + ex.right);
+      var heatmap = {n: ex.top,s: ex.bottom,w: ex.left,e: ex.right,latdivs:up,londivs:across};
+
+      if (undefined != self._searchcontext.updateGeoHeatmap(heatmap_constraint,heatmap);
+    };
+
+    // TODO also add map zoom event handler to update this on the fly too
+    this.map.events.register("moveend",this.map,function() {
+      updateHeatmap();
+    });
+
+    updateHeatmap();
+  }
+*/
+  mljs.defaultconnection.logger.debug("openlayers.updateData: exiting function");
+};
+
 /**
  * Adds a series of Feature (Marker) icons on to the map when the specified searchcontext fires an updateResults event.
  *
@@ -1124,8 +1353,8 @@ com.marklogic.widgets.openlayers.prototype.addSeries = function(title,searchcont
           // do something else
         }
       } else {
-        var lat = extractValue(thedoc,latsrc);
-        var lon = extractValue(thedoc,lonsrc);
+        lat = extractValue(thedoc,latsrc);
+        lon = extractValue(thedoc,lonsrc);
       }
       mljs.defaultconnection.logger.debug("openlayers.addSeries.listfunc: lat: " + lat + ", lon: " + lon);
       var m = new OpenLayers.Marker(new OpenLayers.LonLat(lon,lat).transform(self.transformWgs84,self.map.displayProjection),icon.clone());
