@@ -997,10 +997,18 @@ com.marklogic.widgets.openlayers.prototype.updateAlert = function(alertInfo) {
 
 };
 
+/**
+ * Sets the data context for this widget
+ * @param {mljs.prototype.datacontext} datacontext - The data context to use
+ */
 com.marklogic.widgets.openlayers.prototype.setDataContext = function(dc) {
   this._dataContext = dc;
 };
 
+/**
+ * Updates this widget based on Data Context data
+ * @param {mljs.prototype.datacontext} datacontext - The data context with data
+ */
 com.marklogic.widgets.openlayers.prototype.updateData = function(datacontext) {
   mljs.defaultconnection.logger.debug("openlayers.updateData: entered function");
   this._dataContext = datacontext;
@@ -1089,6 +1097,7 @@ com.marklogic.widgets.openlayers.prototype.updateData = function(datacontext) {
 
 
         var addEvents = function(m,therow) {
+          mljs.defaultconnection.logger.debug("openlayers.updateData: addEvents called");
           var uriFields = datacontext.getUriFieldData(therow);
           var uri = null;
           for (var f in uriFields) {
@@ -1096,6 +1105,7 @@ com.marklogic.widgets.openlayers.prototype.updateData = function(datacontext) {
               uri = uriFields[f];
             }
           }
+          mljs.defaultconnection.logger.debug("openlayers.updateData: addEvents uri: " + uri);
   // TODO use an appopriate title
   // TODO set up click action and summary popup
   // TODO provide further details link in summary popup
@@ -1103,15 +1113,18 @@ com.marklogic.widgets.openlayers.prototype.updateData = function(datacontext) {
 
           // add hover handlers
           m.events.register('mouseover', m, function(evt) {
+            mljs.defaultconnection.logger.debug("openlayers.updateData: mouseover event fired for " + uri);
             self._highlightedUri = uri;
             self._resultHighlightPublisher.publish({mode: "replace", uri: uri});
           });
           //here add mouseout event
           m.events.register('mouseout', m, function(evt) {
+            mljs.defaultconnection.logger.debug("openlayers.updateData: mouseout event fired for " + uri);
             self._highlightedUri = null;
             self._resultHighlightPublisher.publish({mode: "replace", uri: null});
           });
           m.events.register('click', m, function(evt) {
+            mljs.defaultconnection.logger.debug("openlayers.updateData: click event fired for " + uri);
             // TODO change marker icon when selected/unselected (Red?)
             if (uri == self._selectedUri) {
               // deselect

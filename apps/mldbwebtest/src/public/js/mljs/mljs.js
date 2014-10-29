@@ -94,6 +94,23 @@ if (typeof(window) === 'undefined') {
 
 // DEFAULTS
 
+
+/**
+ * MLJS connection configuration database options
+ * @typedef {Object} mljs.dboptions
+ * @property {string} host - The hostname or IP address of the MarkLogic server. Ignored for Browser use.
+ * @property {integer} port - The port of the MarkLogic server. Ignored for Browser use.
+ * @property {integer} adminport - The port of the MarkLogic server's admin access. Ignored for Browser use.
+ * @property {boolean} ssl - Whether to use http or https. Ignored for browser use
+ * @property {string} auth - How to authenticate to the server. Ignored for browser use. Valid options are "digest", "basic" and "none"
+ * @property {string} username - Ther username to authenticate with. Ignored for browser use
+ * @property {string} password - User's password. Ignored for browser use
+ * @property {string} database - The database to query or create. Browser use on V8+
+ * @property {json} searchoptions - Not used
+ * @property {integer} fastthreads - Not used
+ * @property {integer} fastports - Not used
+ */
+
 var defaultdboptions = {
   host: "localhost", port: 9090, adminport: 8002, ssl: false, auth: "digest", username: "admin",password: "admin", database: "mldbtest", searchoptions: {}, fastthreads: 10, fastparts: 100
 }; // TODO make Documents the default db, automatically figure out port when creating new rest server
@@ -626,10 +643,11 @@ var m = mljs;
  * @property {string} mime - The MIME content type returned in the content type header of the response
  */
 
+
 /**
  * Provide configuration information to this database. This is merged with the defaults.
  *
- * @param {JSON} dboptions - The DB Options to merge with the default options for this connection.
+ * @param {mljs.dboptions} dboptions - The DB Options to merge with the default options for this connection.
  */
 mljs.prototype.configure = function(dboptions) {
   self = this;
@@ -1201,7 +1219,7 @@ mljs.prototype.properties = function(docuri,callback_opt) {
  * {@link https://docs.marklogic.com/REST/PUT/v1/documents}
  *
  * @param {string} docuri - The URI of the document whose properties you want to retrieve.
- * @param {JSON} properties - TJSON properties document.
+ * @param {JSON} properties - The JSON properties document.
  * @param {function} callback_opt - The optional callback to invoke after the method completes
  */
 mljs.prototype.saveProperties = function(docuri,properties,callback_opt) {
@@ -1460,12 +1478,28 @@ mljs.prototype.__mergeold = function(json1,json2) {
 };
 
 /**
+ * Which nodes to select in the XML to replace
+ * @typedef {Object} mljs.elementSelectionJson
+ * @property {mljs.elementSelectionJsonNamespaces} namespaces - Namespaces to use
+ * prefix, ns
+ * @property {string} context - The context parameter for the rapi:replace-insert command
+ * @property {string} select - The selection XPath for the element (property) to replace
+ */
+
+/**
+ * Array of namespace objects, with below members
+ * @typedef {Object} mljs.elementSelectionJsonNamespaces
+ * @property {string} prefix - The text prefix to use. E.g. 'xhtml'
+ * @property {string} ns - The namespace uri. E.g. 'http://w3.org/xhtml/1999'
+ */
+
+/**
  * Uses MarkLogic V7's Patch support to replace or insert a property for the specified document.
  *
  * {@link https://docs.marklogic.com/REST/POST/v1/documents}
  *
  * @param {string} docuri - The URI of the document to patch
- * @param {JSON} elementSelectJSON - JSON object containing a namespaces array with prefix and ns elements, an XPath 'context' (parent of the node to replace), and a 'select' XPath (remaining XPath to select child to replace) - {namespaces: [{prefix: "myns",ns: "http://myns.org/myns"}], context: "//myns:parent", select: "myns:child[1]"}
+ * @param {mljs.elementSelectJson} elementSelectJSON - JSON object containing a namespaces array with prefix and ns elements, an XPath 'context' (parent of the node to replace), and a 'select' XPath (remaining XPath to select child to replace) - {namespaces: [{prefix: "myns",ns: "http://myns.org/myns"}], context: "//myns:parent", select: "myns:child[1]"}
  * @param {xml|text} content - The document properties context to save
  * @param {function} callback_opt - The optional callback to invoke after the method completes
  */
@@ -4150,7 +4184,7 @@ mljs.prototype.options.prototype.path = mljs.prototype.options.prototype.pathCon
  * @param {string} attr - Element attribute to use
  * @param {string} type_opt - XML Schema type. E.g. "xs:string". Optional. If not specified, default type is used.
  * @param {string} collation_opt - The optional string collation to used. If not specified, default collation is used (if of xs:string type)
- * @param {JSON} facet_opt - The optional facet JSON to use.
+ * @param {boolean} facet_opt - Whether to use this constraint as a facet
  * @param {JSON} facet_options_opt - The optional facet configuration JSON to use.
  * @param {string|Array} annotation_opt - The annotation to add to the constraint. MLJS uses annotation[0] as the display title, falling back to camel case constraint name if not specified
  */
@@ -4426,7 +4460,7 @@ mljs.prototype.options.prototype.value = mljs.prototype.options.prototype.valueC
  * @param {string} name - Field name to use
  * @param {string} type_opt - xs:string or similar
  * @param {string} collation_opt - The optional string collation to used. If not specified, default collation is used
- * @param {JSON} facet_opt - The optional facet JSON to use.
+ * @param {boolean} facet_opt - Use this constraint as a facet.
  * @param {JSON} facet_options_opt - The optional facet configuration JSON to use.
  * @param {string} fragmentScope_opt - The fragment to use (defaults to document)
  * @param {string|Array} annotation_opt - The annotation to add to the constraint. MLJS uses annotation[0] as the display title, falling back to camel case constraint name if not specified
@@ -9730,7 +9764,7 @@ mljs.prototype.datacontext = function() {
   this._sourceInfo = {}; // sourceName -> {data: [{field1:val1, field2:val2, ...}, ...], listener: lisFunc}
 
   // 2. join sources in to a single representation
-  /**
+  /*
    * Joined data merged from multiple sources -
    * {
    *   series: [

@@ -28,33 +28,36 @@ Interim demo targets
   - draggable position after initial render
   - Pick a library - d3.js OR keylines OR other
  - Widgets: Time series Bar chart for bucketed time by date, value y series, on its own across bottom of screen
- - Widgets: HighCharts
-  - Update to use latest highcharts library
-  - Regression testing of highcharts library
-  - Support multiple series
  - Widgets: Workplace
   - Support chaining updates from one search context to another
    - support prevention of circular updates via stack (array) mechanism
+  - BUG selection html control for registering widgets with context allows highlighting of none or all only
+  - BUG HTML generation in new layouts (column there, no drop zone!) - looks like issue with workplaceadmin rendering
  - TEST Core: datacontext
   - DONE basic context creation
   - TEST identity information joining
   - TEST support multiple configurable sources in Workplace
  - Widgets: HighCharts rework
-  - Support for Data Context
-  - specification of which fields used for series name, category X, value Y axis
+  - TEST Support for Data Context
+  - TEST specification of which fields used for series name (In DC), category X (In DC), value Y axis (from valueSource)
   - DEFERRED support for multi axes and value Y axes
   - DEFERRED extra chart types support
   - WAIT JM Use latest highcharts code
   - WAIT JM confirm license for latest highcharts code
- - Widgets: Kratu rework
-  - Support for Data Context
+  - TEST JW support co-occurence with aggregates calculated on server
+  - TEST via DC only - Support multiple series
+  - Update to use latest highcharts library
+  - Regression testing of highcharts library
+ - TEST Widgets: Kratu rework
+  - TEST Support for Data Context
  - Widgets: OpenLayers rework
   - TEST Support for Data Context
   - Specification of field values linked to pins
   - field linked to summary content
   - TEST highlighted document uri field
   - TEST marker drawing working via configuration
- - BL
+  - Upgrade map to OpenLayers version 3
+ - IN PROGRESS BL
   - Widgets: OpenLayers shows image thumbnail as marker
   - Widgets: semantic widget configuraton from owl
   - DONE Widgets: document properties widget - get folksonomies working
@@ -65,7 +68,6 @@ Interim demo targets
   - DEFERRED Widgets: Semantic aggregation data source for charts
    - DEFERRED basic functionality with aggregations
    - DEFERRED limit results to SPARQL query (contributed)
- - Widgets: Add HTML generation to new layouts (column there, no drop zone!)
  - IN PROGRESS Widgets: Document properties
   - DONE get add properties working
   - DONE update document context for allowable properties
@@ -73,9 +75,8 @@ Interim demo targets
  - DONE Widgets: Document view
   - DONE Alter widget to support viewing generic XML, XHTML, JPG, etc.
   - TEST XHTML with links
- - Widgets: Upgrade map to OpenLayers version 3
 
-Targets of opportunity (non timed)
+Targets of opportunity (not scheduled)
  - Bugs
   - BUG workplace nav buttons do not gracefully wrap on to next line
   - BUG Docs: mljsrest Openlayers demo page hovering over marker causes null reference looking for result area by id to change css classes
@@ -131,8 +132,51 @@ Targets of opportunity (non timed)
    - Add this to My Workplaces option on non-owned workplace page load
   - Edit limited to owner of workplace
  - Widget: Allow disabling camelcase processing on facet names and facet values for search facets widget as config options (PK)
+ - Docs: Core: document all internal JSON structures using jsdoc
+  - DONE mljs REST API response object
+  - DONE mljs dboptions
+  - URL mljs.get additionalOptions for REST call
+  - URL mljs.saveProperties/save documentProperties
+  - DONE mljs.replaceProperty elementSelectionJson
+  - URL mljs.search/searchCollection/structuredSearch/combined/values searchUrlParametersJson
+  - URL mljs.structuredQuery/combined/valuesCombined structuredQueryJson - link to REST API docs
+  - URL mljs.saveSearchOptions (save)searchOptions(Json)(Check) - link to REST API docs and optionsbuilder object
+  - URL mljs.suggest suggestUrlParametersJson - same as search?
+  - URL mljs.saveTransform transformPropertiesDocumentJson
+  - URL mljs.saveGeoNearSearch constraintSpecificationJson
+  - URL options.setFacetValueStrings facetValueMappingJson
+  - URL options.(all)Constraint additionalConstraintOptions
+  - URL options.(all)Constraint facet_options_opt json - same as constraint options - NO
+  - URL options.pathConstraint/searchableExpression namespacesJson
+  - URL options.addConstraint constraintJson - link to REST API docs
+  - URL options.geoElemPair/Attribute/PathConstraint heatmapJson
+  - URL options.starter additionalGrammarStarterJson
+  - URL options.prefix additionalGrammarPrefixJson
+  - URL options.joiner additionalGrammarJoinerJson
+  - URL options grouping additionalGrammarGroupingJson
+  - URL options.snippet additionalSnipperOptions
+  - URL options.query/and/or/dynamic queryJson link to REST API docs
+  - URL searchcontext.setTransform transformJson
+  - URL searchcontext.setOptions optionsJson or optionsbuilder
+  - URL searchcontext.doSuggest additionalProperties_opt
+  - URL searchcontext.doStructuredQuery structuredQueryJson
+  - URL searchcontext.updateGeoHeatmap heatmapJson
+  - URL searchcontext.updateGeoSelection selectionJson
+  - searchcontext.updateResults searchResultsJson
+  - searchcontext.updateSelection selectionJson
+  - searchcontext.updateHighlight selectionJson ?
+  - searchcontext.updatePage
+  - searchcontext.updateSort sortJson
+  - tripleconfig.addMappings/getEntityProperty/getNameProperty entityJson
+  - tripleconfig.include rdftype json
+  - tripleconfig.getEntityFromIRI/getEntityFromShortIRI/getEntityFromName returns entityJson
+  - tripleconfig.getPredicateFromIRI/getPredicateFromShortIRI/getPredicteFromName returns predicateJson
+  - URL documentcontext.add/get/setAllowableProperty/ies docPropertyJson
+  - documentcontext.set/getPart fieldJson
+  - DEFERRED all.setConfiguration - workplace configuration for all objects' supported config options
+  - DEFERRED all.register - document generic object for this
 
-Targets for 1.7 (Aug 2014) - Theme: External WebServer and Alerting
+Targets for 1.7 (Nov 2014) - Theme: External WebServer and Alerting
  - MLJS Web Server and Alert Server
   - DONE mljs-webserver.js: Allow pass through of Digest/Basic auth challenges and responses
    - DONE digest, basic, digestbasic, applicationlevel all work fine
@@ -195,7 +239,7 @@ Targets for 1.7 (Aug 2014) - Theme: External WebServer and Alerting
   - DONE BUG generic widget image doesn't show in Node.js mljs webserver
   - BUG open layers map layer comments appearing too high again - copy old css fix over
 
-Targets for 1.8 (Oct 2014) - Theme: Visualisations Sprint 1
+Targets for 1.8 (Dec 2014) - Theme: Visualisations Sprint 1
  - Track code commented TODOs in this document
  - BUG Widgets: combined query - test against latest MarkLogic 7 build
  - BUG Widgets: Address Lookup: Google geocoder needs to fail gracefully if google libraries not available (offline mode)

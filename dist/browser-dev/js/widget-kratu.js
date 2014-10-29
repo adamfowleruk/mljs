@@ -120,6 +120,42 @@ com.marklogic.widgets.kratu.prototype.updateResults = function(results) {
   }
 };
 
+
+/**
+ * Updates this widget based on Data Context data
+ * @param {mljs.prototype.datacontext} datacontext - The data context with data
+ */
+com.marklogic.widgets.cooccurence.prototype.updateData = function(datacontext) {
+
+  var kratuData = new Array();
+
+  var sn = datacontext.getSeriesNames();
+  for (var s = 0,maxs = sn.length,seriesName;s < maxs;s++) {
+    seriesName = sn[s];
+
+    // make each series a layer
+    var data = datacontext.getData(seriesName);
+    // for each series, loop over data rows
+    for (var r = 0,maxr = data.length,row,kratuRow;r < maxr;r++) {
+      row = data[r];
+      kratuRow = {};
+      kratuRow.series = seriesName;
+      kratuRow.identity = row.identity;
+      for (var f in row.fields) {
+        kratuRow[f] = row.fields[f];
+      }
+
+      kratuData.push(kratuRow);
+    } // end data row for
+
+
+  } // end series for
+
+  this.kratu.setEntities(kratuData);
+  this._refresh();
+
+};
+
 /**
  * Draw sparql facts results as a table
  *

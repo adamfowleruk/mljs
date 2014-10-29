@@ -997,10 +997,18 @@ com.marklogic.widgets.openlayers.prototype.updateAlert = function(alertInfo) {
 
 };
 
+/**
+ * Sets the data context for this widget
+ * @param {mljs.prototype.datacontext} datacontext - The data context to use
+ */
 com.marklogic.widgets.openlayers.prototype.setDataContext = function(dc) {
   this._dataContext = dc;
 };
 
+/**
+ * Updates this widget based on Data Context data
+ * @param {mljs.prototype.datacontext} datacontext - The data context with data
+ */
 com.marklogic.widgets.openlayers.prototype.updateData = function(datacontext) {
   mljs.defaultconnection.logger.debug("openlayers.updateData: entered function");
   this._dataContext = datacontext;

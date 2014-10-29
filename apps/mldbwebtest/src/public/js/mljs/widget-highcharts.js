@@ -348,6 +348,130 @@ com.marklogic.widgets.highcharts.prototype.setSeriesSources = function(nameSourc
 };
 
 /**
+ * Sets the data context for this widget
+ * @param {mljs.prototype.datacontext} datacontext - The data context to use
+ */
+com.marklogic.widgets.cooccurence.prototype.setDataContext = function(dc) {
+  this._dataContext = dc;
+};
+
+/**
+ * Updates this widget based on Data Context data
+ * @param {mljs.prototype.datacontext} datacontext - The data context with data
+ */
+com.marklogic.widgets.cooccurence.prototype.updateData = function(datacontext) {
+
+  var valSource = "";
+  if (this.valueSource.startsWith("#") || this.valueSource.startsWith("!") ) {
+    // hardcoded value
+    valSource = this.valueSource.substring(1);
+  } else {
+    valSource = this.valueSource;
+  }
+  var seriesNames = new Array();
+  var seriesCounts = {};
+  var seriesVaues = {};
+  var allCategories = new Array();
+
+  var sn = datacontext.getSeriesNames();
+  for (var s = 0,maxs = sn.length,seriesName;s < maxs;s++) {
+    seriesName = sn[s];
+    mljs.defaultconnection.logger.debug("highcharts.updateData: reading series: " + seriesName);
+
+    seriesNames.push(seriesName); // TODO extract from data or specification
+    seriesValues[seriesName] = new Array();
+    seriesCounts[seriesName] = new Array();
+
+    // make each series a layer
+    var data = datacontext.getData(seriesName);
+    // for each series, loop over data rows
+    for (var r = 0,maxr = data.length,row;r < maxr;r++) {
+      row = data[r];
+
+      var category = row.identity;
+      var value = row.fields[valSource];
+
+      allCategories.push(category);
+      var categoryValueArray = seriesValues[seriesName][category];
+      if (undefined == categoryValueArray) {
+        seriesValues[seriesName][category] = new Array();
+        seriesCounts[seriesName][category] = 0;
+      }
+      seriesValues[seriesName][category].push(value);
+      seriesCounts[seriesName][category] += 1;
+
+    } // end data row for
+
+
+  } // end series for
+
+  this._displayResults(seriesNames,seriesCounts,seriesValues,allCategories);
+
+};
+
+/**
+ * Updates the widget with the specified values JSON object. (top level element is "values-response").
+ * See GET /v1/values
+ *
+ * @param {JSON} values - the values returned as a values response JSON object.
+ */
+com.marklogic.widgets.cooccurence.prototype.updateValues = function(values) {
+  if ("boolean" == typeof(values)) {
+    return;
+  }
+  var seriesNames = new Array();
+  var seriesCounts = {};
+  var seriesVaues = {};
+  var defName = "Co-occurrence";
+  seriesNames.push(defName); // TODO extract from data or specification
+  seriesValues[defName] = new Array();
+  seriesCounts[defName] = new Array();
+  var allCategories = new Array();
+
+  if (undefined != values["values-response"] && undefined != values["values-response"].tuple) {
+
+    // show data as a chart
+    // TODO allow specification of category and value facets
+    // get each tuple in order
+    var tuplesOriginal = values["values-response"].tuple;
+    //msort(tuplesOriginal,0,tuplesOriginal.length,"frequency"); // REQUIRES widgets.js. Sorts in place (doesn't return a new array)
+    bubbleSort(tuplesOriginal,"frequency");
+    var tuples = tuplesOriginal;
+    for (var i = 0, t, category;i < tuples.length;i++) {
+      t = tuples[i];
+      category = "";
+      // extract category name from tuple
+      // TODO if specific, extract series name from tuple
+      // else, show category name as field1, field2, fieldX
+      for (var v = 0;v < t["distinct-value"].length;v++) {
+        var val = t["distinct-value"][v];
+        category += val["_value"];
+        if (v != t["distinct-value"].length - 1) {
+          category += ", ";
+        }
+      }
+      // use value on Y axis - always numeric (count by default, also sum, avg, median, etc.)
+      var value = t.frequency; // TODO validate name is same for avg, median, UDFs etc.
+
+      allCategories.push(category);
+
+      var categoryValueArray = seriesValues[defName][category];
+      if (undefined == categoryValueArray) {
+        seriesValues[defName][category] = new Array();
+        seriesCounts[defName][category] = 0;
+      }
+      seriesValues[defName][category].push(value);
+      seriesCounts[defName][category] += 1;
+    }
+
+  } else {
+    // TODO show empty chart
+  }
+
+  this._displayResults(seriesNames,seriesCounts,seriesValues,allCategories);
+};
+
+/**
  * Event handler. Intended as a parameter for an addSubjectFactsListener.
  * Takes triple facts and extracts in to chart
  *
