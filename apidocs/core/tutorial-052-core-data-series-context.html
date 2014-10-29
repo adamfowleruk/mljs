@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8">
-	<title>MLJS Classes</title>
+	<title>MLJS tutorial052-core-data-series-context</title>
 
 	<!--[if lt IE 9]>
 	<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
@@ -259,132 +259,150 @@
 	<div class="row-fluid">
 
 		
-		<div class="span8">
-			
+			<div class="span12">
+				
 				<div id="main">
-					
-
-
-	<h1 class="page-title">Classes</h1>
-<section>
-
+					<section>
+    
 <header>
-    <h2>
     
-    </h2>
-    
-</header>
+
+    <h2>052-core-data-series-context</h2>
+</header>  
 
 <article>
-    <div class="container-overview">
-    
-
-    
-        
-
-        
-<dl class="details">
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-        
-    
-    </div>
-
-    
-
-    
-
-    
-
-    
-        <h3 class="subsection-title">Classes</h3>
-
-        <dl>
-            <dt><a href="BasicWrapper.html">BasicWrapper</a></dt>
-            <dd></dd>
-        
-            <dt><a href="com.marklogic.events.Publisher.html">Publisher</a></dt>
-            <dd></dd>
-        
-            <dt><a href="com.marklogic.semantic.tripleconfig.html">tripleconfig</a></dt>
-            <dd></dd>
-        
-            <dt><a href="DigestWrapper.html">DigestWrapper</a></dt>
-            <dd></dd>
-        
-            <dt><a href="mljs.html">mljs</a></dt>
-            <dd></dd>
-        
-            <dt><a href="mljs_documentcontext.html">documentcontext</a></dt>
-            <dd></dd>
-        
-            <dt><a href="mljs_geocontext.html">geocontext</a></dt>
-            <dd></dd>
-        
-            <dt><a href="mljs_options.html">options</a></dt>
-            <dd></dd>
-        
-            <dt><a href="mljs_query.html">query</a></dt>
-            <dd></dd>
-        
-            <dt><a href="mljs_searchcontext.html">searchcontext</a></dt>
-            <dd></dd>
-        
-            <dt><a href="mljs_searchcontext.defaultparser.html">defaultparser</a></dt>
-            <dd></dd>
-        
-            <dt><a href="mljs_semanticcontext.html">semanticcontext</a></dt>
-            <dd></dd>
-        
-            <dt><a href="mljs_sparqlbuilder.html">sparqlbuilder</a></dt>
-            <dd></dd>
-        
-            <dt><a href="PassThroughWrapper.html">PassThroughWrapper</a></dt>
-            <dd></dd>
-        </dl>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
+    <p><a href="tutorial-all.html">Back to All Tutorials list</a></p>
+<h1>The Data Series Context</h1>
+<p>In many application you may be collecting data from a variety of places. Rather than operate on the low level of data
+you instead wish to combine data to provide the concept of series, axes and values.</p>
+<p>Consider an application where there is a dashboard page. You could have a single search context feed a single chart.
+You could have multiple charts on one page. What about if the data all had the same axes, or topic, or categories?
+You may wish to process the data then combine it on the same chart, with aligned data categories and series.</p>
+<p>This is what the data series context is for. By providing a set of sources (e.g. search contexts, semantic contexts)
+and configuring data joins and transforms, you can overlay disparate data about the same subject on a single chart.</p>
+<p>Uses include multiple 'pins' in a map, a third dimension in a table (category), or series in a chart.</p>
+<p>This method is different from making the same chart listen to multiple search contexts (for example) and using the raw
+data. This is because some data may identify a subject as 'Adam Fowler' in a content facet, whereas a semantic search
+may identify the same subject as 'http://somesite.com/Person/AdamFowler'. Thus processing of the content before display
+is required to 'join' information about the same subject together.</p>
+<h2>How does it work?</h2>
+<p>The Data Series Context can act as a chained context. This means a searchcontext's updateResults method would attempt
+to call the updateResults method on the Data Series Context. The Data Series Context in turn uses the function's caller
+field and compares it against a list of observed contexts.</p>
+<p>The Data Series Context then processes the data as required in order to 'join' data together. Once stitched together,
+the data series context calls the updateDataSeries() method on its listeners. Typically these are visual widgets
+that are configured to display data series information.</p>
+<h2>Example work through</h2>
+<p>Lets say you have done a content search of a set of city information documents. These contain the city name and their
+population. You may have raw content results of the below:-</p>
+<table>
+<thead>
+<tr>
+<th>City</th>
+<th>Population</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Derby</td>
+<td>55000</td>
+</tr>
+<tr>
+<td>Chesterfield</td>
+<td>30000</td>
+</tr>
+<tr>
+<td>Scunthorpe</td>
+<td>58000</td>
+</tr>
+</tbody>
+</table>
+<p>This has an identity field of City and a single data field of Population.</p>
+<p>You may then want to join this with information from a semantic search for city information to show the below:-</p>
+<table>
+<thead>
+<tr>
+<th>City</th>
+<th>County</th>
+<th>Country</th>
+<th>Population</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Derby</td>
+<td>Derbyshire</td>
+<td>England</td>
+<td>55000</td>
+</tr>
+<tr>
+<td>Chesterfield</td>
+<td>Derbyshire</td>
+<td>England</td>
+<td>30000</td>
+</tr>
+<tr>
+<td>Scunthorpe</td>
+<td>Lincolnshire</td>
+<td>England</td>
+<td>58000</td>
+</tr>
+</tbody>
+</table>
+<p>In this example the identity is in an rdfs:label property, and there are two additional data fields for County and
+Country.</p>
+<p>Configuring a data series context to be chained to a search context and semantic context will allow this data to be
+joined together and displayed in a table.</p>
+<p>You may then have additional information with temperature reading data. These could be a set of documents with the
+below data:-</p>
+<table>
+<thead>
+<tr>
+<th>City</th>
+<th>Date</th>
+<th>High</th>
+<th>Low</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Derby</td>
+<td>2014-01-01</td>
+<td>5</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>Derby</td>
+<td>2014-06-20</td>
+<td>27</td>
+<td>18</td>
+</tr>
+<tr>
+<td>Chesterfield</td>
+<td>2014-05-03</td>
+<td>27</td>
+<td>23</td>
+</tr>
+</tbody>
+</table>
+<p>By performing a co-occurence process against City and mean average high and mean average low temperatures, you can
+join this information to the above to provide a holistic view of English cities and their summary data. This requires
+a second search context set up to execute a co-occurence against the /v1/values endpoint.</p>
+<h2>Second example</h2>
+<p>Alternatively, the data could be sparse - with each data series having nothing to do with each other. This is often the
+case for markers on maps. Here there are unlikely any common points, but they each need processing and showing
+differently.</p>
+<p>Perhaps a series on schools has a different marker to one on roads. Roads in turn may have many points that need
+joining together in to a single feature rather than a single point. Thus they are shown as a line rather than a marker.
+Perhaps again a complaint document has a marker with a document icon.</p>
+<p>Each of these series may be shown or hidden in their entirety within the display map widget itself.</p>
+<p>The Data Series Context's job in this case is to extract the lon and lat point, apply any transforms
+(WGS84 to EPSG900913) necessary, set the marker icon, and decide on the shape/geometry to use.</p>
+<h2>Real world charts examples</h2>
+<p>See the excel file mljs-data-series.xlsx for worked examples of how the data series context should work.</p>
 </article>
 
-</section>
-
-
-
+</section>  
 
 				</div>
 
@@ -402,15 +420,11 @@
 					
 		<span class="jsdoc-message">
 		Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.3-dev</a>
-		on Wed Oct 29 2014 14:20:59 GMT-0000 (GMT) using the <a href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
+		on Wed Oct 29 2014 14:21:00 GMT-0000 (GMT) using the <a href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
 		</span>
 				</footer>
 			</div>
 
-			
-			<div class="span3">
-				<div id="toc"></div>
-			</div>
 			
 			<br clear="both">
 		</div>
