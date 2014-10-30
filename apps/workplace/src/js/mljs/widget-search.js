@@ -3278,7 +3278,7 @@ com.marklogic.widgets.searchmetrics.prototype.setConfiguration = function(config
   }
 
   // refresh display
-  this._refresh();
+  this.updateResults(false);
 };
 
 /**

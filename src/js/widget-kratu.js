@@ -74,7 +74,7 @@ com.marklogic.widgets.kratu.prototype.setConfiguration = function(config) {
 /**
  * Specifies what to render within the search results.
  * summary = the search result summary. E.g. URI, score, etc.
- * content = the JSON content (default)
+ * content = the JSON, csv or XML content - determined automatically from REST API results
  *
  * @param {string} render - What to render from the search result information. "content|properties"
  */
@@ -85,7 +85,7 @@ com.marklogic.widgets.kratu.prototype.render = function(render) {
 /**
  * Event target. Can be used with addResultsListener
  *
- * @param {JSON} results - The REST API JSON results object to display. See GET /v1/search
+ * @param {JSON} results - The REST API JSON results object to display. See GET /v1/search. Could include CSV, XML or JSON content (even mixed results too!).
  */
 com.marklogic.widgets.kratu.prototype.updateResults = function(results) {
   mljs.defaultconnection.logger.debug("kratu.updateResults called");
@@ -100,12 +100,28 @@ com.marklogic.widgets.kratu.prototype.updateResults = function(results) {
         r = this.results.results[i];
         mljs.defaultconnection.logger.debug("kratu.updateResults: Parsing result " + i + "=" + r.content);
         if (typeof(r.content) == "string") {
-          // TODO support plain text, xml text
-          content.push(JSON.parse(this.results.results[i].content)); // TODO support XML and other types too
+          // support csv text, json, xml text
+          try {
+            var res = JSON.parse(this.results.results[i].content);
+            content.push(res);
+          } catch (ex) {
+            // must be text. Try CSV parsing
+            var csvProvider = new KratuCSVProvider();
+            var self = this;
+            csvProvider.parse(this.results.results[i].content, function (csvdata) {
+              mljs.defaultconnection.logger.debug("kratu.updateResults: parsed CSV data: " + csvdata);
+              res = csvdata;
+              content.push(csvdata);
+              self.kratu.setEntities(content);
+              self._refresh();
+            });
+          }
         } else if (typeof(r.content) == "object") {
           // xml or JSON
           if (undefined != r.content.nodeType) {
-            // TODO support XML object
+            // support XML object
+            var json = xmlToJson(r.content); // MLJS Core utility library - Kratu has no XML provider!!!
+            content.push(json);
           } else {
             content.push(r.content);
           }
