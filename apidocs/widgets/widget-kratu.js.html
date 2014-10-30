@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>MLJS Source: widget-kratu.js</title>
+
+	<!--[if lt IE 9]>
+	<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+	<link type="text/css" rel="stylesheet" href="styles/sunlight.default.css">
+
+	
+	<link type="text/css" rel="stylesheet" href="styles/site.cerulean.css">
+	
+</head>
+
+<body>
+<div class="container-fluid">
+	<div class="navbar navbar-fixed-top ">
+		<div class="navbar-inner">
+			<a class="brand" href="index.html">MLJS</a>
+			<ul class="nav">
+				
+				<li class="dropdown">
+					<a href="namespaces.list.html" class="dropdown-toggle" data-toggle="dropdown">Namespaces<b
+						class="caret"></b></a>
+
+					<ul class="dropdown-menu ">
+						
+						<li>
+							<a href="com.marklogic.widgets.bits.html">bits</a>
+						</li>
+						
+
+					</ul>
+				</li>
+				
+				<li class="dropdown">
+					<a href="classes.list.html" class="dropdown-toggle" data-toggle="dropdown">Classes<b
+						class="caret"></b></a>
+
+					<ul class="dropdown-menu ">
+						
+						<li>
+							<a href="com.marklogic.widgets.actionconfig.html">actionconfig</a>
+						</li>
+						
+						<li>
+							<a href="com.marklogic.widgets.actionorderer.html">actionorderer</a>
+						</li>
+						
+						<li>
+							<a href="com.marklogic.widgets.actions.javascript.html">javascript</a>
+						</li>
+						
+						<li>
+							<a href="com.marklogic.widgets.addressbar.html">addressbar</a>
+						</li>
+						
+						<li>
+							<a href="com.marklogic.widgets.advancedsearch.html">advancedsearch</a>
+						</li>
+						
+						<li>
+							<a href="com.marklogic.widgets.collectionuris.html">collectionuris</a>
+						</li>
+						
+						<li>
+							<a href="com.marklogic.widgets.configwrapper.html">configwrapper</a>
+						</li>
+						
+						<li>
+							<a href="com.marklogic.widgets.cooccurence.html">cooccurence</a>
+						</li>
+						
+						<li>
+							<a href="com.marklogic.widgets.create.html">create</a>
+						</li>
+						
+						<li>
+							<a href="com.marklogic.widgets.docheadviewer.html">docheadviewer</a>
+						</li>
+						
+						<li>
+							<a href="com.marklogic.widgets.docproperties.html">docproperties</a>
+						</li>
+						
+						<li>
+							<a href="com.marklogic.widgets.docviewer.html">docviewer</a>
+						</li>
+						
+						<li>
+							<a href="com.marklogic.widgets.dropzone.html">dropzone</a>
+						</li>
+						
+						<li>
+							<a href="com.marklogic.widgets.entityfacts.html">entityfacts</a>
+						</li>
+						
+						<li>
+							<a href="com.marklogic.widgets.error.html">error</a>
+						</li>
+						
+						<li>
+							<a href="com.marklogic.widgets.graphexplorer.html">graphexplorer</a>
+						</li>
+						
+						<li>
+							<a href="com.marklogic.widgets.highcharts.html">highcharts</a>
+						</li>
+						
+						<li>
+							<a href="com.marklogic.widgets.kratu.html">kratu</a>
+						</li>
+						
+						<li>
+							<a href="com.marklogic.widgets.layouts.column.html">column</a>
+						</li>
+						
+						<li>
+							<a href="com.marklogic.widgets.layouts.thickthin.html">thickthin</a>
+						</li>
+						
+						<li>
+							<a href="com.marklogic.widgets.layouts.thinthick.html">thinthick</a>
+						</li>
+						
+						<li>
+							<a href="com.marklogic.widgets.layouts.thinthickthin.html">thinthickthin</a>
+						</li>
+						
+						<li>
+							<a href="com.marklogic.widgets.layouts.threecolumns.html">threecolumns</a>
+						</li>
+						
+						<li>
+							<a href="com.marklogic.widgets.layouts.twocolumns.html">twocolumns</a>
+						</li>
+						
+						<li>
+							<a href="com.marklogic.widgets.markings.html">markings</a>
+						</li>
+						
+						<li>
+							<a href="com.marklogic.widgets.openlayers.html">openlayers</a>
+						</li>
+						
+						<li>
+							<a href="com.marklogic.widgets.profile.html">profile</a>
+						</li>
+						
+						<li>
+							<a href="com.marklogic.widgets.rdb2rdf.html">rdb2rdf</a>
+						</li>
+						
+						<li>
+							<a href="com.marklogic.widgets.searchbar.html">searchbar</a>
+						</li>
+						
+						<li>
+							<a href="com.marklogic.widgets.searchfacets.html">searchfacets</a>
+						</li>
+						
+						<li>
+							<a href="com.marklogic.widgets.searchoptions.html">searchoptions</a>
+						</li>
+						
+						<li>
+							<a href="com.marklogic.widgets.searchpage.html">searchpage</a>
+						</li>
+						
+						<li>
+							<a href="com.marklogic.widgets.searchpager.html">searchpager</a>
+						</li>
+						
+						<li>
+							<a href="com.marklogic.widgets.searchresults.html">searchresults</a>
+						</li>
+						
+						<li>
+							<a href="com.marklogic.widgets.searchselection.html">searchselection</a>
+						</li>
+						
+						<li>
+							<a href="com.marklogic.widgets.searchsort.html">searchsort</a>
+						</li>
+						
+						<li>
+							<a href="com.marklogic.widgets.selection.html">selection</a>
+						</li>
+						
+						<li>
+							<a href="com.marklogic.widgets.sparqlbar.html">sparqlbar</a>
+						</li>
+						
+						<li>
+							<a href="com.marklogic.widgets.sparqlresults.html">sparqlresults</a>
+						</li>
+						
+						<li>
+							<a href="com.marklogic.widgets.workplace.html">workplace</a>
+						</li>
+						
+						<li>
+							<a href="com.marklogic.widgets.workplaceadmin.html">workplaceadmin</a>
+						</li>
+						
+						<li>
+							<a href="com.marklogic.widgets.workplacecontext.html">workplacecontext</a>
+						</li>
+						
+						<li>
+							<a href="com.marklogic.widgets.workplacenavbar.html">workplacenavbar</a>
+						</li>
+						
+
+					</ul>
+				</li>
+				
+				<li class="dropdown">
+					<a href="tutorials.list.html" class="dropdown-toggle" data-toggle="dropdown">Tutorials<b
+						class="caret"></b></a>
+
+					<ul class="dropdown-menu ">
+						
+						<li>
+							<a href="tutorial-001-intro.html">001-intro</a>
+						</li>
+						
+						<li>
+							<a href="tutorial-001-widgets-list.html">001-widgets-list</a>
+						</li>
+						
+						<li>
+							<a href="tutorial-002-intro-firstpage.html">002-intro-firstpage</a>
+						</li>
+						
+						<li>
+							<a href="tutorial-002-widgets-search.html">002-widgets-search</a>
+						</li>
+						
+						<li>
+							<a href="tutorial-003-widgets-search-render.html">003-widgets-search-render</a>
+						</li>
+						
+						<li>
+							<a href="tutorial-004-widgets-highcharts.html">004-widgets-highcharts</a>
+						</li>
+						
+						<li>
+							<a href="tutorial-011-browser-create-app.html">011-browser-create-app</a>
+						</li>
+						
+						<li>
+							<a href="tutorial-012-browser-install-app.html">012-browser-install-app</a>
+						</li>
+						
+						<li>
+							<a href="tutorial-013-browser-samples-app.html">013-browser-samples-app</a>
+						</li>
+						
+						<li>
+							<a href="tutorial-014-browser-workplace.html">014-browser-workplace</a>
+						</li>
+						
+						<li>
+							<a href="tutorial-020-angular.html">020-angular</a>
+						</li>
+						
+						<li>
+							<a href="tutorial-050-core-contexts.html">050-core-contexts</a>
+						</li>
+						
+						<li>
+							<a href="tutorial-051-core-custom-searchcontext-endpoint.html">051-core-custom-searchcontext-endpoint</a>
+						</li>
+						
+						<li>
+							<a href="tutorial-052-core-data-series-context.html">052-core-data-series-context</a>
+						</li>
+						
+						<li>
+							<a href="tutorial-060-rest-ext.html">060-rest-ext</a>
+						</li>
+						
+						<li>
+							<a href="tutorial-901-ontology.html">901-ontology</a>
+						</li>
+						
+						<li>
+							<a href="tutorial-999-samples.html">999-samples</a>
+						</li>
+						
+						<li>
+							<a href="tutorial-all.html">all</a>
+						</li>
+						
+						<li>
+							<a href="tutorial-dev1-001-overview.html">dev1-001-overview</a>
+						</li>
+						
+						<li>
+							<a href="tutorial-dev1-002-intro.html">dev1-002-intro</a>
+						</li>
+						
+						<li>
+							<a href="tutorial-dev1-003-first-page.html">dev1-003-first-page</a>
+						</li>
+						
+						<li>
+							<a href="tutorial-dev1-004-first-widget.html">dev1-004-first-widget</a>
+						</li>
+						
+						<li>
+							<a href="tutorial-dev1-005-search-options.html">dev1-005-search-options</a>
+						</li>
+						
+						<li>
+							<a href="tutorial-dev1-006-structured-query.html">dev1-006-structured-query</a>
+						</li>
+						
+						<li>
+							<a href="tutorial-dev1-007-semantics.html">dev1-007-semantics</a>
+						</li>
+						
+						<li>
+							<a href="tutorial-dev1-008-lunch.html">dev1-008-lunch</a>
+						</li>
+						
+						<li>
+							<a href="tutorial-dev1-009-blending-mljs.html">dev1-009-blending-mljs</a>
+						</li>
+						
+						<li>
+							<a href="tutorial-dev1-010-building-demo.html">dev1-010-building-demo</a>
+						</li>
+						
+						<li>
+							<a href="tutorial-dev1-011-demo-jam.html">dev1-011-demo-jam</a>
+						</li>
+						
+						<li>
+							<a href="tutorial-dev1-012-home-time.html">dev1-012-home-time</a>
+						</li>
+						
+
+					</ul>
+				</li>
+				
+				<li class="dropdown">
+					<a href="global.html" class="dropdown-toggle" data-toggle="dropdown">Global<b
+						class="caret"></b></a>
+
+					<ul class="dropdown-menu ">
+						
+						<li>
+							<a href="global.html#com">com</a>
+						</li>
+						
+
+					</ul>
+				</li>
+				
+			</ul>
+		</div>
+	</div>
+
+	<div class="row-fluid">
+
+		
+			<div class="span12">
+				
+				<div id="main">
+					
+
+
+		<h1 class="page-title">Source: widget-kratu.js</h1>
+    
+    <section>
+        <article>
+            <pre class="sunlight-highlight-javascript linenums">/*
+Copyright 2012 MarkLogic Corporation
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+// global variable definitions
+com = window.com || {};
+com.marklogic = window.com.marklogic || {};
+com.marklogic.widgets = window.com.marklogic.widgets || {};
+
+/**
+ * A wrapper for the Google Kratu tabular data exploration widget
+ *
+ * @constructor
+ * @param {string} container - The HTML ID of the element to place this widget's content within.
+ */
+com.marklogic.widgets.kratu = function(container) {
+  this.container = container;
+  this.errorPublisher = new com.marklogic.events.Publisher();
+
+  this.results = null;
+  this.facts = null;
+  this.kratu = new Kratu();
+  document.getElementById(container).innerHTML = "&lt;div id='" + container + "-inner' class='mljswidget'>&lt;/div>"
+  this.kratu.setRenderElement( document.getElementById(this.container + "-inner") );
+
+  this._config = {
+    render: "content" // summary = top level ML search info, content = raw document info
+  };
+
+  this._refresh();
+};
+
+/**
+ * Returns the MLJS Workplace configuration definition listing config properties supported by this widget
+ *
+ * @static
+ */
+com.marklogic.widgets.kratu.getConfigurationDefinition = function() {
+  var self = this;
+  return {
+    render: {type:"enum", default: "content", title: "Render", description: "Whether to render the document content or the search result summary.",
+      options: [
+        {value: "content", title: "Content", description: "Content of the result document."},
+        {value: "summary", title: "Summary", description: "Summary of the search result metadata."}
+      ]
+    }
+  };
+};
+
+/**
+ * Sets the configuration for this instance of a widget in an MLJS Workplace
+ *
+ * @param {json} config - The JSON Workplace widget configuration to apply
+ */
+com.marklogic.widgets.kratu.prototype.setConfiguration = function(config) {
+  for (var prop in config) {
+    this._config[prop] = config[prop];
+  }
+
+  this._refresh();
+};
+
+/**
+ * Specifies what to render within the search results.
+ * summary = the search result summary. E.g. URI, score, etc.
+ * content = the JSON, csv or XML content - determined automatically from REST API results
+ *
+ * @param {string} render - What to render from the search result information. "content|properties"
+ */
+com.marklogic.widgets.kratu.prototype.render = function(render) {
+  this._config.render = render;
+};
+
+/**
+ * Event target. Can be used with addResultsListener
+ *
+ * @param {JSON} results - The REST API JSON results object to display. See GET /v1/search. Could include CSV, XML or JSON content (even mixed results too!).
+ */
+com.marklogic.widgets.kratu.prototype.updateResults = function(results) {
+  mljs.defaultconnection.logger.debug("kratu.updateResults called");
+  if (typeof (results) != "boolean" && undefined != results && null != results) {
+    mljs.defaultconnection.logger.debug("kratu.updateResults: Got real results");
+    this.results = results;
+
+    if ("content" == this._config.render) {
+      mljs.defaultconnection.logger.debug("kratu.updateResults: Rendering search result contents");
+      var content = new Array();
+      for (var i = 0,r;i &lt; this.results.results.length;i++) {
+        r = this.results.results[i];
+        mljs.defaultconnection.logger.debug("kratu.updateResults: Parsing result " + i + "=" + r.content);
+        if (typeof(r.content) == "string") {
+          // support csv text, json, xml text
+          try {
+            var res = JSON.parse(this.results.results[i].content);
+            content.push(res);
+          } catch (ex) {
+            // must be text. Try CSV parsing
+            var csvProvider = new KratuCSVProvider();
+            var self = this;
+            csvProvider.parse(this.results.results[i].content, function (csvdata) {
+              mljs.defaultconnection.logger.debug("kratu.updateResults: parsed CSV data: " + csvdata);
+              res = csvdata;
+              content.push(csvdata);
+              self.kratu.setEntities(content);
+              self._refresh();
+            });
+          }
+        } else if (typeof(r.content) == "object") {
+          // xml or JSON
+          if (undefined != r.content.nodeType) {
+            // support XML object
+            var json = xmlToJson(r.content); // MLJS Core utility library - Kratu has no XML provider!!!
+            content.push(json);
+          } else {
+            content.push(r.content);
+          }
+        }
+      }
+      this.kratu.setEntities(content);
+    } else {
+      mljs.defaultconnection.logger.debug("kratu.updateResults: Rendering search result statistics");
+      this.kratu.setEntities(this.results.results);
+    }
+    this._refresh();
+  }
+};
+
+
+/**
+ * Updates this widget based on Data Context data
+ * @param {mljs.prototype.datacontext} datacontext - The data context with data
+ */
+com.marklogic.widgets.cooccurence.prototype.updateData = function(datacontext) {
+
+  var kratuData = new Array();
+
+  var sn = datacontext.getSeriesNames();
+  for (var s = 0,maxs = sn.length,seriesName;s &lt; maxs;s++) {
+    seriesName = sn[s];
+
+    // make each series a layer
+    var data = datacontext.getData(seriesName);
+    // for each series, loop over data rows
+    for (var r = 0,maxr = data.length,row,kratuRow;r &lt; maxr;r++) {
+      row = data[r];
+      kratuRow = {};
+      kratuRow.series = seriesName;
+      kratuRow.identity = row.identity;
+      for (var f in row.fields) {
+        kratuRow[f] = row.fields[f];
+      }
+
+      kratuData.push(kratuRow);
+    } // end data row for
+
+
+  } // end series for
+
+  this.kratu.setEntities(kratuData);
+  this._refresh();
+
+};
+
+/**
+ * Draw sparql facts results as a table
+ *
+ * @param {JSON} facts - the response from the REST API (W3C SPARQL Protocol) sparql endpoint, passed usually by the semanticcontext
+ */
+com.marklogic.widgets.kratu.prototype.updateFacts = function(facts) {
+  this.facts = facts;
+
+  // build simpler JSON results object - rows
+  var rows = new Array();
+  for (var r = 0, max = facts.results.bindings.length;r &lt; max;r++) {
+    var result = facts.results.bindings[r];
+    var res = {};
+    // one for each binding
+    for (var b = 0, maxb = facts.head.vars.length;b &lt; maxb;b++) {
+      var varname = facts.head.vars[b];
+      res[varname] = result[varname].value;
+    }
+    rows.push(res);
+  }
+
+  // show in Kratu
+  this.kratu.setEntities(rows);
+  this._refresh();
+};
+
+/**
+ * Adds an error listener to this widget
+ *
+ * @param {function(error)} fl - The error listener to add
+ */
+com.marklogic.widgets.kratu.prototype.addErrorListener = function(fl) {
+  this.errorPublisher.subscribe(fl);
+};
+
+/**
+ * Removes an error listener
+ *
+ * @param {function(error)} fl - The error listener to remove
+ */
+com.marklogic.widgets.kratu.prototype.removeErrorListener = function(fl) {
+  this.errorPublisher.unsubscribe(fl);
+};
+
+com.marklogic.widgets.kratu.prototype._refresh = function() {
+  if ( (null == this.results || undefined == this.results || "boolean" == typeof this.results) && (null == this.facts || undefined == this.facts || "boolean" == typeof this.facts)) {
+    return; // draw nothing
+  }
+  this.kratu.renderReport();
+};
+</pre>
+        </article>
+    </section>
+
+
+
+
+
+				</div>
+
+				<div class="clearfix"></div>
+				<footer>
+					
+					MLJS - A JavaScript wrapper for the MarkLogic REST API
+					<br />
+					
+					
+		<span class="copyright">
+		MarkLogic 2012-2014
+		</span>
+					<br />
+					
+		<span class="jsdoc-message">
+		Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.3-dev</a>
+		on Thu Oct 30 2014 16:12:21 GMT-0000 (GMT) using the <a href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
+		</span>
+				</footer>
+			</div>
+
+			
+			<br clear="both">
+		</div>
+
+	</div>
+	<script src="scripts/sunlight.js"></script>
+	<script src="scripts/sunlight.javascript.js"></script>
+	<script src="scripts/sunlight-plugin.doclinks.js"></script>
+	<script src="scripts/sunlight-plugin.linenumbers.js"></script>
+	<script src="scripts/sunlight-plugin.menu.js"></script>
+	<script src="scripts/jquery.min.js"></script>
+	<script src="scripts/jquery.scrollTo.js"></script>
+	<script src="scripts/jquery.localScroll.js"></script>
+	<script src="scripts/bootstrap-dropdown.js"></script>
+	<script src="scripts/toc.js"></script>
+
+
+	<script>  Sunlight.highlightAll({lineNumbers:true,  showMenu: true, enableDoclinks :true}); </script>
+
+	<script>
+		$( function () {
+			$( "#toc" ).toc( {
+			    anchorName  : function(i, heading, prefix) {
+					return $(heading).attr("id") || ( prefix + i );
+				},
+				selectors   : "h1,h2,h3,h4",
+				showAndHide : false,
+				scrollTo    : 60
+			} );
+			$( "#toc>ul" ).addClass( "nav nav-pills nav-stacked" );
+			$( "#main span[id^='toc']" ).addClass( "toc-shim" );
+
+		} );
+	</script>
+
+	
+
+</body>
+</html>
