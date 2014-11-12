@@ -7561,6 +7561,22 @@ com.marklogic.semantic.tripleconfig.prototype.addMappings = function(mapname,ent
 };
 
 /**
+ * Loads the ontology (mappings) from a SPARQL result set. Called by semantic context on initialisation.
+ *
+ * @param {mljs.SparqlResults} results - The SPARQL response as a JSON document.
+ */
+com.marklogic.semantic.tripleconfig.prototype.loadOntologyFromSparqlResults = function(results, defaults) {
+  if (false === defaults) {
+    // clear classes from configuration before proceeding
+    this._newentities = new Array();
+    this._newPredicates = new Array();
+    this.validTriples = new Array();
+  }
+  // TODO create JSON representation of all RDFS classes, their labels, and members
+  // TODO use rdftype and include as necessary
+};
+
+/**
  * Includes the specified MLJS RDF Type JavaScript object as an RDF Entity type in this Triple Config object.
  *
  * @param {JSON} rdftype - The RDFType description object to include in this configuration
@@ -8151,9 +8167,11 @@ mljs.prototype.semanticcontext = function() {
   // query modifiers
   this._offset = 0;
   this._limit = 10;
+  this._ontologyGraph = null;
+  this._includeDefaultOntology = true;
   //this._distinct = true; // defined within subjectQuery
 
-  this._tripleconfig = null;
+  this._tripleconfig = new com.marklogic.semantic.tripleconfig();
 
   this._subjectQuery = ""; // SPARQL to execute for selecting subject
   this._subjectResults = null; // SPARQL results JSON
@@ -8269,7 +8287,11 @@ mljs.prototype.semanticcontext.getConfigurationDefinition = function() {
         {value: "full", title: "Replace", description: "Replace the search with this document (uri) query."},
         {value: "contribute", title: "Contribute", description: "Contribute this document (uri) query to the search."}
       ]
-    } /*,
+    },
+    ontologyGraph: {type: "string", default: "", title: "Ontology Graph", description: "Which graph to load ontology from. Blank means loads all RDFS and OWL classes."},
+    includeDefaultOntology: {type: "boolean", default: true, title: "Include default ontology", description: "Include default MLJS FOAF, geonames, open calais and marklogic document ontology."}
+
+     /*,
     tripleConfig: {} // TODO serialization of the ontology configuration */
   };
 };
@@ -8283,6 +8305,25 @@ mljs.prototype.semanticcontext.getConfigurationDefinition = function() {
 mljs.prototype.semanticcontext.prototype.setConfiguration = function(config) {
   this._limit = config.limit;
   this._contentMode = config.contentMode;
+  this._ontologyGraph = config.ontologyGraph;
+  this._includeDefaultOntology = config.includeDefaultOntology;
+
+  // load ontology now
+  this._loadOntology();
+};
+
+mljs.prototype.semanticcontext.prototype._loadOntology = function() {
+  var self = this;
+  // TODO make the below inferencing aware on V8 - so we get correct child class properties
+  var sparql = "SELECT ?s ?p ?o ?g {GRAPH ?g {?s ?p ?o . } ";
+  if (null != this._ontologyGraph) {
+    sparql += "FILTER(?g = " + self._ontologyGraph + ") .";
+  }
+  sparql += "}";
+  this.db.sparql(sparql, function(result) {
+      self._tripleconfig.loadOntologyFromSparqlResults(result.doc,self._includeDefaultOntology);
+    }
+  );
 };
 
 /**
@@ -9814,7 +9855,10 @@ mljs.prototype.datacontext.getConfigurationDefinition = function() {
         identity: {type: "string", default: "", title: "Identity Field", description: "The optional field name to use as the record primary key ID for joining data sets"}
       }
     },
-    fields: {type: "multiple", title: "Fields", description: "Field settings", minimum: 0, default: [],
+    fields: {type: "multiple", title: "Fields", description: "Field settings", minimum: 0, default: [
+      {name: "_uri", type: "uri"}// , // default to extracting search context's uri field
+      // {name: "_iri", type: "iri"} // TODO add this in future for semanticcontext extracts
+    ],
       childDefinitions: {
         name: {type: "string", default: "", title: "Field name", description: "Short field name in the data series"},
         type: {type: "enum", default: "point", title: "Type", description: "Type override",

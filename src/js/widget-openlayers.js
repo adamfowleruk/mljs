@@ -124,7 +124,14 @@ com.marklogic.widgets.openlayers.getConfigurationDefinition = function() {
             iconsrc: {type: "string",default: null,title: "Icon Source", description: "document value to extract Icon URL from"},
             heatmapconstraint: {type: "string",default: null,title: "Heatmap Constraint", description: "Name of the constraint holding the heatmap"}
           }
-        }
+        },
+    titlepattern: {type: "string",default: null,title: "Title Data Pattern", description: "Pattern to create Title from"},
+    summarypattern: {type: "string",default: null,title: "Summary Data Pattern", description: "Pattern to create Summary from"},
+    iconpattern: {type: "string",default: null,title: "Icon Data Pattern", description: "Pattern to create Icon URL from"},
+    iconwidth: {type: "positiveInteger", default: 21, title: "Icon Width", description: "Marker icon width"},
+    iconheight: {type: "positiveInteger", default: 25, title: "Icon Height", description: "Marker icon height"},
+    iconoffsetx: {type: "double", default: 10.5, title: "Icon Offset X", description: "Marker icon offset x - negative pixels means move left though point (defaults all to right)"},
+    iconoffsety: {type: "double", default: -25, title: "Icon Offset Y", description: "Marker icon offset y - negative pixels means move up through point (defaults all to below)"}
   };
 };
 
@@ -609,7 +616,7 @@ com.marklogic.widgets.openlayers.prototype._refresh = function() {
   str += "<div class='openlayers-mode'>Mode: <select id='" + this.container + "-mode'><option value='none'>Move</option><option value='circle'>Circle Radius Select</option>";
   str += "<option value='box'>Bounding Box Select</option><option value='polygon'>Polygon Select</option></select>";
   str += " <a href='#' id='" + this.container + "-clear' class='openalyers-clear'>Clear Selection</a>  ";
-  str += " | <span class='small'>Hint: Hold down shift and drag to draw a freehand polygon. Double click to complete. </span></div></div>";
+  str += " | <span class='small'>Hint: Use shift and drag to draw a freehand polygon. Double click to complete. </span></div></div>";
   str += "</div>";
 
   str += "</div>";
@@ -1022,8 +1029,26 @@ com.marklogic.widgets.openlayers.prototype.updateData = function(datacontext) {
   self._selectedUri = null;
   self._highlightedUri = null;
 
-  var size = new OpenLayers.Size(21,25);
-  var offset = new OpenLayers.Pixel(-(size.w/2), -size.h);
+  var width = 21;
+  if (undefined != this._config.iconwidth && ""!= this._config.iconwidth) {
+    width = this._config.iconwidth;
+  }
+  var height = 25;
+  if (undefined != this._config.iconheight && ""!=this._config.iconheight) {
+    height = this._config.iconheight;
+  }
+  var size = new OpenLayers.Size(width,height);
+
+  var offsetx = -(size.w/2);
+  var offsety = -size.h;
+  if (undefined != this._config.iconoffsetx && ""!=this._config.iconoffsetx) {
+    offsetx = this._config.iconoffsetx;
+  }
+  if (undefined != this._config.iconoffsety && ""!=this._config.iconoffsety) {
+    offsety = this._config.iconoffsety;
+  }
+
+  var offset = new OpenLayers.Pixel(offsetx, offsety);
   var icon = new OpenLayers.Icon('/js/OpenLayers-2.13.1/img/marker-blue.png', size, offset);
   // TODO rotate these, and check for OpenLayers markers/line colour widget configuration for specific series names
   // TODO also have a different highlight and drawing colour for vector shapes
@@ -1039,6 +1064,62 @@ com.marklogic.widgets.openlayers.prototype.updateData = function(datacontext) {
                 pointerEvents: "visiblePainted",
                 title: "this is a green line"
             };
+
+  var PartProcessor = function(pattern) {
+    var self = this;
+    this.parts = new Array();
+    this.pattern = pattern;
+    this.toString = function(fields) {
+      var iurl = "";
+      for (var p=0,part,maxp=this.parts.length;p < maxp;p++) {
+        part = this.parts[p];
+        var out = part.toString(fields);
+        if (undefined != out) {
+          iurl += out;
+        }
+      }
+      return iurl;
+    };
+    this.addFieldPart = function(fieldname) {
+      var part = {
+        toString: function(fields) {
+          return fields[fieldname];
+        }
+      };
+      self.parts.push(part);
+    };
+    this.addStringPart = function(string) {
+      var part = {
+        toString: function(fields) {
+          return string;
+        }
+      };
+      self.parts.push(part);
+    };
+    var idx = 0, idx2 = -1, lastidx = 0;
+    if (undefined != this.pattern && "" != this.pattern) {
+
+      while (-1 != (idx = this.pattern.indexOf("#",idx))) {
+        idx2 = this.pattern.indexOf("#",idx + 1);
+        if (-1 != idx2) {
+          this.addStringPart(this.pattern.substring(lastidx,idx));
+          this.addFieldPart(this.pattern.substring(idx + 1,idx2));
+          lastidx = idx2 + 1;
+          idx = lastidx;
+        }
+      }
+      // do remaining text
+      if (lastidx != (this.pattern.length - 1)) {
+        this.addStringPart(this.pattern.substring(lastidx));
+      }
+    }
+  };
+  var iconUrlProcessor = new PartProcessor(this._config.iconpattern);
+  var titleProcessor = new PartProcessor(this._config.titlepattern);
+  var summaryProcessor = new PartProcessor(this._config.summarypattern);
+
+  mljs.defaultconnection.logger.debug("openlayers.updateData: titlepattern: " + this._config.titlepattern);
+  mljs.defaultconnection.logger.debug("openlayers.updateData: summarypattern: " + this._config.summarypattern);
 
 
   var seriesNames = datacontext.getSeriesNames();
@@ -1089,14 +1170,25 @@ com.marklogic.widgets.openlayers.prototype.updateData = function(datacontext) {
       var pointFields = datacontext.getPointFieldData(row); // returns just the field names and values containing point data. Also converts to "fieldname": {lat: value,lon: value}
       for (var pf in pointFields) {
         var pointfield = pointFields[pf];
-        // TODO create marker and display with popup
-        var m = new OpenLayers.Marker(new OpenLayers.LonLat(pointfield.lon,pointfield.lat).transform(self.transformWgs84,self.map.displayProjection),icon.clone());
 
-        // TODO popup/infobox based on search result, extract title and summary
+        // change icon URL, title, summary
+        var iconurl = iconUrlProcessor.toString(row.fields);
+        mljs.defaultconnection.logger.debug("openlayers.updateData: row icon url: " + iconurl);
+        var rowicon = new OpenLayers.Icon(iconurl, size, offset);
+        var title = titleProcessor.toString(row.fields);
+        var summary = summaryProcessor.toString(row.fields);
+
+
+
+        // create marker and display with popup
+        var lonlat = new OpenLayers.LonLat(pointfield.lon,pointfield.lat).transform(self.transformWgs84,self.map.displayProjection);
+        var m = new OpenLayers.Marker(lonlat,rowicon);
+
+        // popup/infobox based on search result, extract title and summary
         seriesLayer.addMarker(m);
 
 
-        var addEvents = function(m,therow) {
+        var addEvents = function(m,therow,thelonlat,thetitle,thesummary) {
           mljs.defaultconnection.logger.debug("openlayers.updateData: addEvents called");
           var uriFields = datacontext.getUriFieldData(therow);
           var uri = null;
@@ -1106,10 +1198,13 @@ com.marklogic.widgets.openlayers.prototype.updateData = function(datacontext) {
             }
           }
           mljs.defaultconnection.logger.debug("openlayers.updateData: addEvents uri: " + uri);
+
+
   // TODO use an appopriate title
   // TODO set up click action and summary popup
   // TODO provide further details link in summary popup
           // support hover for highlight, click for select events
+
 
           // add hover handlers
           m.events.register('mouseover', m, function(evt) {
@@ -1130,14 +1225,16 @@ com.marklogic.widgets.openlayers.prototype.updateData = function(datacontext) {
               // deselect
               self._selectedUri = null;
               self._resultSelectionPublisher.publish({mode: "replace", uri: null});
+              self._hidePopup();
             } else {
               self._selectedUri = uri;
               self._resultSelectionPublisher.publish({mode: "replace", uri: uri});
+              self._showPopup(uri,thelonlat,thetitle,thesummary);
             }
           });
         };
 
-        addEvents(m,row);
+        addEvents(m,row,lonlat,title,summary);
       }
 
       // for any fields that are geospatial lineStrings, plot a line
@@ -1231,6 +1328,38 @@ com.marklogic.widgets.openlayers.prototype.updateData = function(datacontext) {
   }
 */
   mljs.defaultconnection.logger.debug("openlayers.updateData: exiting function");
+};
+
+com.marklogic.widgets.openlayers.prototype._hidePopup = function() {
+  if (undefined != this._selectedPopup) {
+    this.map.removePopup(this._selectedPopup);
+  }
+};
+
+com.marklogic.widgets.openlayers.prototype._showPopup = function(uri,lonlat,title,summary) {
+  this._hidePopup();
+  var str = "<h4>";
+  if (undefined != title && "" != title) {
+    str += title;
+  } else {
+    str += uri;
+  }
+  str += "</h4><p>";
+  if (undefined != summary && "" != summary) {
+    str += summary;
+  } else {
+    str += "<i>No summary available</i>";
+  }
+  str += "</p>";
+  this._selectedPopup = new OpenLayers.Popup.FramedCloud(
+                        "selected",
+                        lonlat,
+                        null,
+                        str,
+                        null,
+                        true
+                    );
+  this.map.addPopup(this._selectedPopup);
 };
 
 /**

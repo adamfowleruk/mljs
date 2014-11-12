@@ -3600,7 +3600,28 @@ com.marklogic.widgets.configwrapper.prototype._genConfigHTMLConf = function(json
         json[name] = el.value;
       };
     };
-  } else if ("positiveInteger" == d.type) {
+  } else if ("positiveInteger" == d.type || "integer" == d.type || "double" == d.type || "float" == d.type) {
+    var checkers = {
+      positiveInteger: function(value) {
+        return (("" + value) == ("" + Math.floor(value))) &&
+               ((undefined == d.minimum) || (undefined != d.minimum && value >= d.minimum)) &&
+               ((undefined == d.maximum) || (undefined != d.maximum && value <= d.maximum)) &&
+               value >= 0;
+      },
+      integer: function(value) {
+        return (("" + value) == ("" + Math.floor(value))) &&
+               ((undefined == d.minimum) || (undefined != d.minimum && value >= d.minimum)) &&
+               ((undefined == d.maximum) || (undefined != d.maximum && value <= d.maximum));
+      },
+      double: function(value) {
+          return ("" + (1.0 * value)) == value;
+      },
+      float: function(value) {
+          return ("" + (1.0 * value)) == value;
+      }
+    };
+    var myChecker = checkers[d.type];
+
     addtitle();
     var val = c;
     if (undefined == c) {
@@ -3622,9 +3643,7 @@ com.marklogic.widgets.configwrapper.prototype._genConfigHTMLConf = function(json
         // validate value. If crap, use current value
         var val = el.value;
         try {
-          if ( (("" + val) == ("" + Math.floor(val))) &&
-               ((undefined == d.minimum) || (undefined != d.minimum && val >= d.minimum)) &&
-               ((undefined == d.maximum) || (undefined != d.maximum && val <= d.maximum)) ) {
+          if ( myChecker(val) ) {
             // valid value;
             mljs.defaultconnection.logger.debug("configwrapper: positiveInteger.onchange: Valid valud: " + val + " for " + name);
             json[name] = val;
@@ -4382,7 +4401,7 @@ com.marklogic.widgets.workplacenavbar.prototype._refresh = function() {
   var s = "<div class='mljswidget navbar navbar-default workplacenavbar' role='navigation'>";
 
   if (null != this._config.homeUrl && "" != this._config.homeUrl.trim()) {
-    s += "<div class='container-fluid'>"
+    s += "<div class='container'>"
     s +=    "<div class='navbar-header'>"
     s +=      "<button type='button' class='navbar-toggle' data-toggle='collapse' data-target='.navbar-collapse'>"
     s +=        "<span class='sr-only'>Toggle navigation</span>"
@@ -4439,6 +4458,13 @@ com.marklogic.widgets.workplacenavbar.prototype._refresh = function() {
   */
 
   s += "</ul><ul class='nav navbar-nav navbar-right'>";
+
+  // next 2 are drop down admin code
+  /*
+  s += "<li class='dropdown'><a href='#' class='dropdown-toggle' id='adminaria' aria-expanded='false'>Admin <span class='caret'></span></a>";
+  s += "<ul class='dropdown-menu' aria-labelledby='adminaria'>";
+  */
+
   if (true === this._config.showAppConfigureLink) {
     s += "<li";
 
@@ -4457,6 +4483,10 @@ com.marklogic.widgets.workplacenavbar.prototype._refresh = function() {
     }
     s += "><a href='" + this._config.logoutUrl + "'>" + this._config.logoutLinkText + "</a></li>";
   }
+
+
+  //s += "</ul></li>"; // drop down code
+
   s += "</ul></div><!--/.nav-collapse --></div><!--/.container-fluid --></div>";
   document.getElementById(this.container).innerHTML = s;
 

@@ -517,7 +517,7 @@ com.marklogic.widgets.searchbar = function(container) {
       "<div class='input-append input-prepend searchbar-queryrow'>" +
         "<span class='searchbar-label' for='" + this.container + "-searchinput'>Search: </span>" +
         "<input class='span2 searchbar-query' type='text' id='" + this.container + "-searchinput' value='' placeholder='Enter query' />" +
-        "<button class='btn btn-primary searchbar-submit' type='button' id='" + this.container + "-submit'>Search</button>" +
+        "<button class='btn btn-primary glyphicon glyphicon-search searchbar-submit' type='button' id='" + this.container + "-submit'></button>" +
       "</div>" +
       "<ul class='list-unstyled searchbar-autocomplete hidden' id='" + this.container + "-ac' tabindex='0'></ul>" +
       "<div class='searchbar-errorrow hidden'></div>";
@@ -1473,7 +1473,7 @@ com.marklogic.widgets.searchresults.prototype._layoutResult = function(result,ma
   // get new result contianer from layout
   var layout = this._layout;
   var resultContainer = layout.getResultContainer(result,manager,settings,resultindex);
-  var sections = ["title","summary","metadata","thumbnail","related","similar","facts"]; // TODO comments area too
+  var sections = ["title","summary","metadata","thumbnail","actions","related","similar","facts"]; // TODO comments area too
 
   var replacements = new Array();
 
@@ -1612,6 +1612,7 @@ com.marklogic.widgets.searchlayouts.default.prototype.getResultContainer = funct
       title: this.container + "-result-" + resultindex + "-title",
       summary: this.container + "-result-" + resultindex + "-summary",
       metadata: this.container + "-result-" + resultindex + "-metadata",
+      actions: this.container + "-result-" + resultindex + "-actions",
       thumbnail: this.container + "-result-" + resultindex + "-thumbnail",
       related: this.container + "-result-" + resultindex + "-related",
       similar: this.container + "-result-" + resultindex + "-similar",
@@ -1782,7 +1783,7 @@ com.marklogic.widgets.defaulthtmlrenderer = {
                     if (count > 0) {
                       s += ", ";
                     }
-                    s += " <b>" + name + ":</b> " + value;
+                    s += " <span><b>" + name + ":</b> " + value + "</span>";
                     count++;
                   }
                 }
@@ -1792,12 +1793,32 @@ com.marklogic.widgets.defaulthtmlrenderer = {
     return s;
   },
   defaultActions: function(result,manager,settings) {
-    // loop through configured actions
-    // call matcher function for each
-    // render each
-    return "";
+    var str = "<div class='btn-toolbar' role='toolbar'>";
+    str += "<div class='btn-group btn-group-sm'>";
+    var actionView = null;
+    var innerView = "<button type=\"button\" class=\"btn btn-default \"><span onclick='javascript:window.location=\"/view.html5?uri=" + encodeURI(result.uri) + "\"' class='glyphicon glyphicon-search mljsResultActionBase mljsResultActionView'></span></button>";
+    str += com.marklogic.widgets.defaulthtmlrenderer.wrapAction(actionView,innerView,result,manager,settings);
+
+    var actionDownload = null;
+    // TODO force the below to download rather than just view
+    var innerDownload = "<button type=\"button\" class=\"btn btn-default \"><span onclick='javascript:window.location=\"/v1/documents?uri=" + encodeURI(result.uri) + "\"' class='glyphicon glyphicon-download mljsResultActionBase mljsResultActionDownload'></span></button>";
+    str += com.marklogic.widgets.defaulthtmlrenderer.wrapAction(actionDownload,innerDownload,result,manager,settings);
+
+    str += "</div>";
+
+    // TODO loop through configured actions
+    // TODO call matcher function for each
+    // TODO render each
+
+    str += "</div>";
+    return str;
   },
   defaultThumbnail: function(result,manager,settings) {
+    if (0 == result.mimetype.indexOf("image/")) {
+      // show small image
+      return "<img src='/v1/documents?uri=" + encodeURI(result.uri) + "' style='width: 150px;' alt='" + encodeURI(result.uri) + "'/>"
+    }
+    // TODO also support XHTML results where their extracted originaluri property points to an image, or has image mime type
     // custom pluggable linking function
     return "";
   },
@@ -1896,7 +1917,7 @@ com.marklogic.widgets.defaulthtmlrenderer = {
             manager.ctx.db.logger.debug("title initially: " + title);
             var snippet = null;
 
-            if (undefined != xmlDoc.evaluate) {
+            if (null != result.content && undefined != xmlDoc.evaluate) {
               // check for common title names - title, name, id, h1
               var evalResult = xmlDoc.evaluate("//title[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
               if (undefined == evalResult || "" == evalResult.stringValue) {
@@ -1954,17 +1975,21 @@ com.marklogic.widgets.defaulthtmlrenderer = {
             }
 
             manager.ctx.db.logger.debug("content currently: " + snippet);
-            if (null == snippet) {
+            if (null == snippet && null != result.content) {
               // show XML tree structure as HTML
               //manager.ctx.db.logger.debug("defaultProcessor: No XML summary, building XML tree HTML output");
 
               // display tree of XML
-            manager.ctx.db.logger.debug("setting content to full XML doc as html");
+              manager.ctx.db.logger.debug("setting content to full XML doc as html");
               snippet = com.marklogic.widgets.searchhelper.xmltohtml(xmlDoc); // TODO
             }
 
             if (null == snippet || 0 == snippet.indexOf("error on line 1 at column 1")) {
-              snippet = result.content;
+              if (null == result.content) {
+                snippet = "";
+              } else {
+                snippet = result.content;
+              }
             }
             manager.ctx.db.logger.debug("content finally: " + snippet);
 
@@ -2093,6 +2118,7 @@ com.marklogic.widgets.defaulthtmlrenderer = {
   },
   wrapAction: function(action,inner,result,manager,settings) {
     // E.g. view, edit link
+    return inner;
   },
 
   // Generics handle reusable inner content - they have a variable, specific API
@@ -2334,10 +2360,9 @@ com.marklogic.widgets.searchresults.prototype.updateResultSelection = function(n
   if (undefined == this.results || undefined == this.results.results) {
     return;
   }
-  this._layout.select(newsel);
-  /*
+  //this._layout.select(newsel);
   for (var i = 0;i < this.results.results.length;i++) {
-    var wrapperId = this.container + "-searchresults-wrapper-" + i;
+    var wrapperId = this.container + "-result-" + i;
     // run processors in order
     var result = this.results.results[i];
 
@@ -2348,7 +2373,7 @@ com.marklogic.widgets.searchresults.prototype.updateResultSelection = function(n
       // remove selection class
       com.marklogic.widgets.removeClass(document.getElementById(wrapperId),"selected");
     }
-  }*/
+  }
 };
 
 com.marklogic.widgets.searchresults.prototype.updateResultHighlight = function(newhigh) {
@@ -2360,7 +2385,7 @@ com.marklogic.widgets.searchresults.prototype.updateResultHighlight = function(n
     return;
   }
   for (var i = 0;i < this.results.results.length;i++) {
-    var wrapperId = this.container + "-searchresults-wrapper-" + i;
+    var wrapperId = this.container + "-result-" + i;
     // run processors in order
     var result = this.results.results[i];
 

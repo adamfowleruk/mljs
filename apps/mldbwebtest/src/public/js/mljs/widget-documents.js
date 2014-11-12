@@ -393,9 +393,10 @@ com.marklogic.widgets.docproperties.prototype._showPropertyEditor = function(pro
     self._properties[self._propEditing.name] = value;
     // save properties
     self.documentcontext.setProperties(self._docuri,{properties: self._properties}); // TODO validate this will work. E.g. for just properties and not all metadata
+    self._hidePropertyEditor();
   };
   document.getElementById(this.container + "-docproperties-editor-cancel").onclick = function (e) {
-    self._hidePropertyEditor(); // no need to clear editor - will refresh on its next display
+    self._hidePropertyEditor(); // no need to clear editor - will refresh on its next display - WRONG
   };
 
   // make visible
@@ -438,7 +439,8 @@ com.marklogic.widgets.docproperties.prototype._addValueRemovalHandler = function
 };
 
 com.marklogic.widgets.docproperties.prototype._hidePropertyEditor = function() {
-  com.marklogic.widgets.hide(document.getElementById(this.container + "-docproperties-editor"),true);
+  //com.marklogic.widgets.hide(document.getElementById(this.container + "-docproperties-editor"),true);
+  document.getElementById(this.container + "-docproperties-editor").innerHTML = "";
 };
 
 /**
@@ -809,14 +811,23 @@ com.marklogic.widgets.docviewer.prototype.updateDocumentContent = function(resul
   var cid = this.container + "-docviewer";
   var content = "<div class='title panel-heading docviewer-content-title'>Document Content</div>";
   content += "<div class='panel-body docviewer-content'>";
+  mljs.defaultconnection.logger.debug("docviewer.updateDocumentContent: Result format: " + result.format);
 
   if ("xml" == result.format) {
     var xml = result.doc;
     // Turns out the REST API reports text/html for custom XML too!!! Sanity check it now.
     var root = xml.firstChild;
-    var isXHTML = (root.nodeName == "html") && (root.namespaceURI == "http://www.w3.org/1999/xhtml");
+    var nn = root.nodeName;
+    var nnidx = nn.indexOf(":");
+    if (-1 != nnidx) {
+      nn = nn.substring(nnidx + 1);
+    }
+    var isXHTML = (nn == "html") && (root.namespaceURI == "http://www.w3.org/1999/xhtml");
 
-    if (0 == ("" + result.mime).indexOf("text/html") && isXHTML) {
+    mljs.defaultconnection.logger.debug("docviewer.updateDocumentContent: root namespace: " + root.namespaceURI + ", nodeName: " + nn);
+    mljs.defaultconnection.logger.debug("docviewer.updateDocumentContent: Result mime: " + result.mime);
+    if (/*0 == ("" + result.mime).indexOf("text/html") &&*/ isXHTML) {
+      mljs.defaultconnection.logger.debug("docviewer.updateDocumentContent: Showing HTML");
 
 
       var s = "";
@@ -835,24 +846,33 @@ com.marklogic.widgets.docviewer.prototype.updateDocumentContent = function(resul
       } else {
         content += "<div class='docviewer-content-display'>";
         // get its content only
-        content += (new XMLSerializer()).serializeToString(body);
+        for (var c = 0,child,maxc = body.childNodes.length;c < maxc;c++) {
+          child = body.childNodes[c];
+          content += (new XMLSerializer()).serializeToString(child);
+        }
         content += "</div>";
       }
     } else {
+      mljs.defaultconnection.logger.debug("docviewer.updateDocumentContent: Showing generic XML");
       // generic XML - pretty print response somehow
       content += com.marklogic.widgets.searchhelper.xmltohtml(result.doc);
     }
 
   } else if ("json" == result.format) {
+    mljs.defaultconnection.logger.debug("docviewer.updateDocumentContent: Showing generic JSON");
     // generic JSON - pretty print response somehow
     content += com.marklogic.widgets.searchhelper.jsontohtml(result.doc);
   } else if ("text" == result.format) {
+    mljs.defaultconnection.logger.debug("docviewer.updateDocumentContent: Showing generic text");
     content += result.doc;
   } else {
+    mljs.defaultconnection.logger.debug("docviewer.updateDocumentContent: Showing unknown binary");
     // binary / unknown - download, or view as image
     if ((0 == ("" + result.mime).indexOf("image/"))) {
+      mljs.defaultconnection.logger.debug("docviewer.updateDocumentContent: Showing as image");
       content += "<img src='/v1/documents?uri=" + encodeURI(result.docuri) + "' />";
     } else {
+      mljs.defaultconnection.logger.debug("docviewer.updateDocumentContent: Showing as link for download");
       // binary download link
       content += "Document is of type '" + result.mime +
         "' - <a href='/v1/documents?uri=" + encodeURI(result.docuri) + "'>click to download</a>";

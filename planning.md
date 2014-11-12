@@ -20,61 +20,217 @@ Interim demo targets
  - DONE Page configurable to route specific parameters to one or more contexts as different parameters
  - NA Causes issues with search widget as options not loaded first - Workplace page settings allow customisation of parameter mappings
  - DONE allow actions to use query string parameter values
- - Core: tripleconfig
-  - Load ontology from named graph
- - Widgets: Semantic Network diagrams
-  - As circles
-  - Force directed distance initially
-  - draggable position after initial render
-  - Pick a library - d3.js OR keylines OR other
- - Widgets: Time series Bar chart for bucketed time by date, value y series, on its own across bottom of screen
- - Widgets: Workplace
-  - Support chaining updates from one search context to another
-   - support prevention of circular updates via stack (array) mechanism
-  - BUG selection html control for registering widgets with context allows highlighting of none or all only
-  - BUG HTML generation in new layouts (column there, no drop zone!) - looks like issue with workplaceadmin rendering
+ - TEST Widgets: Kratu rework
+  - TEST Support for Data Context
+  - TEST Support for XML document content in search results
+
+DH Demo - 2 days
+ - NA default theme on website is really bad. Using cerulean. Full screen bootstrap theme (OBI Doesn't have one - custom)
+ - DONE Widgets: document properties widget - get folksonomies working
  - TEST Core: datacontext
   - DONE basic context creation
   - TEST identity information joining
   - TEST support multiple configurable sources in Workplace
- - Widgets: HighCharts rework
+ - TEST Widgets: HighCharts rework
   - TEST Support for Data Context
   - TEST specification of which fields used for series name (In DC), category X (In DC), value Y axis (from valueSource)
-  - DEFERRED support for multi axes and value Y axes
-  - DEFERRED extra chart types support
-  - WAIT JM Use latest highcharts code
-  - WAIT JM confirm license for latest highcharts code
-  - TEST JW support co-occurence with aggregates calculated on server
   - TEST via DC only - Support multiple series
-  - Update to use latest highcharts library
-  - Regression testing of highcharts library
- - TEST Widgets: Kratu rework
-  - TEST Support for Data Context
- - Widgets: OpenLayers rework
-  - TEST Support for Data Context
-  - Specification of field values linked to pins
-  - field linked to summary content
-  - TEST highlighted document uri field
-  - TEST marker drawing working via configuration
-  - Upgrade map to OpenLayers version 3
- - IN PROGRESS BL
-  - Widgets: OpenLayers shows image thumbnail as marker
-  - Widgets: semantic widget configuraton from owl
-  - DONE Widgets: document properties widget - get folksonomies working
-  - DEFERRED Widgets: document properties widget - get fixed ontologies (SKOS) working for property (content element) values
-  - DEFERRED Widgets: document properties widget - integrate SKOS in RDF data
-  - DEFERRED Widgets: Saved search for alerts
-  - DEFERRED Widgets: Alerting facebook like messaging popup with links to document view page, configurable
-  - DEFERRED Widgets: Semantic aggregation data source for charts
-   - DEFERRED basic functionality with aggregations
-   - DEFERRED limit results to SPARQL query (contributed)
- - IN PROGRESS Widgets: Document properties
+ - DONE Widgets: OpenLayers rework
+  - DONE Support for Data Context
+  - DONE Specification of field values linked to pins
+  - DONE field linked to summary content
+  - DONE highlighted document uri field
+  - DONE marker drawing working via configuration
+  - DONE Widgets: OpenLayers shows image thumbnail as marker
+   - DONE Marker width and height configuration
+   - NA use offset pixels instead - Indicator location setting - center, topleft, bottom left, bottom etc.
+   - DONE offset x and y for fine tuning
+ - DONE Widgets: Document properties
   - DONE get add properties working
   - DONE update document context for allowable properties
-  - BUG The second time you edit (add) a property, the Add button does not work - undefined html element (deleted?)
+  - DONE BUG The second time you edit (add) a property, the Add button does not work - undefined html element (deleted?)
  - DONE Widgets: Document view
   - DONE Alter widget to support viewing generic XML, XHTML, JPG, etc.
-  - TEST XHTML with links
+  - DONE XHTML with links
+ - DEFERRED GML support
+  - DEFERRED indexing
+  - DEFERRED search options
+  - DEFERRED open layers points
+ - DONE Built app
+  - DONE App roxy project
+  - NA Get edrms indexes copied over
+  - NA EDRMS demo package exported
+  - DONE Workplace pages configuration exported
+  - DONE Install instructions
+
+PD Demo - 5 days
+ - TEST ISYS processing of any binary - add to /uploads/ in the X collection
+ - Integrate OBI data sources
+  - geonames
+   - install
+   - link to enrichment script (named country/county places)
+  - GDAL events
+  - organisations list
+   - install
+   - link to enrichment script
+ - Text extraction
+ - Entity Extraction
+  - DEFERRED Place using UK gazetteer
+  - Contacts
+ - TEST Ingestion of imagery
+  - Change collection and URI added to?
+ - View of semantic data
+  - IN PROGRESS Ontology loaded from triple store for tripleconfig/sparqlbar
+   - IN PROGRESS tripleconfig 7575
+   - TEST semanticcontext 8315
+  - Keylines viewing of data
+   - image
+   - hover
+   - links
+   - follow links
+   - DEFERRED create links
+ - General search of all data - Search result handlers
+  - Image handling
+   - TEST Raw image as thumbnail
+   - Extracted metadata XHTML linked to image shows thumbnail
+   - DEFERRED Minimised thumbnail with original linked to image
+  - Time created field and buckets
+  - DEFERRED Contact information
+  - TEST View action
+  - IN PROGRESS Download action
+  - TEST Action CSS
+  - Download image
+  - View image
+  - icon set for actions
+  - Explore image
+  - Explore action
+  - Semantic related data, with link to exploration page
+ - EO additions
+
+PERHAPS LOSE 1-2 DAYS OFF THE ABOVE
+
+PD Demo DEFERRED - 4 days
+ - Detection of imagery content and indexing
+  - Tones
+  - Location
+  - RDF generated for some of this data
+  - Thumbnail generation
+ - DEFERRED Search results Thumbnail only view in grid
+ - Not/Is/Maybe tagging action for images to be processed
+ - Detailed imagery note taking and tagging screen - document properties
+  - Addition of 'offences' tagging
+  - List of offences for a particular person's captured data
+  - Tagging person as being present in the image using triple store OBI definition of image
+  - Link person to role in image - instigator/victim
+  - Evidence ID number
+ - Graph display
+  - Visual display of all links from instigator to victims
+ - Extras if time allows
+  - Add description of ingestion and owner of data, then ingest folder on system
+
+DEFER BELOW UNTIL FURTHER NOTICE
+
+OS Demo - 6 days
+ - DEFERRED Widgets: HighCharts
+  - DEFERRED Update to use latest highcharts library
+  - DEFERRED Regression testing of highcharts library
+ - Widgets: OpenLayers
+  - DEFERRED Upgrade map to OpenLayers version 3
+  - Pluggable renderers for openlayers datacontext items
+   - GML point
+   - GML polygon
+   - troops
+   - explosion
+   - target
+   - bomb
+   - aircraft
+   - tank / vehicle
+   - tracks of above over time
+  - Respond to alerts in addition to search and data context results
+ - MLJS Web Server and Alert Server
+  - DONE mljs-webserver.js: Allow pass through of Digest/Basic auth challenges and responses
+   - DONE digest, basic, digestbasic, applicationlevel all work fine
+  - Handle ECONNREFUSED from server if it's down, and send on to client webapp
+   - BUG HEAD /v1/graphs never returns if MarkLogic not running, or on wrong port - set shorter time out
+  - Ability to add alerts in MarkLogic (REST Extension)
+   - Generic alert wrapping format - JSON
+   - REST ext: Complete alert creation rest extension
+   - Widgets: Save search as alertwidget - uses alert creation widget for popup
+   - alert sending config - uri and content or just uri
+   - location detection within alert context - option to save with radius against named constraint for alert
+  - Display of existing alerts
+   - DONE copy over existing sprites and client js useful code
+   - TEST copy over SVG rendering support
+   - DONE add support for sprite rendering plugins
+   - TEST example sprite renderings
+   - Widgets: Alert list widget
+   - Widgets: OpenLayers to show (hidden) layer for alerts in alert context
+  - mljs-webserver.js: Add file caching in RAM to speed access to static files
+ - IN PROGRESS Widgets: For alerting
+  - TEST Core: Alert Context for managing connection and responding to alerts
+  - IN PROGRESS Widgets: Alerting client widget (Requires Alerting API) with popups - desktop notifications bar / window
+   - DONE basics
+   - Make scroll after certain amount of messages/height
+   - Facebook like popup from bottom of page
+  - DONE Core: Node.js Alerting middleware support - MLJS webserver
+  - TEST Pluggable UI JavaScript for different message types
+  - TEST Widgets: OpenLayers update
+   - TEST rendering of information sent as an alert layer (vector layer above map layers, sensible order)
+  - TEST Pluggable message format handling JavaScript for different document types
+   - TEST Default Alert Wrapper XML object support
+ - DEFERRED offline maps / stored mapping layer
+
+Tidying up
+ - Widgets: Search results
+  - actions and custom actions from javascript, not hardcoded. Grouped by providing module in order. Defaults first.
+
+Targets for 1.7 (Nov 2014) - Theme: External WebServer and Alerting
+ - Docs: videos for release
+  - Introduction to the MLJS WebServer, and distribution build script
+  - Situational awareness app video
+ - Packaging using puppet
+  - Install all MLJS pre-requisites, including Node.js, MarkLogic
+  - Overrides for existing Node.js, MarkLogic
+ - Tests: Alert context and alert subscription tests
+  - Subscribe and save search
+  - Unsubscribe
+  - Unsubscribe and delete
+  - Subscribe to existing saved search
+  - List saved searches and alert enabled status
+  - Receive alert status test
+  - Receive alert test
+   - JSON doc send
+   - XML doc send
+   - Binary image thumbnail map tile send
+ - TEST Docs: Workplace app enhancements
+  - TEST One context of each type by default
+  - TEST Support globally registered context extensions in workplace widget and sub widgets
+  - DONE two column layout
+  - DONE three column layout
+  - DONE thinthickthin layout
+ - Docs: JSdoc better use
+  - returned objects
+  - JSON structures
+  - links to other docs
+   - ML REST API JSON and XML structures
+   - tutorials where function mentioned
+ - Bugs
+  - DONE XML parsing bug with hack fix BUG Widgets: title on tweets isn't working, showing XML error on Mac Safari
+  - DONE BUG generic widget image doesn't show in Node.js mljs webserver
+  - BUG open layers map layer comments appearing too high again - copy old css fix over
+ - Workplace app fixes
+  - Windows batch files for mljs webserver app and settings (David Lee)
+  - TEST custom renderers in searchresults - com.marklogic.widgets.searchresultsext.NAME.customrenderers = {};
+  - TEST Widget extra configuration parameters
+  - TEST addressbar.radius
+  - TEST searchselection.setMode
+  - TEST searchselection.addQuery - use title and JSON as string initially until query builder ready?
+   - Use openlayers attractions distance/rating example
+ - Workplace UX
+  - images for widgets
+  - make popup help on config elements more obvious
+  - link widgets to youtube videos? And timestamps within?
+  - Widgets: Search options configuration in application editing screen
 
 Targets of opportunity (not scheduled)
  - Bugs
@@ -89,14 +245,6 @@ Targets of opportunity (not scheduled)
    - Check with 7.0-3 that this has been fixed - may not need to fix this in MLJS
   - BUG if doing 'text sender:"@something"' it fails. If doing 'text' its fine, if 'sender:"@something"' its fine
   - BUG failure.png not in app-workplace
- - Workplace app fixes
-  - Windows batch files for mljs webserver app and settings (David Lee)
-  - TEST custom renderers in searchresults - com.marklogic.widgets.searchresultsext.NAME.customrenderers = {};
-  - TEST Widget extra configuration parameters
-  - TEST addressbar.radius
-  - TEST searchselection.setMode
-  - TEST searchselection.addQuery - use title and JSON as string initially until query builder ready?
-   - Use openlayers attractions distance/rating example
  - Test: Run Node.js tests against this release and fix problems
   - Fix n-triples test script error
  - Fix mljsme.sh app
@@ -110,15 +258,20 @@ Targets of opportunity (not scheduled)
   - Workplace App 008 - Tag clouds
   - PENDING Workplace App 009 - Adding Linking content search to semantic search with infobox
    - BUG bugtrack 28905 - finding subjects mentioned in documents gives HTTP 400 on POST /v1/graphs/sparql
+ - Widgets: HighCharts
+  - DEFERRED support for multi axes and value Y axes
+  - DEFERRED extra chart types support
+  - WAIT JM Use latest highcharts code
+  - WAIT JM confirm license for latest highcharts code
+  - TEST JW support co-occurence with aggregates calculated on server - count for now
+  - IN PROGRESS JW Create co-occurrence library for custom aggregation on co-occurence tuples support
+   - IN PROGRESS Rest extension for co-occurrence aggregation using GVs group by library
+   - Update searchcontext to use this as a values endpoint
  - DEFERRED IN PROGRESS Bower support
   - DONE Add bower repo support for PH
   - IN PROGRESS Fix bower repo for new mljs repo foldering layout
    - DONE foldering fix
    - IN PROGRESS re-register mljs-bower with bower guys
- - Workplace UX
-  - images for widgets
-  - make popup help on config elements more obvious
-  - link widgets to youtube videos? And timestamps within?
  - Workplace Security review
   - Ensure all documents are created such that all app users can read them
   - Ensure users can specify sharing constraints for workplace pages
@@ -132,6 +285,22 @@ Targets of opportunity (not scheduled)
    - Add this to My Workplaces option on non-owned workplace page load
   - Edit limited to owner of workplace
  - Widget: Allow disabling camelcase processing on facet names and facet values for search facets widget as config options (PK)
+ - Widgets: Ontology access updates
+  - Sparqlbar shows values from SKOS options or drop downs
+ - Widgets: Time series Bar chart for bucketed time by date, value y series, on its own across bottom of screen
+ - Widgets: Workplace
+  - Support chaining updates from one search context to another
+   - support prevention of circular updates via stack (array) mechanism
+  - BUG selection html control for registering widgets with context allows highlighting of none or all only
+  - BUG HTML generation in new layouts (column there, no drop zone!) - looks like issue with workplaceadmin rendering
+ - IN PROGRESS BL
+  - DEFERRED Widgets: document properties widget - get fixed ontologies (SKOS) working for property (content element) values
+  - DEFERRED Widgets: document properties widget - integrate SKOS in RDF data
+  - DEFERRED Widgets: Saved search for alerts
+  - DEFERRED Widgets: Alerting facebook like messaging popup with links to document view page, configurable
+  - DEFERRED Widgets: Semantic aggregation data source for charts
+   - DEFERRED basic functionality with aggregations
+   - DEFERRED limit results to SPARQL query (contributed)
  - Docs: Core: document all internal JSON structures using jsdoc
   - DONE mljs REST API response object
   - DONE mljs dboptions
@@ -175,69 +344,9 @@ Targets of opportunity (not scheduled)
   - documentcontext.set/getPart fieldJson
   - DEFERRED all.setConfiguration - workplace configuration for all objects' supported config options
   - DEFERRED all.register - document generic object for this
+ - Add alerts SSE support to Node.js - http://www.w3schools.com/HTML/html5_serversentevents.asp
+  - required for LANS that don't support websockets
 
-Targets for 1.7 (Nov 2014) - Theme: External WebServer and Alerting
- - MLJS Web Server and Alert Server
-  - DONE mljs-webserver.js: Allow pass through of Digest/Basic auth challenges and responses
-   - DONE digest, basic, digestbasic, applicationlevel all work fine
-  - Handle ECONNREFUSED from server if it's down, and send on to client webapp
-   - BUG HEAD /v1/graphs never returns if MarkLogic not running, or on wrong port - set shorter time out
-  - Ability to add alerts in MarkLogic (REST Extension)
-   - Generic alert wrapping format - JSON
-   - REST ext: Complete alert creation rest extension
-   - Widgets: Save search as alertwidget - uses alert creation widget for popup
-   - alert sending config - uri and content or just uri
-   - location detection within alert context - option to save with radius against named constraint for alert
-  - Display of existing alerts
-   - DONE copy over existing sprites and client js useful code
-   - TEST copy over SVG rendering support
-   - DONE add support for sprite rendering plugins
-   - TEST example sprite renderings
-   - Widgets: Alert list widget
-   - Widgets: OpenLayers to show (hidden) layer for alerts in alert context
-  - mljs-webserver.js: Add file caching in RAM to speed access to static files
- - IN PROGRESS Widgets: For alerting
-  - TEST Core: Alert Context for managing connection and responding to alerts
-  - IN PROGRESS Widgets: Alerting client widget (Requires Alerting API) with popups - desktop notifications bar / window
-   - DONE basics
-   - Make scroll after certain amount of messages/height
-   - Facebook like popup from bottom of page
-  - DONE Core: Node.js Alerting middleware support - MLJS webserver
-  - TEST Pluggable UI JavaScript for different message types
-  - TEST Widgets: OpenLayers update
-   - TEST rendering of information sent as an alert layer (vector layer above map layers, sensible order)
-  - TEST Pluggable message format handling JavaScript for different document types
-   - TEST Default Alert Wrapper XML object support
- - Docs: videos for release
-  - Introduction to the MLJS WebServer, and distribution build script
-  - Situational awareness app video
- - Tests: Alert context and alert subscription tests
-  - Subscribe and save search
-  - Unsubscribe
-  - Unsubscribe and delete
-  - Subscribe to existing saved search
-  - List saved searches and alert enabled status
-  - Receive alert status test
-  - Receive alert test
-   - JSON doc send
-   - XML doc send
-   - Binary image thumbnail map tile send
- - TEST Docs: Workplace app enhancements
-  - TEST One context of each type by default
-  - TEST Support globally registered context extensions in workplace widget and sub widgets
-  - DONE two column layout
-  - DONE three column layout
-  - DONE thinthickthin layout
- - Docs: JSdoc better use
-  - returned objects
-  - JSON structures
-  - links to other docs
-   - ML REST API JSON and XML structures
-   - tutorials where function mentioned
- - Bugs
-  - DONE XML parsing bug with hack fix BUG Widgets: title on tweets isn't working, showing XML error on Mac Safari
-  - DONE BUG generic widget image doesn't show in Node.js mljs webserver
-  - BUG open layers map layer comments appearing too high again - copy old css fix over
 
 Targets for 1.8 (Dec 2014) - Theme: Visualisations Sprint 1
  - Track code commented TODOs in this document

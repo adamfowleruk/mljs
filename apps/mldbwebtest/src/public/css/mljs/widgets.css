@@ -122,7 +122,7 @@
 }
 
 .mljswidget .selected {
-  background-color: #FFBB7D;
+  background-color: #FFBB7D !important;
 }
 
 .mljswidget .highlighted {
@@ -195,19 +195,20 @@
 }
 
 .searchbar-query {
-  border: 1px solid #929292;
+  /*border: 1px solid #929292;*/
   padding: 4px;
-  height: 28px;
+  /*height: 28px;*/
   width: 440px;
 }
 
 .searchbar-submit {
-  height: 30px;
+  /*height: 30px;*/
   margin-left: 5px;
   line-height: 20px;
   text-align: center;
-  border: 1px solid #929292;
-  padding: 4px;
+  margin-top: -4px;
+  /*border: 1px solid #929292;
+  padding: 4px;*/
 }
 
 .searchbar-errorrow {
@@ -1297,7 +1298,9 @@ div.log {
 }
 .mljsResultDefaultActions {
   width: 100%;
+  /*
   background-color: grey;
+  */
   /*border: 1px dashed black;*/
   /*height: 30px;*/
 }
@@ -1328,4 +1331,23 @@ div.log {
 }
 .mljsResultDefaultFacts {
 
+}
+
+.mljsResultActionBase {
+  /*
+  display:inline;
+  float:left;
+  width: 24px;
+  height: 24px;
+  */
+  /*background-image: url(/images/mljs/question-mark-small.png);*/
+}
+.mljsResultActionView {
+  /*background-image: url(/images/mljs/action-view.png);*/
+}
+.mljsResultActionDownload {
+  /*background-image: url(/images/mljs/action-download.png);*/
+}
+.mljsResultActionSpacer {
+  width: 12px;
 }
