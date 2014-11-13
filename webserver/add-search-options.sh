@@ -1,6 +1,6 @@
 #!/bin/sh
 
-. webserver-settings.sh
+. ./webserver-settings.sh
 
 URL="http://$RESTHOST:$RESTPORT/v1/config/query/$1?format=$3"
 USERPASS="$MLADMINUSER:$MLADMINPASS"
