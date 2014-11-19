@@ -8,6 +8,20 @@ window.onload = function() {
   errors.allowDetails = true;
 
   try {
+    KeyLines.paths({
+          assets: '/keylines/assets/',
+          flash: {
+            swf: 'swf/keylines.swf',
+            swfObject: 'js/swfobject.js',
+            expressInstall: 'swf/expressInstall.swf'
+          }
+        });
+
+  } catch (err) {
+    errors.show(err);
+  }
+
+  try {
     // Load workplace nav bar
     var wpcontext = new com.marklogic.widgets.workplacecontext();
     var nav = new com.marklogic.widgets.workplacenavbar("navholder");

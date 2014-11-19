@@ -14,6 +14,8 @@
     <link href="/css/bootstrap.min.css" rel="stylesheet">
     <link href="/css/bootstrap-theme.min.css" rel="stylesheet">
 
+    <link rel='stylesheet' type='text/css' href='/keylines/css/keylines.css'/>
+
     <!-- Custom styles for this template -->
     <link href="/css/navbar.css" rel="stylesheet">
 
@@ -82,6 +84,7 @@ and its
 
 
     <script type="text/javascript" src="/js/highcharts.js"></script>
+    <script type="text/javascript" src="/keylines/js/keylines.js"></script>
 
     <script type="text/javascript" src="/js/OpenLayers-2.13.1/OpenLayers.js"></script> <!-- debug deployment only - remove '.debug' for production use -->
     <script type="text/javascript" src="/js/heatmap/heatmap.js"></script>
@@ -104,6 +107,7 @@ and its
     <script type="text/javascript" src="/js/mljs/widget-highcharts.js"></script>
     <script type="text/javascript" src="/js/mljs/widget-alerts.js"></script>
     <script type="text/javascript" src="/js/ext-workplace.js"></script>
+
 
     <script src="/js/page-workplace.js"></script>
   </body>

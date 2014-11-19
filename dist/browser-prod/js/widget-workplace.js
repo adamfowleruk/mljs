@@ -183,7 +183,7 @@ s+="<span class='icon-bar'></span>"
 s+="</button>"
 s+="<a class='navbar-brand' href='"+this._config.homeUrl+"'>"+this._config.appName+"</a>"
 s+="</div>";}
-s+="<div class='navbar-collapse collapse'><ul class='nav navbar-nav'>";if(null!=this._config.homeUrl&&""!=this._config.homeUrl.trim()){s+="<li";if(-1!=this._config.homeUrl.indexOf(window.location.pathname)){s+=" class='active'";}
+s+="<div class='navbar-collapse collapse'><ul class='nav navbar-nav' id='"+this.container+"-navbar'>";s+="<li><a href='#'><span class='glyphicon glyphicon-bell'></span></li>";if(null!=this._config.homeUrl&&""!=this._config.homeUrl.trim()){s+="<li";if(-1!=this._config.homeUrl.indexOf(window.location.pathname)){s+=" class='active'";}
 s+="><a href='"+this._config.homeUrl+"'>"+this._config.homeText+"</a></li>";}
 if(null!=this._workplaceContext){var pages=this._workplaceContext.getCachedPages();for(var i=0,maxi=pages.length,page;i<maxi;i++){page=pages[i];if(undefined!=page.page.urls&&Array.isArray(page.page.urls)&&page.page.urls.length>0){s+="<li";if(page.page.urls.contains(window.location.pathname)){s+=" class='active'";}
 s+="><a href='"+page.page.urls[0]+"'>"+page.page.title+"</a></li>";}}}

@@ -107,6 +107,16 @@ Run the web server: ./run-webserver.sh
 
 This will keep a terminal window open showing that it is running, and on which port.
 
+## Installing Keylines
+
+The keylines javascript library is commercial, so you must download this yourself if you want to use it.
+
+To add keylines to your demo, unzip your keylines folder and place under src:-
+
+Should be named: ./src/keylines
+
+DO NOT separate out in to separate js, images and css folders
+
 ## View your web application
 
 Point your browser at http://localhost:5001/index.html5

@@ -7611,11 +7611,11 @@ com.marklogic.semantic.tripleconfig.prototype.loadOntologyFromSparqlResults = fu
       for (var b = 0,max = bindings.length, binding;b < max;b++) {
         binding = results.results.bindings[b];
         if (binding.p.value == "http://www.w3.org/2002/07/owl#equivalentProperty" && binding.o.value == "http://www.w3.org/2000/01/rdf-schema#label") {
-          this.__d("tripleconfig.loadOntologyFromSparqlResults: got equivalent label property: " + binding.s.value);
+          //this.__d("tripleconfig.loadOntologyFromSparqlResults: got equivalent label property: " + binding.s.value);
           //labelproperties.push(binding.s.value);
           labelproperties[binding.s.value] = true;
         } else if (binding.p.value == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" && binding.o.value == "http://www.w3.org/2000/01/rdf-schema#Class") {
-          this.__d("tripleconfig.loadOntologyFromSparqlResults: found class: " + binding.s.value);
+          //this.__d("tripleconfig.loadOntologyFromSparqlResults: found class: " + binding.s.value);
           classes[binding.s.value] = true;
         }
       }
@@ -7629,14 +7629,14 @@ com.marklogic.semantic.tripleconfig.prototype.loadOntologyFromSparqlResults = fu
       for (var b = 0,max = bindings.length, binding;b < max;b++) {
         binding = results.results.bindings[b];
 
-        this.__d("tripleconfig.loadOntologyFromSparqlResults: BINDING: " + JSON.stringify(binding));
+        //this.__d("tripleconfig.loadOntologyFromSparqlResults: BINDING: " + JSON.stringify(binding));
         if (binding.p.value == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" && binding.o.value == "http://www.w3.org/2000/01/rdf-schema#Class") {
           // got an RDFS class
 
           this.__d("tripleconfig.loadOntologyFromSparqlResults: Found class: " + binding.s.value);
           var labelPredicate = classlabels[binding.s.value];
 
-          this.__d("tripleconfig.loadOntologyFromSparqlResults:   has label: " + labelPredicate);
+          //this.__d("tripleconfig.loadOntologyFromSparqlResults:   has label: " + labelPredicate);
 
           if (undefined == labelPredicate) {
             labelPredicate = "http://www.w3.org/2000/01/rdf-schema#label";
@@ -7645,7 +7645,7 @@ com.marklogic.semantic.tripleconfig.prototype.loadOntologyFromSparqlResults = fu
 
           types[binding.s.value] = this.rdftype(binding.s.value,labelPredicate);
         } else if (binding.p.value == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" && binding.o.value == "http://www.w3.org/2002/07/owl#DatatypeProperty") {
-    this.__d("tripleconfig.loadOntologyFromSparqlResults: got property: " + binding.s.value);
+    //this.__d("tripleconfig.loadOntologyFromSparqlResults: got property: " + binding.s.value);
           properties[binding.s.value] = {}; // fill in range and domain later
         }
       } // binding for
@@ -7660,7 +7660,7 @@ com.marklogic.semantic.tripleconfig.prototype.loadOntologyFromSparqlResults = fu
           var type = types[binding.s.value];
           this.__d("tripleconfig.loadOntologyFromSparqlResults: property/class: " + binding.s.value + " with label property: " + binding.p.value + " has label: " + binding.o.value);
           if (undefined != type) {
-            this.__d("tripleconfig.loadOntologyFromSparqlResults: setting TYPE title VALUE");
+            //this.__d("tripleconfig.loadOntologyFromSparqlResults: setting TYPE title VALUE");
             type.title(binding.o.value);
           }
           var pi = predinfo[binding.s.value];
@@ -7671,13 +7671,13 @@ com.marklogic.semantic.tripleconfig.prototype.loadOntologyFromSparqlResults = fu
           pi.title = binding.o.value;
         } else if ("http://www.w3.org/2000/01/rdf-schema#domain" == binding.p.value) {
           var prop = properties[binding.s.value];
-          this.__d("tripleconfig.loadOntologyFromSparqlResults: property: " + binding.s.value + " has domain: " + binding.o.value);
+          //this.__d("tripleconfig.loadOntologyFromSparqlResults: property: " + binding.s.value + " has domain: " + binding.o.value);
           if (undefined != prop) {
             prop.domain = binding.o.value;
           }
         } else if ("http://www.w3.org/2000/01/rdf-schema#range" == binding.p.value) {
           var prop = properties[binding.s.value];
-          this.__d("tripleconfig.loadOntologyFromSparqlResults: property: " + binding.s.value + " has range: " + binding.o.value);
+          //this.__d("tripleconfig.loadOntologyFromSparqlResults: property: " + binding.s.value + " has range: " + binding.o.value);
           if (undefined != prop) {
             prop.range = binding.o.value;
           }
@@ -7709,7 +7709,7 @@ com.marklogic.semantic.tripleconfig.prototype.loadOntologyFromSparqlResults = fu
           if (undefined != pred) {
             pred.title = binding.o.value;
           }
-    this.__d("tripleconfig.loadOntologyFromSparqlResults: got property label '" + binding.o.value + "' for '" + binding.s.value + "'");
+    //this.__d("tripleconfig.loadOntologyFromSparqlResults: got property label '" + binding.o.value + "' for '" + binding.s.value + "'");
         }
       }
 
@@ -7722,7 +7722,7 @@ com.marklogic.semantic.tripleconfig.prototype.loadOntologyFromSparqlResults = fu
 
   // now add annotated rdftypes to ontology
   for (var typename in types) {
-    this.__d("tripleconfig.loadOntologyFromSparqlResults: calling include for: " + typename);
+    //this.__d("tripleconfig.loadOntologyFromSparqlResults: calling include for: " + typename);
     var type = types[typename];
     this.include(type);
   }
@@ -7750,10 +7750,10 @@ com.marklogic.semantic.tripleconfig.prototype._processClasses = function(process
     }
     // add them to the process list
     if (processed.contains(pc)) {
-      this.__d("tripleconfig.loadOntologyFromSparqlResults:   ALREADY DONE");
+      //this.__d("tripleconfig.loadOntologyFromSparqlResults:   ALREADY DONE");
     }
     if (ok && !processed.contains(pc)) {
-    this.__d("tripleconfig.loadOntologyFromSparqlResults:   SUCCESS adding to processable list: " + pc);
+    //this.__d("tripleconfig.loadOntologyFromSparqlResults:   SUCCESS adding to processable list: " + pc);
       todo.push(pc);
       processed.push(pc);
     }
@@ -7768,16 +7768,16 @@ com.marklogic.semantic.tripleconfig.prototype._processClasses = function(process
       for (var pr in properties) {
         var prop = properties[pr];
         if ((undefined != parents && parents.contains(prop.domain)) || prop.domain == to) {
-          this.__d("tripleconfig.loadOntologyFromSparqlResults:     contains property: " + pr);
+          //this.__d("tripleconfig.loadOntologyFromSparqlResults:     contains property: " + pr);
           // property applies to this class too, so apply it
           // is it a normal predicate or a TO relationship?
           if (undefined != prop.range && undefined != types[prop.range]) {
             // other rdfs class
-            this.__d("tripleconfig.loadOntologyFromSparqlResults:       linked to class: " + prop.range);
+            //this.__d("tripleconfig.loadOntologyFromSparqlResults:       linked to class: " + prop.range);
             types[to].to(prop.range,pr);
           } else {
             // property
-            this.__d("tripleconfig.loadOntologyFromSparqlResults:       which is an intrinsic property");
+            //this.__d("tripleconfig.loadOntologyFromSparqlResults:       which is an intrinsic property");
             this._processParentPredicate(to,pr,types,parentproperties,predicates,predinfo);
 
           } // end class or predicate if
@@ -7805,9 +7805,9 @@ com.marklogic.semantic.tripleconfig.prototype._processParentPredicate = function
           var pred = predicates[to + "@@@" + pr];
           if (undefined == pred) {
             pred = types[to].predicate(pr);
-          this.__d("tripleconfig._processParentPredicate: predinfo for: " + to + " , predicate: " + pr + " = " + JSON.stringify(predinfo[pr]));
+          //this.__d("tripleconfig._processParentPredicate: predinfo for: " + to + " , predicate: " + pr + " = " + JSON.stringify(predinfo[pr]));
             if (undefined != predinfo[pr] && undefined != predinfo[pr].title) {
-              this.__d("tripleconfig._processParentPredicate:   setting title");
+              //this.__d("tripleconfig._processParentPredicate:   setting title");
               pred.title(predinfo[pr].title);
             }
             predicates[to + "@@@" + pr] = pred;
@@ -8263,7 +8263,7 @@ com.marklogic.semantic.tripleconfig.prototype.getNameProperty = function(entity)
     }
   }
   self.__d("getNameProperty: RETURNING NULL for entity: " + entity);
-  return null;
+  return cnp; // TODO was null - find out why its insisting on returning an entity instead of an IRI as per the above docs
 };
 
 /**

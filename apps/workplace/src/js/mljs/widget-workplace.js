@@ -4412,8 +4412,12 @@ com.marklogic.widgets.workplacenavbar.prototype._refresh = function() {
     s +=      "<a class='navbar-brand' href='" + this._config.homeUrl + "'>" + this._config.appName + "</a>"
     s +=    "</div>";
   }
-  s += "<div class='navbar-collapse collapse'><ul class='nav navbar-nav'>";
+  s += "<div class='navbar-collapse collapse'><ul class='nav navbar-nav' id='" + this.container + "-navbar'>";
 
+
+  // TODO remove HACK for alert button
+  s += "<li><a href='#'><span class='glyphicon glyphicon-bell'></span></li>";
+  
   if (null != this._config.homeUrl && "" != this._config.homeUrl.trim()) {
     s += "<li";
     if (-1 != this._config.homeUrl.indexOf(window.location.pathname)) {
