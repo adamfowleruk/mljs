@@ -1,0 +1,657 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<search:options xmlns:search="http://marklogic.com/appservices/search">
+  <search:search-option>unfiltered</search:search-option>
+  <search:page-length>10</search:page-length>
+  <search:term apply="term">
+    <search:empty apply="all-results"/>
+    <search:term-option>punctuation-insensitive</search:term-option>
+    <search:term-option>stemmed</search:term-option>
+  </search:term>
+  <search:grammar>
+    <search:quotation>"</search:quotation>
+    <search:implicit>
+      <cts:and-query strength="20" xmlns:cts="http://marklogic.com/cts"/>
+    </search:implicit>
+    <search:starter strength="30" apply="grouping" delimiter=")">(</search:starter>
+    <search:starter strength="40" apply="prefix" element="cts:not-query">-</search:starter>
+    <search:joiner strength="10" apply="infix" element="cts:or-query" tokenize="word">OR</search:joiner>
+    <search:joiner strength="20" apply="infix" element="cts:and-query" tokenize="word">AND</search:joiner>
+    <search:joiner strength="30" apply="infix" element="cts:near-query" tokenize="word">NEAR</search:joiner>
+    <search:joiner strength="30" apply="near2" consume="2" element="cts:near-query">NEAR/</search:joiner>
+    <search:joiner strength="50" apply="constraint">:</search:joiner>
+    <search:joiner strength="50" apply="constraint" compare="LT" tokenize="word">LT</search:joiner>
+    <search:joiner strength="50" apply="constraint" compare="LE" tokenize="word">LE</search:joiner>
+    <search:joiner strength="50" apply="constraint" compare="GT" tokenize="word">GT</search:joiner>
+    <search:joiner strength="50" apply="constraint" compare="GE" tokenize="word">GE</search:joiner>
+    <search:joiner strength="50" apply="constraint" compare="NE" tokenize="word">NE</search:joiner>
+  </search:grammar>
+
+  <search:additional-query>
+    <cts:not-query xmlns:cts="http://marklogic.com/cts">
+      <cts:or-query>
+        <cts:collection-query>
+          <cts:uri>mljsInternalData</cts:uri>
+          <cts:uri>senders</cts:uri>
+          <cts:uri>http://marklogic.com/semantics#default-graph</cts:uri>
+          <cts:uri>/my/named/graph</cts:uri>
+          <cts:uri>sourceimage</cts:uri>
+          <cts:uri>ontology</cts:uri>
+        </cts:collection-query>
+        <cts:element-query xmlns:cts="http://marklogic.com/cts">
+          <cts:element xmlns:sem="http://marklogic.com/semantics">sem:triples</cts:element>
+          <cts:or-query/>
+        </cts:element-query>
+      </cts:or-query>
+    </cts:not-query>
+  </search:additional-query>
+
+  <search:debug>false</search:debug>
+  <search:extract-metadata>
+    <search:constraint-value ref="collection"/>
+    <search:constraint-value ref="citizen"/>
+    <search:constraint-value ref="company"/>
+    <search:constraint-value ref="value"/>
+    <search:constraint-value ref="location"/>
+    <search:constraint-value ref="flagged"/>
+    <search:constraint-value ref="flaggedpct"/>
+    <search:constraint-value ref="originalurl"/>
+    <search:constraint-value ref="from"/>
+    <search:constraint-value ref="to"/>
+    <!--
+    <search:constraint-value ref="ilocation"/>
+  -->
+    <search:constraint-value ref="phonenumber"/>
+    <search:constraint-value ref="eventtime"/>
+    <search:qname elem-ns="" elem-name="title"/>
+    <search:qname elem-ns="http://www.marklogic.com/intel/intercept" elem-name="extract"/>
+    <search:qname elem-ns="http://www.w3.org/1999/xhtml" elem-name="title"/>
+    <search:qname elem-ns="http://marklogic.com/mobilephone" elem-name="Model"/>
+    <search:qname elem-ns="http://marklogic.com/mobilephone" elem-name="Make"/>
+    <search:qname elem-ns="http://marklogic.com/mobilephone" elem-name="IMEI"/>
+    <search:qname elem-ns="http://marklogic.com/mobilephone" elem-name="OS"/>
+    <search:qname elem-ns="http://marklogic.com/mobilephone" elem-name="OSVersion"/>
+    <search:qname elem-ns="http://www.marklogic.com/intel/intercept" elem-name="placename"/>
+    <search:qname elem-ns="http://www.marklogic.com/intel/intercept" elem-name="identity"/>
+    <search:qname elem-ns="" elem-name="call" attr-name="duration"/>
+    <search:qname elem-ns="" elem-name="call" attr-name="readable_date"/>
+    <search:qname elem-ns="" elem-name="call" attr-name="contact_name"/>
+
+  </search:extract-metadata>
+
+  <search:transform-results apply="snippet"/>
+
+
+  <search:constraint name="collection">
+    <search:collection prefix="" facet="true" />
+  </search:constraint>
+
+
+  <search:constraint name="location">
+    <search:geo-elem-pair>
+      <search:parent name="location" ns=""/>
+      <search:lat name="lat" ns=""/>
+      <search:lon name="lon" ns=""/>
+      <search:geo-option>units=miles</search:geo-option>
+
+      <search:geo-option>coordinate-system=wgs84</search:geo-option>
+      <search:heatmap n="-22.601751738293885" s="-23.384274889550028" w="-43.87691212109409" e="-42.62996387890622" latdivs="14" londivs="19"/>
+    </search:geo-elem-pair>
+  </search:constraint>
+<!--
+  <search:constraint name="ilocation">
+    <search:geo-elem-pair>
+      <search:parent name="coords" ns="http://www.marklogic.com/intel/intercept"/>
+      <search:lat name="lat" ns="http://www.marklogic.com/intel/intercept"/>
+      <search:lon name="lon" ns="http://www.marklogic.com/intel/intercept"/>
+      <search:geo-option>units=miles</search:geo-option>
+
+      <search:geo-option>coordinate-system=wgs84</search:geo-option>
+      <search:heatmap n="-22.601751738293885" s="-23.384274889550028" w="-43.87691212109409" e="-42.62996387890622" latdivs="14" londivs="19"/>
+    </search:geo-elem-pair>
+  </search:constraint>
+-->
+  <search:constraint name="citizen">
+    <search:range type="xs:string" collation="http://marklogic.com/collation/">
+      <search:element name="citizen" ns=""/>
+    </search:range>
+  </search:constraint>
+  <search:constraint name="company">
+    <search:range type="xs:string" collation="http://marklogic.com/collation/">
+      <search:element name="company" ns=""/>
+    </search:range>
+  </search:constraint>
+  <search:constraint name="phonenumber">
+    <search:range type="xs:string" collation="http://marklogic.com/collation/">
+      <search:element name="phoneNumber" ns="http://marklogic.com/mobilephone"/>
+    </search:range>
+  </search:constraint>
+  <search:constraint name="eventtime">
+    <search:range type="xs:dateTime">
+      <search:element name="event-timestamp" ns="http://www.marklogic.com/intel/intercept"/>
+    </search:range>
+  </search:constraint>
+  <search:constraint name="from">
+    <search:range type="xs:string" collation="http://marklogic.com/collation/">
+      <search:element name="call" ns=""/>
+      <search:attribute ns="" name="from"/>
+    </search:range>
+  </search:constraint>
+  <search:constraint name="to">
+    <search:range type="xs:string" collation="http://marklogic.com/collation/">
+      <search:element name="call" ns=""/>
+      <search:attribute ns="" name="number"/>
+    </search:range>
+  </search:constraint>
+  <search:constraint name="flagged">
+    <search:range type="xs:string" collation="http://marklogic.com/collation/">
+      <search:element name="flagged" ns=""/>
+    </search:range>
+  </search:constraint>
+  <search:constraint name="flaggedpct">
+    <search:range type="xs:double">
+      <search:element name="flaggedpct" ns=""/>
+      <search:bucket lt="30" ge="0" name="0-30">0-30%</search:bucket>
+      <search:bucket lt="40" ge="30" name="30-40">30-40%</search:bucket>
+      <search:bucket lt="50" ge="40" name="40-50">40-50%</search:bucket>
+      <search:bucket lt="60" ge="50" name="50-60">50-60%</search:bucket>
+      <search:bucket lt="70" ge="60" name="60-70">60-70%</search:bucket>
+      <search:bucket lt="80" ge="70" name="70-80">70-80%</search:bucket>
+      <search:bucket lt="90" ge="80" name="80-90">80-90%</search:bucket>
+      <search:bucket ge="90" name="90+">90%+</search:bucket>
+    </search:range>
+  </search:constraint>
+  <search:constraint name="originalurl">
+    <search:range type="xs:string" collation="http://marklogic.com/collation/">
+      <search:element name="originalurl" ns=""/>
+    </search:range>
+  </search:constraint>
+
+  <search:constraint name="value">
+    <search:range type="xs:double" facet="true">
+      <search:element name="value" ns=""/>
+      <search:bucket lt="100000" ge="0" name="100k">Less than 100k</search:bucket>
+      <search:bucket lt="250000" ge="100000" name="250k">Less than 50k</search:bucket>
+      <search:bucket lt="500000" ge="250000" name="500k">Less than 500k</search:bucket>
+      <search:bucket lt="1000000" ge="500000" name="1mil">Less than 1mil</search:bucket>
+      <search:bucket lt="1500000" ge="1000000" name="1.5mil">Less than 1.5mil</search:bucket>
+      <search:bucket ge="2000000" name="2mil+">2mil+</search:bucket>
+    </search:range>
+  </search:constraint>
+
+
+
+<!-- Search and Discovery demo facets -->
+
+
+  <search:constraint name="title">
+    <search:range type="xs:string" collation="http://marklogic.com/collation/" facet="true">
+      <search:element ns="http://www.w3.org/1999/xhtml" name="title"/>
+     <search:facet-option>limit=5</search:facet-option>
+     <search:facet-option>frequency-order</search:facet-option>
+     <search:facet-option>descending</search:facet-option>
+    </search:range>
+  </search:constraint>
+  <search:constraint name="Subject">
+    <search:range type="xs:string" facet="true">
+     <search:path-index xmlns:xhtml="http://www.w3.org/1999/xhtml">/xhtml:html/xhtml:head/xhtml:meta[@name = "Subject"]/@content</search:path-index>
+     <search:facet-option>limit=5</search:facet-option>
+     <search:facet-option>frequency-order</search:facet-option>
+     <search:facet-option>descending</search:facet-option>
+    </search:range>
+  </search:constraint>
+
+  <search:constraint name="Terms">
+    <search:range type="xs:string" collation="http://marklogic.com/collation/" facet="true">
+      <search:element ns="" name="potential"/>
+     <search:facet-option>limit=15</search:facet-option>
+     <search:facet-option>frequency-order</search:facet-option>
+     <search:facet-option>descending</search:facet-option>
+    </search:range>
+  </search:constraint>
+
+  <search:constraint name="Author">
+    <search:range type="xs:string" facet="true">
+     <search:path-index xmlns:xhtml="http://www.w3.org/1999/xhtml">/xhtml:html/xhtml:head/xhtml:meta[@name = "Author"]/@content</search:path-index>
+     <search:facet-option>limit=5</search:facet-option>
+     <search:facet-option>frequency-order</search:facet-option>
+     <search:facet-option>descending</search:facet-option>
+    </search:range>
+  </search:constraint>
+
+
+  <search:constraint name="Company">
+    <search:range type="xs:string" facet="true">
+     <search:path-index xmlns:xhtml="http://www.w3.org/1999/xhtml">/xhtml:html/xhtml:head/xhtml:meta[@name = "Company"]/@content</search:path-index>
+     <search:facet-option>limit=5</search:facet-option>
+     <search:facet-option>frequency-order</search:facet-option>
+     <search:facet-option>descending</search:facet-option>
+    </search:range>
+  </search:constraint>
+
+  <search:constraint name="Producer">
+    <search:range type="xs:string" facet="true">
+     <search:path-index xmlns:xhtml="http://www.w3.org/1999/xhtml">/xhtml:html/xhtml:head/xhtml:meta[@name = "Producer"]/@content</search:path-index>
+     <search:facet-option>limit=5</search:facet-option>
+     <search:facet-option>frequency-order</search:facet-option>
+     <search:facet-option>descending</search:facet-option>
+    </search:range>
+  </search:constraint>
+
+  <search:constraint name="content-type">
+    <search:range type="xs:string" facet="true">
+     <search:path-index xmlns:xhtml="http://www.w3.org/1999/xhtml">/xhtml:html/xhtml:head/xhtml:meta[@name = "content-type"]/@content</search:path-index>
+     <search:facet-option>limit=15</search:facet-option>
+     <search:facet-option>frequency-order</search:facet-option>
+     <search:facet-option>descending</search:facet-option>
+    </search:range>
+  </search:constraint>
+    <search:constraint name="Creator">
+<search:range type="xs:string" facet="true">
+<search:path-index xmlns:xhtml="http://www.w3.org/1999/xhtml">/xhtml:html/xhtml:head/xhtml:meta[@name = "Creator"]/@content</search:path-index>
+<search:facet-option>limit=15</search:facet-option>
+<search:facet-option>frequency-order</search:facet-option>
+<search:facet-option>descending</search:facet-option>
+</search:range>
+</search:constraint>
+<search:constraint name="CreationDate">
+<search:range type="xs:string" facet="true">
+<search:path-index xmlns:xhtml="http://www.w3.org/1999/xhtml">/xhtml:html/xhtml:head/xhtml:meta[@name = "CreationDate"]/@content</search:path-index>
+<search:facet-option>limit=15</search:facet-option>
+<search:facet-option>frequency-order</search:facet-option>
+<search:facet-option>descending</search:facet-option>
+</search:range>
+</search:constraint>
+<search:constraint name="DateCreated">
+<search:range type="xs:string" facet="true">
+<search:path-index xmlns:xhtml="http://www.w3.org/1999/xhtml">/xhtml:html/xhtml:head/xhtml:meta[@name = "Creation_Date"]/@content</search:path-index>
+<search:facet-option>limit=15</search:facet-option>
+<search:facet-option>frequency-order</search:facet-option>
+<search:facet-option>descending</search:facet-option>
+</search:range>
+</search:constraint>
+<search:constraint name="DateModified">
+<search:range type="xs:string" facet="true">
+<search:path-index xmlns:xhtml="http://www.w3.org/1999/xhtml">/xhtml:html/xhtml:head/xhtml:meta[@name = "ModDate"]/@content</search:path-index>
+<search:facet-option>limit=15</search:facet-option>
+<search:facet-option>frequency-order</search:facet-option>
+<search:facet-option>descending</search:facet-option>
+</search:range>
+</search:constraint>
+<search:constraint name="Size">
+<search:range type="xs:string" facet="true">
+<search:path-index xmlns:xhtml="http://www.w3.org/1999/xhtml">/xhtml:html/xhtml:head/xhtml:meta[@name = "size"]/@content</search:path-index>
+<search:facet-option>limit=15</search:facet-option>
+<search:facet-option>frequency-order</search:facet-option>
+<search:facet-option>descending</search:facet-option>
+</search:range>
+</search:constraint>
+<search:constraint name="AppName">
+<search:range type="xs:string" facet="true">
+<search:path-index xmlns:xhtml="http://www.w3.org/1999/xhtml">/xhtml:html/xhtml:head/xhtml:meta[@name = "AppName"]/@content</search:path-index>
+<search:facet-option>limit=15</search:facet-option>
+<search:facet-option>frequency-order</search:facet-option>
+<search:facet-option>descending</search:facet-option>
+</search:range>
+</search:constraint>
+<search:constraint name="Description">
+<search:range type="xs:string" facet="true">
+<search:path-index xmlns:xhtml="http://www.w3.org/1999/xhtml">/xhtml:html/xhtml:head/xhtml:meta[@name = "Description"]/@content</search:path-index>
+<search:facet-option>limit=15</search:facet-option>
+<search:facet-option>frequency-order</search:facet-option>
+<search:facet-option>descending</search:facet-option>
+</search:range>
+</search:constraint>
+<search:constraint name="Keywords">
+<search:range type="xs:string" facet="true">
+<search:path-index xmlns:xhtml="http://www.w3.org/1999/xhtml">/xhtml:html/xhtml:head/xhtml:meta[@name = "Keywords"]/@content</search:path-index>
+<search:facet-option>limit=15</search:facet-option>
+<search:facet-option>frequency-order</search:facet-option>
+<search:facet-option>descending</search:facet-option>
+</search:range>
+</search:constraint>
+<search:constraint name="Revision">
+<search:range type="xs:string" facet="true">
+<search:path-index xmlns:xhtml="http://www.w3.org/1999/xhtml">/xhtml:html/xhtml:head/xhtml:meta[@name = "Revision"]/@content</search:path-index>
+<search:facet-option>limit=15</search:facet-option>
+<search:facet-option>frequency-order</search:facet-option>
+<search:facet-option>descending</search:facet-option>
+</search:range>
+</search:constraint>
+<search:constraint name="TotalEditingTime">
+<search:range type="xs:string" facet="true">
+<search:path-index xmlns:xhtml="http://www.w3.org/1999/xhtml">/xhtml:html/xhtml:head/xhtml:meta[@name = "Total_Editing_Time"]/@content</search:path-index>
+<search:facet-option>limit=15</search:facet-option>
+<search:facet-option>frequency-order</search:facet-option>
+<search:facet-option>descending</search:facet-option>
+</search:range>
+</search:constraint>
+<search:constraint name="SubType">
+<search:range type="xs:string" facet="true">
+<search:path-index xmlns:xhtml="http://www.w3.org/1999/xhtml">/xhtml:html/xhtml:head/xhtml:meta[@name = "isys_SubType"]/@content</search:path-index>
+<search:facet-option>limit=15</search:facet-option>
+<search:facet-option>frequency-order</search:facet-option>
+<search:facet-option>descending</search:facet-option>
+</search:range>
+</search:constraint>
+<search:constraint name="CharacterCount">
+<search:range type="xs:string" facet="true">
+<search:path-index xmlns:xhtml="http://www.w3.org/1999/xhtml">/xhtml:html/xhtml:head/xhtml:meta[@name = "Character_Count"]/@content</search:path-index>
+<search:facet-option>limit=15</search:facet-option>
+<search:facet-option>frequency-order</search:facet-option>
+<search:facet-option>descending</search:facet-option>
+</search:range>
+</search:constraint>
+<search:constraint name="LastAuthor">
+<search:range type="xs:string" facet="true">
+<search:path-index xmlns:xhtml="http://www.w3.org/1999/xhtml">/xhtml:html/xhtml:head/xhtml:meta[@name = "Last_Author"]/@content</search:path-index>
+<search:facet-option>limit=15</search:facet-option>
+<search:facet-option>frequency-order</search:facet-option>
+<search:facet-option>descending</search:facet-option>
+</search:range>
+</search:constraint>
+<search:constraint name="LastSavedDate">
+<search:range type="xs:string" facet="true">
+<search:path-index xmlns:xhtml="http://www.w3.org/1999/xhtml">/xhtml:html/xhtml:head/xhtml:meta[@name = "Last_Saved_Date"]/@content</search:path-index>
+<search:facet-option>limit=15</search:facet-option>
+<search:facet-option>frequency-order</search:facet-option>
+<search:facet-option>descending</search:facet-option>
+</search:range>
+</search:constraint>
+<search:constraint name="LineCount">
+<search:range type="xs:string" facet="true">
+<search:path-index xmlns:xhtml="http://www.w3.org/1999/xhtml">/xhtml:html/xhtml:head/xhtml:meta[@name = "Line_Count"]/@content</search:path-index>
+<search:facet-option>limit=15</search:facet-option>
+<search:facet-option>frequency-order</search:facet-option>
+<search:facet-option>descending</search:facet-option>
+</search:range>
+</search:constraint>
+<search:constraint name="LinksUpToDate">
+<search:range type="xs:string" facet="true">
+<search:path-index xmlns:xhtml="http://www.w3.org/1999/xhtml">/xhtml:html/xhtml:head/xhtml:meta[@name = "Links_Up_To_Date"]/@content</search:path-index>
+<search:facet-option>limit=15</search:facet-option>
+<search:facet-option>frequency-order</search:facet-option>
+<search:facet-option>descending</search:facet-option>
+</search:range>
+</search:constraint>
+<search:constraint name="PageCount">
+<search:range type="xs:string" facet="true">
+<search:path-index xmlns:xhtml="http://www.w3.org/1999/xhtml">/xhtml:html/xhtml:head/xhtml:meta[@name = "Page_Count"]/@content</search:path-index>
+<search:facet-option>limit=15</search:facet-option>
+<search:facet-option>frequency-order</search:facet-option>
+<search:facet-option>descending</search:facet-option>
+</search:range>
+</search:constraint>
+<search:constraint name="ParagraphCount">
+<search:range type="xs:string" facet="true">
+<search:path-index xmlns:xhtml="http://www.w3.org/1999/xhtml">/xhtml:html/xhtml:head/xhtml:meta[@name = "Paragraph_Count"]/@content</search:path-index>
+<search:facet-option>limit=15</search:facet-option>
+<search:facet-option>frequency-order</search:facet-option>
+<search:facet-option>descending</search:facet-option>
+</search:range>
+</search:constraint>
+<search:constraint name="RevisionNumber">
+<search:range type="xs:string" facet="true">
+<search:path-index xmlns:xhtml="http://www.w3.org/1999/xhtml">/xhtml:html/xhtml:head/xhtml:meta[@name = "Revision_Number"]/@content</search:path-index>
+<search:facet-option>limit=15</search:facet-option>
+<search:facet-option>frequency-order</search:facet-option>
+<search:facet-option>descending</search:facet-option>
+</search:range>
+</search:constraint>
+<search:constraint name="ScaleCrop">
+<search:range type="xs:string" facet="true">
+<search:path-index xmlns:xhtml="http://www.w3.org/1999/xhtml">/xhtml:html/xhtml:head/xhtml:meta[@name = "Scale_Crop"]/@content</search:path-index>
+<search:facet-option>limit=15</search:facet-option>
+<search:facet-option>frequency-order</search:facet-option>
+<search:facet-option>descending</search:facet-option>
+</search:range>
+</search:constraint>
+<search:constraint name="Security">
+<search:range type="xs:string" facet="true">
+<search:path-index xmlns:xhtml="http://www.w3.org/1999/xhtml">/xhtml:html/xhtml:head/xhtml:meta[@name = "Security"]/@content</search:path-index>
+<search:facet-option>limit=15</search:facet-option>
+<search:facet-option>frequency-order</search:facet-option>
+<search:facet-option>descending</search:facet-option>
+</search:range>
+</search:constraint>
+<search:constraint name="Template">
+<search:range type="xs:string" facet="true">
+<search:path-index xmlns:xhtml="http://www.w3.org/1999/xhtml">/xhtml:html/xhtml:head/xhtml:meta[@name = "Template"]/@content</search:path-index>
+<search:facet-option>limit=15</search:facet-option>
+<search:facet-option>frequency-order</search:facet-option>
+<search:facet-option>descending</search:facet-option>
+</search:range>
+</search:constraint>
+<search:constraint name="WordCount">
+<search:range type="xs:string" facet="true">
+<search:path-index xmlns:xhtml="http://www.w3.org/1999/xhtml">/xhtml:html/xhtml:head/xhtml:meta[@name = "Word_Count"]/@content</search:path-index>
+<search:facet-option>limit=15</search:facet-option>
+<search:facet-option>frequency-order</search:facet-option>
+<search:facet-option>descending</search:facet-option>
+</search:range>
+</search:constraint>
+<search:constraint name="FilterCapabilities">
+<search:range type="xs:string" facet="true">
+<search:path-index xmlns:xhtml="http://www.w3.org/1999/xhtml">/xhtml:html/xhtml:head/xhtml:meta[@name = "filter-capabilities"]/@content</search:path-index>
+<search:facet-option>limit=15</search:facet-option>
+<search:facet-option>frequency-order</search:facet-option>
+<search:facet-option>descending</search:facet-option>
+</search:range>
+</search:constraint>
+<search:constraint name="Album">
+<search:range type="xs:string" facet="true">
+<search:path-index xmlns:xhtml="http://www.w3.org/1999/xhtml">/xhtml:html/xhtml:head/xhtml:meta[@name = "Album"]/@content</search:path-index>
+<search:facet-option>limit=15</search:facet-option>
+<search:facet-option>frequency-order</search:facet-option>
+<search:facet-option>descending</search:facet-option>
+</search:range>
+</search:constraint>
+<search:constraint name="Artist">
+<search:range type="xs:string" facet="true">
+<search:path-index xmlns:xhtml="http://www.w3.org/1999/xhtml">/xhtml:html/xhtml:head/xhtml:meta[@name = "Artist"]/@content</search:path-index>
+<search:facet-option>limit=15</search:facet-option>
+<search:facet-option>frequency-order</search:facet-option>
+<search:facet-option>descending</search:facet-option>
+</search:range>
+</search:constraint>
+<search:constraint name="BitRate">
+<search:range type="xs:string" facet="true">
+<search:path-index xmlns:xhtml="http://www.w3.org/1999/xhtml">/xhtml:html/xhtml:head/xhtml:meta[@name = "Bitrate"]/@content</search:path-index>
+<search:facet-option>limit=15</search:facet-option>
+<search:facet-option>frequency-order</search:facet-option>
+<search:facet-option>descending</search:facet-option>
+</search:range>
+</search:constraint>
+<search:constraint name="Comm">
+<search:range type="xs:string" facet="true">
+<search:path-index xmlns:xhtml="http://www.w3.org/1999/xhtml">/xhtml:html/xhtml:head/xhtml:meta[@name = "COMM"]/@content</search:path-index>
+<search:facet-option>limit=15</search:facet-option>
+<search:facet-option>frequency-order</search:facet-option>
+<search:facet-option>descending</search:facet-option>
+</search:range>
+</search:constraint>
+<search:constraint name="Channels">
+<search:range type="xs:string" facet="true">
+<search:path-index xmlns:xhtml="http://www.w3.org/1999/xhtml">/xhtml:html/xhtml:head/xhtml:meta[@name = "Channels"]/@content</search:path-index>
+<search:facet-option>limit=15</search:facet-option>
+<search:facet-option>frequency-order</search:facet-option>
+<search:facet-option>descending</search:facet-option>
+</search:range>
+</search:constraint>
+<search:constraint name="Comment">
+<search:range type="xs:string" facet="true">
+<search:path-index xmlns:xhtml="http://www.w3.org/1999/xhtml">/xhtml:html/xhtml:head/xhtml:meta[@name = "Comment"]/@content</search:path-index>
+<search:facet-option>limit=15</search:facet-option>
+<search:facet-option>frequency-order</search:facet-option>
+<search:facet-option>descending</search:facet-option>
+</search:range>
+</search:constraint>
+<search:constraint name="Duration">
+<search:range type="xs:string" facet="true">
+<search:path-index xmlns:xhtml="http://www.w3.org/1999/xhtml">/xhtml:html/xhtml:head/xhtml:meta[@name = "Duration"]/@content</search:path-index>
+<search:facet-option>limit=15</search:facet-option>
+<search:facet-option>frequency-order</search:facet-option>
+<search:facet-option>descending</search:facet-option>
+</search:range>
+</search:constraint>
+<search:constraint name="Genre">
+<search:range type="xs:string" facet="true">
+<search:path-index xmlns:xhtml="http://www.w3.org/1999/xhtml">/xhtml:html/xhtml:head/xhtml:meta[@name = "Genre"]/@content</search:path-index>
+<search:facet-option>limit=15</search:facet-option>
+<search:facet-option>frequency-order</search:facet-option>
+<search:facet-option>descending</search:facet-option>
+</search:range>
+</search:constraint>
+<search:constraint name="MediaType">
+<search:range type="xs:string" facet="true">
+<search:path-index xmlns:xhtml="http://www.w3.org/1999/xhtml">/xhtml:html/xhtml:head/xhtml:meta[@name = "Media_Type"]/@content</search:path-index>
+<search:facet-option>limit=15</search:facet-option>
+<search:facet-option>frequency-order</search:facet-option>
+<search:facet-option>descending</search:facet-option>
+</search:range>
+</search:constraint>
+<search:constraint name="Priv">
+<search:range type="xs:string" facet="true">
+<search:path-index xmlns:xhtml="http://www.w3.org/1999/xhtml">/xhtml:html/xhtml:head/xhtml:meta[@name = "Priv"]/@content</search:path-index>
+<search:facet-option>limit=15</search:facet-option>
+<search:facet-option>frequency-order</search:facet-option>
+<search:facet-option>descending</search:facet-option>
+</search:range>
+</search:constraint>
+<search:constraint name="SampleRate">
+<search:range type="xs:string" facet="true">
+<search:path-index xmlns:xhtml="http://www.w3.org/1999/xhtml">/xhtml:html/xhtml:head/xhtml:meta[@name = "Sample_Rate"]/@content</search:path-index>
+<search:facet-option>limit=15</search:facet-option>
+<search:facet-option>frequency-order</search:facet-option>
+<search:facet-option>descending</search:facet-option>
+</search:range>
+</search:constraint>
+<search:constraint name="Track">
+<search:range type="xs:string" facet="true">
+<search:path-index xmlns:xhtml="http://www.w3.org/1999/xhtml">/xhtml:html/xhtml:head/xhtml:meta[@name = "Track"]/@content</search:path-index>
+<search:facet-option>limit=15</search:facet-option>
+<search:facet-option>frequency-order</search:facet-option>
+<search:facet-option>descending</search:facet-option>
+</search:range>
+</search:constraint>
+<search:constraint name="Year">
+<search:range type="xs:string" facet="true">
+<search:path-index xmlns:xhtml="http://www.w3.org/1999/xhtml">/xhtml:html/xhtml:head/xhtml:meta[@name = "Year"]/@content</search:path-index>
+<search:facet-option>limit=15</search:facet-option>
+<search:facet-option>frequency-order</search:facet-option>
+<search:facet-option>descending</search:facet-option>
+</search:range>
+</search:constraint>
+<search:constraint name="talb">
+<search:range type="xs:string" facet="true">
+<search:path-index xmlns:xhtml="http://www.w3.org/1999/xhtml">/xhtml:html/xhtml:head/xhtml:meta[@name = "TALB"]/@content</search:path-index>
+<search:facet-option>limit=15</search:facet-option>
+<search:facet-option>frequency-order</search:facet-option>
+<search:facet-option>descending</search:facet-option>
+</search:range>
+</search:constraint>
+<search:constraint name="tcom">
+<search:range type="xs:string" facet="true">
+<search:path-index xmlns:xhtml="http://www.w3.org/1999/xhtml">/xhtml:html/xhtml:head/xhtml:meta[@name = "TCOM"]/@content</search:path-index>
+<search:facet-option>limit=15</search:facet-option>
+<search:facet-option>frequency-order</search:facet-option>
+<search:facet-option>descending</search:facet-option>
+</search:range>
+</search:constraint>
+<search:constraint name="tcon">
+<search:range type="xs:string" facet="true">
+<search:path-index xmlns:xhtml="http://www.w3.org/1999/xhtml">/xhtml:html/xhtml:head/xhtml:meta[@name = "TCON"]/@content</search:path-index>
+<search:facet-option>limit=15</search:facet-option>
+<search:facet-option>frequency-order</search:facet-option>
+<search:facet-option>descending</search:facet-option>
+</search:range>
+</search:constraint>
+<search:constraint name="tcop">
+<search:range type="xs:string" facet="true">
+<search:path-index xmlns:xhtml="http://www.w3.org/1999/xhtml">/xhtml:html/xhtml:head/xhtml:meta[@name = "TCOP"]/@content</search:path-index>
+<search:facet-option>limit=15</search:facet-option>
+<search:facet-option>frequency-order</search:facet-option>
+<search:facet-option>descending</search:facet-option>
+</search:range>
+</search:constraint>
+<search:constraint name="tdrc">
+<search:range type="xs:string" facet="true">
+<search:path-index xmlns:xhtml="http://www.w3.org/1999/xhtml">/xhtml:html/xhtml:head/xhtml:meta[@name = "TDRC"]/@content</search:path-index>
+<search:facet-option>limit=15</search:facet-option>
+<search:facet-option>frequency-order</search:facet-option>
+<search:facet-option>descending</search:facet-option>
+</search:range>
+</search:constraint>
+<search:constraint name="tit2">
+<search:range type="xs:string" facet="true">
+<search:path-index xmlns:xhtml="http://www.w3.org/1999/xhtml">/xhtml:html/xhtml:head/xhtml:meta[@name = "TIT2"]/@content</search:path-index>
+<search:facet-option>limit=15</search:facet-option>
+<search:facet-option>frequency-order</search:facet-option>
+<search:facet-option>descending</search:facet-option>
+</search:range>
+</search:constraint>
+<search:constraint name="tpe1">
+<search:range type="xs:string" facet="true">
+<search:path-index xmlns:xhtml="http://www.w3.org/1999/xhtml">/xhtml:html/xhtml:head/xhtml:meta[@name = "TPE1"]/@content</search:path-index>
+<search:facet-option>limit=15</search:facet-option>
+<search:facet-option>frequency-order</search:facet-option>
+<search:facet-option>descending</search:facet-option>
+</search:range>
+</search:constraint>
+<search:constraint name="tpe2">
+<search:range type="xs:string" facet="true">
+<search:path-index xmlns:xhtml="http://www.w3.org/1999/xhtml">/xhtml:html/xhtml:head/xhtml:meta[@name = "TPE2"]/@content</search:path-index>
+<search:facet-option>limit=15</search:facet-option>
+<search:facet-option>frequency-order</search:facet-option>
+<search:facet-option>descending</search:facet-option>
+</search:range>
+</search:constraint>
+<search:constraint name="tpos">
+<search:range type="xs:string" facet="true">
+<search:path-index xmlns:xhtml="http://www.w3.org/1999/xhtml">/xhtml:html/xhtml:head/xhtml:meta[@name = "TPOS"]/@content</search:path-index>
+<search:facet-option>limit=15</search:facet-option>
+<search:facet-option>frequency-order</search:facet-option>
+<search:facet-option>descending</search:facet-option>
+</search:range>
+</search:constraint>
+<search:constraint name="trck">
+<search:range type="xs:string" facet="true">
+<search:path-index xmlns:xhtml="http://www.w3.org/1999/xhtml">/xhtml:html/xhtml:head/xhtml:meta[@name = "TRCK"]/@content</search:path-index>
+<search:facet-option>limit=15</search:facet-option>
+<search:facet-option>frequency-order</search:facet-option>
+<search:facet-option>descending</search:facet-option>
+</search:range>
+</search:constraint>
+
+
+
+
+
+
+  <search:return-metrics>true</search:return-metrics>
+
+  <search:return-qtext>true</search:return-qtext>
+  <search:return-query>false</search:return-query>
+  <search:return-results>true</search:return-results>
+  <search:return-similar>false</search:return-similar>
+  <search:sort-order direction="descending">
+    <search:score/>
+    <search:annotation>Relevancy (Desc)</search:annotation>
+
+  </search:sort-order>
+  <search:sort-order direction="ascending" type="xs:string" collation="http://marklogic.com/collation/">
+    <search:element name="company" ns=""/>
+  </search:sort-order>
+  <search:sort-order direction="descending" type="xs:string" collation="http://marklogic.com/collation/">
+    <search:element name="company" ns=""/>
+  </search:sort-order>
+  <search:sort-order direction="ascending" type="xs:double">
+    <search:element name="value" ns=""/>
+  </search:sort-order>
+  <search:sort-order direction="descending" type="xs:double">
+    <search:element name="value" ns=""/>
+  </search:sort-order>
+
+
+
+
+</search:options>

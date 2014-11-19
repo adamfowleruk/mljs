@@ -7,6 +7,7 @@
 RESTHOST=localhost
 # You specify the content database by choosing the REST server instance pointint to that database
 RESTPORT=8009
+XCCPORT=8010
 
 
 
@@ -31,3 +32,6 @@ ALERTPORT=5002
 APPPATH=./src
 # default fallback path
 DEFAULTPATH=/workplace.html5
+
+MLCP=/Users/adamfowler/Documents/marklogic/software/mlcp-Hadoop2-1.2-1/bin/mlcp.sh
+

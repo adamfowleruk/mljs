@@ -128,6 +128,7 @@ com.marklogic.widgets.openlayers.getConfigurationDefinition = function() {
     titlepattern: {type: "string",default: null,title: "Title Data Pattern", description: "Pattern to create Title from"},
     summarypattern: {type: "string",default: null,title: "Summary Data Pattern", description: "Pattern to create Summary from"},
     iconpattern: {type: "string",default: null,title: "Icon Data Pattern", description: "Pattern to create Icon URL from"},
+    viewlinkpattern: {type: "string",default: null,title: "View Link Pattern", description: "Pattern for URL to follow when clicking on a title"},
     iconwidth: {type: "positiveInteger", default: 21, title: "Icon Width", description: "Marker icon width"},
     iconheight: {type: "positiveInteger", default: 25, title: "Icon Height", description: "Marker icon height"},
     iconoffsetx: {type: "double", default: 10.5, title: "Icon Offset X", description: "Marker icon offset x - negative pixels means move left though point (defaults all to right)"},
@@ -1117,9 +1118,11 @@ com.marklogic.widgets.openlayers.prototype.updateData = function(datacontext) {
   var iconUrlProcessor = new PartProcessor(this._config.iconpattern);
   var titleProcessor = new PartProcessor(this._config.titlepattern);
   var summaryProcessor = new PartProcessor(this._config.summarypattern);
+  var viewProcessor = new PartProcessor(this._config.viewlinkpattern);
 
   mljs.defaultconnection.logger.debug("openlayers.updateData: titlepattern: " + this._config.titlepattern);
   mljs.defaultconnection.logger.debug("openlayers.updateData: summarypattern: " + this._config.summarypattern);
+  mljs.defaultconnection.logger.debug("openlayers.updateData: summarypattern: " + this._config.viewlinkpattern);
 
 
   var seriesNames = datacontext.getSeriesNames();
@@ -1176,8 +1179,10 @@ com.marklogic.widgets.openlayers.prototype.updateData = function(datacontext) {
         mljs.defaultconnection.logger.debug("openlayers.updateData: row icon url: " + iconurl);
         var rowicon = new OpenLayers.Icon(iconurl, size, offset);
         var title = titleProcessor.toString(row.fields);
+        var link = viewProcessor.toString(row.fields);
         var summary = summaryProcessor.toString(row.fields);
 
+        //var linktitle = "<a href='" + viewlink + "'>" + title + "</a>";
 
 
         // create marker and display with popup
@@ -1188,7 +1193,7 @@ com.marklogic.widgets.openlayers.prototype.updateData = function(datacontext) {
         seriesLayer.addMarker(m);
 
 
-        var addEvents = function(m,therow,thelonlat,thetitle,thesummary) {
+        var addEvents = function(m,therow,thelonlat,thetitle,thesummary,thelink) {
           mljs.defaultconnection.logger.debug("openlayers.updateData: addEvents called");
           var uriFields = datacontext.getUriFieldData(therow);
           var uri = null;
@@ -1229,12 +1234,12 @@ com.marklogic.widgets.openlayers.prototype.updateData = function(datacontext) {
             } else {
               self._selectedUri = uri;
               self._resultSelectionPublisher.publish({mode: "replace", uri: uri});
-              self._showPopup(uri,thelonlat,thetitle,thesummary);
+              self._showPopup(uri,thelonlat,thetitle,thesummary,thelink);
             }
           });
         };
 
-        addEvents(m,row,lonlat,title,summary);
+        addEvents(m,row,lonlat,title,summary,link);
       }
 
       // for any fields that are geospatial lineStrings, plot a line
@@ -1336,15 +1341,15 @@ com.marklogic.widgets.openlayers.prototype._hidePopup = function() {
   }
 };
 
-com.marklogic.widgets.openlayers.prototype._showPopup = function(uri,lonlat,title,summary) {
+com.marklogic.widgets.openlayers.prototype._showPopup = function(uri,lonlat,title,summary,link) {
   this._hidePopup();
-  var str = "<h4>";
+  var str = "<a href='" + link + "'<h4>";
   if (undefined != title && "" != title) {
     str += title;
   } else {
     str += uri;
   }
-  str += "</h4><p>";
+  str += "</h4></a><p>";
   if (undefined != summary && "" != summary) {
     str += summary;
   } else {

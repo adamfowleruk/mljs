@@ -192,13 +192,24 @@ com.marklogic.widgets.searchhelper.jsontohtml = function(json) {
  * @param {XMLDocument} xml - The XML Document object (not string) for an XML node to display;
  */
 com.marklogic.widgets.searchhelper.xmltohtml = function(xml) {
-  return "<code>" + com.marklogic.widgets.searchhelper._innerxmltohtml(xml.firstChild, "", null) + "</code>";
+  var str = "";
+  // documents can have multiple root nodes
+  for (var n = 0,maxn = xml.childNodes.length,node;n < maxn;n++) {
+    node = xml.childNodes[n];
+
+    mljs.defaultconnection.logger.debug("xmltohtml: evaluating: " + node.nodeName);
+    str += com.marklogic.widgets.searchhelper._innerxmltohtml(node, "", null);
+  }
+  return "<code>" + str + "</code>";
 };
 
 com.marklogic.widgets.searchhelper._innerxmltohtml = function(node,indentstring,parent) {
   var s = "";
   if ("#text" == node.nodeName) {
     return node.textContent;
+  }
+  if ("#comment" == node.nodeName || "xml-stylesheet" == node.nodeName ) {
+    return "";
   }
   s += indentstring + "&lt;" + node.nodeName;
   // handle attributes too
@@ -1244,6 +1255,8 @@ com.marklogic.widgets.searchresults = function(container) {
 
   var self = this;
 
+  this._actions = {}; // name -> action class with matcher() and render() functions
+
 
   this._refresh();
 
@@ -1254,6 +1267,9 @@ com.marklogic.widgets.searchresults = function(container) {
 
   // MIXIN custom processors at this point
   var custom = com.marklogic.widgets.searchresultsext;
+  for (var act in com.marklogic.widgets.defaultactions) {
+    this._actions[act] = com.marklogic.widgets.defaultactions[act];
+  }
   if (undefined != custom) {
     for (var name in custom) {
       var cust = custom[name];
@@ -1261,6 +1277,12 @@ com.marklogic.widgets.searchresults = function(container) {
         var renderers = cust.customrenderers;
         for (var ren in renderers) {
           this.processors[ren] = renderers[ren]; // copy over in to this object - and custom in code will be added/overridden on top
+        }
+      }
+      if (undefined != cust.customactions) {
+        var ca = cust.customactions;
+        for (var act in ca) {
+          this._actions[act] = ca[act];
         }
       }
     }
@@ -1668,33 +1690,55 @@ com.marklogic.widgets.searchlayouts.default.prototype.getResultContainer = funct
 // NB could be doc or search result actions. Be aware.
 com.marklogic.widgets.defaultactions = {
   view: {
-    matcher: function(docuri,manager,settings) {
+    matcher: function(result,manager,settings) {
       return true;
     },
-    render: function(docuri,manager,settings) {
-      // return HTML
-      // Also register action (if required)
-      return com.marklogic.widgets.defaultactions.view.wrap("<img src='/images/mljs/view-small.png' />",docuri,manager,settings);
-    },
-    wrap: function(html,docuri,manager,settings) {
-      return "<a href='/v1/documents?uri=" + encodeURI(docuri) + "' target='_blank'>" + html + "</a>";
+    render: function(result,manager,settings) {
+      var actionView = null;
+      var innerView = "<button type=\"button\" onclick='window.location=\"/view.html5?uri=" + encodeURI(result.uri) + "\";' class=\"btn btn-default \"><span class='glyphicon glyphicon-search mljsResultActionBase mljsResultActionView'></span></button>";
+      return com.marklogic.widgets.defaulthtmlrenderer.wrapAction(actionView,innerView,result,manager,settings);
     }
   },
-  viewPrettyXML: {
-    matcher: function(docuri,manager,settings) {
+  open: {
+    matcher: function(result,manager,settings) {
       return true;
-    },
-    render: function(docuri,manager,settings) {
-      // return HTML
-      // Also register action (if required)
-      return com.marklogic.widgets.defaultactions.viewPrettyXML.wrap("<img src='/images/mljs/view-pretty-small.png' />",docuri,manager,settings);
-    },
-    wrap: function(html,docuri,manager,settings) {
-      return "<a href='/v1/documents?transform=xmltohtml&uri=" + encodeURI(docuri) + "' target='_blank'>" + html + "</a>";
+    }, render: function(result,manager,settings) {
+      var actionDownload = null;
+      // TODO force the below to download rather than just view
+      var innerDownload = "<button type=\"button\" onclick='window.location=\"/v1/documents?uri=" + encodeURI(result.uri) + "\";' class=\"btn btn-default \"><span class='glyphicon glyphicon-download mljsResultActionBase mljsResultActionDownload'></span></button>";
+      return com.marklogic.widgets.defaulthtmlrenderer.wrapAction(actionDownload,innerDownload,result,manager,settings);
     }
   },
-  explore:  {
-    // default MLJS Document Ontology
+  openoriginal: {
+    matcher: function(result,manager,settings) {
+      var meta = com.marklogic.widgets.defaulthtmlrenderer.getMetadata(result,"originalurl") ;
+      return (null != meta);
+    }, render: function(result,manager,settings) {
+      var meta = com.marklogic.widgets.defaulthtmlrenderer.getMetadata(result,"originalurl") ;
+      var viewOrig = "<button type=\"button\" target=\"_blank\" onclick='window.location=\"/v1/documents?uri=" + encodeURI(meta) + "\";' class=\"btn btn-default \"><span class=''>View Original</span></button>";
+      return com.marklogic.widgets.defaulthtmlrenderer.wrapAction(null,viewOrig,result,manager,settings);
+    }
+  },
+  viewPrettyXML: { // superseded by document view control supporting any XML content
+    matcher: function(result,manager,settings) {
+      return false;
+    },
+    render: function(result,manager,settings) {
+      // return HTML
+      // Also register action (if required)
+      return com.marklogic.widgets.defaultactions.viewPrettyXML.wrap("<img src='/images/mljs/view-pretty-small.png' />",result,manager,settings);
+    },
+    wrap: function(html,result,manager,settings) {
+      return "<a href='/v1/documents?transform=xmltohtml&uri=" + encodeURI(result.uri) + "' target='_blank'>" + html + "</a>";
+    }
+  },
+  explore:  { // MLJS document ontology link
+    matcher: function(result,manager,settings) {
+      return false;
+    },
+    render: function(result,manager,settings) {
+      return "";
+    }
   }
 };
 
@@ -1795,20 +1839,32 @@ com.marklogic.widgets.defaulthtmlrenderer = {
   defaultActions: function(result,manager,settings) {
     var str = "<div class='btn-toolbar' role='toolbar'>";
     str += "<div class='btn-group btn-group-sm'>";
+    /*
     var actionView = null;
-    var innerView = "<button type=\"button\" class=\"btn btn-default \"><span onclick='javascript:window.location=\"/view.html5?uri=" + encodeURI(result.uri) + "\"' class='glyphicon glyphicon-search mljsResultActionBase mljsResultActionView'></span></button>";
+    var innerView = "<button type=\"button\" onclick='window.location=\"/view.html5?uri=" + encodeURI(result.uri) + "\";' class=\"btn btn-default \"><span class='glyphicon glyphicon-search mljsResultActionBase mljsResultActionView'></span></button>";
     str += com.marklogic.widgets.defaulthtmlrenderer.wrapAction(actionView,innerView,result,manager,settings);
 
     var actionDownload = null;
     // TODO force the below to download rather than just view
-    var innerDownload = "<button type=\"button\" class=\"btn btn-default \"><span onclick='javascript:window.location=\"/v1/documents?uri=" + encodeURI(result.uri) + "\"' class='glyphicon glyphicon-download mljsResultActionBase mljsResultActionDownload'></span></button>";
+    var innerDownload = "<button type=\"button\" onclick='window.location=\"/v1/documents?uri=" + encodeURI(result.uri) + "\";' class=\"btn btn-default \"><span class='glyphicon glyphicon-download mljsResultActionBase mljsResultActionDownload'></span></button>";
     str += com.marklogic.widgets.defaulthtmlrenderer.wrapAction(actionDownload,innerDownload,result,manager,settings);
 
-    str += "</div>";
 
-    // TODO loop through configured actions
-    // TODO call matcher function for each
-    // TODO render each
+        var meta = com.marklogic.widgets.defaulthtmlrenderer.getMetadata(result,"originalurl") ;
+        if (null != meta) {
+          var viewOrig = "<button type=\"button\" target=\"_blank\" onclick='window.location=\"/v1/documents?uri=" + encodeURI(meta) + "\";' class=\"btn btn-default \"><span class=''>View Original</span></button>";
+          str += com.marklogic.widgets.defaulthtmlrenderer.wrapAction(null,viewOrig,result,manager,settings);
+        }
+        */
+    for (var act in manager._actions) {
+      // render each applicable action
+      var action = manager._actions[act];
+      if (action.matcher(result,manager,settings)) {
+        str += action.render(result,manager,settings);
+      }
+    }
+
+    str += "</div>";
 
     str += "</div>";
     return str;
@@ -1817,8 +1873,22 @@ com.marklogic.widgets.defaulthtmlrenderer = {
     if (0 == result.mimetype.indexOf("image/")) {
       // show small image
       return "<img src='/v1/documents?uri=" + encodeURI(result.uri) + "' style='width: 150px;' alt='" + encodeURI(result.uri) + "'/>"
+    } else {
+      //  also support XHTML results where their extracted originaluri property points to an image, or has image mime type
+      var matchit = function(str) {
+        return (str.endsWith(".jpg") || str.endsWith(".jpeg") || str.endsWith(".gif") ||
+                str.endsWith(".png") )
+      };
+
+        var str = com.marklogic.widgets.defaulthtmlrenderer.getMetadata(result,"originalurl") ;
+        if (null != str) {
+          if (matchit(str)) {
+
+            return "<img style='width: 150px;' src='/v1/documents?uri=" + encodeURI(str) + "' alt='" + encodeURI(str) + "' />"
+          }
+        }
+
     }
-    // TODO also support XHTML results where their extracted originaluri property points to an image, or has image mime type
     // custom pluggable linking function
     return "";
   },
@@ -1902,6 +1972,60 @@ com.marklogic.widgets.defaulthtmlrenderer = {
 
       return com.marklogic.widgets.defaulthtmlrenderer.wrapSearchResult(s,result,manager,settings);
   },
+  genericXMLTitle: function(result,manager,settings) {
+          try {
+            var xmlDoc = textToXML(result.content);
+            manager.ctx.db.logger.debug("successfully converted xml text to XML doc");
+            //manager.ctx.db.logger.debug("defaultProcessor:  - XML parse successful...");
+
+            //var resStr = "";
+            // parse each results and snippet / raw content
+            var title = result.uri;
+            manager.ctx.db.logger.debug("title initially: " + title);
+            var snippet = null;
+
+            if (null != result.content && undefined != xmlDoc.evaluate) {
+              // check for common title names - title, name, id, h1
+              var evalResult = xmlDoc.evaluate("//title[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
+              if (undefined == evalResult || "" == evalResult.stringValue) {
+                //manager.ctx.db.logger.debug("defaultProcessor: //title[1]/text() undefined");
+                evalResult = xmlDoc.evaluate("//name[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
+
+                if (undefined == evalResult || "" == evalResult.stringValue) {
+                  //manager.ctx.db.logger.debug("defaultProcessor: //name[1]/text() undefined");
+                  evalResult = xmlDoc.evaluate("//id[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
+
+                  if (undefined == evalResult || "" == evalResult.stringValue) {
+                //manager.ctx.db.logger.debug("defaultProcessor: //id[1]/text() undefined");
+                    evalResult = xmlDoc.evaluate("//h1[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
+
+                    if (undefined == evalResult || "" == evalResult.stringValue) {
+                      //manager.ctx.db.logger.debug("defaultProcessor: //h1[1]/text() undefined");
+                      //manager.ctx.db.logger.debug("defaultProcessor: trying (//text())[1]");
+                      evalResult = xmlDoc.evaluate("(//text())[1]",xmlDoc,null,XPathResult.STRING_TYPE,null);
+                      //manager.ctx.db.logger.debug("defaultProcessor: output: " + evalResult.stringValue);
+                    }
+                  }
+                }
+              }
+              if (undefined != evalResult && null != evalResult && undefined != evalResult.stringValue && "" != evalResult.stringValue) {
+                title = evalResult.stringValue;
+              }
+              if (0 == title.indexOf("This page contains the following errors")) { // XML parse hack
+                title = result.uri;
+              }
+            }
+            manager.ctx.db.logger.debug("title after eval: " + title);
+
+          return com.marklogic.widgets.defaulthtmlrenderer.wrapTitle(
+                    result.index + ". " + title,
+                  result,manager,settings);
+        } catch (err) {
+            manager.ctx.db.logger.debug("defaultProcessor: XML mode: Failed to create XML document from text: " + result.content);
+        }
+          return "";
+
+  },
   defaultSearchResultXML: function(result,manager,settings){
             manager.ctx.db.logger.debug("defaulthtmlrenderer.defaultSearchResultXML");
 
@@ -1948,6 +2072,11 @@ com.marklogic.widgets.defaulthtmlrenderer = {
                 title = result.uri;
               }
             manager.ctx.db.logger.debug("title after eval: " + title);
+
+
+
+
+
               // check for common snippet names - summary, synopsis, description, details
               evalResult = xmlDoc.evaluate("//summary[1]/text()",xmlDoc,null,XPathResult.STRING_TYPE,null);
               if (undefined == evalResult || "" == evalResult.stringValue) {
@@ -1983,6 +2112,15 @@ com.marklogic.widgets.defaulthtmlrenderer = {
               manager.ctx.db.logger.debug("setting content to full XML doc as html");
               snippet = com.marklogic.widgets.searchhelper.xmltohtml(xmlDoc); // TODO
             }
+
+/*
+            // see if we're an XHTML file pointing to an image
+            if (com.marklogic.widgets.searchresults.defaultrenderers.image.matcher(result)) {
+              manager.ctx.db.logger.debug("content is an xml file pointing to an image: " + snippet);
+              // render summary area
+              snippet = com.marklogic.widgets.searchresults.defaultrenderers.image.summary(result,manager,settings);
+            }
+            */
 
             if (null == snippet || 0 == snippet.indexOf("error on line 1 at column 1")) {
               if (null == result.content) {
@@ -2068,6 +2206,9 @@ com.marklogic.widgets.defaulthtmlrenderer = {
           manager.ctx.db.logger.debug("defaultSearchResultHTML: all: " + theHtml);
           return theHtml;
   },
+  defaultSearchResultUnknown: function(result,manager,settings) {
+    return com.marklogic.widgets.defaulthtmlrenderer.genericTitle(result.index,result.uri);
+  },
   defaultSearchResultText: function(result,manager,settings) {
 
       var resStr = com.marklogic.widgets.defaulthtmlrenderer.genericTitle(result.index,result.uri);
@@ -2128,6 +2269,9 @@ com.marklogic.widgets.defaulthtmlrenderer = {
   genericSVG: function(svg) {
     return "<div style='height: 200px;position:relative;'>" + svg + "</div>";
   },
+  genericUnknown: function() {
+    return "";
+  },
 
   // helper methods
   getMetadata: function(result,param) {
@@ -2178,6 +2322,46 @@ com.marklogic.widgets.searchresults.defaultrenderers = {
     processor: function(result,manager,settings) {
       //if (undefined != result.matches) {return com.marklogic.widgets.searchhelper.snippet(result);}
       return com.marklogic.widgets.defaulthtmlrenderer.defaultSearchResult(result,manager,settings); // should never get here
+    }
+  },
+  imagelink: {
+    matcher: function(result) {
+      var matchit = function(str) {
+        return (str.endsWith(".jpg") || str.endsWith(".jpeg") || str.endsWith(".gif") ||
+                str.endsWith(".png") )
+      };
+
+        var str = com.marklogic.widgets.defaulthtmlrenderer.getMetadata(result,"originalurl") ;
+        if (null != str) {
+          return matchit(str);
+        }
+        return false;
+      return match;
+    }, summary: function(result,manager,settings) {
+        return "";
+    }, title: function(result,manager,settings) {
+      return com.marklogic.widgets.defaulthtmlrenderer.genericXMLTitle(result,manager,settings);
+    }, thumbnail: function(result,manager,settings) {
+        var str = com.marklogic.widgets.defaulthtmlrenderer.getMetadata(result,"originalurl") ;
+
+          return "<img style='width: 150px;' src='/v1/documents?uri=" + encodeURI(str) + "' alt='" + encodeURI(str) + "' />";
+    }
+
+  },
+  image: {
+    matcher: function(result) {
+      var matchit = function(str) {
+        return (str.endsWith(".jpg") || str.endsWith(".jpeg") || str.endsWith(".gif") ||
+                str.endsWith(".png") )
+      };
+      var match = matchit(result.uri);
+
+      return match;
+    }, thumbnail: function(result,manager,settings) {
+        return "<img style='width: 150px;' src='/v1/documents?uri=" + encodeURI(result.uri) + "' alt='" + encodeURI(result.uri) + "' />";
+
+    }, summary: function() {
+      return "";
     }
   },
   svg: {
@@ -2242,7 +2426,7 @@ com.marklogic.widgets.searchresults.defaultrenderers = {
       return ("xml" == result.format);
     },
     processor: function(result,manager,settings) {
-      if (undefined != result.matches) {return com.marklogic.widgets.searchhelper.snippet(result);}
+      if (undefined != result.matches) {return com.marklogic.widgets.defaulthtmlrenderer.defaultTitle(result,manager,settings) + com.marklogic.widgets.searchhelper.snippet(result);}
       return com.marklogic.widgets.defaulthtmlrenderer.defaultSearchResultXML(result,manager,settings);
     }
   },
@@ -2254,21 +2438,42 @@ com.marklogic.widgets.searchresults.defaultrenderers = {
       if (undefined != result.matches) {return com.marklogic.widgets.searchhelper.snippet(result);}
       return com.marklogic.widgets.defaulthtmlrenderer.defaultSearchResultText(result,manager,settings);
     }
-  }/*,
-  unknown: {
+  },
+  fallback: {
+    matcher: function(result,manager,settings) {
+      return true;
+    },
+    summary: function(result,manager,settings) {
+      if (undefined != result.matches) {return com.marklogic.widgets.searchhelper.snippet(result);}
+      return com.marklogic.widgets.defaulthtmlrenderer.genericUnknown(result,manager,settings);
 
-  }*/
+    }
+  }
 };
+
+
+
+
+
+// START MANAGER PUBLIC FUNCTIONS DESIGNED FOR USE BY CUSTOM SEARCH RESULT RENDERERS
 
 /**
  * Generates a lazy loading ID. Used by custom renderers when they want to call a function after this widget renders individual result HTML renderings.
  * Usually action event handlers.
- *
+ * MANAGER FUNCTION FOR CUSTOM SEARCH RESULT RENDERER USE
+ * @return {string} elid - The unique HTML element ID to use for a custom piece of html for later referencing. E.g. see lazyLoad()
  */
 com.marklogic.widgets.searchresults.prototype.generateLazyID = function() {
   return this.lazyId++;
 };
 
+/**
+ * Provides a post result rendering function for lazy loading of a search result.
+ * MANAGER FUNCTION FOR CUSTOM SEARCH RESULT RENDERER USE
+ * @param {string} docuri - MarkLogic document URI
+ * @param {string} elid - The HTML element ID. Usually gotten from generateLazyID()
+ * @param {function} callback - The callback function. Receives two parameters when called, the docuri then the html element id
+ */
 com.marklogic.widgets.searchresults.prototype.lazyLoad = function(docuri,elid,callback) {
   this.lazyLoaders.push({docuri: docuri,elid: elid,callback: callback});
 };
@@ -2277,6 +2482,35 @@ com.marklogic.widgets.searchresults.prototype._navigateTo = function(uri) {
   var go = this.detailsLink.replace("#URI#",uri);
   window.location = go;
 };
+
+/**
+ * Returns the value of the specified extracted value from the metadata section of the search result. Helper function
+ * MANAGER FUNCTION FOR CUSTOM SEARCH RESULT RENDERER USE
+ * @param {MLJS.SearchResult} result - Single search result JSON from REST API JSON results object
+ * @param {string} extractname - The name (from constraint or element name) of the extracted metadata. Normally a constraint name, something like 'sender'. Note though for XML elements rather than constraints this is {http://namespace}elementlocalname
+ */
+com.marklogic.widgets.searchresults.prototype.getResultExtract = function(result,extractname) {
+
+            for (var metai = 0, maxi = result.metadata.length, meta;metai < maxi;metai++) {
+              meta = result.metadata[metai];
+              //console.log("  meta instance: " + metai);
+              for (var p in meta) {
+                //console.log("    found param: " + param);
+                // find our one
+                // NB may be multiple of them - TODO support more than just last found
+                if (p == extractname) {
+                  //console.log("      found latsrc constraint param");
+                  return meta[p];
+
+                }
+              }
+            }
+            return null;
+};
+
+// END MANAGER PUBLIC FUNCTIONS
+
+
 
 /**
  * Adds a result highlight listener to this widget.

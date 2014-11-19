@@ -11,8 +11,8 @@
     <title>MarkLogic Workplace</title>
 
     <!-- Bootstrap core CSS -->
-    <link href="css/bootstrap.min.css" rel="stylesheet">
-    <link href="css/bootstrap-theme.min.css" rel="stylesheet">
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/bootstrap-theme.min.css" rel="stylesheet">
 
     <!-- Custom styles for this template -->
     <link href="css/navbar.css" rel="stylesheet">
@@ -27,11 +27,14 @@
 
   <body>
 
+         <div id="navholder"></div> <!-- workplace navbar widget -->
+
+
+
+
+
+
     <div class="container">
-
-      <div id="navholder"></div> <!-- workplace navbar widget -->
-
-
       <div id="errors"></div>
 
       <!-- Main component for a primary marketing message or call to action -->
@@ -50,6 +53,8 @@ application exposing the power of MarkLogic in minutes!</p>
 
 
 
+    </div> <!-- /container -->
+    
 <div class="navbar navbar-default" role="navigation">
   <div class="container-fluid">
     <div class="navbar-header">
@@ -74,7 +79,6 @@ and its
 </div>
 
 
-    </div> <!-- /container -->
 
 
     <!-- Bootstrap core JavaScript
@@ -87,5 +91,8 @@ and its
     <script src="js/mljs/widgets.js"></script>
     <script src="js/mljs/widget-workplace.js"></script>
     <script src="js/page-index.js"></script>
+<!--
+    <script type="text/javascript" src="js/bootstrap/bootstrap-dropdown.js"></script>
+  -->
   </body>
 </html>

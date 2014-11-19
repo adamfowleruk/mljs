@@ -63,126 +63,20 @@ DH Demo - 2 days
   - DONE Workplace pages configuration exported
   - DONE Install instructions
 
-PD Demo - 5 days
- - TEST ISYS processing of any binary - add to /uploads/ in the X collection
- - Integrate OBI data sources
-  - geonames
-   - install
-   - link to enrichment script (named country/county places)
-  - GDAL events
-  - organisations list
-   - install
-   - link to enrichment script
- - Text extraction
- - Entity Extraction
-  - DEFERRED Place using UK gazetteer
-  - Contacts
- - TEST Ingestion of imagery
-  - Change collection and URI added to?
- - View of semantic data
-  - IN PROGRESS Ontology loaded from triple store for tripleconfig/sparqlbar
-   - IN PROGRESS tripleconfig 7575
-   - TEST semanticcontext 8315
-  - Keylines viewing of data
-   - image
-   - hover
-   - links
-   - follow links
-   - DEFERRED create links
- - General search of all data - Search result handlers
-  - Image handling
-   - TEST Raw image as thumbnail
-   - Extracted metadata XHTML linked to image shows thumbnail
-   - DEFERRED Minimised thumbnail with original linked to image
-  - Time created field and buckets
-  - DEFERRED Contact information
-  - TEST View action
-  - IN PROGRESS Download action
-  - TEST Action CSS
-  - Download image
-  - View image
-  - icon set for actions
-  - Explore image
-  - Explore action
-  - Semantic related data, with link to exploration page
- - EO additions
-
-PERHAPS LOSE 1-2 DAYS OFF THE ABOVE
-
-PD Demo DEFERRED - 4 days
- - Detection of imagery content and indexing
-  - Tones
-  - Location
-  - RDF generated for some of this data
-  - Thumbnail generation
- - DEFERRED Search results Thumbnail only view in grid
- - Not/Is/Maybe tagging action for images to be processed
- - Detailed imagery note taking and tagging screen - document properties
-  - Addition of 'offences' tagging
-  - List of offences for a particular person's captured data
-  - Tagging person as being present in the image using triple store OBI definition of image
-  - Link person to role in image - instigator/victim
-  - Evidence ID number
- - Graph display
-  - Visual display of all links from instigator to victims
- - Extras if time allows
-  - Add description of ingestion and owner of data, then ingest folder on system
-
-DEFER BELOW UNTIL FURTHER NOTICE
-
-OS Demo - 6 days
- - DEFERRED Widgets: HighCharts
-  - DEFERRED Update to use latest highcharts library
-  - DEFERRED Regression testing of highcharts library
- - Widgets: OpenLayers
-  - DEFERRED Upgrade map to OpenLayers version 3
-  - Pluggable renderers for openlayers datacontext items
-   - GML point
-   - GML polygon
-   - troops
-   - explosion
-   - target
-   - bomb
-   - aircraft
-   - tank / vehicle
-   - tracks of above over time
-  - Respond to alerts in addition to search and data context results
- - MLJS Web Server and Alert Server
-  - DONE mljs-webserver.js: Allow pass through of Digest/Basic auth challenges and responses
-   - DONE digest, basic, digestbasic, applicationlevel all work fine
-  - Handle ECONNREFUSED from server if it's down, and send on to client webapp
-   - BUG HEAD /v1/graphs never returns if MarkLogic not running, or on wrong port - set shorter time out
-  - Ability to add alerts in MarkLogic (REST Extension)
-   - Generic alert wrapping format - JSON
-   - REST ext: Complete alert creation rest extension
-   - Widgets: Save search as alertwidget - uses alert creation widget for popup
-   - alert sending config - uri and content or just uri
-   - location detection within alert context - option to save with radius against named constraint for alert
-  - Display of existing alerts
-   - DONE copy over existing sprites and client js useful code
-   - TEST copy over SVG rendering support
-   - DONE add support for sprite rendering plugins
-   - TEST example sprite renderings
-   - Widgets: Alert list widget
-   - Widgets: OpenLayers to show (hidden) layer for alerts in alert context
-  - mljs-webserver.js: Add file caching in RAM to speed access to static files
- - IN PROGRESS Widgets: For alerting
-  - TEST Core: Alert Context for managing connection and responding to alerts
-  - IN PROGRESS Widgets: Alerting client widget (Requires Alerting API) with popups - desktop notifications bar / window
-   - DONE basics
-   - Make scroll after certain amount of messages/height
-   - Facebook like popup from bottom of page
-  - DONE Core: Node.js Alerting middleware support - MLJS webserver
-  - TEST Pluggable UI JavaScript for different message types
-  - TEST Widgets: OpenLayers update
-   - TEST rendering of information sent as an alert layer (vector layer above map layers, sensible order)
-  - TEST Pluggable message format handling JavaScript for different document types
-   - TEST Default Alert Wrapper XML object support
- - DEFERRED offline maps / stored mapping layer
+The demo
+ - IN PROGRESS Complete as per its progress document
 
 Tidying up
- - Widgets: Search results
-  - actions and custom actions from javascript, not hardcoded. Grouped by providing module in order. Defaults first.
+ - DONE Widgets: Search results
+  - DONE actions and custom actions from javascript, not hardcoded. Grouped by providing module in order. Defaults first.
+ - Widgets: Workplace support better navigation
+  - navigation drop downs
+  - parent property for page configuration
+  - navigation widget parent aware (search with extract of parent field, 100 results) - submit options with search
+  - Digital Forensics / Case Work / Situational Awareness
+  - Test with multiple directories, but just 1 layer down
+  - More stringent URL entries on page configuration box
+ - BUG Widgets: searchfacets - deselection of facet values not working as expected
 
 Targets for 1.7 (Nov 2014) - Theme: External WebServer and Alerting
  - Docs: videos for release

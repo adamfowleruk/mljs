@@ -165,13 +165,6 @@ function parseCookies (request) {
 
         // TODO handle authentication response from REST server, and pass on to client
 
-        var data = "";
-        response.on('data', function(chunk) {
-          console.log("REST proxy data(chunk): " + chunk);
-          data += chunk;
-        });
-
-        var complete = function() {
 
           // Check for HTTP 401 Unauthorized header
           if (401 == response.statusCode) {
@@ -210,32 +203,47 @@ function parseCookies (request) {
             });
           } else {
             console.log("Got response from REST server: " + response.statusCode);
-            res.writeHead(response.statusCode, {
-              'Content-Type': response.headers["Content-Type"],
-              'Set-Cookie': 'mljsWebServerClientId=' + clientid
-            });
-            //console.log(data);
-            if (data.length > 0) {
-              console.log("writing data: " + data);
-              res.write(data);
+            console.log("  Content-Type: " +  response.headers["Content-Type"] + " Content-type: " +  response.headers["Content-type"]);
+            var headers = {'Set-Cookie': 'mljsWebServerClientId=' + clientid};
+            if (undefined != response.headers["Content-Type"]) {
+              headers["Content-Type"] = response.headers["Content-Type"];
             }
+            res.writeHead(response.statusCode, headers);
+            //console.log(data);
+            //if (data.length > 0) {
+              //console.log("writing data: " + data);
+            //  res.write(data,"binary");
+            //}
           }
-          res.end();
+          //res.end();
           console.log("End of sending rest proxy response");
+
+        var data = "";
+        response.on('data', function(chunk) {
+          //console.log("REST proxy data(chunk): " + chunk);
+          //data += chunk;
+          res.write(chunk,"binary");
+        });
+
+        var complete = function() {
+
 
         };
 
         response.on('end', function() {
           console.log("REST proxy end()");
           complete();
+          res.end();
         }); // response end callback
         response.on('close', function() {
           console.log("REST proxy close()");
           complete();
+          res.close();
         }); // response end callback
         response.on('error', function() {
           console.log("REST proxy error()");
           complete();
+          res.error();
         }); // response end callback
 
 

@@ -453,6 +453,11 @@ com.marklogic.widgets.sparqlbar.prototype.updateSuggestions = function(suggestio
   }
 };
 
+
+com.marklogic.widgets.sparqlbar.prototype.updateOntology = function(tripleconfig) {
+  this.refresh(); // TODO use this TC rather than load from semantic context
+};
+
 /**
  * Refreshes the entire widget UI - useful if you've provided your own triple configuration.
  */
@@ -830,7 +835,7 @@ com.marklogic.widgets.sparqlbar.prototype._updateProperties = function(tid) {
     if (0 == i) {
       s += " selected='selected'";
     }
-    s += ">" + propname + "</option>";
+    s += ">" + (props[i].title || propname) + "</option>";
   }
 
   document.getElementById(this.container + "-sparqlbar-term-properties-" + tid).innerHTML = s;
@@ -1829,24 +1834,29 @@ com.marklogic.widgets.entityfacts.prototype._generateSubjectHTML = function(sub,
   mljs.defaultconnection.logger.debug("Got entity name: " + entityName);
 
   // get common name from config
-  var namepredicate = scfg.getNameProperty(entityName).iri;
-  mljs.defaultconnection.logger.debug("Got name predicate: " + namepredicate);
+  var nameprop = scfg.getNameProperty(entityName);
   var namevalue = null;
-  for (var b = 0,bindings = this.facts.results.bindings, max = bindings.length, predicate, object, binding;(null == namevalue) && (b < max);b++) {
-    binding = bindings[b];
-    if (undefined != binding.subject) {
-      if (binding.subject.value == sub) {
-        predicate = binding.predicate;
-        if (undefined == predicate) {
-          predicate = {value: this.facts.predicate};
-        }
-        object = binding.object;
+  if (undefined != nameprop) {
+    var namepredicate = nameprop.iri;
+    mljs.defaultconnection.logger.debug("Got name predicate: " + namepredicate);
+    for (var b = 0,bindings = this.facts.results.bindings, max = bindings.length, predicate, object, binding;(null == namevalue) && (b < max);b++) {
+      binding = bindings[b];
+      if (undefined != binding.subject) {
+        if (binding.subject.value == sub) {
+          predicate = binding.predicate;
+          if (undefined == predicate) {
+            predicate = {value: this.facts.predicate};
+          }
+          object = binding.object;
 
-        if (predicate.value == namepredicate) {
-          namevalue = object.value;
+          if (predicate.value == namepredicate) {
+            namevalue = object.value;
+          }
         }
       }
     }
+  } else { // nameprop else
+    mljs.defaultconnection.logger.debug("WARNING: Class with no name predicate: " + entityName);
   }
   mljs.defaultconnection.logger.debug("Got name value: " + namevalue);
 

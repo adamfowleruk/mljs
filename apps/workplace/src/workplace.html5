@@ -29,9 +29,9 @@
 
   <body>
 
+      <div id="navholder"></div> <!-- workplace navbar widget -->
     <div class="container">
 
-      <div id="navholder"></div> <!-- workplace navbar widget -->
 
 
       <div id="errors"></div>
@@ -41,6 +41,7 @@
       </div>
 
 
+    </div> <!-- /container -->
 
 <div class="navbar navbar-default" role="navigation">
   <div class="container-fluid">
@@ -51,6 +52,7 @@
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
       </button>
+
 <p class="navbar-brand">
 Powered by
       <a href="http://www.marklogic.com/">MarkLogic Server</a>
@@ -66,7 +68,6 @@ and its
 </div>
 
 
-    </div> <!-- /container -->
 
 
     <!-- Bootstrap core JavaScript

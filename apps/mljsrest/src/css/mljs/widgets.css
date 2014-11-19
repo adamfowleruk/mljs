@@ -1281,9 +1281,9 @@ div.log {
 }
 .mljsResultDefaultTitle {
   width: 100%;
-  background-color: grey;
+  /*background-color: grey;
   font-size: +2;
-  font-weight: bold;
+  font-weight: bold;*/
 }
 .mljsResultDefaultMain {
   width: 100%;
