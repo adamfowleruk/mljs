@@ -2155,7 +2155,7 @@ com.marklogic.widgets.keylines.prototype._drawSubjectDetail = function(subjectIr
     var kld = self._getLink(siri,piri,oiri);
     if (null == kld) {
       // add new data item
-      kld = {id: siri + "^^^" + piri + "^^^" + oiri,type:"link",c: 'rgb(0, 0, 255)',x: 100, y: 150,t:self._shortenSubjectIri(piri),id1: siri,id2:oiri,w:2};
+      kld = {id: siri + "^^^" + piri + "^^^" + oiri,type:"link",c: 'rgb(0, 0, 255)',x: 100, y: 150,t:self._shortenSubjectIri(piri),a2:true,id1: siri,id2:oiri,w:2};
       self._kldata.push(kld);
     }
   };
