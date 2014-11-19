@@ -7378,7 +7378,22 @@ mljs.prototype.searchcontext.prototype.updateFacets = function(facetSelection) {
     var terms = [];
 
     for (var i = 0;i &lt; facetSelection.length;i++) {
-      terms[i] = qb.range(facetSelection[i].name,facetSelection[i].value);
+      // check constraint type first!
+      // find named facet's constraint
+      // determine type
+      // create relevant query
+      var opts = this.getOptions();
+      var con = opts._findConstraint(facetSelection[i].name);
+      if (undefined != con["range"]) {
+        // A. range constraint
+        terms[i] = qb.range(facetSelection[i].name,facetSelection[i].value);
+      } else if (undefined != con["collection"]) {
+        // B. collection constraint
+        terms[i] = qb.collection(facetSelection[i].value);
+      } else {
+        throw new Exception("Unknown constraint type for contributed facet: " + facetSelection[i].name + " , detail: " + JSON.stringify(con));
+      }
+      // TODO more constraint support - any others shown in facets???
     }
 
     this.contributeStructuredQuery("__facets",qb.and(terms));
@@ -7843,8 +7858,239 @@ com.marklogic.semantic.tripleconfig.prototype.loadOntologyFromSparqlResults = fu
     this._newPredicates = new Array();
     this.validTriples = new Array();
   }
-  // TODO create JSON representation of all RDFS classes, their labels, and members
-  // TODO use rdftype and include as necessary
+
+  var types = {}; // rdftype -> rdftype instance
+  var properties = {} // rdftypeiri -> {domain: applicable class, range: to value class}
+  var parentclasses = {}; // rdfsubtypeiri -> Array["parentclassiri1",...]
+  var parentproperties = {}; // rdfsubpropertyiri -> Array["parentproperty1",...]
+  var labelproperties = {} // rdfpropertyiri string -> true
+  var classes = {}; // classiri -> true
+  var classlabels = {}; // classiri -> labelprediri
+  var predicates = {}; // rdftypeiri@@@predicateiri -> predicate instance
+  var predinfo = {}; // rdfprdicateiri -> {title: ?}
+  //  create JSON representation of all RDFS classes, their labels, and members
+  if (undefined != results.head && undefined != results.head.vars && undefined != results.results) {
+    this.__d("tripleconfig.loadOntologyFromSparqlResults: Found some results");
+    // get list of entities returned in search
+    var entities = results.head.vars; // E.g. person, organisation - these are the returned variable bindings from the query
+    // s p o g for us
+
+    // process results, showing common information where appropriate
+      // title - get name eventually
+      var s,p,o,g;
+      var bindings = results.results.bindings;
+      for (var b = 0,max = bindings.length, binding;b &lt; max;b++) {
+        binding = results.results.bindings[b];
+        if (binding.p.value == "http://www.w3.org/2002/07/owl#equivalentProperty" && binding.o.value == "http://www.w3.org/2000/01/rdf-schema#label") {
+          this.__d("tripleconfig.loadOntologyFromSparqlResults: got equivalent label property: " + binding.s.value);
+          //labelproperties.push(binding.s.value);
+          labelproperties[binding.s.value] = true;
+        } else if (binding.p.value == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" && binding.o.value == "http://www.w3.org/2000/01/rdf-schema#Class") {
+          this.__d("tripleconfig.loadOntologyFromSparqlResults: found class: " + binding.s.value);
+          classes[binding.s.value] = true;
+        }
+      }
+      for (var b = 0,max = bindings.length, binding;b &lt; max;b++) {
+        binding = results.results.bindings[b];
+        if (true === labelproperties[binding.s.value] && true === classes[binding.o.value] && binding.p.value == "http://www.w3.org/2000/01/rdf-schema#domain") {
+          this.__d("tripleconfig.loadOntologyFromSparqlResults: Setting class instance label for " + binding.o.value + " to property: " + binding.s.value);
+          classlabels[binding.o.value] = binding.s.value;
+        }
+      }
+      for (var b = 0,max = bindings.length, binding;b &lt; max;b++) {
+        binding = results.results.bindings[b];
+
+        this.__d("tripleconfig.loadOntologyFromSparqlResults: BINDING: " + JSON.stringify(binding));
+        if (binding.p.value == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" && binding.o.value == "http://www.w3.org/2000/01/rdf-schema#Class") {
+          // got an RDFS class
+
+          this.__d("tripleconfig.loadOntologyFromSparqlResults: Found class: " + binding.s.value);
+          var labelPredicate = classlabels[binding.s.value];
+
+          this.__d("tripleconfig.loadOntologyFromSparqlResults:   has label: " + labelPredicate);
+
+          if (undefined == labelPredicate) {
+            labelPredicate = "http://www.w3.org/2000/01/rdf-schema#label";
+          }
+          this.__d("tripleconfig.loadOntologyFromSparqlResults:   now has label: " + labelPredicate);
+
+          types[binding.s.value] = this.rdftype(binding.s.value,labelPredicate);
+        } else if (binding.p.value == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" && binding.o.value == "http://www.w3.org/2002/07/owl#DatatypeProperty") {
+    this.__d("tripleconfig.loadOntologyFromSparqlResults: got property: " + binding.s.value);
+          properties[binding.s.value] = {}; // fill in range and domain later
+        }
+      } // binding for
+
+
+
+    // TODO use rdftype and include as necessary
+    // check for RDFS labels,to,from,name for class -> title()
+      for (var b = 0,max = bindings.length, binding;b &lt; max;b++) {
+        binding = results.results.bindings[b];
+        if (binding.p.value == "http://www.w3.org/2000/01/rdf-schema#label" /*|| labelproperties[binding.p.value] === true*/) {
+          var type = types[binding.s.value];
+          this.__d("tripleconfig.loadOntologyFromSparqlResults: property/class: " + binding.s.value + " with label property: " + binding.p.value + " has label: " + binding.o.value);
+          if (undefined != type) {
+            this.__d("tripleconfig.loadOntologyFromSparqlResults: setting TYPE title VALUE");
+            type.title(binding.o.value);
+          }
+          var pi = predinfo[binding.s.value];
+          if (undefined == pi) {
+            pi = {};
+            predinfo[binding.s.value] = pi;
+          }
+          pi.title = binding.o.value;
+        } else if ("http://www.w3.org/2000/01/rdf-schema#domain" == binding.p.value) {
+          var prop = properties[binding.s.value];
+          this.__d("tripleconfig.loadOntologyFromSparqlResults: property: " + binding.s.value + " has domain: " + binding.o.value);
+          if (undefined != prop) {
+            prop.domain = binding.o.value;
+          }
+        } else if ("http://www.w3.org/2000/01/rdf-schema#range" == binding.p.value) {
+          var prop = properties[binding.s.value];
+          this.__d("tripleconfig.loadOntologyFromSparqlResults: property: " + binding.s.value + " has range: " + binding.o.value);
+          if (undefined != prop) {
+            prop.range = binding.o.value;
+          }
+        } else if ("http://www.w3.org/2000/01/rdf-schema#subClassOf" == binding.p.value) {
+          var clsinfo = parentclasses[binding.s.value];
+          if (undefined == clsinfo) {
+            clsinfo = [];
+            parentclasses[binding.s.value] = clsinfo;
+          }
+          clsinfo.push(binding.o.value);
+        } else if ("http://www.w3.org/2000/01/rdf-schema#subPropertyOf" == binding.p.value) {
+          var propinfo = parentproperties[binding.s.value];
+          if (undefined == propinfo) {
+            propinfo = [];
+            parentproperties[binding.s.value] = propinfo;
+          }
+          propinfo.push(binding.o.value);
+        }
+      } // binding for
+
+
+    // check for predicates
+
+    // check for rdfs label,type,local,name for predicates
+      for (var b = 0,max = bindings.length, binding;b &lt; max;b++) {
+        binding = results.results.bindings[b];
+        if (undefined != properties[binding.s.value] && binding.p.value == "http://www.w3.org/2000/01/rdf-schema#label") {
+          var pred = predinfo[binding.s.value];
+          if (undefined != pred) {
+            pred.title = binding.o.value;
+          }
+    this.__d("tripleconfig.loadOntologyFromSparqlResults: got property label '" + binding.o.value + "' for '" + binding.s.value + "'");
+        }
+      }
+
+    // go through and process subclasses, starting with those whose subclasses are in top level (recursive)
+
+    var processed = [];
+    this._processClasses(processed,types,properties,parentclasses,parentproperties,predicates,predinfo);
+
+    // ontology updated method? - no, handled in context
+
+  // now add annotated rdftypes to ontology
+  for (var typename in types) {
+    this.__d("tripleconfig.loadOntologyFromSparqlResults: calling include for: " + typename);
+    var type = types[typename];
+    this.include(type);
+  }
+
+
+  } else {
+    this.__d("tripleconfig.loadOntologyFromSparqlResults: BLANK ONTOLOGY");
+  }
+};
+
+com.marklogic.semantic.tripleconfig.prototype._processClasses = function(processed,types,properties,parentclasses,parentproperties,predicates,predinfo) {
+  var done = processed.length;
+  // find types where all parent classes are in processed
+  var todo = new Array();
+  for (pc in types) {
+    this.__d("tripleconfig.loadOntologyFromSparqlResults: checking if we can process: " + pc);
+    var ok = true;
+    var parents = parentclasses[pc];
+    if (undefined != parents) {
+      this.__d("tripleconfig.loadOntologyFromSparqlResults:   parents: " + JSON.stringify(parents));
+      for (var p = 0,maxp = parents.length,par;ok && p &lt; maxp;p++) {
+        par = parents[p];
+        ok = ok && (processed.contains(par) || undefined == types[par]); // either parent is not defined in ontology, or we've already processed the parent
+      }
+    }
+    // add them to the process list
+    if (processed.contains(pc)) {
+      this.__d("tripleconfig.loadOntologyFromSparqlResults:   ALREADY DONE");
+    }
+    if (ok && !processed.contains(pc)) {
+    this.__d("tripleconfig.loadOntologyFromSparqlResults:   SUCCESS adding to processable list: " + pc);
+      todo.push(pc);
+      processed.push(pc);
+    }
+  }
+  // process these in turn
+  for (var t = 0,maxt = todo.length,to;t &lt; maxt;t++) {
+    to = todo[t];
+    this.__d("tripleconfig.loadOntologyFromSparqlResults: processing rdfs class: " + to);
+    // fetch parent classes
+    var parents = parentclasses[to];
+      // loop through all properties and see if domain is in parents array
+      for (var pr in properties) {
+        var prop = properties[pr];
+        if ((undefined != parents && parents.contains(prop.domain)) || prop.domain == to) {
+          this.__d("tripleconfig.loadOntologyFromSparqlResults:     contains property: " + pr);
+          // property applies to this class too, so apply it
+          // is it a normal predicate or a TO relationship?
+          if (undefined != prop.range && undefined != types[prop.range]) {
+            // other rdfs class
+            this.__d("tripleconfig.loadOntologyFromSparqlResults:       linked to class: " + prop.range);
+            types[to].to(prop.range,pr);
+          } else {
+            // property
+            this.__d("tripleconfig.loadOntologyFromSparqlResults:       which is an intrinsic property");
+            this._processParentPredicate(to,pr,types,parentproperties,predicates,predinfo);
+
+          } // end class or predicate if
+        }
+      }
+//    } // end parents undefined if
+
+      // check if parent has parent classes too (recursive) - NOT NEEDED - GOING DOWN TREE RECURSIVELY SO AVOIDS THIS
+      // attach parent properties to this subclass
+
+    //} // end parent for
+  }
+
+  // recursively call ourselves again if newlyprocessed > oldprocessed;
+  if (processed.length > done) { // stops infinite loops
+    this.__d("tripleconfig.loadOntologyFromSparqlResults: calling process classes again, " + processed.length + " completed so far.");
+    this._processClasses(processed,types,properties,parentclasses,parentproperties,predicates,predinfo);
+  }
+
+};
+
+com.marklogic.semantic.tripleconfig.prototype._processParentPredicate = function(to,pr,types,parentproperties,predicates,predinfo) {
+
+          // property
+          var pred = predicates[to + "@@@" + pr];
+          if (undefined == pred) {
+            pred = types[to].predicate(pr);
+          this.__d("tripleconfig._processParentPredicate: predinfo for: " + to + " , predicate: " + pr + " = " + JSON.stringify(predinfo[pr]));
+            if (undefined != predinfo[pr] && undefined != predinfo[pr].title) {
+              this.__d("tripleconfig._processParentPredicate:   setting title");
+              pred.title(predinfo[pr].title);
+            }
+            predicates[to + "@@@" + pr] = pred;
+          }
+          // if property has parent properties, apply them too, recursively (this is needed)
+          var parents = parentproperties[pr];
+          if (undefined != parents && Array.isArray(parents) && 0 != parents.length) {
+            for (var p = 0,maxp = parents.length,par;p &lt; maxp;p++) {
+              par = parents[p];
+              this._processParentPredicate(to,par,types,parentproperties,predicates,predinfo);
+            }
+          }
 };
 
 /**
@@ -8442,7 +8688,7 @@ mljs.prototype.semanticcontext = function() {
   this._includeDefaultOntology = true;
   //this._distinct = true; // defined within subjectQuery
 
-  this._tripleconfig = new com.marklogic.semantic.tripleconfig();
+  this._tripleconfig = null;
 
   this._subjectQuery = ""; // SPARQL to execute for selecting subject
   this._subjectResults = null; // SPARQL results JSON
@@ -8462,6 +8708,7 @@ mljs.prototype.semanticcontext = function() {
   this._suggestionsPublisher = new com.marklogic.events.Publisher();
   this._factsPublisher = new com.marklogic.events.Publisher(); // publish facts that can be associated to many subjects - normally for pulling back a result per subject, with many facts per 'row'
   this._errorPublisher = new com.marklogic.events.Publisher();
+  this._ontologyPublisher = new com.marklogic.events.Publisher(); // sends tripleconfig object
 };
 
 /*mljs.prototype.semanticcontext.prototype._checktc = function() {
@@ -8586,13 +8833,15 @@ mljs.prototype.semanticcontext.prototype.setConfiguration = function(config) {
 mljs.prototype.semanticcontext.prototype._loadOntology = function() {
   var self = this;
   // TODO make the below inferencing aware on V8 - so we get correct child class properties
-  var sparql = "SELECT ?s ?p ?o ?g {GRAPH ?g {?s ?p ?o . } ";
+  var sparql = "SELECT ?s ?p ?o ?g WHERE {GRAPH ?g {?s ?p ?o . } ";
   if (null != this._ontologyGraph) {
-    sparql += "FILTER(?g = " + self._ontologyGraph + ") .";
+    sparql += "FILTER(?g = &lt;" + self._ontologyGraph + "> ) .";
   }
   sparql += "}";
   this.db.sparql(sparql, function(result) {
-      self._tripleconfig.loadOntologyFromSparqlResults(result.doc,self._includeDefaultOntology);
+      var tc = self.getTripleConfiguration();
+      tc.loadOntologyFromSparqlResults(result.doc,self._includeDefaultOntology);
+      self._ontologyPublisher.publish(tc);
     }
   );
 };
@@ -8694,6 +8943,9 @@ mljs.prototype.semanticcontext.prototype.register = function(obj) {
   }
   if (undefined != obj.updateSuggestions) {
     this._suggestionsPublisher.subscribe(function(suggestions) {obj.updateSuggestions(suggestions)});
+  }
+  if (undefined != obj.updateOntology) {
+    this._ontologyPublisher.subscribe(function(tc) {obj.updateOntology(tc)});
   }
 
   // Where we listen to others' events
@@ -10894,7 +11146,7 @@ mljs.prototype.stringhelper = stringhelper;
 					
 		<span class="jsdoc-message">
 		Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.3-dev</a>
-		on Thu Nov 13 2014 09:13:17 GMT-0000 (GMT) using the <a href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
+		on Wed Nov 19 2014 10:32:25 GMT-0000 (GMT) using the <a href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
 		</span>
 				</footer>
 			</div>
