@@ -82,6 +82,8 @@ and its
 
     <script type="text/javascript" src="/js/highcharts.js"></script>
 
+    <script type="text/javascript" src="/js/mljs/widget-security.js"></script>
+    
     <script type="text/javascript" src="/js/mljs/widget-search.js"></script>
     <script type="text/javascript" src="/js/mljs/widget-address.js"></script>
     <script type="text/javascript" src="/js/mljs/widget-collections.js"></script>

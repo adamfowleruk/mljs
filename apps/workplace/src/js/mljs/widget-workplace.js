@@ -1272,6 +1272,9 @@ com.marklogic.widgets.workplacecontext = function() {
     {targetClass: "DocumentContext", methodName: "getContent", parameters: [
       {title: "docuri", type: "string", default:"", description: "The MarkLogic document URI to fetch content for."}
     ]},
+    {targetClass: "DocumentContext", methodName: "getFilteredContentFor", parameters: [
+      {title: "docuri", type: "string", default:"", description: "The MarkLogic document URI to fetch related content for."}
+    ]},
     {targetClass: "DocumentContext", methodName: "getProperties", parameters: [
       {title: "docuri", type: "string", default:"", description: "The MarkLogic document URI to fetch properties for."}
     ]},
@@ -4417,7 +4420,7 @@ com.marklogic.widgets.workplacenavbar.prototype._refresh = function() {
 
   // TODO remove HACK for alert button
   s += "<li><a href='#'><span class='glyphicon glyphicon-bell'></span></li>";
-  
+
   if (null != this._config.homeUrl && "" != this._config.homeUrl.trim()) {
     s += "<li";
     if (-1 != this._config.homeUrl.indexOf(window.location.pathname)) {
@@ -4476,9 +4479,9 @@ com.marklogic.widgets.workplacenavbar.prototype._refresh = function() {
       s += " class='active'";
     }
     s += "><a id=" + this.container + "-workplacenavbar-configureapp' href='" + this._config.appConfigureUrl +
-         "'>" + this._config.appConfigureLinkText + "</a></li>";
+         "' title='" + this._config.appConfigureLinkText + "'><span class='glyphicon glyphicon-list-alt'></span></a></li>";
   }
-  s += "<li><a href='#' id='" + this.container + "-workplacenavbar-configurepage'>" + this._config.pageConfigureLinkText + "</a></li>";
+  s += "<li><a href='#' id='" + this.container + "-workplacenavbar-configurepage' title='" + this._config.pageConfigureLinkText + "'><span class='glyphicon glyphicon-cog'></span></a></li>";
   if (true === this._config.showLogoutLink) {
     s += "<li";
 

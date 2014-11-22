@@ -655,9 +655,11 @@ com.marklogic.widgets.create.prototype._onSave = function() {
 
     var reader = new FileReader();
     var self = this;
+    console.log("got file reader instance");
 
     // If we use onloadend, we need to check the readyState.
     reader.onloadend = function(evt) {
+      console.log("in reader.onloadend with status: " + evt.target.readyState);
       if (evt.target.readyState == FileReader.DONE) { // DONE == 2
         //document.getElementById('byte_content').textContent = evt.target.result;
 
@@ -673,6 +675,7 @@ com.marklogic.widgets.create.prototype._onSave = function() {
               writer[i] = evt.target.result.charCodeAt(i);
           }*/
 
+          // TODO use doc context instead
           mljs.defaultconnection.save(file,self._uriprefix + file.name,props,function(result) {
             if (result.inError) {
               console.log("ERROR: " + result.doc);
@@ -696,10 +699,14 @@ com.marklogic.widgets.create.prototype._onSave = function() {
       blob = file.webkitSlice(start, stop + 1);
     } else if (file.mozSlice) {
       blob = file.mozSlice(start, stop + 1);
+    } else {
+      blob = file; // test
     }
     //reader.readAsBinaryString(blob);
+    console.log("reading as array: file: " + blob);
     reader.readAsArrayBuffer(blob);
     //reader.readAsText(file);
+    console.log("after read as array");
 
     } else {
       // TODO
@@ -712,4 +719,193 @@ com.marklogic.widgets.create.prototype._onSave = function() {
     // TODO
     console.log("unknown mode: " + this._mode);
   }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+com.marklogic.widgets.workplaceadminext = window.com.marklogic.widgets.workplaceadminext || {};
+com.marklogic.widgets.workplaceadminext.widgets = window.com.marklogic.widgets.workplaceadminext.widgets || {};
+com.marklogic.widgets.workplaceadminext.widgets["widget-docbuilder.js"] = [
+  {title: "Upload", classname: "com.marklogic.widgets.upload", description: "Document upload widget."}
+];
+
+
+
+
+com.marklogic.widgets.upload = function(container) {
+  this.container = container;
+
+  this._config = {
+    forwardUrl: "/view.html5?uri=#URI#",
+    readClasses: [],
+    writeClasses: [],
+    uriPrefix: "/uploads/",
+    collections: [{collection: "uploads"}]
+  };
+
+  this._documentContext = null;
+  this._createWidget = null;
+
+  this._init();
+};
+
+com.marklogic.widgets.upload.getConfigurationDefinition = function() {
+  return {
+    uriPrefix: {type: "string", default: "/uploads/", title: "URI Prefix", description: "The URI prefix to give to the uploaded file."},
+    collections: {type: "multiple", minimum: 0, default: [{collection: "uploads"}], title: "Collections", description: "The collections to add uploaded documents to.",
+          childDefinitions: {
+            //title,searchcontext,latsrc,lonsrc,titlesrc,summarysrc,icon_source_opt,heatmap_constraint
+            collection: {type: "string", default: "", title: "Collection", description: "Collection name."}
+          }
+    },
+    readClasses: {type: "multiple", minimum: 0, default: [], title: "Read Roles", description: "Roles permitted to read this document.",
+          childDefinitions: {
+            //title,searchcontext,latsrc,lonsrc,titlesrc,summarysrc,icon_source_opt,heatmap_constraint
+            role: {type: "string", default: "", title: "Role", description: "The MarkLogic Server role name."}
+          }
+    },
+    writeClasses: {type: "multiple", minimum: 0, default: [], title: "Update Roles", description: "Roles permitted to update this document.",
+          childDefinitions: {
+            //title,searchcontext,latsrc,lonsrc,titlesrc,summarysrc,icon_source_opt,heatmap_constraint
+            role: {type: "string", default: "", title: "Role", description: "The MarkLogic Server role name."}
+          }
+    },
+    forwardUrl: {type: "string", default: "/view.html5?uri=#URI#", title: "Forward URL", description: "Where to send the user on successful upload."}
+  };
+};
+
+
+com.marklogic.widgets.upload.prototype.setConfiguration = function(config) {
+  for (var prop in config) {
+    this._config[prop] = config[prop];
+  }
+
+  this._refresh();
+
+  if (null != this._createWidget && null != this._documentContext) {
+    this._documentContext.register(this._createWidget);
+  }
+};
+
+com.marklogic.widgets.upload.prototype.setDocumentContext = function(dc) {
+  this._documentContext = dc;
+  if (null != this._createWidget) {
+    this._documentContext.register(this._createWidget);
+  }
+};
+
+com.marklogic.widgets.upload.prototype._init = function() {
+  var s = "<div class='mljswidget upload' id='" + this.container + "-outer'><div id='" + this.container + "-notifications'></div><div id='" + this.container + "-inner'></div></div>";
+  document.getElementById(this.container).innerHTML = s;
+
+  this._refresh();
+};
+
+com.marklogic.widgets.upload.prototype._refresh = function() {
+  if (window.File && window.FileReader && window.FileList && window.Blob) {
+  // Great success! All the File APIs are supported.
+} else {
+  document.getElementById(this.container + "-notifications").innerHTML = '<p>The File APIs are not fully supported in this browser.</p>';
+}
+
+  /*
+  var writeclasses = new Array();
+  writeclasses.push("unclassified");
+  writeclasses.push("protect");
+  writeclasses.push("restricted");
+  writeclasses.push("confidential");
+  writeclasses.push("secret");
+  writeclasses.push("topsecret");
+  */
+
+  var wgt = new com.marklogic.widgets.create(this.container + "-inner");
+  var writeClasses = new Array();
+  var readClasses = new Array();
+  for (var r = 0,maxr = this._config.readClasses.length,cl;r < maxr;r++) {
+    cl = this._config.readClasses[r];
+    readClasses.push(cl.role);
+  }
+  for (var r = 0,maxr = this._config.writeClasses.length,cl;r < maxr;r++) {
+    cl = this._config.writeClasses[r];
+    writeClasses.push(cl.role);
+  }
+  this._createWidget = wgt;
+  wgt.uriprefix(this._config.uriPrefix)
+     .collectionUser()
+     .horizontal()
+     .dnd()
+     .permissions(false,readClasses,"Reader Level","read")
+     .permissions(false,writeClasses,"Modifier Level","update")
+     .endRow()
+     .bar()
+     .save("Upload")
+     .endBar()
+     .endRow();
+
+  for (var c = 0,maxc = this._config.collections.length,col;c < maxc;c++) {
+    col = this._config.collections[c];
+      /* Adds to a collection of the current user. E.g. user-afowler */
+    wgt.collection(col.collection);
+     // TODO defaultPermission(s) too that may be overrided by the UI (top secret read, for example)
+     /*
+     .forcePermission({role: "can-read", permission: "read"})
+     .forcePermission({role: "can-read", permission: "update"})
+     .forcePermission({role: "confidential-write", permission: "read"}) */
+
+  }
+  var self = this;
+  wgt.addCompleteListener(function(evt) {
+    document.getElementById(self.container + "-notifications").innerHTML = "<p>Created doc with uri: " + evt + "</p>";
+    // now wait for our xhtml version to exist - 10 seconds maximum
+    // persist options first
+  /*
+    var ob = db.options();
+    ob.elemattrRangeConstraint("basedoc","meta","http://www.w3.org/1999/xhtml","content","xs:string");
+    var options = ob.toJson();
+
+    var optionsName = "options-1234"; // TODO replace with valid name based on doc uri (must be unique)
+
+    var qb = db.query();
+    qb.query(qb.range("basedoc",evt));
+    var query = qb.toJson();
+    */
+    /*
+    //db.saveSearchOptions(optionsName,options,function(result) {
+      var found = false;
+      var startTime = new Date().getTime();
+      var timeout = 10000; // 10 secs in millis
+      var endTime = startTime + timeout;
+      var func = function() {
+        setTimeout(function() {
+          // perform search
+          console.log("searching for new rendering for: " + evt);
+          db.structuredSearch(query,optionsName,function(result) {
+            console.log("got doc response: " + JSON.stringify(result.doc));
+            // TODO extract total, if not 0, get first full result (XHTML) and display
+          });
+          if (!found && (endTime > (new Date().getTime()))) {
+            func();
+          } else {
+            // do nothing - we just wont do another timeout
+          }
+        },1000);
+      };
+      func();
+    //});
+    */
+    if (null != self._config.forwardUrl && "" != self._config.forwardUrl.trim()) {
+      var loc = self._config.forwardUrl.replace("#URI#",encodeURI(evt));
+      window.location = loc; // send user to document markings editor
+    }
+
+  });
 };

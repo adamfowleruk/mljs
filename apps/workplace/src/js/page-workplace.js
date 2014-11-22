@@ -22,6 +22,8 @@ window.onload = function() {
   }
 
   try {
+    var sc = db.createSessionContext(); // creates single global instance
+    
     // Load workplace nav bar
     var wpcontext = new com.marklogic.widgets.workplacecontext();
     var nav = new com.marklogic.widgets.workplacenavbar("navholder");

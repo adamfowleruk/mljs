@@ -1275,7 +1275,7 @@ div.log {
 }
 .mljsResultDefaultTopLeft {
   /*border: 1px solid yellow;*/
-  width: 80%;
+  width: 78%;
   display: inline;
   float: left;
 }
@@ -1305,11 +1305,11 @@ div.log {
   /*height: 30px;*/
 }
 .mljsResultDefaultTopRight {
-  width: 100%;
+  /*width: 100%;*/
   /*border: 1px solid orange;*/
   display: inline;
   float: left;
-  width: 20%;
+  width: 22%;
 }
 .mljsResultDefaultThumbnail {
   /*border: 1px solid red;*/

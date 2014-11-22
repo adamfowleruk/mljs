@@ -3474,6 +3474,19 @@ mljs.prototype.createDataContext = function() {
 
 
 
+/**
+ * Factory pattern. Creates a session context object referring back to the current database connection. Useful to link to the correct logger, and db settings.
+ * @deprecated Instantiate externally (See Workplace Context) then call linkContext(contextInstance).
+ */
+mljs.prototype.createSessionContext = function() {
+  var obj = new this.sessioncontext();
+  obj.db = this;
+  return obj;
+};
+
+
+
+
 
 
 
@@ -5426,6 +5439,19 @@ mljs.prototype.query.prototype.element = function(constraint_name,query_opt) {
     // object
     return { "element-constraint-query": {"constraint-name": constraint_name,"and-query": [query_opt]}};
   }
+};
+
+
+/**
+ * Creates an element value query.
+ * http://docs.marklogic.com/guide/search-dev/structured-query#id_39758
+ *
+ * @param {string} elementname - The name of the element
+ * @param {string} elementns - The namespace of the element
+ * @param {string} value - The value of the element
+ */
+mljs.prototype.query.prototype.elementValue = function(elementname,elementns,value) {
+  return { "value-query": {"element": {"name": elementname, "ns": elementns}, "text": value}};
 };
 
 
@@ -9227,9 +9253,33 @@ mljs.prototype.documentcontext.prototype.getContent = function(docuri) {
     if (result.inError) {
       self._errorPublisher.publish(result.detail);
     } else {
-      this._constructed = result.doc;
-      this._uri = docuri;
+      self._constructed = result.doc;
+      self._uri = docuri;
       self._contentPublisher.publish(result);
+    }
+  });
+};
+
+/**
+ * Finds a document with an originalurl element the same as the given URI, and then call getContent for that document.
+ *
+ * @param {string} docuri - The document uri
+ */
+mljs.prototype.documentcontext.prototype.getFilteredContentFor = function(docuri) {
+  // do a search for a doc with originalurl=docuri
+  // now do getContent for that search result's uri
+  var qb = this.db.createQuery();
+  qb.query(qb.elementValue("originalurl","",docuri));
+  var q = qb.toJson();
+  var self = this;
+  this.db.structuredQuery(q,function(result) {
+    if (result.inError) {
+      self._errorPublisher.publish(result.detail);
+    } else {
+      self.__d("result: " + JSON.stringify(result.doc));
+      if (null != result.doc.results && result.doc.results.length > 0) {
+        self.getContent(result.doc.results[0].uri);
+      }
     }
   });
 };
@@ -10630,8 +10680,39 @@ mljs.prototype.datacontext.prototype.getFields = function() {
 
 
 
+mljs.prototype.sessioncontext = function() {
+  mljs.prototype.sessioncontext.instance = this; // static instance for all callers in current webapp context
+  this._sessionPublisher = new com.marklogic.events.Publisher();
+};
 
+mljs.prototype.sessioncontext.prototype.register = function(wgt) {
+  if (undefined != wgt.setSessionContext) {
+    wgt.setSessionContext(this);
+  }
+  if (undefined != wgt.updateSession) {
+    this._sessionPublisher.subscribe(function(session) {wgt.updateSession(session);});
+  }
+};
 
+mljs.prototype.sessioncontext.prototype.login = function(user,pass) {
+  var params = {path: "/v1/resources/auth" /*?rs:username=" + user + "&rs:pass=" + pass*/, method: "POST"};
+  var self = this;
+  this.db.do(params,{user: user, password: pass},function(result) {
+    if (result.inError) {
+      self._sessionPublisher.publish({authenticated: false});
+    } else {
+      self._sessionPublisher.publish(result.doc);
+    }
+  });
+};
+
+mljs.prototype.sessioncontext.prototype.status = function() {
+  // TODO status
+};
+
+mljs.prototype.sessioncontext.prototype.logout = function() {
+  // TODO logout
+};
 
 
 
@@ -10833,6 +10914,7 @@ com.marklogic.util.linkedlist.prototype.getOrderedItems = function() {
   asLogSink.call(com.marklogic.semantic.tripleconfig.prototype);
   asLogSink.call(mljs.prototype.semanticcontext.prototype);
   asLogSink.call(mljs.prototype.datacontext.prototype);
+  asLogSink.call(mljs.prototype.sessioncontext.prototype);
 })();
 
 

@@ -54,7 +54,7 @@ application exposing the power of MarkLogic in minutes!</p>
 
 
     </div> <!-- /container -->
-    
+
 <div class="navbar navbar-default" role="navigation">
   <div class="container-fluid">
     <div class="navbar-header">
@@ -90,6 +90,7 @@ and its
     <script src="js/mljs/mljs-xhr2.js"></script>
     <script src="js/mljs/widgets.js"></script>
     <script src="js/mljs/widget-workplace.js"></script>
+    <script type="text/javascript" src="/js/mljs/widget-security.js"></script>
     <script src="js/page-index.js"></script>
 <!--
     <script type="text/javascript" src="js/bootstrap/bootstrap-dropdown.js"></script>

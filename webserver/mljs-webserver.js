@@ -270,7 +270,121 @@ function parseCookies (request) {
         creq.end();
       });
 
-    } else /* if (request.url.indexOf("/public/") == 0) */ {
+
+
+
+
+
+      /*
+
+    } else if (0 == request.url.indexOf("/user/status")) {
+
+
+
+
+
+
+
+
+  app.get('/user/status', function(req, res) {
+    if (req.session.user === undefined) {
+      res.send('{"authenticated": false}');
+    }
+    else {
+      res.send(req.session.user);
+    }
+  });
+
+
+
+
+
+
+
+} else if (0 == request.url.indexOf("/user/login")) {
+
+    // Attempt to read the user's profile, then check the response code.
+    // 404 - valid credentials, but no profile yet
+    // 401 - bad credentials
+    var body = JSON.stringify({ // TODO NEVER EVER FORCE CLIENT TO USER URL PARAMETERS FOR PASSWORD AS THEY CAN BE REVEALED FROM URL HASH
+      user: req.param('username'),
+      password: req.param('password')
+    });
+
+    var headers = req.headers;
+    headers['content-type'] = 'application/json';
+    headers['content-length'] = Buffer.byteLength(body, 'utf8');
+    var o = {
+        host: restServer,
+        port: restPort,
+      path: '/v1/resources/auth',
+      headers: headers,
+      method: 'POST'
+    };
+    var login = http.request(o, function(response) {
+      if (response.statusCode === 401) {
+        // res.redirect('/login/');
+        res.status(401).send(); // TODO send failure message
+      }
+      else {
+        if (response.statusCode === 200) {
+          // authentication successful, remember the user
+          response.on('data', function(chunk) {
+            var user = JSON.parse(chunk);
+            req.session.user = user; // TODO use the user param of JSON response, not the whole thing as a string
+            res.status(200).send(user); // TODO this code looks buggy if the chunk size is small. Verify and fix as necessary
+          });
+        }
+      }
+    });
+
+    login.on('error', function(e) {
+      console.log(e);
+      console.log('login failed: ' + e.statusCode);
+    });
+
+    //login.end(body);
+
+      request.on('data', function(chunk) {
+        console.log('HTTP REST PROXY: GOT REQUEST DATA: Got %d bytes of data: ' + chunk, chunk.length);
+        login.write(chunk);
+      });
+
+      //creq.write("\n");
+      request.on("end", function() {
+        console.log("Calling REST client request.end()");
+        login.end();
+      });
+
+
+
+
+
+
+
+
+
+} else if (0 == request.url.indexOf("/user/logout")) {
+    delete req.session.user;
+    // res.clearCookie('user');
+    //res.send();
+
+          res.writeHead(200, {
+            'Content-Type': mime
+            'Set-Cookie': 'mljsWebServerClientId=0'
+          });
+          //console.log(data);
+          res.write();
+          res.end();
+
+
+
+
+*/
+
+
+
+  } else /* if (request.url.indexOf("/public/") == 0) */ {
 
 
       console.log("Web application static files requested");

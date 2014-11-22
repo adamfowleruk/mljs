@@ -1870,9 +1870,16 @@ com.marklogic.widgets.defaulthtmlrenderer = {
     return str;
   },
   defaultThumbnail: function(result,manager,settings) {
+    var flagged = manager.getResultExtract(result,"flagged");
+    var s = "<div class='";
+    //console.log("flagged: " + flagged + " type: " + typeof(flagged));
+    if (true == flagged) {
+      //s += "bg-danger";
+    }
+    s += "'>";
     if (0 == result.mimetype.indexOf("image/")) {
       // show small image
-      return "<img src='/v1/documents?uri=" + encodeURI(result.uri) + "' style='width: 150px;' alt='" + encodeURI(result.uri) + "'/>"
+      s += "<img src='/v1/documents?uri=" + encodeURI(result.uri) + "' style='width: 150px;' alt='" + encodeURI(result.uri) + "'/>"
     } else {
       //  also support XHTML results where their extracted originaluri property points to an image, or has image mime type
       var matchit = function(str) {
@@ -1884,13 +1891,19 @@ com.marklogic.widgets.defaulthtmlrenderer = {
         if (null != str) {
           if (matchit(str)) {
 
-            return "<img style='width: 150px;' src='/v1/documents?uri=" + encodeURI(str) + "' alt='" + encodeURI(str) + "' />"
+            s += "<img style='width: 150px;";
+
+            if (true == flagged) {
+              s += "border: 5px solid #d9534f;";
+            }
+            s += "' src='/v1/documents?uri=" + encodeURI(str) + "' alt='" + encodeURI(str) + "' />"
           }
         }
 
     }
+    s += "</div>";
     // custom pluggable linking function
-    return "";
+    return s;
   },
   defaultSimilar: function(result,manager,settings) {
     // from returnSimilar option
@@ -2264,7 +2277,12 @@ com.marklogic.widgets.defaulthtmlrenderer = {
 
   // Generics handle reusable inner content - they have a variable, specific API
   genericTitle: function(index,docuri) {
-    return "<div class='h4'>" + index + ". " + docuri + "</div>";
+    var dt = docuri;
+    var pos = dt.lastIndexOf("/");
+    if (pos > 0) { // not -1 or 0
+      dt = dt.substring(pos + 1);
+    }
+    return "<div class='h4'>" + index + ". <span title='" + encodeURI(docuri) + "'>" + dt + "</span></div>";
   },
   genericSVG: function(svg) {
     return "<div style='height: 200px;position:relative;'>" + svg + "</div>";
