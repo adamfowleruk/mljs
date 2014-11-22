@@ -1,0 +1,7 @@
+{
+  "name": "mljsworkplace",
+  "version": "1.6.1",
+  "dependencies": {
+    "mljs": "^1.6.1"
+  }
+}
