@@ -1,0 +1,2 @@
+
+node util/mljsadmin.js %*
