@@ -10,15 +10,22 @@ rm -rf $D
 mkdir $D
 mkdir $D/src
 mkdir $D/rest-api
+mkdir $D/config
+mkdir $D/util
 mkdir $D/example-workplaces
 
 cp ./webserver/* $D/
 echo "Copying src"
 cp -R ./apps/$1/src/* $D/src/
 echo "Copying rest-api"
+cp -R ./webserver/rest-api/* $D/rest-api/
 cp -R ./apps/$1/rest-api/* $D/rest-api/
 echo "Copying workplaces"
 cp -R ./apps/$1/example-workplaces/* $D/example-workplaces/
+echo "Copying configuration"
+cp -R ./webserver/config/* $D/config/
+echo "Copying util apps"
+cp -R ./webserver/util/* $D/util/
 echo "Copying package.json"
 cp ./apps/$1/package.json $D/
 echo "Copying bower.json"
@@ -29,6 +36,9 @@ BASE=../generator-mljs$1
 echo "gen base: $BASE"
 rm -rf $BASE/app/templates/files/*
 cp -R $D/* $BASE/app/templates/files/
+rm $BASE/app/templates/files/config/env.js
+rm $BASE/app/templates/files/config/webserver-settings.sh
+# Above two files are overwritten by Yeoman. Doing the above avoids conflict warnings
 
 cd dist
 tar czf ./app-$1.tar.gz app-$1

@@ -1053,20 +1053,31 @@ mljs.prototype.test = mljs.prototype.exists;
 /**
  * Creates the database and rest server if it does not already exist
  *
+ * @param {mljs.dboptions} options_opt - Optional separate database options. Defaults to normal connection options.
+ * Useful to override if creating an app server for writing content to the modules database.
  * @param {function} callback_opt - The optional callback to invoke after the method completes
  */
-mljs.prototype.create = function(callback_opt) {
+mljs.prototype.create = function(options_opt,callback_opt) {
   /*
   curl -v --anyauth --user admin:admin -X POST \
       -d'{"rest-api":{"name":"mldbtest-rest-9090","database": "mldbtest","modules-database": "mldbtest-modules","port": "9090"}}' \
       -H "Content-type: application/json" \
       http://localhost:8002/v1/rest-apis
   */
+  if ("function" === typeof(options_opt)) {
+    callback_opt = options_opt;
+    options_opt = null;
+  }
+  var opts = options_opt || this.dboptions;
 
-  var json = {"rest-api": {"name": this.dboptions.database, "database": this.dboptions.database, "modules-database":this.dboptions.database + "-modules", port: this.dboptions.port}};
+  var mdb = opts.database;
+  if (-1 == mdb.indexOf("-modules")) {
+    mdb += "-modules";
+  }
+  var json = {"rest-api": {"name": opts.appname || opts.database, "database": opts.database, "modules-database": opts.modulesdatabase || mdb, port: opts.port}};
   var options = {
-    host: this.dboptions.host,
-    port: this.dboptions.adminport,
+    host: opts.host,
+    port: opts.adminport,
     path: '/v1/rest-apis',
     method: 'POST',
     headers: {"Content-Type": "application/json", "Content-Length": JSON.stringify(json).length} // TODO refactor this in to __doreq
@@ -1080,32 +1091,37 @@ mljs.prototype.create = function(callback_opt) {
  *
  * @param {function} callback_opt - The optional callback to invoke after the method completes
  */
-mljs.prototype.destroy = function(callback_opt) {
+mljs.prototype.destroy = function(options_opt,callback_opt) {
   var self = this;
+  if ("function" === typeof(options_opt)) {
+    callback_opt = options_opt;
+    options_opt = null;
+  }
   var dodestroy = function() {
     // don't assume the dbname is the same as the rest api name - look it up
+    var opts = options_opt || self.dboptions;
 
     var getoptions = {
-      host: self.dboptions.host,
-      port: self.dboptions.adminport,
-      path: "/v1/rest-apis?database=" + encodeURI(self.dboptions.database) + "&format=json",
+      host: opts.host,
+      port: opts.adminport,
+      path: "/v1/rest-apis?database=" + encodeURI(opts.database) + "&format=json",
       method: "GET"
     };
     self.__doreq("DESTROY-EXISTS",getoptions,null,function(result) {
       self.logger.debug("Returned rest api info: " + JSON.stringify(result.doc));
 
-      var ex = !(undefined == result.doc["rest-apis"] || undefined == result.doc["rest-apis"][0] || self.dboptions.database != result.doc["rest-apis"][0].database);
+      var ex = !(undefined == result.doc["rest-apis"] || undefined == result.doc["rest-apis"][0] || opts.database != result.doc["rest-apis"][0].database);
 
       if (!ex) {
         // doesn't exist already, so return success
-        self.logger.debug("Rest server for database " + this.dboptions.database + " does not exist already. Returning success.");
+        self.logger.debug("Rest server for database " + opts.database + " does not exist already. Returning success.");
         (callback_opt || noop)({inError: false, statusCode: 200});
       } else {
         var restapi = result.doc["rest-apis"][0].name;
 
         var options = {
-          host: self.dboptions.host,
-          port: self.dboptions.adminport,
+          host: opts.host,
+          port: opts.adminport,
           path: '/v1/rest-apis/' + encodeURI(restapi) + "?include=" + encodeURI("content"), // TODO figure out how to include ,modules too, and why error is never caught or thrown
           method: 'DELETE'
         };
@@ -2058,24 +2074,32 @@ mljs.prototype.v7check = function(v6func,v7func) {
 };
 
 /**
- * Saves search options with the given name. These are referred to by mljs.structuredSearch.
- *
- * {@link http://docs.marklogic.com/REST/PUT/v1/config/query/*}
- *
- * For structured search options see {@link http://docs.marklogic.com/guide/rest-dev/search#id_48838}
- *
- * Use this function in conjunction with the Search Options Builder. {@see mljs.prototype.options}
- *
- * @param {string} name - The name to install the search options under
- * @param {JSON} searchoptions - The search options JSON object. {@see mljs.prototype.options.prototype.toJson}
- * @param {function} callback_opt - The optional callback to invoke after the method completes
- */
+* Saves search options with the given name. These are referred to by mljs.structuredSearch.
+*
+* {@link http://docs.marklogic.com/REST/PUT/v1/config/query/*}
+*
+* For structured search options see {@link http://docs.marklogic.com/guide/rest-dev/search#id_48838}
+*
+* Use this function in conjunction with the Search Options Builder. {@see mljs.prototype.options}
+*
+* @param {string} name - The name to install the search options under
+* @param {JSON|XMLDocument} searchoptions - The search options JSON object. {@see mljs.prototype.options.prototype.toJson}
+* @param {function} callback_opt - The optional callback to invoke after the method completes
+*/
 mljs.prototype.saveSearchOptions = function(name,searchoptions,callback_opt) {
+  var format = "json";
+  var ct = "application/json";
+  if (("object" == typeof(searchoptions) && undefined != searchoptions.childNodes) || "string" == typeof (searchoptions)) {
+    format = "xml";
+    ct = "application/xml"; // JSON seems to be required, even if content is XML string
+    //console.log("XML?: " + searchoptions);
+  }
   var options = {
-    path: "/v1/config/query/" + name + "?format=json",
-    method: "PUT"
+    path: "/v1/config/query/" + name,
+    method: "PUT",
+    contentType: ct
   };
-  this._optionsCache[name] = searchoptions;
+  this._optionsCache[name] = searchoptions; // TODO only cache if JSON format
   this.__doreq("SAVESEARCHOPTIONS",options,searchoptions,callback_opt);
 };
 
@@ -3358,9 +3382,52 @@ mljs.prototype.samRdb2Rdf = function(config,callback) {
 };
 
 
+mljs.prototype.saveWorkplace = function(workplaceXml,callback) {
+  var options = {
+    path: "/v1/resources/workplace",
+    method: "POST",
+    headers: { Accept: "application/json"}
+  };
+  this.__doreq("SAVEWORKPLACE",options,workplaceXml,callback);
+};
+
+mljs.prototype.workplace = function(callback) {
+  var options = {
+    path: "/v1/resources/workplace",
+    method: "GET",
+    headers: { Accept: "application/xml"}
+  };
+  this.__doreq("GETWORKPLACE",options,null,callback);
+};
 
 
 
+
+mljs.prototype.installExtension = function(name,methodArray,moduleContent,callback) {
+  var options = {
+    path: "/v1/config/resources/" + name,
+    method: "PUT",
+    contentType: "application/xquery"
+  };
+  for (var m = 0,maxm = methodArray.length,method;m < maxm;m++) {
+    method = methodArray[m];
+    if (0 == m) {
+      options.path += "?"
+    } else {
+      options.path += "&"
+    }
+    options.path += "method=" + method;
+  }
+  this.__doreq("INSTALLEXTENSION",options,moduleContent,callback);
+};
+
+mljs.prototype.removeExtension = function(name,callback) {
+  var options = {
+    path: "/v1/config/resources/" + name,
+    method: "DELETE"
+  };
+  this.__doreq("REMOVEEXTENSION",options,null,callback);
+};
 
 
 
@@ -9476,7 +9543,7 @@ mljs.prototype.documentcontext.prototype.reset = function() {
     if ("string" == typeof(this._constructed)) {
       if (this._constructed.substring(0,1) == "<") {
         // XML
-        this._constructed = this.db.textToXml(this._constructed);
+        this._constructed = this.db.textToXML(this._constructed);
       } else {
         // try JSON
         this._constructed = JSON.parse(this._constructed);

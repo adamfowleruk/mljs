@@ -1,6 +1,6 @@
 #!/bin/sh
 
-. ./webserver-settings.sh
+. ./config/webserver-settings.sh
 
 URL="http://$RESTHOST:8002/v1/rest-apis"
 USERPASS="$MLADMINUSER:$MLADMINPASS"

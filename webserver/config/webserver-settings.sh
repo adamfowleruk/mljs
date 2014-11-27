@@ -29,9 +29,8 @@ WEBPORT=5001
 # The port that MarkLogic will fire alerts and documents at
 ALERTPORT=5002
 # Relative or absolute path to the SRC folder of your REST app
-APPPATH=./src
+APPPATH=./app
 # default fallback path
 DEFAULTPATH=/workplace.html5
 
 MLCP=/Users/adamfowler/Documents/marklogic/software/mlcp-Hadoop2-1.2-1/bin/mlcp.sh
-

@@ -2,7 +2,7 @@
 
 # Config params here
 
-. ./webserver-settings.sh
+. ./config/webserver-settings.sh
 
 # Install code - do not modify
 
@@ -27,7 +27,7 @@ curl -X PUT --anyauth --user $MLADMINUSER:$MLADMINPASS -H "Content-type: applica
 
 curl -X PUT --anyauth --user $MLADMINUSER:$MLADMINPASS -H "Content-type: application/xquery" -d@"./rest-api/ext/version.xqy" \
     "http://$RESTHOST:$RESTPORT/v1/config/resources/version?method=get"
-    
+
 curl -X PUT --anyauth --user $MLADMINUSER:$MLADMINPASS -H "Content-type: application/xquery" -d@"./rest-api/ext/auth.xqy" \
     "http://$RESTHOST:$RESTPORT/v1/config/resources/auth?method=post"
 
