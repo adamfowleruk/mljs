@@ -1302,7 +1302,7 @@ mljs.prototype.save = function(jsonXmlBinary,docuri_opt,props_opt,callback_opt) 
           docuri_opt = undefined;
         } else {
           if (typeof(docuri_opt) === "string") {
-            this.logger.debug("son,docuri,,");
+            this.logger.debug("json,docuri,,");
             // do nothing
           } else {
             this.logger.debug("json,,props,");

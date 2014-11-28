@@ -1,0 +1,3 @@
+{
+  "prefix": "/wibble", "collections": ["sub3content","testcontent"], "stripBaseFolder": "false", "recursive": false
+}

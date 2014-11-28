@@ -1,0 +1,11 @@
+{
+  "name": "mljswebserver",
+  "version": "1.6.1",
+  "dependencies": {
+    "mljs": "^1.6.1",
+    "istextorbinary": "^1.0.0",
+    "minimist": "^1.1.0",
+    "q": "^1.1.2",
+    "winston": "^0.8.3"
+  }
+}

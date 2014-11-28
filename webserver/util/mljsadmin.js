@@ -2,6 +2,23 @@ var mljs = require('mljs'), env = require("../config/env.js"), parseArgs = requi
 var fs = require('fs');
 var Q = require("q");
 var winston = require('winston');
+var itob = require('istextorbinary');
+
+
+// globals
+if (undefined == Array.prototype.contains) {
+  Array.prototype.contains = function(obj) {
+    var i = this.length;
+    while (i--) {
+      if (this[i] === obj) {
+        return true;
+      }
+    }
+    return false;
+  };
+}
+
+
 
 
 // Command line administration tool for MarkLogic using MLJS and the REST API
@@ -48,6 +65,10 @@ var usage = function(msg) {
   console.log("       mljsadmin --remove=restapi");
   console.log("       mljsadmin --remove=modulesrestapi");
   console.log("       mljsadmin --remove=extensions");
+  console.log("       mljsadmin load");
+  console.log("       mljsadmin --load");
+  console.log("       mljsadmin --load=initial");
+  console.log("       mljsadmin --load=folder -f /some/base/folder");
   process.exit(1);
 };
 
@@ -60,21 +81,23 @@ var crapout = function(msg) {
 
 var targets = {
 
+  // WORKS
   /**
   * Base install command, calls all other commands in order
   **/
   install: function() {
     //targets.install_restapi().then(targets.install_modulesrestapi()).then(targets.install_extensions());
-    var funcs = [targets.install_restapi,function(){return Q.delay(10000);},targets.install_modulesrestapi,function(){return Q.delay(10000);},targets.install_extensions,targets.update];
+    var funcs = [targets.install_restapi,function(){return Q.delay(10000);},targets.install_modulesrestapi,
+      function(){return Q.delay(10000);},targets.install_extensions,targets.update,targets.load_initial()];
     funcs.reduce(Q.when, Q(""));
   },
 
 
 
   // WORKS
-/**
- * Create REST API instance. Optionally create database if it doesn't exist
- **/
+  /**
+   * Create REST API instance. Optionally create database if it doesn't exist
+   **/
   install_restapi:function() {
     var deferred = Q.defer();
     console.log(" - install_restapi()");
@@ -162,9 +185,9 @@ var targets = {
   },
 
 
-/**
- * Generic update handler - calls all remaining configuration updating handlers
- **/
+  /**
+   * Generic update handler - calls all remaining configuration updating handlers
+   **/
   update:function() {
     //targets.update_ontology()
     //  .then(targets.update_workplace()).then(targets.update_searchoptions());
@@ -174,9 +197,9 @@ var targets = {
 
 
 
-/**
- * Install REST API extensions, if they exist (rest-api/ext/*)
- **/
+  /**
+   * Install REST API extensions, if they exist (rest-api/ext/*)
+   **/
   update_restapi:function() {
     console.log(" - update_restapi()");
     console.log("   - Not yet implemented");
@@ -184,9 +207,9 @@ var targets = {
 
 
 
-/**
- * Install ontology, if it exists (config/ontology.ttl) in Turtle format ('ontology' named graph) - optional custom name
- **/
+  /**
+   * Install ontology, if it exists (config/ontology.ttl) in Turtle format ('ontology' named graph) - optional custom name
+   **/
   update_ontology:function() {
     var deferred = Q.defer();
     console.log(" - update_ontology()");
@@ -212,9 +235,9 @@ var targets = {
   },
 
 
-/**
- * Install workplace file, if it exists (config/mljs-workplace.xml)
- **/
+  /**
+   * Install workplace file, if it exists (config/mljs-workplace.xml)
+   **/
   update_workplace:function() {
     var deferred = Q.defer();
     console.log(" - update_workplace()");
@@ -237,9 +260,9 @@ var targets = {
   },
 
 
- /**
- * Install extra database configuration if it exists (config/ml-config.xml OR deploy/ml-config.xml (Roxy old files))
- **/
+   /**
+   * Install extra database configuration if it exists (config/ml-config.xml OR deploy/ml-config.xml (Roxy old files))
+   **/
   update_dbconfig:function() {
     console.log(" - update_dbconfig()");
     console.log("   - Not yet implemented");
@@ -308,18 +331,18 @@ var targets = {
 
 
 
-/**
+/*
  * READ ONLY COMMANDS, FOR PRE-SHARING DEMOS
- **/
+ */
 
 
  capture: function() {
    targets.capture_workplace(); //.then(targets.capture_ontology());
  },
 
-/**
- * Capture workplace configuration
- **/
+  /**
+   * Capture workplace configuration
+   **/
   capture_workplace: function() {
     var deferred = Q.defer();
     console.log(" - capture_workplace()");
@@ -339,9 +362,9 @@ var targets = {
     return deferred.promise;
   },
 
-/**
- * TODO Capture ontology in Turtle format ('ontology' named graph) - optional custom name
- **/
+  /**
+   * TODO Capture ontology in Turtle format ('ontology' named graph) - optional custom name
+   **/
   capture_ontology: function() {
     console.log(" - capture_ontology()");
     console.log("   - Not yet implemented");
@@ -367,6 +390,7 @@ var targets = {
 
 
 
+ // WORKS
   remove: function() {
     //targets.remove_extensions().then(targets.remove_restapi()).then(targets.remove_modulesrestapi());
     var funcs = [targets.remove_extensions,targets.remove_restapi,function(){return Q.delay(10000);},targets.remove_modulesrestapi];
@@ -452,6 +476,208 @@ var targets = {
       });
     });
     return deferred.promise;
+  },
+
+
+
+
+  // WORKS
+  load: function() {
+    targets.load_initial();
+  },
+
+  // WORKS
+  load_initial: function() {
+    // check for ./data/.initial.json to see what folder to load
+    // process as for load
+    console.log(" - load_initial()");
+    return targets._loadFolder("./data",".initial.json").progress(function(progress) {
+      console.log("    - Progress: " + progress + "% done");
+    });
+  },
+
+  // WORKS
+  load_folder: function(args) {
+    // check to see if we have a parameter folder or not
+    console.log(" - load_folder()");
+    // TODO handle trailing slash in folder name of args.f
+    // TODO windows file / and \ testing
+    return targets._loadFolder(args.f,".load.json").progress(function(progress) {
+      console.log("    - Progress: " + progress + "% done");
+    });
+  },
+
+  // WORKS
+  _loadFolder: function(folder,settingsFile,base_opt,inheritedSettings) {
+    var base = base_opt || folder;
+    console.log("    - " + folder);
+    //console.log("settings passed: " + JSON.stringify(inheritedSettings));
+    // find .load.json in the folder for settings
+    var settings = {
+      folder: folder || "./data", recursive: true, ignore: [".load.json", ".initial.json"],
+      prefix: "/", stripBaseFolder: true, collections: []
+      // TODO support linking .jpg and .xml (and XHTML) files automatically
+      // TODO support <filename>.meta XML files alongside main files
+    }
+    var filename = settings.folder + "/" + (settingsFile || ".load.json");
+
+    //console.log("settings defaults: " + JSON.stringify(settings));
+
+    for (var name in inheritedSettings) {
+      settings[name] = inheritedSettings[name];
+    }
+
+    //console.log("settings now: " + JSON.stringify(settings));
+
+    // get base folder
+    // process this folder with those settings, recursively
+
+    var deferred = Q.defer();
+
+    // load extra override settings
+    fs.readFile(filename, 'utf8', function (err,data) {
+      if (err) {
+        //crapout(err);
+        // doesn't exist - ignore and carry on
+      }
+      var json = {};
+      if (undefined != data) {
+        //console.log("settings loaded: " + data);
+        json = JSON.parse(data); // TODO handle parameters with RELATIVE file paths (needed? auto?)
+      }
+      for (var name in json) {
+        if ("folder" == name) {
+          settings[name] = settings.folder + "/" + json[name];
+          base = settings.folder; // reset base
+        } else {
+          settings[name] = json[name];
+        }
+      }
+
+      //console.log("settings finally: " + JSON.stringify(settings));
+
+    // list all files and folders and treat these as width first progress update percentages
+    fs.readdir(settings.folder, function (err, files) {
+      if (err) {
+        crapout(err);
+      }
+      //console.log("    - Found options: " + files);
+      var saveFile = function(file) {
+        var deferred2 = Q.defer();
+        console.log("      - Found: " + settings.folder + "/" + file);
+        if (settings.ignore.contains(file)) {
+          console.log("      - Not uploading: " + settings.folder + "/" + file + " (File in ignored list setting)");
+          deferred2.resolve(settings.folder + "/" + file);
+        } else {
+
+          fs.readFile(settings.folder + "/" + file, function(err,data) {
+
+
+            if (err) {
+              //crapout(err);
+              console.log("    - ERROR reading file prior to save: " + settings.folder + "/" + file);
+              deferred2.resolve(settings.folder + "/" + file);
+            } else {
+              itob.isText(file,data,function (err,result) {
+                if (result) {
+                  data = data.toString(); // convert to string if utf8, otherwise leave as binary buffer
+                }
+
+              // actually upload the file once working
+
+              var vf = settings.folder;
+              if (settings.stripBaseFolder) {
+                vf = settings.folder.substring(base.length + 1);
+              }
+              /*if (0 == vf.indexOf("/")) {
+                vf = vf.substring(1);
+              }*/
+              if (0 != vf.indexOf("/") && vf.length != 0) {
+                vf = "/" + vf;
+              }
+              var vff = file;
+              /*if (0 == vff.indexOf("/")) {
+                vff = vff.substring(1);
+              }*/
+              if (0 != vff.indexOf("/")) {
+                vff = "/" + vff;
+              }
+              var uri = settings.prefix + vf + vff;
+              var cols = "";
+              for (var c = 0, maxc = settings.collections.length,col;c < maxc;c++) {
+                col = settings.collections[c];
+                if (c > 0) {
+                  cols += ",";
+                }
+                cols += col;
+              }
+              var props = {
+                collection: cols
+              };
+              db.save(data,uri,props,function(result) {
+                if (result.inError) {
+                  // just log the message
+                  console.log("    - ERROR saving file to uri: " + uri);
+                } else {
+                  console.log("    - SUCCESS " + settings.folder + "/" + file + " => " + uri);
+                }
+                deferred2.resolve(settings.folder + "/" + file);
+              });
+
+              }); // end itob
+            } // end error if
+          });
+        }
+
+        return deferred2.promise;
+      };
+
+
+      var promises = [];
+      files.forEach(function (file,idx) {
+        fs.lstat(settings.folder+'/'+file,function(err,stats) {
+          if(err) {
+            crapout(settings.folder + "/" + file + " : " + err);
+          }
+          if(stats.isDirectory()) {
+            //get_folder(path+'/'+file,tree[idx].children);
+            //console.log("Folder: " + folder + " , settings.folder: " + settings.folder + " , next folder: " + settings.folder+"/"+file);
+            if (settings.folder+"/"+file != settings.folder /*&& settings.folder != folder*/) { // . and .. in directory listing
+              if (settings.recursive) {
+                var news = {};
+                for (var name in settings) {
+                  if (name != "folder") {
+                    news[name] = settings[name];
+                  }
+                }
+                promises[idx] = targets._loadFolder(settings.folder+"/"+file,".load.json",base,news);
+              } else {
+                console.log("    - Not recursively processing folder: " + settings.folder);
+              }
+            }
+          } else {
+            promises[idx] = saveFile(file);
+          }
+        });
+      });
+      /*
+      for (var f = 0,maxf = files.length,file;f < maxf;f++) {
+        file = files[f];
+        // TODO test for file or folder
+        promises[f] = saveFile(file);
+      }*/
+      Q.all(promises).then(function(output) {
+        deferred.resolve("Folder processed: " + folder);
+      }).progress(function(progress) {
+        // output a message here (TODO preferably update the same message)
+        deferred.notify(progress);
+      }); // no fail() as we instantly end the app anyway
+    });
+
+  }); // fs.readFile JSON
+
+
+    return deferred.promise;
   }
 
 
@@ -483,7 +709,18 @@ b: true,
 c: true,
 beep: 'boop' }
 */
+var targetGroups = ["install","update","capture","remove","load"];
 if (argv._.length == 1) { // just one non option parameter, and no --option= parameters
+  var found = false
+  for (var g = 0,maxg = targetGroups.length,group;!found && g < maxg;g++) {
+    group = targetGroups[g];
+    if (argv._[0] == group) {
+      found = true;
+      targets[group]();
+    }
+  }
+  if (!found) {
+  /*
   if ("install" == argv._[0]) {
     // do install
     targets.install();
@@ -497,29 +734,29 @@ if (argv._.length == 1) { // just one non option parameter, and no --option= par
     // do capture
     targets.remove();
   } else {
+  */
     // fail with usage
     usage("Unknown instruction: '" + argv._[0] + "'");
   }
 } else { // either multiple or zero option parameters, and potentially many --option= parameters
   //console.log("_length=" + argv._.length + " , argv length: " + argv.length);
-  if (argv._.length == 0) {
+  //if (argv._.length == 0) {
     // try -- parameters
     //if (argv.length == 2) { // empty _ parameter and just one other option
-      var targetGroups = ["install","update","capture","remove"];
       var found = false;
       for (var g = 0,maxg = targetGroups.length,group;g < maxg;g++) {
         group = targetGroups[g];
         if (undefined != argv[group]) {
           if (true === argv[group]) {
             found = true;
-            targets[group]();
+            targets[group](argv);
           } else {
             var funcname = group + "_" + argv[group];
             var func = targets[funcname];
             if (undefined != func && 'function' == typeof(func)) {
               found = true;
               // call function
-              func();
+              func(argv);
             } else {
               usage("Unknown " + group + " target: '" + argv[group] + "'");
             }
@@ -539,8 +776,8 @@ if (argv._.length == 1) { // just one non option parameter, and no --option= par
     //} else {
     //  usage("Only one --option=whatever parameter allowed");
     //}
-  } else {
+  //} else {
     // fail
-    usage("Only one instruction (E.g. 'install') OR one option (E.g. '--install=something') can be used");
-  }
+  //  usage("Only one instruction (E.g. 'install') OR one option (E.g. '--install=something') can be used");
+  //}
 }

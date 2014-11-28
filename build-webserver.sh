@@ -26,8 +26,8 @@ echo "Copying configuration"
 cp -R ./webserver/config/* $D/config/
 echo "Copying util apps"
 cp -R ./webserver/util/* $D/util/
-echo "Copying package.json"
-cp ./apps/$1/package.json $D/
+#echo "Copying package.json" #Superseded by mljswebserver's npm package.json
+#cp ./apps/$1/package.json $D/
 echo "Copying bower.json"
 cp ./apps/$1/bower.json $D/
 
