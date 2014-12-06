@@ -45,7 +45,7 @@ db.configure(env);
 //mdb.setLogger(logger);
 var menv = {};
 for (var name in env) {
-  menv[name] = env[name];
+  menv[name] = "" + env[name];
 }
 menv.port = menv.modulesport;
 menv.database = menv.modulesdatabase;
@@ -106,7 +106,7 @@ var targets = {
   **/
   install: function(params) {
     //targets.install_restapi().then(targets.install_modulesrestapi()).then(targets.install_extensions());
-    var funcs = [targets.install_restapi,function(){return Q.delay(10000);},targets.install_modulesrestapi,function(){return Q.delay(10000);},targets.install_modules,targets.install_extensions,targets.update,targets.load_initial];
+    var funcs = [targets.install_restapi,function(){return Q.delay(10000);},targets.install_modulesrestapi,function(){return Q.delay(10000);},targets.install_extensions,targets.update,targets.load_initial,targets.install_modules];
     funcs.reduce(Q.when, Q(params));
   },
 

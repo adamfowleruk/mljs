@@ -4,11 +4,11 @@
     <user>admin</user>
     <group>Default</group>
     <host>localhost.localdomain</host>
-    <timestamp>2014-12-05T17:48:45.911134-08:00</timestamp>
+    <timestamp>2014-12-05T18:34:46.458875-08:00</timestamp>
     <platform>linux</platform>
   </metadata>
   <config>
-    <name>workplace-content</name>
+    <name>obisie-content</name>
     <package-database-properties>
       <enabled>true</enabled>
       <retired-forest-count>0</retired-forest-count>
@@ -81,12 +81,490 @@
       <element-word-query-throughs/>
       <phrase-throughs/>
       <phrase-arounds/>
-      <range-element-indexes/>
-      <range-element-attribute-indexes/>
-      <element-word-lexicons/>
+      <range-element-indexes>
+	<range-element-index>
+	  <scalar-type>string</scalar-type>
+	  <namespace-uri/>
+	  <localname>citizen</localname>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-element-index>
+	<range-element-index>
+	  <scalar-type>string</scalar-type>
+	  <namespace-uri/>
+	  <localname>company</localname>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-element-index>
+	<range-element-index>
+	  <scalar-type>double</scalar-type>
+	  <namespace-uri/>
+	  <localname>value</localname>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-element-index>
+	<range-element-index>
+	  <scalar-type>string</scalar-type>
+	  <namespace-uri/>
+	  <localname>flagged</localname>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-element-index>
+	<range-element-index>
+	  <scalar-type>double</scalar-type>
+	  <namespace-uri/>
+	  <localname>flaggedpct</localname>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-element-index>
+	<range-element-index>
+	  <scalar-type>string</scalar-type>
+	  <namespace-uri/>
+	  <localname>originalurl</localname>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-element-index>
+	<range-element-index>
+	  <scalar-type>string</scalar-type>
+	  <namespace-uri>http://marklogic.com/mobilephone</namespace-uri>
+	  <localname>phoneNumber</localname>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-element-index>
+	<range-element-index>
+	  <scalar-type>dateTime</scalar-type>
+	  <namespace-uri>http://www.marklogic.com/intel/intercept</namespace-uri>
+	  <localname>event-timestamp</localname>
+	  <collation/>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-element-index>
+	<range-element-index>
+	  <scalar-type>string</scalar-type>
+	  <namespace-uri>http://www.w3.org/1999/xhtml</namespace-uri>
+	  <localname>title</localname>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-element-index>
+	<range-element-index>
+	  <scalar-type>string</scalar-type>
+	  <namespace-uri/>
+	  <localname>potential</localname>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-element-index>
+      </range-element-indexes>
+      <range-element-attribute-indexes>
+	<range-element-attribute-index>
+	  <scalar-type>string</scalar-type>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <parent-namespace-uri/>
+	  <parent-localname>call</parent-localname>
+	  <namespace-uri/>
+	  <localname>from</localname>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-element-attribute-index>
+	<range-element-attribute-index>
+	  <scalar-type>string</scalar-type>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <parent-namespace-uri/>
+	  <parent-localname>call</parent-localname>
+	  <namespace-uri/>
+	  <localname>number</localname>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-element-attribute-index>
+      </range-element-attribute-indexes>
+      <element-word-lexicons>
+	<element-word-lexicon>
+	  <namespace-uri>http://marklogic.com/mobilephone</namespace-uri>
+	  <localname>phoneNumber</localname>
+	  <collation>http://marklogic.com/collation/</collation>
+	</element-word-lexicon>
+      </element-word-lexicons>
       <element-attribute-word-lexicons/>
-      <path-namespaces/>
-      <range-path-indexes/>
+      <path-namespaces>
+	<path-namespace>
+	  <prefix>xhtml</prefix>
+	  <namespace-uri>http://www.w3.org/1999/xhtml</namespace-uri>
+	</path-namespace>
+      </path-namespaces>
+      <range-path-indexes>
+	<range-path-index>
+	  <scalar-type>string</scalar-type>
+	  <path-expression>/xhtml:html/xhtml:head/xhtml:meta[@name = "content-type"]/@content</path-expression>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-path-index>
+	<range-path-index>
+	  <scalar-type>string</scalar-type>
+	  <path-expression>/xhtml:html/xhtml:head/xhtml:meta[@name = "Producer"]/@content</path-expression>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-path-index>
+	<range-path-index>
+	  <scalar-type>string</scalar-type>
+	  <path-expression>/xhtml:html/xhtml:head/xhtml:meta[@name = "Company"]/@content</path-expression>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-path-index>
+	<range-path-index>
+	  <scalar-type>string</scalar-type>
+	  <path-expression>/xhtml:html/xhtml:head/xhtml:meta[@name = "Author"]/@content</path-expression>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-path-index>
+	<range-path-index>
+	  <scalar-type>string</scalar-type>
+	  <path-expression>/xhtml:html/xhtml:head/xhtml:meta[@name = "Subject"]/@content</path-expression>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-path-index>
+	<range-path-index>
+	  <scalar-type>string</scalar-type>
+	  <path-expression>/xhtml:html/xhtml:head/xhtml:meta[@name = "Creator"]/@content</path-expression>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-path-index>
+	<range-path-index>
+	  <scalar-type>string</scalar-type>
+	  <path-expression>/xhtml:html/xhtml:head/xhtml:meta[@name = "CreationDate"]/@content</path-expression>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-path-index>
+	<range-path-index>
+	  <scalar-type>string</scalar-type>
+	  <path-expression>/xhtml:html/xhtml:head/xhtml:meta[@name = "Creation_Date"]/@content</path-expression>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-path-index>
+	<range-path-index>
+	  <scalar-type>string</scalar-type>
+	  <path-expression>/xhtml:html/xhtml:head/xhtml:meta[@name = "ModDate"]/@content</path-expression>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-path-index>
+	<range-path-index>
+	  <scalar-type>string</scalar-type>
+	  <path-expression>/xhtml:html/xhtml:head/xhtml:meta[@name = "size"]/@content</path-expression>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-path-index>
+	<range-path-index>
+	  <scalar-type>string</scalar-type>
+	  <path-expression>/xhtml:html/xhtml:head/xhtml:meta[@name = "AppName"]/@content</path-expression>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-path-index>
+	<range-path-index>
+	  <scalar-type>string</scalar-type>
+	  <path-expression>/xhtml:html/xhtml:head/xhtml:meta[@name = "Description"]/@content</path-expression>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-path-index>
+	<range-path-index>
+	  <scalar-type>string</scalar-type>
+	  <path-expression>/xhtml:html/xhtml:head/xhtml:meta[@name = "Keywords"]/@content</path-expression>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-path-index>
+	<range-path-index>
+	  <scalar-type>string</scalar-type>
+	  <path-expression>/xhtml:html/xhtml:head/xhtml:meta[@name = "Revision"]/@content</path-expression>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-path-index>
+	<range-path-index>
+	  <scalar-type>string</scalar-type>
+	  <path-expression>/xhtml:html/xhtml:head/xhtml:meta[@name = "Total_Editing_Time"]/@content</path-expression>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-path-index>
+	<range-path-index>
+	  <scalar-type>string</scalar-type>
+	  <path-expression>/xhtml:html/xhtml:head/xhtml:meta[@name = "isys_SubType"]/@content</path-expression>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-path-index>
+	<range-path-index>
+	  <scalar-type>string</scalar-type>
+	  <path-expression>/xhtml:html/xhtml:head/xhtml:meta[@name = "Character_Count"]/@content</path-expression>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-path-index>
+	<range-path-index>
+	  <scalar-type>string</scalar-type>
+	  <path-expression>/xhtml:html/xhtml:head/xhtml:meta[@name = "Last_Author"]/@content</path-expression>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-path-index>
+	<range-path-index>
+	  <scalar-type>string</scalar-type>
+	  <path-expression>/xhtml:html/xhtml:head/xhtml:meta[@name = "Last_Saved_Date"]/@content</path-expression>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-path-index>
+	<range-path-index>
+	  <scalar-type>string</scalar-type>
+	  <path-expression>/xhtml:html/xhtml:head/xhtml:meta[@name = "Line_Count"]/@content</path-expression>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-path-index>
+	<range-path-index>
+	  <scalar-type>string</scalar-type>
+	  <path-expression>/xhtml:html/xhtml:head/xhtml:meta[@name = "Links_Up_To_Date"]/@content</path-expression>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-path-index>
+	<range-path-index>
+	  <scalar-type>string</scalar-type>
+	  <path-expression>/xhtml:html/xhtml:head/xhtml:meta[@name = "Page_Count"]/@content</path-expression>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-path-index>
+	<range-path-index>
+	  <scalar-type>string</scalar-type>
+	  <path-expression>/xhtml:html/xhtml:head/xhtml:meta[@name = "Paragraph_Count"]/@content</path-expression>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-path-index>
+	<range-path-index>
+	  <scalar-type>string</scalar-type>
+	  <path-expression>/xhtml:html/xhtml:head/xhtml:meta[@name = "Revision_Number"]/@content</path-expression>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-path-index>
+	<range-path-index>
+	  <scalar-type>string</scalar-type>
+	  <path-expression>/xhtml:html/xhtml:head/xhtml:meta[@name = "Scale_Crop"]/@content</path-expression>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-path-index>
+	<range-path-index>
+	  <scalar-type>string</scalar-type>
+	  <path-expression>/xhtml:html/xhtml:head/xhtml:meta[@name = "Security"]/@content</path-expression>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-path-index>
+	<range-path-index>
+	  <scalar-type>string</scalar-type>
+	  <path-expression>/xhtml:html/xhtml:head/xhtml:meta[@name = "Template"]/@content</path-expression>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-path-index>
+	<range-path-index>
+	  <scalar-type>string</scalar-type>
+	  <path-expression>/xhtml:html/xhtml:head/xhtml:meta[@name = "Word_Count"]/@content</path-expression>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-path-index>
+	<range-path-index>
+	  <scalar-type>string</scalar-type>
+	  <path-expression>/xhtml:html/xhtml:head/xhtml:meta[@name = "filter-capabilities"]/@content</path-expression>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-path-index>
+	<range-path-index>
+	  <scalar-type>string</scalar-type>
+	  <path-expression>/xhtml:html/xhtml:head/xhtml:meta[@name = "Album"]/@content</path-expression>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-path-index>
+	<range-path-index>
+	  <scalar-type>string</scalar-type>
+	  <path-expression>/xhtml:html/xhtml:head/xhtml:meta[@name = "Artist"]/@content</path-expression>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-path-index>
+	<range-path-index>
+	  <scalar-type>string</scalar-type>
+	  <path-expression>/xhtml:html/xhtml:head/xhtml:meta[@name = "Bitrate"]/@content</path-expression>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-path-index>
+	<range-path-index>
+	  <scalar-type>string</scalar-type>
+	  <path-expression>/xhtml:html/xhtml:head/xhtml:meta[@name = "COMM"]/@content</path-expression>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-path-index>
+	<range-path-index>
+	  <scalar-type>string</scalar-type>
+	  <path-expression>/xhtml:html/xhtml:head/xhtml:meta[@name = "Channels"]/@content</path-expression>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-path-index>
+	<range-path-index>
+	  <scalar-type>string</scalar-type>
+	  <path-expression>/xhtml:html/xhtml:head/xhtml:meta[@name = "Comment"]/@content</path-expression>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-path-index>
+	<range-path-index>
+	  <scalar-type>string</scalar-type>
+	  <path-expression>/xhtml:html/xhtml:head/xhtml:meta[@name = "Duration"]/@content</path-expression>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-path-index>
+	<range-path-index>
+	  <scalar-type>string</scalar-type>
+	  <path-expression>/xhtml:html/xhtml:head/xhtml:meta[@name = "Genre"]/@content</path-expression>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-path-index>
+	<range-path-index>
+	  <scalar-type>string</scalar-type>
+	  <path-expression>/xhtml:html/xhtml:head/xhtml:meta[@name = "Media_Type"]/@content</path-expression>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-path-index>
+	<range-path-index>
+	  <scalar-type>string</scalar-type>
+	  <path-expression>/xhtml:html/xhtml:head/xhtml:meta[@name = "Priv"]/@content</path-expression>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-path-index>
+	<range-path-index>
+	  <scalar-type>string</scalar-type>
+	  <path-expression>/xhtml:html/xhtml:head/xhtml:meta[@name = "Sample_Rate"]/@content</path-expression>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-path-index>
+	<range-path-index>
+	  <scalar-type>string</scalar-type>
+	  <path-expression>/xhtml:html/xhtml:head/xhtml:meta[@name = "Track"]/@content</path-expression>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-path-index>
+	<range-path-index>
+	  <scalar-type>string</scalar-type>
+	  <path-expression>/xhtml:html/xhtml:head/xhtml:meta[@name = "Year"]/@content</path-expression>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-path-index>
+	<range-path-index>
+	  <scalar-type>string</scalar-type>
+	  <path-expression>/xhtml:html/xhtml:head/xhtml:meta[@name = "TALB"]/@content</path-expression>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-path-index>
+	<range-path-index>
+	  <scalar-type>string</scalar-type>
+	  <path-expression>/xhtml:html/xhtml:head/xhtml:meta[@name = "TCOM"]/@content</path-expression>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-path-index>
+	<range-path-index>
+	  <scalar-type>string</scalar-type>
+	  <path-expression>/xhtml:html/xhtml:head/xhtml:meta[@name = "TCON"]/@content</path-expression>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-path-index>
+	<range-path-index>
+	  <scalar-type>string</scalar-type>
+	  <path-expression>/xhtml:html/xhtml:head/xhtml:meta[@name = "TCOP"]/@content</path-expression>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-path-index>
+	<range-path-index>
+	  <scalar-type>string</scalar-type>
+	  <path-expression>/xhtml:html/xhtml:head/xhtml:meta[@name = "TDRC"]/@content</path-expression>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-path-index>
+	<range-path-index>
+	  <scalar-type>string</scalar-type>
+	  <path-expression>/xhtml:html/xhtml:head/xhtml:meta[@name = "TIT2"]/@content</path-expression>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-path-index>
+	<range-path-index>
+	  <scalar-type>string</scalar-type>
+	  <path-expression>/xhtml:html/xhtml:head/xhtml:meta[@name = "TPE1"]/@content</path-expression>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-path-index>
+	<range-path-index>
+	  <scalar-type>string</scalar-type>
+	  <path-expression>/xhtml:html/xhtml:head/xhtml:meta[@name = "TPE2"]/@content</path-expression>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-path-index>
+	<range-path-index>
+	  <scalar-type>string</scalar-type>
+	  <path-expression>/xhtml:html/xhtml:head/xhtml:meta[@name = "TPOS"]/@content</path-expression>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-path-index>
+	<range-path-index>
+	  <scalar-type>string</scalar-type>
+	  <path-expression>/xhtml:html/xhtml:head/xhtml:meta[@name = "TRCK"]/@content</path-expression>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-path-index>
+      </range-path-indexes>
       <fields>
 	<field>
 	  <field-name/>
@@ -99,7 +577,19 @@
       <range-field-indexes/>
       <geospatial-element-indexes/>
       <geospatial-element-child-indexes/>
-      <geospatial-element-pair-indexes/>
+      <geospatial-element-pair-indexes>
+	<geospatial-element-pair-index>
+	  <parent-namespace-uri/>
+	  <parent-localname>location</parent-localname>
+	  <latitude-namespace-uri/>
+	  <latitude-localname>lat</latitude-localname>
+	  <longitude-namespace-uri/>
+	  <longitude-localname>lon</longitude-localname>
+	  <coordinate-system>wgs84</coordinate-system>
+	  <range-value-positions>true</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</geospatial-element-pair-index>
+      </geospatial-element-pair-indexes>
       <geospatial-element-attribute-pair-indexes/>
       <geospatial-path-indexes/>
       <database-replication/>
@@ -111,10 +601,11 @@
     </package-database-properties>
     <links>
       <forests-list>
-	<forest-name>workplace-content-001-1</forest-name>
+	<forest-name>obisie-content-001-1</forest-name>
       </forests-list>
       <security-database>Security</security-database>
       <schema-database>Schemas</schema-database>
+      <triggers-database>Triggers</triggers-database>
     </links>
   </config>
 </package-database>
