@@ -834,7 +834,7 @@ mljs.prototype.__doreq_node = function(reqname,options,content,callback_opt) {
 
   var ct = options.contentType;
   if (undefined == ct) {
-    self.logger.debug("XHR2: *********** CT UNDEFINED *************");
+    self.logger.debug("NODE: *********** CT UNDEFINED *************");
     ct = "application/json";
   }
   if (undefined != content) {
@@ -2137,12 +2137,35 @@ mljs.prototype.saveSearchOptionsCheck = function(name,searchoptions,callback_opt
  *
  * For structured serch options see {@link http://docs.marklogic.com/guide/rest-dev/search#id_48838}
  *
- * @param {string} name - The name of the installed search options to retrieve as JSON
+ * @param {string} name_opt - The name of the installed search options to retrieve as JSON. If none specified, lists them all
+ * @param {mljs.optionsparams} - The parameters for the search options operation. E.g. {format: "xml"}
  * @param {function} callback - The callback to invoke after the method completes
  */
-mljs.prototype.searchOptions = function(name,callback) {
+mljs.prototype.searchOptions = function(name_opt,params_opt,callback) {
+  if (undefined == callback) {
+    if ('function'==typeof(name_opt)) {
+      callback = name_opt;
+      name_opt = null;
+    } else {
+      callback = params_opt;
+      params_opt = null;
+    }
+  }
+  var path = "/v1/config/query";
+  if (undefined != name_opt) {
+    path += "/" + name_opt;
+  }
+  if (undefined != params_opt && undefined != params_opt.format) {
+    if ("xml" == params_opt.format) {
+      path += "?format=xml";
+    } else {
+      path += "?format=json";
+    }
+  } else {
+    path += "?format=json";
+  }
   var options = {
-    path: "/v1/config/query/" + name + "?format=json",
+    path: path,
     method: "GET"
   };
   // don't cache on retrieve - if they're already on the server that's fine
@@ -2325,6 +2348,14 @@ mljs.prototype.subcollections = mljs.prototype.collections;
 
 
 // VERSION 7 SEMANTIC CAPABILITIES
+
+
+/**
+* MLJS graph functions extended configuration object.
+* @typedef {Object} mljs.graphparams - MLJS graph functions extended configuration object.
+* @property {string} format - The high level format of the response, can be turtle, ntriples, n3 (TODO verify this list)
+*/
+
 /**
  * Saves a set of triples as an n-triples graph. Allows you to specify a named graph (collection) or use the default graph.
  *
@@ -2339,12 +2370,18 @@ mljs.prototype.subcollections = mljs.prototype.collections;
  *
  * @param {string|JSON} triples - The raw N-triples (string) or JSON triples (object JSON array) to store
  * @param {string} uri_opt - The graph name to replace. If not provided, the default MarkLogic graph (all triples) will be replaced.
+ * @param {mljs.graphparams} params_opt - JSON containing graph extended properties. E.g. format: "turtle"
  * @param {function} callback_opt - The optional callback to invoke after the method completes
  */
-mljs.prototype.saveGraph = function(triples,uri_opt,callback_opt) {
-  if (undefined == callback_opt && "function" === typeof uri_opt) {
-    callback_opt = uri_opt;
-    uri_opt = undefined;
+mljs.prototype.saveGraph = function(triples,uri_opt,params_opt,callback_opt) {
+  if (undefined == callback_opt) {
+    if ("function" === typeof uri_opt) {
+      callback_opt = uri_opt;
+      uri_opt = undefined;
+    } else {
+      callback_opt = params_opt;
+      params_opt = undefined;
+    }
   }
 
   var options = {
@@ -2380,6 +2417,11 @@ mljs.prototype.saveGraph = function(triples,uri_opt,callback_opt) {
     }
   } else {
     graphdoc = triples; // raw text in n-triples format
+    if (undefined != params_opt && undefined != params_opt.format) {
+      if ("turtle" == params_opt.format) {
+        options.contentType = "text/turtle";
+      } // TODO other content types (N-triples already handled as text/plain bv )
+    }
   }
   this.logger.debug("SAVEGRAPH triple content: " + graphdoc);
   this.__doreq("SAVEGRAPH",options,graphdoc,callback_opt);
@@ -2429,44 +2471,63 @@ mljs.prototype.mergeGraph = function(triples,uri_opt,callback_opt) {
  * {@link http://docs.marklogic.com/REST/GET/v1/graphs}
  *
  * @param {string} uri_opt - The name of the grah to return. If not provided, the default MarkLogic graph (all triples, not just triples not in a named graph) will be returned.
+ * @param {mljs.graphparams} params_opt - JSON containing graph extended properties. E.g. format: "turtle"
  * @param {function} callback_opt - The optional callback to invoke after the method completes.
  */
-mljs.prototype.graph = function(uri_opt,callback_opt) {
-  if (undefined == callback_opt && "function" === typeof uri_opt) {
-    callback_opt = uri_opt;
-    uri_opt = undefined;
+mljs.prototype.graph = function(uri_opt,params_opt,callback_opt) {
+  if (undefined == callback_opt) {
+    if ("function" === typeof uri_opt) {
+      callback_opt = uri_opt;
+      uri_opt = undefined;
+    } else {
+      callback_opt = params_opt;
+      params_opt = undefined;
+    }
   }
 
   var options = {
-    path: "/v1/graphs?format=json",
-    method: "GET"
+    path: "/v1/graphs",
+    method: "GET",
+    headers: {Accept: "application/json"}
   }
   if (undefined != uri_opt) {
-    options.path += "&graph=" + encodeURI(uri_opt);
+    options.path += "?graph=" + encodeURI(uri_opt);
   } else {
-    options.path += "&default";
+    options.path += "?default";
+  }
+  var format = "json";
+
+  if (undefined != params_opt && undefined != params_opt.format) {
+    format = params_opt.format;
+    if ("turtle" == params_opt.format) {
+      options.headers = {Accept:"text/turtle"};
+    } // TODO other content types
+  } else {
+    options.headers = {Accept:"application/json"}; // TODO verify this works
   }
 
   this.__doreq("GETGRAPH",options,null,function(result) {
     if (result.inError) {
       (callback_opt||noop)(result);
     } else {
-      // convert to JSON array representation
-      var lines = result.doc.split("\n");
-      var triples = new Array();
-      var spos,ppos,opos,send,pend,oend,line;
-      for (var l = 0;l < lines.length;l++) {
-        line = lines[l];
-        spos = line.indexOf("<");
-        send = line.indexOf(">",spos + 1);
-        ppos = line.indexOf("<",send + 1);
-        pend = line.indexOf(">",ppos + 1);
-        opos = line.indexOf("<",pend + 1);
-        oend = line.indexOf(">",opos + 1);
-        triples.push({subject: line.substring(spos + 1,send), predicate: line.substring(ppos + 1,pend), object: line.substring(opos + 1,oend)});
+      if ("json" == format) {
+        // convert to JSON array representation for convenience
+        var lines = result.doc.split("\n");
+        var triples = new Array();
+        var spos,ppos,opos,send,pend,oend,line;
+        for (var l = 0;l < lines.length;l++) {
+          line = lines[l];
+          spos = line.indexOf("<");
+          send = line.indexOf(">",spos + 1);
+          ppos = line.indexOf("<",send + 1);
+          pend = line.indexOf(">",ppos + 1);
+          opos = line.indexOf("<",pend + 1);
+          oend = line.indexOf(">",opos + 1);
+          triples.push({subject: line.substring(spos + 1,send), predicate: line.substring(ppos + 1,pend), object: line.substring(opos + 1,oend)});
+        }
+        result.triples = triples;
       }
-      result.triples = triples;
-      (callback||noop)(result);
+      (callback_opt||noop)(result);
     }
   });
 };
@@ -3386,8 +3447,9 @@ mljs.prototype.saveWorkplace = function(workplaceXml,callback) {
   var options = {
     path: "/v1/resources/workplace",
     method: "POST",
-    headers: { Accept: "application/json"}
+    contentType: "text/xml"
   };
+  //console.log("CONTENT: " + workplaceXml);
   this.__doreq("SAVEWORKPLACE",options,workplaceXml,callback);
 };
 
@@ -3428,6 +3490,132 @@ mljs.prototype.removeExtension = function(name,callback) {
   };
   this.__doreq("REMOVEEXTENSION",options,null,callback);
 };
+
+
+// Packaging API in V7
+
+mljs.prototype.getDatabasePackage = function(database,callback) {
+  var options = {
+    host: this.dboptions.host,
+    port: this.dboptions.adminport,
+    path: "/manage/v2/databases/" + encodeURI(database) + "?view=package",
+    method: "GET",
+    headers: {"Accept": "application/xml"}
+  };
+  this.__doreq("GETDATABASECONFIGURATION",options,null,callback);
+};
+
+mljs.prototype.createPackageFromZip = function(pkgname,pkg,callback) {
+  var options = {
+    host: this.dboptions.host,
+    port: this.dboptions.adminport,
+    "path": "/manage/v2/packages?pkgname=" + encodeURI(pkgname) + "&format=json",
+    "method": "POST",
+    contentType: "application/zip"
+  };
+  this.__doreq("CREATEPACKAGEFORMZIP",options,pkg,function(result) {
+    // new package ID in content (plain text) of response
+    result.docuri = result.doc;
+    callback(result);
+  }); // Note returns Location as result.docuri
+};
+
+mljs.prototype.createPackage = function(pkgname,pkgdoc,callback) {
+  var options = {
+    host: this.dboptions.host,
+    port: this.dboptions.adminport,
+    "path": "/manage/v2/packages?pkgname=" + encodeURI(pkgname),
+    "method": "POST",
+    contentType: "application/xml"
+  };
+  this.__doreq("CREATEPACKAGE",options,pkgdoc,function(result) {
+    // new package ID in content (plain text) of response
+    result.docuri = result.doc;
+    callback(result);
+  }); // Note returns Location as result.docuri
+};
+
+mljs.prototype.deletePackage = function(pkgname, callback) {
+  var options = {
+    host: this.dboptions.host,
+    port: this.dboptions.adminport,
+    "path": "/manage/v2/packages/" + encodeURI(pkgname),
+    "method": "DELETE"
+  };
+  this.__doreq("DELETEPACKAGE",options,null,callback);
+};
+
+mljs.prototype.addDatabaseToPackage = function(pkgname,dbname,pkgdoc,callback) {
+  var options = {
+    host: this.dboptions.host,
+    port: this.dboptions.adminport,
+    "path": "/manage/v2/packages/" + encodeURI(pkgname) + "/databases/" + encodeURI(dbname),
+    "method": "POST",
+    contentType: "application/xml"
+  };
+  this.__doreq("ADDDATABASETOPACKAGE",options,pkgdoc,callback);
+};
+
+mljs.prototype.createPackageFromDocument = function(pkgname,pkgdoc,callback) {
+  var options = {
+    host: this.dboptions.host,
+    port: this.dboptions.adminport,
+    "path": "/manage/v2/packages/" + encodeURI(pkgname),
+    "method": "POST"
+    // contentType sniffed from package (JSON or XML only)
+  };
+  this.__doreq("CREATEPACKAGEFROMDOCUMENT",options,pkgdoc,function(result) { // TODO replace with correct way to add a database to a package (AND rename database!!!)
+    // new package ID in content (plain text) of response
+    result.docuri = result.doc;
+    callback(result);
+  }); // Note returns Location as result.docuri
+};
+
+mljs.prototype.downloadPackage = function(pkgname,callback) {
+  var options = {
+    host: this.dboptions.host,
+    port: this.dboptions.adminport,
+    path: "/manage/v2/packages/" + encodeURI(pkgname) + "?view=package",
+    method: "GET",
+    headers: {"Accept": "application/zip"}
+  };
+  this.__doreq("DOWNLOADPACKAGE",options,null,callback);
+};
+
+mljs.prototype.installPackage = function(pkgname,callback) {
+  var options = {
+    host: this.dboptions.host,
+    port: this.dboptions.adminport,
+    path: "/manage/v2/packages/" + encodeURI(pkgname) + "/install",
+    method: "POST"
+  };
+  this.__doreq("INSTALLPACKAGE",options,null,function(result) {
+    // new package ID in content (plain text) of response
+    result.docuri = result.doc;
+    callback(result);
+  });
+};
+
+mljs.prototype.installPackageProgress = function(pkguri,callback) {
+  // pkguri could be a /uri or a ticket id
+  var uri = pkguri;
+  if ("/" != pkguri.substring(0,1)) {
+    uri = "/manage/v2/tickets/" + pkguri; // should this be /transactions instead???
+  }
+  var options = {
+    host: this.dboptions.host,
+    port: this.dboptions.adminport,
+    path: uri,
+    method: "GET",
+    headers: {Accept: "application/json"}
+  };
+  this.__doreq("INSTALLPACKAGEPROGRESS",options,null,callback);
+};
+
+// TODO forests, servers as a minimum
+
+// TODO perhaps complex helper functions for a DB's security database dependent settings, triggers, CPF config, etc.
+
 
 
 

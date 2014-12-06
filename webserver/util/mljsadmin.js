@@ -36,8 +36,23 @@ var logger = new (winston.Logger)({
 
 env.appname = env.database + "-rest-" + env.port; // fix for naming of rest api instance
 var db = new mljs();
+// override Winston logger for the command line output and hidden error messages (to a file)
 db.setLogger(logger);
-db.configure(env); // TODO override Winston logger for the command line output and hidden error messages (to a file)
+db.configure(env);
+//console.log("ENV: " + JSON.stringify(env));
+
+//var mdb = new mljs();
+//mdb.setLogger(logger);
+var menv = {};
+for (var name in env) {
+  menv[name] = env[name];
+}
+menv.port = menv.modulesport;
+menv.database = menv.modulesdatabase;
+menv.appname = menv.database + "-rest-" + menv.port;
+//mdb.configure(menv);
+console.log("CONTENTENV: " + JSON.stringify(env));
+console.log("MODULESENV: " + JSON.stringify(menv));
 
 
 // TODO validate options. If any look dumb, then fail with usage message and examples
@@ -50,16 +65,18 @@ var usage = function(msg) {
   console.log("       mljsadmin --install=restapi");
   console.log("       mljsadmin --install=modulesrestapi");
   console.log("       mljsadmin --install=extensions");
+  console.log("       mljsadmin --install=modules [-m ./modules]");
   console.log("       mljsadmin update");
   console.log("       mljsadmin --update");
   console.log("       mljsadmin --update=restapi NOT IMPLEMENTED");
   console.log("       mljsadmin --update=dbconfig NOT IMPLEMENTED");
   console.log("       mljsadmin --update=searchoptions");
-  console.log("       mljsadmin --update=ontology");
-  console.log("       mljsadmin --update=workplace");
+  console.log("       mljsadmin --update=ontology [-o ./data/ontology.ttl] [-g ontologyGraphName]");
+  console.log("       mljsadmin --update=workplace [-w ./data/mljs-workplace.xml]");
   console.log("       mljsadmin capture");
-  console.log("       mljsadmin --capture=workplace NOT IMPLEMENTED");
-  console.log("       mljsadmin --capture=ontology NOT IMPLEMENTED");
+  console.log("       mljsadmin --capture=workplace [-w ./data/mljs-workplace.xml]");
+  console.log("       mljsadmin --capture=ontology [-o ./data/ontology.ttl] [-g ontologyGraphName]");
+  console.log("       mljsadmin --capture=searchoptions");
   console.log("       mljsadmin remove");
   console.log("       mljsadmin --remove");
   console.log("       mljsadmin --remove=restapi");
@@ -69,6 +86,8 @@ var usage = function(msg) {
   console.log("       mljsadmin --load");
   console.log("       mljsadmin --load=initial");
   console.log("       mljsadmin --load=folder -f /some/base/folder");
+  console.log("       mljsadmin patch NOT IMPLEMENTED");
+  console.log("       mljsadmin devpatch NOT IMPLEMENTED");
   process.exit(1);
 };
 
@@ -85,11 +104,10 @@ var targets = {
   /**
   * Base install command, calls all other commands in order
   **/
-  install: function() {
+  install: function(params) {
     //targets.install_restapi().then(targets.install_modulesrestapi()).then(targets.install_extensions());
-    var funcs = [targets.install_restapi,function(){return Q.delay(10000);},targets.install_modulesrestapi,
-      function(){return Q.delay(10000);},targets.install_extensions,targets.update,targets.load_initial()];
-    funcs.reduce(Q.when, Q(""));
+    var funcs = [targets.install_restapi,function(){return Q.delay(10000);},targets.install_modulesrestapi,function(){return Q.delay(10000);},targets.install_modules,targets.install_extensions,targets.update,targets.load_initial];
+    funcs.reduce(Q.when, Q(params));
   },
 
 
@@ -104,6 +122,7 @@ var targets = {
     //console.log("    - config: " + JSON.stringify(env));
     db.create(function(result) {
       if (result.inError) {
+        console.log(JSON.stringify(result));
         crapout(result.detail);
       } else {
         // all ok
@@ -118,17 +137,10 @@ var targets = {
   install_modulesrestapi: function() {
     var deferred = Q.defer();
     console.log(" - install_modulesrestapi()");
-    var modulesenv = {};
-    for (var name in env) {
-      modulesenv[name] = env[name];
-    }
-    modulesenv.port = modulesenv.modulesport;
-    modulesenv.database = modulesenv.modulesdatabase;
-    modulesenv.appname = modulesenv.database + "-rest-" + modulesenv.port;
     //console.log("    - config: " + JSON.stringify(modulesenv));
-    db.create(modulesenv,function(result) {
+    db.create(menv,function(result) {
       if (result.inError) {
-        crapout(result.detail);
+        crapout(result.error);
       } else {
         // all ok
         console.log("    - SUCCESS");
@@ -136,6 +148,28 @@ var targets = {
       }
     });
     return deferred.promise;
+  },
+
+  // WORKS
+  install_modules: function(params) {
+    console.log(" - install_modules()");
+    var folder = "./modules";
+    if (undefined != params && undefined != params.m) {
+      folder = params.m;
+    }
+
+    // loop through folder recursively and save modules to mdb
+
+    var mdb = new mljs();
+    mdb.setLogger(logger);
+    mdb.configure(menv);
+
+    var settings = {
+      folder: folder, recursive: true, ignore: [".load.json", ".initial.json"],
+      prefix: "/", stripBaseFolder: true, collections: []
+    };
+    console.log("calling load folder: " + JSON.stringify(settings));
+    return targets._loadFolder(mdb,folder,settings);
   },
 
   // WORKS
@@ -188,10 +222,11 @@ var targets = {
   /**
    * Generic update handler - calls all remaining configuration updating handlers
    **/
-  update:function() {
+  update:function(params) {
+    console.log(" - update()");
     //targets.update_ontology()
     //  .then(targets.update_workplace()).then(targets.update_searchoptions());
-    var funcs = [targets.update_workplace,targets.update_searchoptions];
+    var funcs = [targets.update_dbconfig,targets.update_modulesdbconfig,targets.update_workplace,targets.update_searchoptions,targets.update_ontology];
     return funcs.reduce(Q.when, Q(""));
   },
 
@@ -210,62 +245,138 @@ var targets = {
   /**
    * Install ontology, if it exists (config/ontology.ttl) in Turtle format ('ontology' named graph) - optional custom name
    **/
-  update_ontology:function() {
+  update_ontology:function(params) {
     var deferred = Q.defer();
     console.log(" - update_ontology()");
+    var file = './data/ontology.ttl';
+    if (undefined != params && undefined != params.o) {
+      file = params.o;
+    }
+    var graphname = "ontology";
+    if (undefined != params && undefined != params.g) {
+      graphname = params.g;
+    }
+    console.log("    - loading ontology from file: " + file);
     //console.log("   - Not yet implemented");
     // TODO check if OPTIONAL ontology exists
-    fs.readFile('./data/ontology.xml', 'utf8', function (err,data) {
+    fs.readFile(file, 'utf8', function (err,data) {
       if (err) {
         // doesn't exist
-        deferred.resolve("SKIPPING");
+        console.log("    - SKIPPING as Ontology file does not exist: " + file);
+        deferred.resolve(params);
         //crapout(err);
+      } else {
+        db.saveGraph(data,graphname,{format: "turtle"},function(result) {
+          if (result.inError) {
+            crapout(result.detail);
+          } else {
+            // all ok
+            console.log("    - SUCCESS installing ontology to graph: " + graphname);
+            deferred.resolve("SUCCESS");
+          }
+        });
       }
-      db.save(data,"ontology",function(result) {
-        if (result.inError) {
-          crapout(result.detail);
-        } else {
-          // all ok
-          console.log("    - SUCCESS");
-          deferred.resolve("SUCCESS");
-        }
-      });
     });
     return deferred.promise;
   },
 
-
+  // WORKS
   /**
    * Install workplace file, if it exists (config/mljs-workplace.xml)
    **/
-  update_workplace:function() {
+  update_workplace:function(params) {
     var deferred = Q.defer();
     console.log(" - update_workplace()");
+    var file = './data/mljs-workplace.xml';
+    if (undefined != params && undefined != params.w) {
+      file = params.w;
+    }
+    console.log("    - Installing workplace xml file: " + file);
     //console.log("   - Not yet implemented");
-    fs.readFile('./data/mljs-workplace.xml', 'utf8', function (err,data) {
+    fs.readFile(file, 'utf8', function (err,data) {
       if (err) {
         crapout(err);
       }
+      //console.log("data: " + data);
+      //console.log("data.toString(): " + data.toString());
       db.saveWorkplace(data,function(result) {
         if (result.inError) {
+          console.log(JSON.stringify(result));
           crapout(result.detail);
         } else {
           // all ok
-          console.log("    - SUCCESS");
-          deferred.resolve("SUCCESS");
+          console.log("    - SUCCESS installing workplace xml file: " + file);
+          deferred.resolve(params);
         }
       });
     });
     return deferred.promise;
   },
 
-
+// WORKS
    /**
    * Install extra database configuration if it exists (config/ml-config.xml OR deploy/ml-config.xml (Roxy old files))
    **/
-  update_dbconfig:function() {
+  update_dbconfig:function(params) {
     console.log(" - update_dbconfig()");
-    console.log("   - Not yet implemented");
+    return targets.__applyDatabasePackage(params,env.database,"contentdbconfig");
+  },
+
+// WORKS
+  update_modulesdbconfig: function(params) {
+    console.log(" - update_modulesdbconfig()");
+    return targets.__applyDatabasePackage(params,env.modulesdatabase,"modulesdbconfig");
+  },
+
+  __applyDatabasePackage: function(params,name,filename) {
+    var deferred = Q.defer();
+    // read file
+    var file = "./packages/databases/" + filename + ".xml"; // TODO check and skip
+    console.log("    - reading package xml file: " + file);
+    fs.readFile(file, 'utf8', function (err,data) {
+      if (err) {
+        //crapout(err);
+        console.log("    - No package found for: " + filename + ", skipping");
+        deferred.resolve(params);
+      } else {
+        console.log("    - Read file: " + file);
+        // create/update package
+        db.createPackage(name,data,function(result) {
+          if (result.inError) {
+            crapout(result.detail);
+          } else {
+            console.log("    - Created package: " + name);
+
+            db.addDatabaseToPackage(name,name,data,function(result) {
+              if (result.inError) {
+                crapout(result.detail);
+              } else {
+                console.log("    - Added database to package: " + name);
+
+                // apply package
+                db.installPackage(name,function(result) {
+                  if (result.inError) {
+                    crapout(result.detail);
+                  } else {
+                    console.log("   - SUCCESS installed database package for " + name);
+
+                    db.deletePackage(name,function(result) {
+                      if (result.inError) {
+                        crapout(result.detail);
+                      } else {
+                        deferred.resolve(params);
+                      }
+
+                    });
+                  }
+                });
+              }
+            });
+          }
+        });
+      }
+    });
+    return deferred.promise;
   },
 
 
@@ -336,65 +447,161 @@ var targets = {
  */
 
 
- capture: function() {
-   targets.capture_workplace(); //.then(targets.capture_ontology());
+ capture: function(params) {
+   targets.capture_workplace(params); //.then(targets.capture_ontology());
+   var funcs = [targets.capture_workplace,targets.capture_ontology,capture_searchoptions];
+   return funcs.reduce(Q.when, Q(params)); // TODO pass in params
  },
 
+  // WORKS
   /**
    * Capture workplace configuration
    **/
-  capture_workplace: function() {
+  capture_workplace: function(params) {
     var deferred = Q.defer();
+    var file = './data/mljs-workplace.xml';
+    if (undefined != params && undefined != params.w) {
+      folder = params.w;
+    }
     console.log(" - capture_workplace()");
-    console.log("   - Not yet implemented");
+    console.log("   - saving to file: " + file);
     db.workplace(function(result) {
       if (result.inError) {
-        crapout(result.detail);
+        crapout(result.detail); // workplace extension not installed???
       } else {
+        //console.log(JSON.stringify(result));
         // all ok
-        fs.writeFile('./data/mljs-workplace.xml', result.doc, function (err) {
+        fs.writeFile(file, result.body, function (err) {
           if (err) return crapout(err);
-          console.log("    - SUCCESS");
-          deferred.resolve("SUCCESS");
+          console.log("    - SUCCESS capturing workplace to: " + file);
+          deferred.resolve(params);
         });
       }
     });
     return deferred.promise;
   },
 
+  // WORKS
   /**
-   * TODO Capture ontology in Turtle format ('ontology' named graph) - optional custom name
+   * Capture ontology in Turtle format ('ontology' named graph) - optional custom name
    **/
-  capture_ontology: function() {
+  capture_ontology: function(params) {
+    var deferred = Q.defer();
     console.log(" - capture_ontology()");
-    console.log("   - Not yet implemented");
-
+    var file = './data/ontology.ttl';
+    if (undefined != params && undefined != params.o) {
+      file = params.o;
+    }
+    var graphname = "ontology";
+    if (undefined != params && undefined != params.g) {
+      graphname = params.g;
+    }
+    console.log("   - Storing ontology in file: " + file + " from ontology graph: " + graphname);
+    db.graph(graphname,{format: "turtle"},function(result) {
+      if (result.inError) {
+        crapout(result.detail);
+      } else {
+        // all ok
+        fs.writeFile(file, result.body, function (err) {
+          if (err) return crapout(err);
+          console.log("    - SUCCESS capturing ontology to file: " + file);
+          deferred.resolve(params);
+        });
+      }
+    });
+    return deferred.promise;
   },
 
 
+  __saveSearchOptions: function(params,name,uri) {
+    var deferred = Q.defer();
+
+    db.searchOptions(name,{format:"xml"},function(result) {
+      if (result.inError) {
+        crapout(result.detail);
+      } else {
+        fs.writeFile("./rest-api/config/options/" + name + ".xml", result.body, function (err) {
+          if (err) return crapout(err);
+          console.log("    - SUCCESS saving search options: " + name);
+          deferred.resolve(params);
+        });
+      }
+    });
+
+    return deferred.promise;
+  },
+
+// WORKS
 /**
- * TODO Capture all search options (Packaging API?)
+ * Capture all search options (Packaging API?)
  **/
+  capture_searchoptions: function(params) {
+    var deferred = Q.defer();
+    console.log(" - capture_ontology()");
+    db.searchoptions(function(result) {
+      if (result.inError) {
+        crapout(result.detail);
+      } else {
+        var promises = [];
+        var files = result.doc;
+        for (var f = 0,maxf = files.length,file;f < maxf;f++) {
+          file = files[f];
+          promises[f] = targets.__saveSearchOptions(params,file.name,file.uri);
+        }
+        Q.all(promises).then(function(output) {
+          console.log(" - All search options captured");
+          deferred.resolve(params);
+        }); // no fail() as we instantly end the app anyway
+      }
+    });
+    return deferred.promise;
+  },
 
-
-
+// WORKS
 /**
- * TODO Capture MarkLogic database configuration (Packaging API?)
+ * Capture MarkLogic database configuration (Packaging API?)
  **/
+ capture_dbconfig: function(params) {
+   return targets.__captureDatabase(params,env.database,"contentdbconfig");
+ },
+
+// WORKS
+ capture_modulesdbconfig: function(params) {
+   return targets.__captureDatabase(params,env.modulesdatabase,"modulesdbconfig");
+ },
+
+ __captureDatabase: function(params,name,filename) {
+   var deferred = Q.defer();
+   // get content database XML package file
+   db.getDatabasePackage(name,function(result) {
+     if (result.inError) {
+       console.log(JSON.stringify(result));
+       crapout(result.detail);
+     } else {
+       // add to correct package folder
+       fs.writeFile("./packages/databases/" + filename + ".xml", result.body, function (err) {
+         if (err) return crapout(err);
+         console.log("    - SUCCESS saving database package: " + name + " as " + filename + ".xml");
+         deferred.resolve(params);
+       });
+     }
+   });
+   return deferred.promise;
+ },
 
 
 
 /**
- * TODO Capture MarkLogic app server configuration (Packaging API?)
+ * TODO NA - just create with our scripts??? - Capture MarkLogic app server configuration (Packaging API?)
  **/
 
 
 
  // WORKS
-  remove: function() {
+  remove: function(params) {
     //targets.remove_extensions().then(targets.remove_restapi()).then(targets.remove_modulesrestapi());
     var funcs = [targets.remove_extensions,targets.remove_restapi,function(){return Q.delay(10000);},targets.remove_modulesrestapi];
-    funcs.reduce(Q.when, Q(""));
+    funcs.reduce(Q.when, Q(params));
   },
 
   // WORKS
@@ -482,8 +689,8 @@ var targets = {
 
 
   // WORKS
-  load: function() {
-    targets.load_initial();
+  load: function(params) {
+    targets.load_initial(params);
   },
 
   // WORKS
@@ -491,7 +698,7 @@ var targets = {
     // check for ./data/.initial.json to see what folder to load
     // process as for load
     console.log(" - load_initial()");
-    return targets._loadFolder("./data",".initial.json").progress(function(progress) {
+    return targets._loadFolder(db,"./data",".initial.json").progress(function(progress) {
       console.log("    - Progress: " + progress + "% done");
     });
   },
@@ -502,13 +709,13 @@ var targets = {
     console.log(" - load_folder()");
     // TODO handle trailing slash in folder name of args.f
     // TODO windows file / and \ testing
-    return targets._loadFolder(args.f,".load.json").progress(function(progress) {
+    return targets._loadFolder(db,args.f,".load.json").progress(function(progress) {
       console.log("    - Progress: " + progress + "% done");
     });
   },
 
   // WORKS
-  _loadFolder: function(folder,settingsFile,base_opt,inheritedSettings) {
+  _loadFolder: function(db,folder,settingsFile,base_opt,inheritedSettings) {
     var base = base_opt || folder;
     console.log("    - " + folder);
     //console.log("settings passed: " + JSON.stringify(inheritedSettings));
@@ -518,7 +725,7 @@ var targets = {
       prefix: "/", stripBaseFolder: true, collections: []
       // TODO support linking .jpg and .xml (and XHTML) files automatically
       // TODO support <filename>.meta XML files alongside main files
-    }
+    };
     var filename = settings.folder + "/" + (settingsFile || ".load.json");
 
     //console.log("settings defaults: " + JSON.stringify(settings));
@@ -538,6 +745,7 @@ var targets = {
     fs.readFile(filename, 'utf8', function (err,data) {
       if (err) {
         //crapout(err);
+        console.log("    - settings file doesn't exist: " + filename);
         // doesn't exist - ignore and carry on
       }
       var json = {};
@@ -547,12 +755,13 @@ var targets = {
       }
       for (var name in json) {
         if ("folder" == name) {
-          settings[name] = settings.folder + "/" + json[name];
+          settings.folder = base + "/" + json.folder; // WORKS
           base = settings.folder; // reset base
         } else {
           settings[name] = json[name];
         }
       }
+      console.log("      - Folder now: " + settings.folder);
 
       //console.log("settings finally: " + JSON.stringify(settings));
 
@@ -603,6 +812,9 @@ var targets = {
                 vff = "/" + vff;
               }
               var uri = settings.prefix + vf + vff;
+              if ("//"==uri.substring(0,2)) {
+                uri = uri.substring(1); // remove extra slash at front
+              }
               var cols = "";
               for (var c = 0, maxc = settings.collections.length,col;c < maxc;c++) {
                 col = settings.collections[c];
@@ -612,14 +824,19 @@ var targets = {
                 cols += col;
               }
               var props = {
-                collection: cols
               };
+              if (undefined != cols && "" != cols) {
+                props.collection=cols;
+              }
+              if (uri.substring(uri.length - 4) == ".xqy") {
+                props.contentType = "application/xquery";
+              }
               db.save(data,uri,props,function(result) {
                 if (result.inError) {
                   // just log the message
                   console.log("    - ERROR saving file to uri: " + uri);
                 } else {
-                  console.log("    - SUCCESS " + settings.folder + "/" + file + " => " + uri);
+                  console.log("    - SUCCESS " + settings.folder + "/" + file + " => " + uri + " (" + result.docuri + ")");
                 }
                 deferred2.resolve(settings.folder + "/" + file);
               });
@@ -650,7 +867,7 @@ var targets = {
                     news[name] = settings[name];
                   }
                 }
-                promises[idx] = targets._loadFolder(settings.folder+"/"+file,".load.json",base,news);
+                promises[idx] = targets._loadFolder(db,settings.folder+"/"+file,".load.json",base,news);
               } else {
                 console.log("    - Not recursively processing folder: " + settings.folder);
               }
@@ -678,6 +895,40 @@ var targets = {
 
 
     return deferred.promise;
+  },
+
+  patch: function(params) {
+    console.log(" - patch()");
+    console.log("   - NOT IMPLEMENTED");
+
+    // like devpatch, but from MASTER not DEV
+    return targets.__patch(params,"MASTER");
+  },
+
+  devpatch: function(params) {
+    console.log(" - devpatch()");
+    console.log("   - NOT IMPLEMENTED");
+
+    // Fetch latest MLJS Workplace app from GitHub DEV branch repo
+    return targets.__patch(params,"DEV");
+  },
+
+  __patch: function(params,branch) {
+    // fetch
+
+    // unpack
+    // copy /apps/workplace/src to app
+    // copy /apps/workplace/src/app and /apps/workplace/src/roxy to modules/app and modules/roxy
+    // copy /apps/workplace/rest-api content over
+
+
+    // Fetch latest MLJS core NPM content from GitHub DEV branch
+    // in src/js/mljs.js and src/js/lib
+    // copy to ./node_modules/mljs/
+    // need to copy over package.json?
+
+    // NB may need to list and fetch individual files :( or download tar.gz packages and unpack :)
+
   }
 
 
@@ -709,7 +960,7 @@ b: true,
 c: true,
 beep: 'boop' }
 */
-var targetGroups = ["install","update","capture","remove","load"];
+var targetGroups = ["install","update","capture","remove","load","devpatch"];
 if (argv._.length == 1) { // just one non option parameter, and no --option= parameters
   var found = false
   for (var g = 0,maxg = targetGroups.length,group;!found && g < maxg;g++) {

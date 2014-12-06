@@ -44,6 +44,8 @@ function ext:post(
     $input   as document-node()*
 ) as document-node()*
 {
+let $_ := xdmp:log($input)
+return
   (
     for $page in $input/workplace/pages/page
     return

@@ -12,11 +12,17 @@ mkdir $D/src
 mkdir $D/rest-api
 mkdir $D/config
 mkdir $D/util
+mkdir $D/data
+mkdir $D/modules
+mkdir $D/modules/app
+mkdir $D/modules/roxy
 mkdir $D/example-workplaces
 
 cp ./webserver/* $D/
 echo "Copying src"
 cp -R ./apps/$1/src/* $D/src/
+cp -R ./apps/$1/src/app/* $D/modules/app/
+cp -R ./apps/$1/src/roxy/* $D/modules/roxy/
 echo "Copying rest-api"
 cp -R ./webserver/rest-api/* $D/rest-api/
 cp -R ./apps/$1/rest-api/* $D/rest-api/
@@ -28,6 +34,8 @@ echo "Copying util apps"
 cp -R ./webserver/util/* $D/util/
 #echo "Copying package.json" #Superseded by mljswebserver's npm package.json
 #cp ./apps/$1/package.json $D/
+echo "Installing rest extension description file"
+cp ./apps/$1/data/restapi.json $D/data/
 echo "Copying bower.json"
 cp ./apps/$1/bower.json $D/
 

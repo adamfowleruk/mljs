@@ -64,7 +64,7 @@ DH Demo - 2 days
   - DONE Install instructions
 
 The demo
- - IN PROGRESS Complete as per its progress document
+ - DONE Complete as per its progress document
 
 Tidying up
  - DONE Widgets: Search results
@@ -77,6 +77,7 @@ Tidying up
   - Test with multiple directories, but just 1 layer down
   - More stringent URL entries on page configuration box
  - BUG Widgets: searchfacets - deselection of facet values not working as expected
+ - BUG db.configure affects ALL instances
 
 Targets for 1.7 (Nov 2014) - Theme: External WebServer and Alerting
  - Docs: videos for release

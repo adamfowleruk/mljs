@@ -8,7 +8,8 @@ window.onload = function() {
   errors.allowDetails = true;
 
   try {
-    KeyLines.paths({
+    if (undefined != window.KeyLines) {
+      KeyLines.paths({
           assets: '/keylines/assets/',
           flash: {
             swf: 'swf/keylines.swf',
@@ -16,6 +17,7 @@ window.onload = function() {
             expressInstall: 'swf/expressInstall.swf'
           }
         });
+    }
 
   } catch (err) {
     errors.show(err);
@@ -23,7 +25,7 @@ window.onload = function() {
 
   try {
     var sc = db.createSessionContext(); // creates single global instance
-    
+
     // Load workplace nav bar
     var wpcontext = new com.marklogic.widgets.workplacecontext();
     var nav = new com.marklogic.widgets.workplacenavbar("navholder");
