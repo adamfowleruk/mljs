@@ -13,7 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-var basic = null, digest = null, thru = null, noop = null, winston = null, jsdom = null;
+var basic = null, digest = null, thru = null, noop = null, winston = null;//, jsdom = null;
 var logger = null;
   if (typeof String.prototype.endsWith !== 'function') {
     String.prototype.endsWith = function(suffix) {
@@ -41,7 +41,7 @@ if (typeof(window) === 'undefined') {
   thru = require("./lib/passthrough-wrapper");
   noop = require("./lib/noop");
   winston = require('winston');
-  jsdom = require('jsdom');
+  //jsdom = require('jsdom');
 
   logger = new (winston.Logger)({
     transports: [
@@ -240,9 +240,19 @@ stringhelper.camelcase = function(value,mode) {
  */
 function textToXML(text){
   var doc = null;
+  if (undefined == text) {
+    text = "";
+  }
   if (typeof window === "undefined") {
     // return plain text in nodejs
-    doc = jsdom.jsdom(text, null, { FetchExternalResources: false, ProcessExternalResources: false });
+    //var jsdom = require("jsdom");
+    //doc = jsdom.jsdom(text, null, { FetchExternalResources: false, ProcessExternalResources: false });
+    //var parser = new (require('xmlshim').DOMParser)(); // xmlshim >
+    //var parser = require("libxml");
+    var parser = new (require('flat-xmldom').DOMParser)();
+    doc = parser.parseFromString(text, "text/xml");
+    console.log("TEXT: " + text);
+    console.log("DOC: " + doc)
   } else {
 	  if (window.ActiveXObject){
       doc=new ActiveXObject('Microsoft.XMLDOM');
@@ -6218,7 +6228,7 @@ if (typeof(window) === 'undefined') {
   com.marklogic.events = {};
   com.marklogic.semantic = {};
 
-  var XMLSerializer = require('xmldom').XMLSerializer;
+  var XMLSerializer = require('flat-xmldom').XMLSerializer;
 } else {
   com = window.com || {};
   com.marklogic = window.com.marklogic || {};
