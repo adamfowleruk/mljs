@@ -1,8 +1,8 @@
 {
   "name": "mlnodetools",
-  "version": "1.6.1",
+  "version": "1.7.0",
   "dependencies": {
-    "mljs": "^1.6.1",
+    "mljs": "^1.7.0",
     "istextorbinary": "^1.0.0",
     "minimist": "^1.1.0",
     "q": "^1.1.2",
