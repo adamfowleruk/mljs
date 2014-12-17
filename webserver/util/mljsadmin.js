@@ -66,28 +66,38 @@ var usage = function(msg) {
   console.log("       mljsadmin --install=modulesrestapi");
   console.log("       mljsadmin --install=extensions");
   console.log("       mljsadmin --install=modules [-m ./modules]");
+  console.log("       mljsadmin --install=triggers");
   console.log("       mljsadmin update");
   console.log("       mljsadmin --update");
   console.log("       mljsadmin --update=restapi NOT IMPLEMENTED");
-  console.log("       mljsadmin --update=dbconfig NOT IMPLEMENTED");
+  console.log("       mljsadmin --update=dbconfig");
+  console.log("       mljsadmin --update=modulesdbconfig");
   console.log("       mljsadmin --update=searchoptions");
   console.log("       mljsadmin --update=ontology [-o ./data/ontology.ttl] [-g ontologyGraphName]");
   console.log("       mljsadmin --update=workplace [-w ./data/mljs-workplace.xml]");
   console.log("       mljsadmin capture");
-  console.log("       mljsadmin --capture=workplace [-w ./data/mljs-workplace.xml]");
-  console.log("       mljsadmin --capture=ontology [-o ./data/ontology.ttl] [-g ontologyGraphName]");
+  console.log("       mljsadmin --capture=restapi NOT IMPLEMENTED");
+  console.log("       mljsadmin --capture=dbconfig");
+  console.log("       mljsadmin --capture=modulesdbconfig");
+  console.log("       mljsadmin --capture=extensions NOT IMPLEMENTED");
   console.log("       mljsadmin --capture=searchoptions");
+  console.log("       mljsadmin --capture=ontology [-o ./data/ontology.ttl] [-g ontologyGraphName]");
+  console.log("       mljsadmin --capture=workplace [-w ./data/mljs-workplace.xml]");
+  console.log("       mljsadmin --capture=triggers NOT IMPLEMENTED");
   console.log("       mljsadmin remove");
   console.log("       mljsadmin --remove");
   console.log("       mljsadmin --remove=restapi");
   console.log("       mljsadmin --remove=modulesrestapi");
   console.log("       mljsadmin --remove=extensions");
+  console.log("       mljsadmin --remove=triggers");
   console.log("       mljsadmin load");
   console.log("       mljsadmin --load");
   console.log("       mljsadmin --load=initial");
   console.log("       mljsadmin --load=folder -f /some/base/folder");
-  console.log("       mljsadmin patch NOT IMPLEMENTED");
-  console.log("       mljsadmin devpatch NOT IMPLEMENTED");
+  console.log("       mljsadmin clean [-i includeCollection1,includeCollection2] [-e excludeCollection3,excludeCollection4]"); // removes all content from database (including workplace)
+  console.log("       mljsadmin reset "); // clean followed by update ontology, workplace, load initial
+  console.log("       mljsadmin patch NOT IMPLEMENTED"); // patch mljs and mljsadmin to latest MASTER release
+  console.log("       mljsadmin devpatch NOT IMPLEMENTED"); // patch mljs and mljsadmin to latest DEV release
   process.exit(1);
 };
 
@@ -106,7 +116,10 @@ var targets = {
   **/
   install: function(params) {
     //targets.install_restapi().then(targets.install_modulesrestapi()).then(targets.install_extensions());
-    var funcs = [targets.install_restapi,function(){return Q.delay(10000);},targets.install_modulesrestapi,function(){return Q.delay(10000);},targets.install_extensions,targets.update,targets.load_initial,targets.install_modules];
+    var funcs = [targets.install_restapi,function(){return Q.delay(10000);},targets.install_modulesrestapi,
+      function(){return Q.delay(10000);},targets.install_modules,targets.install_extensions,targets.install_triggers,
+      function(){return Q.delay(5000);},targets.update,targets.load_initial
+      ]; // NB triggers done immediately after extensions incase any triggers need to run on loaded initial content
     funcs.reduce(Q.when, Q(params));
   },
 
@@ -165,7 +178,7 @@ var targets = {
     mdb.configure(menv);
 
     var settings = {
-      folder: folder, recursive: true, ignore: [".load.json", ".initial.json"],
+      folder: folder, recursive: true, ignore: [".load.json", ".initial.json",".DS_Store"],
       prefix: "/", stripBaseFolder: true, collections: []
     };
     console.log("calling load folder: " + JSON.stringify(settings));
@@ -212,7 +225,46 @@ var targets = {
         promises[e] = readFile(ext);
       }
       Q.all(promises).then(function(output) {
-        deferred.resolve("SUCCESS");
+        deferred.resolve("SUCCESS - completed rest extension installation");
+      });
+    });
+    return deferred.promise;
+  },
+
+
+  install_triggers: function(params) {
+    var deferred = Q.defer();
+    console.log(" - install_triggers()");
+    // install rest extensions in REST server
+    // read data/restapi.json file for list of extensions
+    var installTrigger = function(triggerInfo) {
+      var deferred3 = Q.defer();
+      db.installTrigger(triggerInfo,function(result) {
+        console.log("    - SUCCESS - installing trigger " + triggerInfo.name + " : " + triggerInfo.comment);
+        deferred3.resolve(params);
+      });
+      return deferred3.promise;
+    };
+    fs.readFile('./data/restapi.json', 'utf8', function (err,data) {
+      if (err) {
+        crapout(err);
+      }
+      var json = JSON.parse(data);
+      var triggers = json.triggers;
+      var promises = [];
+      if (undefined != triggers) {
+        for (var e = 0,maxe = triggers.length,trg;e < maxe;e++) {
+          trg = triggers[e];
+          // process each trigger and install
+
+          // MUST OVERWRITE DB NAME!
+          trg.module.database = env.modulesdatabase;
+
+          promises[e] = installTrigger(trg);
+        }
+      }
+      Q.all(promises).then(function(output) {
+        deferred.resolve(params);
       });
     });
     return deferred.promise;
@@ -226,8 +278,9 @@ var targets = {
     console.log(" - update()");
     //targets.update_ontology()
     //  .then(targets.update_workplace()).then(targets.update_searchoptions());
-    var funcs = [targets.update_dbconfig,targets.update_modulesdbconfig,targets.update_workplace,targets.update_searchoptions,targets.update_ontology];
-    return funcs.reduce(Q.when, Q(""));
+    var funcs = [targets.update_dbconfig,targets.update_modulesdbconfig,
+      targets.update_workplace,targets.update_searchoptions,targets.update_ontology];
+    return funcs.reduce(Q.when, params);
   },
 
 
@@ -449,7 +502,7 @@ var targets = {
 
  capture: function(params) {
    targets.capture_workplace(params); //.then(targets.capture_ontology());
-   var funcs = [targets.capture_workplace,targets.capture_ontology,capture_searchoptions];
+   var funcs = [targets.capture_dbconfig,targets.capture_modulesdbconfig,targets.capture_workplace,targets.capture_ontology,targets.capture_searchoptions];
    return funcs.reduce(Q.when, Q(params)); // TODO pass in params
  },
 
@@ -600,7 +653,7 @@ var targets = {
  // WORKS
   remove: function(params) {
     //targets.remove_extensions().then(targets.remove_restapi()).then(targets.remove_modulesrestapi());
-    var funcs = [targets.remove_extensions,targets.remove_restapi,function(){return Q.delay(10000);},targets.remove_modulesrestapi];
+    var funcs = [targets.remove_triggers,targets.remove_extensions,targets.remove_restapi,function(){return Q.delay(10000);},targets.remove_modulesrestapi];
     funcs.reduce(Q.when, Q(params));
   },
 
@@ -648,6 +701,40 @@ var targets = {
   },
 
 
+  remove_triggers: function(params) {
+    var deferred = Q.defer();
+    console.log(" - remove_triggers()");
+    // install rest extensions in REST server
+    // read data/restapi.json file for list of extensions
+    var removeTrigger = function(triggerName,triggersDatabase) {
+      var deferred3 = Q.defer();
+      db.removeTrigger(triggerName,triggersDatabase,function(result) {
+        console.log("    - SUCCESS - removed trigger " + triggerName);
+        deferred3.resolve(params);
+      });
+      return deferred3.promise;
+    };
+    fs.readFile('./data/restapi.json', 'utf8', function (err,data) {
+      if (err) {
+        crapout(err);
+      }
+      var json = JSON.parse(data);
+      var triggers = json.triggers;
+      var promises = [];
+      if (undefined != triggers) {
+        for (var e = 0,maxe = triggers.length,trg;e < maxe;e++) {
+          trg = triggers[e];
+          // process each extension and install
+          // TODO check for xqy vs js implementation (V8 only)
+          promises[e] = removeTrigger(trg.name,env.triggersdatabase);
+        }
+      }
+      Q.all(promises).then(function(output) {
+        deferred.resolve(params);
+      });
+    });
+    return deferred.promise;
+  },
 
   // WORKS
   remove_extensions: function() {
@@ -698,9 +785,7 @@ var targets = {
     // check for ./data/.initial.json to see what folder to load
     // process as for load
     console.log(" - load_initial()");
-    return targets._loadFolder(db,"./data",".initial.json").progress(function(progress) {
-      console.log("    - Progress: " + progress + "% done");
-    });
+    return targets._loadFolder(db,"./data",".initial.json");
   },
 
   // WORKS
@@ -709,9 +794,7 @@ var targets = {
     console.log(" - load_folder()");
     // TODO handle trailing slash in folder name of args.f
     // TODO windows file / and \ testing
-    return targets._loadFolder(db,args.f,".load.json").progress(function(progress) {
-      console.log("    - Progress: " + progress + "% done");
-    });
+    return targets._loadFolder(db,args.f,".load.json");
   },
 
   // WORKS
@@ -885,9 +968,6 @@ var targets = {
       }*/
       Q.all(promises).then(function(output) {
         deferred.resolve("Folder processed: " + folder);
-      }).progress(function(progress) {
-        // output a message here (TODO preferably update the same message)
-        deferred.notify(progress);
       }); // no fail() as we instantly end the app anyway
     });
 
@@ -929,6 +1009,58 @@ var targets = {
 
     // NB may need to list and fetch individual files :( or download tar.gz packages and unpack :)
 
+  },
+
+
+
+
+  clean: function(params) {
+    var deferred = Q.defer();
+
+    // wipe all data
+    console.log(" - clean()");
+    var qb = db.createQuery();
+    var cqt = [];
+    if (undefined != params && undefined != params.e) {
+      // exclude
+      var cols = params.e.split(",");
+      for (var c = 0,maxc = cols.length,col;c < maxc;c++) {
+        col = cols[c];
+        cqt.push(qb.collection(col));
+      }
+    }
+    var iqt = [];
+    if (undefined != params && undefined != params.i) {
+      // exclude
+      var cols = params.i.split(",");
+      for (var c = 0,maxc = cols.length,col;c < maxc;c++) {
+        col = cols[c];
+        iqt.push(qb.collection(col));
+      }
+    }
+
+    var q = qb.and([qb.not(cqt),qb.or(iqt)]);
+    qb.query(q);
+
+    var query = qb.toJson();
+
+    db.deleteUsingSearch(query,function(result) {
+      if (result.inError) {
+        // just log the message
+        console.log("    - ERROR deleting content using query: " + JSON.stringify(query) + " ERROR: " + JSON.stringify(result));
+      } else {
+        console.log("    - SUCCESS deleting content");
+      }
+      deferred.resolve(params);
+
+    });
+
+    return deferred.promise;
+  },
+
+  reset: function(params) {
+    var funcs = [targets.clean,targets.update_ontology,targets.update_workplace,targets.load_initial];
+    funcs.reduce(Q.when, Q(params));
   }
 
 
@@ -960,7 +1092,7 @@ b: true,
 c: true,
 beep: 'boop' }
 */
-var targetGroups = ["install","update","capture","remove","load","devpatch"];
+var targetGroups = ["install","update","capture","remove","load","devpatch","reset","clean"];
 if (argv._.length == 1) { // just one non option parameter, and no --option= parameters
   var found = false
   for (var g = 0,maxg = targetGroups.length,group;!found && g < maxg;g++) {

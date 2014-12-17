@@ -34,3 +34,5 @@ src/rest-api
 src/js/widget*.js
 src/js/mljs-*.js
 webserver
+KEYLINES.md
+webserver-testdata

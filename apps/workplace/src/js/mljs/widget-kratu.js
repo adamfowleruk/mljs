@@ -141,7 +141,7 @@ com.marklogic.widgets.kratu.prototype.updateResults = function(results) {
  * Updates this widget based on Data Context data
  * @param {mljs.prototype.datacontext} datacontext - The data context with data
  */
-com.marklogic.widgets.cooccurence.prototype.updateData = function(datacontext) {
+com.marklogic.widgets.kratu.prototype.updateData = function(datacontext) {
 
   var kratuData = new Array();
 

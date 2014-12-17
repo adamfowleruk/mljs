@@ -2508,7 +2508,7 @@ com.marklogic.widgets.searchresults.prototype._navigateTo = function(uri) {
  * @param {string} extractname - The name (from constraint or element name) of the extracted metadata. Normally a constraint name, something like 'sender'. Note though for XML elements rather than constraints this is {http://namespace}elementlocalname
  */
 com.marklogic.widgets.searchresults.prototype.getResultExtract = function(result,extractname) {
-
+  if (undefined != result && undefined != result.metadata) {
             for (var metai = 0, maxi = result.metadata.length, meta;metai < maxi;metai++) {
               meta = result.metadata[metai];
               //console.log("  meta instance: " + metai);
@@ -2523,6 +2523,7 @@ com.marklogic.widgets.searchresults.prototype.getResultExtract = function(result
                 }
               }
             }
+  }
             return null;
 };
 

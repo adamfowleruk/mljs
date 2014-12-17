@@ -351,7 +351,7 @@ com.marklogic.widgets.highcharts.prototype.setSeriesSources = function(nameSourc
  * Sets the data context for this widget
  * @param {mljs.prototype.datacontext} datacontext - The data context to use
  */
-com.marklogic.widgets.cooccurence.prototype.setDataContext = function(dc) {
+com.marklogic.widgets.highcharts.prototype.setDataContext = function(dc) {
   this._dataContext = dc;
 };
 
@@ -359,7 +359,7 @@ com.marklogic.widgets.cooccurence.prototype.setDataContext = function(dc) {
  * Updates this widget based on Data Context data
  * @param {mljs.prototype.datacontext} datacontext - The data context with data
  */
-com.marklogic.widgets.cooccurence.prototype.updateData = function(datacontext) {
+com.marklogic.widgets.highcharts.prototype.updateData = function(datacontext) {
 
   var valSource = "";
   if (this.valueSource.startsWith("#") || this.valueSource.startsWith("!") ) {
@@ -415,7 +415,7 @@ com.marklogic.widgets.cooccurence.prototype.updateData = function(datacontext) {
  *
  * @param {JSON} values - the values returned as a values response JSON object.
  */
-com.marklogic.widgets.cooccurence.prototype.updateValues = function(values) {
+com.marklogic.widgets.highcharts.prototype.updateValues = function(values) {
   if ("boolean" == typeof(values)) {
     return;
   }

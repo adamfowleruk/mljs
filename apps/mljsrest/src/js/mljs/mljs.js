@@ -818,7 +818,7 @@ mljs.prototype.__doreq_node = function(reqname,options,content,callback_opt) {
     if (undefined == this.dboptions.wrappers[name]) {
       this.logger.debug("Creating new wrapper");
       var nw = new digest();
-      nw.configure(this.dboptions.username,this.dboptions.password,this.logger);
+      nw.configure(this.dboptions.username,this.dboptions.password,this.logger); // always digest to other ports
       this.dboptions.wrappers[name] = nw;
       wrapper = nw;
     } else {
@@ -918,7 +918,7 @@ mljs.prototype.__doreq_node = function(reqname,options,content,callback_opt) {
   httpreq.on("error",function(e) {
     completeRan = true;
     self.logger.debug("__doreq: REQUEST ERROR: " + e);
-    (callback_opt || noop)({inError: true,error: e});
+    (callback_opt || noop)({inError: true,error: e}); // SHOULD THIS BE DETAIL INSTEAD OF ERROR?
   });
   if (undefined != content && null != content) {
     if ("string" == typeof (content)) {
@@ -1660,6 +1660,97 @@ mljs.prototype.keyvalue = function(key,value,keytype_opt,callback_opt) {
     method: "GET"
   };
   this.__doreq("KEYVALUE",options,null,callback_opt);
+};
+
+/**
+ * Deletes ALL documents and triples in the content database
+ *
+ * Uses deleteUsingSearch()
+ *
+ * @param {function} callback - The optional callback to invoke after the method completes
+ */
+mljs.prototype.deleteAll = function(callback) {
+  this.deleteUsingSearch(callback);
+};
+
+/**
+* Deletes ALL content matching a search
+*
+* {@link http://docs.marklogic.com/REST/DELETE/v1/search}
+*
+* See supported search grammar {@link http://docs.marklogic.com/guide/search-dev/search-api#id_41745}
+*
+* Supported values for sprops_opt:-
+*
+* - collection - The collection to restrict search results from
+* - directory - The directory uri to restrict search results from
+* - transform - The transform to apply to the top level results object on the server
+* - format - The format of the response. json or xml. json is the default if not specified
+*
+* @param {string} query_opt - The query string. Optional. (Returns all documents if not supplied, or whatever returns from the additional-query in the json options used)
+* @param {string} options_opt - The name of the installed options to use. Optional. In 0.7+ can also be a JSON options document, if used against MarkLogic 7
+* @param {JSON} sprops_opt - Additional optional search properties
+* @param {function} callback - The optional callback to invoke after the method completes
+*/
+mljs.prototype.deleteUsingSearch = function(query_opt,options_opt,sprops_opt,callback) {
+  if (callback == undefined && typeof(sprops_opt) === 'function') {
+    callback = sprops_opt;
+    sprops_opt = undefined;
+  } else {
+      if (callback == undefined && typeof(options_opt) === 'function') {
+        callback = options_opt;
+        options_opt = undefined;
+      } else {
+        if (callback == undefined && typeof(query_opt) == 'function') {
+          // DEVELOPER WARNING: ABOUT TO DELETE ALL DOCUMENTS IN THE CONTENT DATABASE!!!
+          callback = query_opt;
+          query_opt = undefined;
+        }
+      }
+  }
+  var self = this;
+
+    var content = null;
+
+    var q = "";
+    var nextSep = "?";
+    /*
+    // TODO fix the below by checking out the REST API docs for valid query parameters
+    if (undefined != query_opt) {
+      q = "?q=" + encodeURI(query_opt);
+      nextSep = "&";
+    }
+    */
+    var url = "/v1/search" + q;
+    if (options_opt != undefined) {
+      if (typeof options_opt === "string") {
+        url += nextSep + "options=" + encodeURI(options_opt);
+        nextSep = "&";
+      }/* else {
+        // add as content document
+        content = options_opt;
+        method = "POST"; // verify
+      }*/
+    }
+
+    url = self._applySearchProperties(url,sprops_opt);
+
+
+    // TODO check options' type - if string, then pass as options param. If JSON object, then do POST to /v1/search to provide options dynamically
+
+    // make transaction aware
+    if (undefined != self.__transaction_id) {
+      url += nextSep + "txid=" + encodeURI(self.__transaction_id);
+    }
+
+    var options = {
+      path: url,
+      method: "DELETE"
+    };
+
+
+    this.__doreq("DELETEUSINGQUERY",options,null,callback);
+
 };
 
 /**
@@ -3463,6 +3554,29 @@ mljs.prototype.workplace = function(callback) {
 };
 
 
+
+mljs.prototype.installTrigger = function(triggerJson,callback) {
+  var options = {
+    path: "/v1/resources/triggers",
+    method: "PUT",
+    contentType: "application/json"
+  };
+  this.__doreq("INSTALLTRIGGER",options,triggerJson,callback);
+};
+
+mljs.prototype.removeTrigger = function(triggerName,triggerDatabase,callback) {
+  /*var doc = {
+    triggername: triggerName, triggersdatabase: triggerDatabase
+  }
+  this.logger.debug("DOC: " + JSON.stringify(doc));
+  */
+  var options = {
+    path: "/v1/resources/triggers?rs:triggername=" + encodeURI(triggerName) + "&rs:triggersdatabase=" + encodeURI(triggerDatabase),
+    method: "DELETE"/*,
+    contentType: "application/json"*/
+  };
+  this.__doreq("REMOVETRIGGER",options,null,callback);
+};
 
 
 mljs.prototype.installExtension = function(name,methodArray,moduleContent,callback) {
@@ -5667,16 +5781,31 @@ mljs.prototype.query.prototype.and = function(query_opt) {
 
 
 /**
- * Creates an or query, and returns it
- *
- * @param {JSON} query - The query, or array of queries, to use within the constructed or query
- */
+* Creates an or query, and returns it
+*
+* @param {JSON} query - The query, or array of queries, to use within the constructed or query
+*/
 mljs.prototype.query.prototype.or = function(query_opt) {
   if (Array.isArray(query_opt)) {
     return { "or-query": query_opt};
   } else {
     // object
     return { "or-query": [query_opt]};
+  }
+};
+
+
+/**
+* Creates a not query, and returns it
+*
+* @param {JSON} query - The query, or array of queries, to use within the constructed not query
+*/
+mljs.prototype.query.prototype.not = function(query_opt) {
+  if (Array.isArray(query_opt)) {
+    return { "not-query": query_opt};
+  } else {
+    // object
+    return { "not-query": [query_opt]};
   }
 };
 
