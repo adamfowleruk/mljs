@@ -19,7 +19,7 @@ var mljs = require("mljs"),
       db.setLogger(logger);
 
 
-describe("001-create-alert",function() {
+describe.skip("001-create-alert",function() {
 
   describe("#saveBasicSearch() registering new alert", function(){
 
