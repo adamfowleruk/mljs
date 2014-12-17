@@ -14,6 +14,8 @@
     <link href="/css/bootstrap.min.css" rel="stylesheet">
     <link href="/css/bootstrap-theme.min.css" rel="stylesheet">
 
+    <link rel='stylesheet' type='text/css' href='/keylines/css/keylines.css'/>
+
     <!-- Custom styles for this template -->
     <link href="/css/navbar.css" rel="stylesheet">
 
@@ -29,9 +31,9 @@
 
   <body>
 
+      <div id="navholder"></div> <!-- workplace navbar widget -->
     <div class="container">
 
-      <div id="navholder"></div> <!-- workplace navbar widget -->
 
 
       <div id="errors"></div>
@@ -41,6 +43,7 @@
       </div>
 
 
+    </div> <!-- /container -->
 
 <div class="navbar navbar-default" role="navigation">
   <div class="container-fluid">
@@ -51,6 +54,7 @@
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
       </button>
+
 <p class="navbar-brand">
 Powered by
       <a href="http://www.marklogic.com/">MarkLogic Server</a>
@@ -66,7 +70,6 @@ and its
 </div>
 
 
-    </div> <!-- /container -->
 
 
     <!-- Bootstrap core JavaScript
@@ -81,12 +84,15 @@ and its
 
 
     <script type="text/javascript" src="/js/highcharts.js"></script>
+    <script type="text/javascript" src="/keylines/js/keylines.js"></script>
 
     <script type="text/javascript" src="/js/OpenLayers-2.13.1/OpenLayers.js"></script> <!-- debug deployment only - remove '.debug' for production use -->
     <script type="text/javascript" src="/js/heatmap/heatmap.js"></script>
     <script type="text/javascript" src="/js/heatmap/heatmap-openlayers.js"></script>
     <!--<script>OpenLayers.Console = window.console || OpenLayers.Console;</script>--> <!-- debug deployment only -->
 
+    <script type="text/javascript" src="/js/mljs/widget-security.js"></script>
+    
     <script type="text/javascript" src="/js/mljs/widget-search.js"></script>
     <script type="text/javascript" src="/js/mljs/widget-address.js"></script>
     <script type="text/javascript" src="/js/mljs/widget-collections.js"></script>
@@ -103,6 +109,7 @@ and its
     <script type="text/javascript" src="/js/mljs/widget-highcharts.js"></script>
     <script type="text/javascript" src="/js/mljs/widget-alerts.js"></script>
     <script type="text/javascript" src="/js/ext-workplace.js"></script>
+
 
     <script src="/js/page-workplace.js"></script>
   </body>

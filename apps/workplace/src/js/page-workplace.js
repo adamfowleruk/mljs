@@ -8,6 +8,24 @@ window.onload = function() {
   errors.allowDetails = true;
 
   try {
+    if (undefined != window.KeyLines) {
+      KeyLines.paths({
+          assets: '/keylines/assets/',
+          flash: {
+            swf: 'swf/keylines.swf',
+            swfObject: 'js/swfobject.js',
+            expressInstall: 'swf/expressInstall.swf'
+          }
+        });
+    }
+
+  } catch (err) {
+    errors.show(err);
+  }
+
+  try {
+    var sc = db.createSessionContext(); // creates single global instance
+
     // Load workplace nav bar
     var wpcontext = new com.marklogic.widgets.workplacecontext();
     var nav = new com.marklogic.widgets.workplacenavbar("navholder");
@@ -27,7 +45,7 @@ window.onload = function() {
         var pc = new com.marklogic.widgets.pagecontext();
         pc.setWorkplaceWidget(workplace);
         wpcontext.register(pc); // will call _parse when page loads
-
+        workplace.addPageLoadedListener(function(ctx){pc.process(ctx);});
         workplace.loadPage(pageurl); // could instead use loadPage() to determine automatically via window.location, or loadPage("/my/path") to load via search in content database
         // TODO use context instead of widget above
 

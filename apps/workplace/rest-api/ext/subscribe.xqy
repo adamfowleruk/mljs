@@ -2,8 +2,9 @@ xquery version "1.0-ml";
 
 module namespace sr = "http://marklogic.com/rest-api/resource/subscribe";
 
-import module namespace ss = "http://marklogic.com/search/subscribe" at "/app/models/lib-search-subscribe.xqy";
+import module namespace ss = "http://marklogic.com/search/subscribe" at "/ext/app/models/lib-search-subscribe.xqy";
 import module namespace alert="http://marklogic.com/xdmp/alert" at "/MarkLogic/alert.xqy";
+import module namespace json6 = "http://marklogic.com/xdmp/json" at "/MarkLogic/json/json.xqy";
 
 (:
  : Fetch saved search information
@@ -68,19 +69,54 @@ declare function sr:put(
     $input   as document-node()*
 ) as document-node()? {
   (: get config params :)
-  let $querytype := (map:get($params,"querytype"),"basic")[1]
-  let $create := (map:get($params,"create"),"both")[1]
+  let $l := xdmp:log("PUT /v1/resources/subscribe CALLED")
+  let $l := xdmp:log($params)
+  let $l := xdmp:log("Content doc")
+  let $l := xdmp:log($input)
+        let $config := json6:config("custom")
+        let $cx := map:put( $config, "text-value", "label" )
+        let $cx := map:put( $config , "camel-case", fn:false() )
+        (:
+        let $cx := map:put($config, "array-element-names",(xs:QName("m:schema"),xs:QName("m:table"),xs:QName("m:column"),xs:QName("m:relationship"),xs:QName("m:docuri")))
+
+        let $cx := map:put($config, "element-namespace","http://marklogic.com/roxy/models/rdb2rdf")
+        let $cx := map:put($config, "element-namespace-prefix","m")
+        :)
+        let $cx := map:put($config, "element-prefix","params")
+
+  let $jsonxml := <params>{json6:transform-from-json($input/text(),$config)}</params>
+  let $l := xdmp:log($jsonxml)
+
+
+  let $querytype := xs:string((map:get($params,"querytype"),$jsonxml/querytype/text(),"basic")[1])
+  let $create := xs:string((map:get($params,"create"),$jsonxml/create/text(),"both")[1])
+  let $l:= xdmp:log(fn:concat("querytype: ",$querytype, ", create: ",$create))
 
   return (xdmp:set-response-code(200,"OK"),document {  <ss:result>{
     (if ("both" = $create or "search" = $create) then
       (: create saved search :)
       if ("basic" = $querytype) then
-        ss:save-search(ss:create-basic-search(map:get($params,"query")),map:get($params,"searchname"))
+        (
+          xdmp:log("Saving search"),
+          ss:save-search(
+            ss:create-basic-search(
+              xs:string($jsonxml/query)
+            ),xs:string($jsonxml/searchname)
+          )
+        )
       else if ("geonear" = $querytype) then
-        ss:save-search(ss:create-geo-near-search(map:get($params,"namespace"),map:get($params,"elementparent"),map:get($params,"lonname"),map:get($params,"latname"),
-          map:get($params,"lat"),map:get($params,"lon"),map:get($params,"radiusmiles")),map:get($params,"searchname"))
+        ss:save-search(
+          ss:create-geo-near-search(
+            xs:string($jsonxml/namespace),xs:string($jsonxml/elementparent),xs:string($jsonxml/lonname),xs:string($jsonxml/latname),
+            xs:string($jsonxml/lat),xs:string($jsonxml/lon),xs:string($jsonxml/radiusmiles)
+          ),xs:string($jsonxml/searchname)
+        )
       else if ("collection" = $querytype) then
-        ss:save-search(ss:create-collection-search(map:get($params,"collection")),map:get($params,"searchname"))
+        ss:save-search(
+          ss:create-collection-search(
+            xs:string($jsonxml/collection)
+          ),xs:string($jsonxml/searchname)
+        )
       else if ("fromuri" = $querytype) then
         (: copy? :)
         <ss:unsupported-operation name="save-fromuri"/>
@@ -92,12 +128,24 @@ declare function sr:put(
       (: enabling alerting for saved search :)
       (: create saved search :)
       if ("basic" = $querytype) then
-        ss:save-subscribe-search(ss:create-basic-search(map:get($params,"query")),map:get($params,"searchname"),map:get($params,"notificationurl"),(),())
+        ss:save-subscribe-search(
+          ss:create-basic-search(
+            xs:string($jsonxml/query)
+          ),xs:string($jsonxml/searchname),xs:string($jsonxml/notificationurl),(),()
+        )
       else if ("geonear" = $querytype) then
-        ss:save-subscribe-search(ss:create-geo-near-search(map:get($params,"namespace"),map:get($params,"elementparent"),map:get($params,"lonname"),map:get($params,"latname"),
-          map:get($params,"lat"),map:get($params,"lon"),map:get($params,"radiusmiles")),map:get($params,"searchname"),map:get($params,"notificationurl"),(),())
+        ss:save-subscribe-search(
+          ss:create-geo-near-search(
+            xs:string($jsonxml/namespace),xs:string($jsonxml/elementparent),xs:string($jsonxml/lonname),xs:string($jsonxml/latname),
+            xs:string($jsonxml/lat),xs:string($jsonxml/lon),xs:string($jsonxml/radiusmiles)
+          ),xs:string($jsonxml/searchname),xs:string($jsonxml/notificationurl),(),()
+        )
       else if ("collection" = $querytype) then
-        ss:save-subscribe-search(ss:create-collection-search(map:get($params,"collection")),map:get($params,"searchname"),map:get($params,"notificationurl"),(),())
+        ss:save-subscribe-search(
+          ss:create-collection-search(
+            xs:string($jsonxml/collection)
+          ),xs:string($jsonxml/searchname),xs:string($jsonxml/notificationurl),(),()
+        )
       else if ("fromuri" = $querytype) then
         (: copy? :)
         <ss:unsupported-operation name="save-subscribe-fromuri"/>
@@ -120,7 +168,26 @@ declare function sr:post(
     $params  as map:map,
     $input   as document-node()*
 ) as document-node()* {
-  (xdmp:set-response-code(200,"OK"),document { <ss:result>{ss:subscribe(map:get($params,"searchname"),map:get($params,"notificationurl"),(),())}</ss:result>})
+  
+  let $l := xdmp:log("POST /v1/resources/subscribe CALLED")
+  let $l := xdmp:log($params)
+  let $l := xdmp:log("Content doc")
+  let $l := xdmp:log($input)
+        let $config := json6:config("custom")
+        let $cx := map:put( $config, "text-value", "label" )
+        let $cx := map:put( $config , "camel-case", fn:false() )
+        (:
+        let $cx := map:put($config, "array-element-names",(xs:QName("m:schema"),xs:QName("m:table"),xs:QName("m:column"),xs:QName("m:relationship"),xs:QName("m:docuri")))
+
+        let $cx := map:put($config, "element-namespace","http://marklogic.com/roxy/models/rdb2rdf")
+        let $cx := map:put($config, "element-namespace-prefix","m")
+        :)
+        let $cx := map:put($config, "element-prefix","params")
+
+  let $jsonxml := <params>{json6:transform-from-json($input/text(),$config)}</params>
+  let $l := xdmp:log($jsonxml)
+
+  return (xdmp:set-response-code(200,"OK"),document { <ss:result>{ss:subscribe(xs:string($jsonxml/searchname),xs:string($jsonxml/notificationurl),(),())}</ss:result>})
 };
 
 (:

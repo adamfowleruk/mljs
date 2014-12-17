@@ -133,10 +133,46 @@ com.marklogic.widgets.alertpanel.prototype._drawMessage = function(str) {
 
 
 
+
+
+
+
+
+
+
+
 /**
  * A small notification bar to show when new alerts have arrived, and how many since last notifier click.
  * Typically used to show/hide an alertpanel immediately above it.
  */
 com.marklogic.widgets.alertnotifier = function(container) {
 
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/**
+ * A small bootstrap compatible button for showing alerts
+ */
+com.marklogic.widgets.alertbutton = function(container) {
+  this.container = container;
+  this._refresh();
+};
+
+com.marklogic.widgets.alertbutton.prototype._refresh = function() {
+  var str = "<button class='btn btn-default'><span class='glyphicon glyphicon-bell'></span></button>";
+  document.getElementById(this.container).innerHTML = str;
 };

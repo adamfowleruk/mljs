@@ -453,6 +453,11 @@ com.marklogic.widgets.sparqlbar.prototype.updateSuggestions = function(suggestio
   }
 };
 
+
+com.marklogic.widgets.sparqlbar.prototype.updateOntology = function(tripleconfig) {
+  this.refresh(); // TODO use this TC rather than load from semantic context
+};
+
 /**
  * Refreshes the entire widget UI - useful if you've provided your own triple configuration.
  */
@@ -830,7 +835,7 @@ com.marklogic.widgets.sparqlbar.prototype._updateProperties = function(tid) {
     if (0 == i) {
       s += " selected='selected'";
     }
-    s += ">" + propname + "</option>";
+    s += ">" + (props[i].title || propname) + "</option>";
   }
 
   document.getElementById(this.container + "-sparqlbar-term-properties-" + tid).innerHTML = s;
@@ -1829,24 +1834,29 @@ com.marklogic.widgets.entityfacts.prototype._generateSubjectHTML = function(sub,
   mljs.defaultconnection.logger.debug("Got entity name: " + entityName);
 
   // get common name from config
-  var namepredicate = scfg.getNameProperty(entityName).iri;
-  mljs.defaultconnection.logger.debug("Got name predicate: " + namepredicate);
+  var nameprop = scfg.getNameProperty(entityName);
   var namevalue = null;
-  for (var b = 0,bindings = this.facts.results.bindings, max = bindings.length, predicate, object, binding;(null == namevalue) && (b < max);b++) {
-    binding = bindings[b];
-    if (undefined != binding.subject) {
-      if (binding.subject.value == sub) {
-        predicate = binding.predicate;
-        if (undefined == predicate) {
-          predicate = {value: this.facts.predicate};
-        }
-        object = binding.object;
+  if (undefined != nameprop) {
+    var namepredicate = nameprop.iri;
+    mljs.defaultconnection.logger.debug("Got name predicate: " + namepredicate);
+    for (var b = 0,bindings = this.facts.results.bindings, max = bindings.length, predicate, object, binding;(null == namevalue) && (b < max);b++) {
+      binding = bindings[b];
+      if (undefined != binding.subject) {
+        if (binding.subject.value == sub) {
+          predicate = binding.predicate;
+          if (undefined == predicate) {
+            predicate = {value: this.facts.predicate};
+          }
+          object = binding.object;
 
-        if (predicate.value == namepredicate) {
-          namevalue = object.value;
+          if (predicate.value == namepredicate) {
+            namevalue = object.value;
+          }
         }
       }
     }
+  } else { // nameprop else
+    mljs.defaultconnection.logger.debug("WARNING: Class with no name predicate: " + entityName);
   }
   mljs.defaultconnection.logger.debug("Got name value: " + namevalue);
 
@@ -1984,4 +1994,304 @@ com.marklogic.widgets.entityfacts.prototype._provenance = function(iri) {
     sparql = sparql.replace(/#IRI#/, iri);
   }
   this.semanticcontext.subjectContent(iri,sparql);
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+com.marklogic.widgets.workplaceadminext = window.com.marklogic.widgets.workplaceadminext || {};
+com.marklogic.widgets.workplaceadminext.widgets = window.com.marklogic.widgets.workplaceadminext.widgets || {};
+com.marklogic.widgets.workplaceadminext.widgets["widget-triples.js"] = [
+  {title: "Keylines", classname: "com.marklogic.widgets.keylines", description: "Keylines semantic graph explorer."}
+];
+
+com.marklogic.widgets.keylines = function(container) {
+  this.container = container;
+
+  this._config = {
+
+  };
+
+  this.sc = null;
+
+  this._kldata = [];
+  this._chart = null;
+
+  this._init();
+};
+/**
+ * Returns the MLJS Workplace configuration definition listing config properties supported by this widget
+ *
+ * @static
+ */
+com.marklogic.widgets.keylines.getConfigurationDefinition = function() {
+  return {
+  };
+};
+
+/**
+ * Sets the configuration for this instance of a widget in an MLJS Workplace
+ *
+ * @param {json} config - The JSON Workplace widget configuration to apply
+ */
+com.marklogic.widgets.keylines.prototype.setConfiguration = function(config) {
+  for (var prop in config) {
+    this._config[prop] = config[prop];
+  }
+
+  // refresh display
+  this._refresh();
+};
+
+com.marklogic.widgets.keylines.prototype.setSemanticContext = function(sc) {
+  this.sc = sc;
+};
+
+com.marklogic.widgets.keylines.prototype.drawSubject = function(iri) {
+  this.sc.getFacts(subjectIri,false);
+};
+
+com.marklogic.widgets.keylines.prototype._init = function() {
+  var s = "<div id='" + this.container + "-outer' class='mljswidget keylines'><div class='keylines-inner'><div id='" + this.container + "-kl' style='height: 800px;'></div></div></div>";
+  document.getElementById(this.container).innerHTML = s;
+};
+
+com.marklogic.widgets.keylines.prototype._refresh = function() {
+  var self = this;
+  KeyLines.create(this.container + '-kl', function(err, chart) {
+    self._chart = chart;
+          chart.load({
+            type: 'LinkChart',
+            items: self._kldata
+          });
+        });
+};
+
+
+com.marklogic.widgets.keylines.prototype.updateSubjectFacts = function(result) {
+  if (true === result || false === result) {
+    return; // TODO clear display
+  }
+  mljs.defaultconnection.logger.debug("keylines.updateSubjectFacts: " + JSON.stringify(result));
+  var subjects = com.marklogic.widgets.semantichelper.calculateUniqueSubjects(result);
+
+  // get parentiri, subjectiri, rdftype and group facts to these three
+  // find relevant parent-subject iri nodes on the display
+  // update this particular data node
+  var facts = this.sc.getCachedFacts(subjects[0]).facts
+  //this.propertyCache[subjects[0]] = facts;
+  this._drawSubjectDetail(subjects[0],facts);
+};
+
+com.marklogic.widgets.keylines.prototype._getSubject = function(iri) {
+  for (var k = 0,maxk = this._kldata.length,kld;k < maxk;k++) {
+    kld = this._kldata[k];
+    if (kld.id == iri) {
+      return kld;
+    }
+  }
+  return null;
+};
+
+com.marklogic.widgets.keylines.prototype._getLink = function(subjectIri,predicateIri,objectIri) {
+  var iri = subjectIri + "^^^" + predicateIri + "^^^" + objectIri;
+  return this._getSubject(iri);
+};
+
+com.marklogic.widgets.keylines.prototype.updateOntology = function(tc) {
+  if (undefined != this._lastSubject) {
+    this._drawSubjectDetail(this._lastSubject,this._lastFacts);
+  }
+};
+
+com.marklogic.widgets.keylines.prototype._drawSubjectDetail = function(subjectIri,facts) {
+  if (undefined == this._lastSubject) {
+    this._lastSubject = subjectIri;
+    this._lastFacts = facts;
+
+//    this.sc.subjectFacts(subjectIri);
+  }
+
+  /* KLData instance:-
+   { id: 'node1',             //'node1' is the identity of the node
+     t: 'label',              //the label to be used under the icon
+     type: 'node',            //the type of the item: must be 'node' for nodes
+     u: '/icons/person.png',  //the url of the icon
+     x: 100,                  //the x position (measured to the centre of the icon)
+     y: 150                   //the y position (measured to the centre of the icon)
+   },{
+     c: 'rgb(0, 0, 255)',     //the colour of the link
+     id: 'link1',             //'link1' is the identity of this link
+     id1: 'node1',            //the identity of the node at one end
+     id2: 'node2',            //the identity of the node at the other end
+     t: 'label',              //the label to be used for the link
+     type: 'link',            //the type of the item: must be 'link' for links
+     w: 1                     //the width of the link in pixels
+   }
+  */
+  mljs.defaultconnection.logger.debug("keylines._drawSubjectDetail: Called for: " + subjectIri);
+  var self = this;
+  var subjectObject = null;
+  var addOrGetSubject = function(iri,cls) {
+    var kld = self._getSubject(iri);
+    if (null == kld) {
+      // add new data item
+      kld = {id: iri,type:"node",u: "/images/icon-.png",x: 100, y: 150,t: iri};
+      self._kldata.push(kld);
+    }
+  };
+  var addOrGetLink = function(siri,piri,oiri,cls) {
+    var kld = self._getLink(siri,piri,oiri);
+    if (null == kld) {
+      // add new data item
+      kld = {id: siri + "^^^" + piri + "^^^" + oiri,type:"link",c: 'rgb(0, 0, 255)',x: 100, y: 150,t:self._shortenSubjectIri(piri),a2:true,id1: siri,id2:oiri,w:2};
+      self._kldata.push(kld);
+    }
+  };
+
+  var updateSubjectTitle = function(iri) {
+    mljs.defaultconnection.logger.debug("keylines._drawSubjectDetail: updateSubjectTitle: called for " + iri);
+    var scfg = self.sc.getTripleConfiguration();
+    var cache = self.sc.getCachedFacts(iri);
+    mljs.defaultconnection.logger.debug("keylines._drawSubjectDetail: updateSubjectTitle: cached facts: " + JSON.stringify(cache));
+    var fs = null;
+    if (null != cache) {
+      fs = cache.facts;
+    } else {
+      self.sc.subjectFacts(iri); // TODO limit this to a particular depth
+    }
+
+    var getPredicateObject = function(prediri) {
+      for (var b = 0,bindings = fs, max = bindings.length, predicate, obj, binding;b < max;b++) {
+        binding = bindings[b];
+        if (binding.predicate.value == prediri) {
+          return binding.object.value;
+        }
+      }
+      return null;
+    };
+
+    // find class and it's title
+    var type = null;
+    var types = [];
+    if (null != fs) {
+      for (var b = 0,bindings = fs, max = bindings.length, predicate, obj, binding;b < max;b++) {
+        binding = bindings[b];
+        mljs.defaultconnection.logger.debug("keylines._drawSubjectDetail: processing binding: " + JSON.stringify(binding));
+        predicate = binding.predicate;
+
+        if (predicate.value == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type") {
+          type = binding.object.value;
+          //mljs.defaultconnection.logger.debug("keylines._drawSubjectDetail: adding type: " + type);
+          types.push(type);
+        }
+      }
+    }
+    mljs.defaultconnection.logger.debug("keylines._drawSubjectDetail: updateSubjectTitle: type: " + type);
+
+    var typeTitle = "Thing";
+    var subjectTitle = null;
+    if (null != cache) {
+      if (null != cache.typeNameString) {
+        typeTitle = cache.typeNameString;
+      }
+      if (null != cache.nameString) {
+        subjectTitle = cache.nameString;
+      }
+    }
+    mljs.defaultconnection.logger.debug("keylines._drawSubjectDetail: typeTitle now: " + typeTitle + " subjectTitle: " + subjectTitle);
+    //if ("Thing" == typeTitle) {
+      // process from cached facts
+    for (var t = 0,maxt = types.length,typ;t < maxt;t++) {
+      typ = types[t];
+      //mljs.defaultconnection.logger.debug("typ: " + typ);
+      var typeEntity = scfg.getEntityFromIRI(typ);
+      if (null != typeEntity) {
+        if ("Thing" == typeTitle) {
+          typeTitle = typeEntity.title;
+        }
+        //mljs.defaultconnection.logger.debug("type title: " + typeTitle);
+        var namePred = scfg.getNameProperty(typeEntity.name);
+        //mljs.defaultconnection.logger.debug("nameprop iri: " + namePred);
+        if (undefined == subjectTitle) {
+          subjectTitle = getPredicateObject(namePred);
+          //mljs.defaultconnection.logger.debug("subject title now: " + subjectTitle);
+        }
+      }
+
+    }
+    //}
+    if (undefined == subjectTitle) {
+      subjectTitle = iri;
+    }
+
+    // find subject and set title
+    var kld = self._getSubject(iri);
+    if (null != kld) {
+      kld.t = subjectTitle + " (" + typeTitle + ")";
+      //if (null != type) {
+        kld.u = "/images/icon-" + typeTitle + ".png";
+      //}
+    }
+  };
+
+  subjectObject = addOrGetSubject(subjectIri,"Subject");
+  updateSubjectTitle(subjectIri);
+
+  for (var b = 0,bindings = facts, max = bindings.length, binding;b < max;b++) {
+    binding = bindings[b];
+    if (binding.object.type == "uri") {
+      if (binding.predicate.value != "http://www.w3.org/1999/02/22-rdf-syntax-ns#type") {
+        // draw targets subject -> object of type uri
+        var toObject = addOrGetSubject(binding.object.value);
+        updateSubjectTitle(binding.object.value);
+        // TODO load facts if not known
+
+        // draw link. These have IDs of the form subjectIri^^^predicateIri^^^objectIri, and title of predicate name
+        var linkObject = addOrGetLink(binding.subject.value,binding.predicate.value,binding.object.value,"link");
+
+      }
+
+    } else {
+      // intrinsic properties - list in off screen text area, or use for link width etc.
+
+    }
+  }
+
+  mljs.defaultconnection.logger.debug("keylines._drawSubjectDetail: Calling load on keylines chart for data: " + JSON.stringify(this._kldata));
+  this._updateChartData(); // TODO force partial redraw only (coule be called due to user action)
+
+};
+
+com.marklogic.widgets.keylines.prototype._updateChartData = function() {
+  var self = this;
+  this._chart.load({
+    type: 'LinkChart',
+    items: self._kldata
+  }, function() {
+    self._chart.layout('standard', {fit: true, animate: true, tidy: true});
+  });
+};
+
+
+com.marklogic.widgets.keylines.prototype._shortenSubjectIri = function(iri) {
+  var pos = iri.lastIndexOf("#");
+  if (-1 == pos) {
+    pos = iri.lastIndexOf("/");
+    if (-1 == pos) {
+      return iri;
+    }
+  }
+  return iri.substring(pos + 1);
 };

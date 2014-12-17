@@ -2,7 +2,7 @@
 
 ## Upcoming releases
 
-Tech Summit
+Real time functionality
  - Docs: Situational Awarness demo moved to Workplace based app with OOTB app config
    - Widgets: Situational Awareness: Ensure OpenLayers map supports features of existing SVG map viewer. If not then create SVG based map based on existing demo
     - Shows live map tiles feeds. Support for multiple tile layers overlapping
@@ -11,128 +11,81 @@ Tech Summit
     - Edge of screen flashing alerts for new information of importance just out of view
     - Command letter shortcuts (scroll, zoom, show/hide features)
     - Mini map to show activity just out of view (Like the game Z)
- - Widgets: OpenLayers Multiple series
  - Docs: YouTube tutorial on creating new widget and adding to Workplace using global registration
  - Docs: YouTube tutorial on Deploying Workplace app to a modules DB
  - Widgets: Create: Multiple element instances permitted
 
 Interim demo targets
- - IN PROGRESS Needed for upcoming demo
-  - Widgets: Time series Bar chart for bucketed time by date, value y series
-  - IN PROGRESS Widgets: Edit document
-   - DONE New document template
-   - DONE Create document
-   - DONE Edit XML/XHTML document string fields
-    - DONE BUG XPath not returning value for known field, so can't set content
-   - TEST Edit JSON document string fields
-   - Permissions
-   - Properties editing fixed
-   - DONE Small string
-   - DONE Large string
-   - DONE HTML string
-   - Numeric string - int / float (JavaScript limits?)
-   - Drop down for string enum
-   - Drop down for int/float/date
-   - date and time editing, with time zone
-   - DEFERRED Multiple instance elements
-   - Collection and other non-visual doc settings moved in to doccontext (from docbuilder widget)
-   - Rationalise mode settings in docbuilder
-  - Widgets: Semantic Network diagrams
-   - As circles
-   - Force directed distance initially
-   - draggable position after initial render
-   - Pick a library - d3.js OR ...
+ - DONE Widgets: page context linking to a Workplace page
+ - DONE Page configurable to route specific parameters to one or more contexts as different parameters
+ - NA Causes issues with search widget as options not loaded first - Workplace page settings allow customisation of parameter mappings
+ - DONE allow actions to use query string parameter values
+ - TEST Widgets: Kratu rework
+  - TEST Support for Data Context
+  - TEST Support for XML document content in search results
 
-Targets of opportunity (non timed)
- - Bugs
-  - BUG workplace nav buttons do not gracefully wrap on to next line
-  - BUG Docs: mljsrest Openlayers demo page hovering over marker causes null reference looking for result area by id to change css classes
-  - BUG google maps address lookup longitude not working again (check latest social media code for fix - back port)
-  - BUG changing zoom or otherwise altering openlayers search forces collection constraint (any text query) to be forgotten - same is true in reverse
-   - We don't cache text query as a contributed query?
-  - BUG UX Usefulness - OpenLayers needs to be easily configurable to show a marker - what data can be mapped? (At moment just document value path)
-   - Need to support metadata, including lon/lat geo pair data, summary or title string data, description data, as a minimum
-  - BUG MAJOR REST API ignoring collection parameter when POST ing search (and likely other query string params) - make this a query parameter when using post
-   - Check with 7.0-3 that this has been fixed - may not need to fix this in MLJS
-  - BUG if doing 'text sender:"@something"' it fails. If doing 'text' its fine, if 'sender:"@something"' its fine
- - Workplace app fixes
-  - Windows batch files for mljs webserver app and settings (David Lee)
-  - TEST custom renderers in searchresults - com.marklogic.widgets.searchresultsext.NAME.customrenderers = {};
-  - TEST Widget extra configuration parameters
-  - TEST addressbar.radius
-  - TEST searchselection.setMode
-  - TEST searchselection.addQuery - use title and JSON as string initially until query builder ready?
-   - Use openlayers attractions distance/rating example
- - Test: Run Node.js tests against this release and fix problems
-  - Fix n-triples test script error
- - Fix mljsme.sh app
- - IN PROGRESS Docs: YouTube videos for Workplace App
-  - DONE Workplace App 002 - Installing Workplace against your database (include within the DB at end too) (David Lee)
-  - DONE Workplace App 003 - Adding a facetted search page
-  - DONE Workplace App 004 - Adding a geospatial search page with address lookup, heatmaps, selection
-  - DONE Workplace App 005 - Adding Semantic search and explorer pages
-  - DONE Workplace App 006 - Adding an analytics dashboard page, with multiple search contexts, charts, co-occurence
-  - DONE Workplace App 007 - Using a custom bootstrap CSS theme
-  - Workplace App 008 - Tag clouds
-  - PENDING Workplace App 009 - Adding Linking content search to semantic search with infobox
-   - BUG bugtrack 28905 - finding subjects mentioned in documents gives HTTP 400 on POST /v1/graphs/sparql
- - DEFERRED IN PROGRESS Bower support
-  - DONE Add bower repo support for PH
-  - IN PROGRESS Fix bower repo for new mljs repo foldering layout
-   - DONE foldering fix
-   - IN PROGRESS re-register mljs-bower with bower guys
- - Workplace UX
-  - images for widgets
-  - make popup help on config elements more obvious
-  - link widgets to youtube videos? And timestamps within?
- - Workplace Security review
-  - Ensure all documents are created such that all app users can read them
-  - Ensure users can specify sharing constraints for workplace pages
-   - Private (only I can read and edit)
-   - Shared (Only I can edit, others can read/open page)
-   - Public (any valid user can edit or read the workplace page)
-  - Special role/privilige for editing workplace app documents?
-  - Workplace wide defaults for hiding Workplace config documents from all search results (How does REST API do this?)
-  - Share workplace via permissions
-  - Share workplace via URL
-   - Add this to My Workplaces option on non-owned workplace page load
-  - Edit limited to owner of workplace
+DH Demo - 2 days
+ - NA default theme on website is really bad. Using cerulean. Full screen bootstrap theme (OBI Doesn't have one - custom)
+ - DONE Widgets: document properties widget - get folksonomies working
+ - TEST Core: datacontext
+  - DONE basic context creation
+  - TEST identity information joining
+  - TEST support multiple configurable sources in Workplace
+ - TEST Widgets: HighCharts rework
+  - TEST Support for Data Context
+  - TEST specification of which fields used for series name (In DC), category X (In DC), value Y axis (from valueSource)
+  - TEST via DC only - Support multiple series
+ - DONE Widgets: OpenLayers rework
+  - DONE Support for Data Context
+  - DONE Specification of field values linked to pins
+  - DONE field linked to summary content
+  - DONE highlighted document uri field
+  - DONE marker drawing working via configuration
+  - DONE Widgets: OpenLayers shows image thumbnail as marker
+   - DONE Marker width and height configuration
+   - NA use offset pixels instead - Indicator location setting - center, topleft, bottom left, bottom etc.
+   - DONE offset x and y for fine tuning
+ - DONE Widgets: Document properties
+  - DONE get add properties working
+  - DONE update document context for allowable properties
+  - DONE BUG The second time you edit (add) a property, the Add button does not work - undefined html element (deleted?)
+ - DONE Widgets: Document view
+  - DONE Alter widget to support viewing generic XML, XHTML, JPG, etc.
+  - DONE XHTML with links
+ - DEFERRED GML support
+  - DEFERRED indexing
+  - DEFERRED search options
+  - DEFERRED open layers points
+ - DONE Built app
+  - DONE App roxy project
+  - NA Get edrms indexes copied over
+  - NA EDRMS demo package exported
+  - DONE Workplace pages configuration exported
+  - DONE Install instructions
 
-Targets for 1.7 (Aug 2014) - Theme: External WebServer and Alerting
- - MLJS Web Server and Alert Server
-  - DONE mljs-webserver.js: Allow pass through of Digest/Basic auth challenges and responses
-   - DONE digest, basic, digestbasic, applicationlevel all work fine
-  - Handle ECONNREFUSED from server if it's down, and send on to client webapp
-   - BUG HEAD /v1/graphs never returns if MarkLogic not running, or on wrong port - set shorter time out
-  - Ability to add alerts in MarkLogic (REST Extension)
-   - Generic alert wrapping format - JSON
-   - REST ext: Complete alert creation rest extension
-   - Widgets: Save search as alertwidget - uses alert creation widget for popup
-   - alert sending config - uri and content or just uri
-   - location detection within alert context - option to save with radius against named constraint for alert
-  - Display of existing alerts
-   - DONE copy over existing sprites and client js useful code
-   - TEST copy over SVG rendering support
-   - DONE add support for sprite rendering plugins
-   - TEST example sprite renderings
-   - Widgets: Alert list widget
-   - Widgets: OpenLayers to show (hidden) layer for alerts in alert context
-  - mljs-webserver.js: Add file caching in RAM to speed access to static files
- - IN PROGRESS Widgets: For alerting
-  - TEST Core: Alert Context for managing connection and responding to alerts
-  - IN PROGRESS Widgets: Alerting client widget (Requires Alerting API) with popups - desktop notifications bar / window
-   - DONE basics
-   - Make scroll after certain amount of messages/height
-   - Facebook like popup from bottom of page
-  - DONE Core: Node.js Alerting middleware support - MLJS webserver
-  - TEST Pluggable UI JavaScript for different message types
-  - TEST Widgets: OpenLayers update
-   - TEST rendering of information sent as an alert layer (vector layer above map layers, sensible order)
-  - TEST Pluggable message format handling JavaScript for different document types
-   - TEST Default Alert Wrapper XML object support
+The demo
+ - DONE Complete as per its progress document
+
+Tidying up
+ - DONE Widgets: Search results
+  - DONE actions and custom actions from javascript, not hardcoded. Grouped by providing module in order. Defaults first.
+ - Widgets: Workplace support better navigation
+  - navigation drop downs
+  - parent property for page configuration
+  - navigation widget parent aware (search with extract of parent field, 100 results) - submit options with search
+  - Digital Forensics / Case Work / Situational Awareness
+  - Test with multiple directories, but just 1 layer down
+  - More stringent URL entries on page configuration box
+ - BUG Widgets: searchfacets - deselection of facet values not working as expected
+ - BUG db.configure affects ALL instances
+
+Targets for 1.7 (Nov 2014) - Theme: External WebServer and Alerting
  - Docs: videos for release
   - Introduction to the MLJS WebServer, and distribution build script
   - Situational awareness app video
+ - Packaging using puppet
+  - Install all MLJS pre-requisites, including Node.js, MarkLogic
+  - Overrides for existing Node.js, MarkLogic
  - Tests: Alert context and alert subscription tests
   - Subscribe and save search
   - Unsubscribe
@@ -160,8 +113,137 @@ Targets for 1.7 (Aug 2014) - Theme: External WebServer and Alerting
   - DONE XML parsing bug with hack fix BUG Widgets: title on tweets isn't working, showing XML error on Mac Safari
   - DONE BUG generic widget image doesn't show in Node.js mljs webserver
   - BUG open layers map layer comments appearing too high again - copy old css fix over
+ - Workplace app fixes
+  - Windows batch files for mljs webserver app and settings (David Lee)
+  - TEST custom renderers in searchresults - com.marklogic.widgets.searchresultsext.NAME.customrenderers = {};
+  - TEST Widget extra configuration parameters
+  - TEST addressbar.radius
+  - TEST searchselection.setMode
+  - TEST searchselection.addQuery - use title and JSON as string initially until query builder ready?
+   - Use openlayers attractions distance/rating example
+ - Workplace UX
+  - images for widgets
+  - make popup help on config elements more obvious
+  - link widgets to youtube videos? And timestamps within?
+  - Widgets: Search options configuration in application editing screen
 
-Targets for 1.8 (Oct 2014) - Theme: Visualisations Sprint 1
+Targets of opportunity (not scheduled)
+ - Bugs
+  - BUG workplace nav buttons do not gracefully wrap on to next line
+  - BUG Docs: mljsrest Openlayers demo page hovering over marker causes null reference looking for result area by id to change css classes
+  - BUG google maps address lookup longitude not working again (check latest social media code for fix - back port)
+  - BUG changing zoom or otherwise altering openlayers search forces collection constraint (any text query) to be forgotten - same is true in reverse
+   - We don't cache text query as a contributed query?
+  - BUG UX Usefulness - OpenLayers needs to be easily configurable to show a marker - what data can be mapped? (At moment just document value path)
+   - Need to support metadata, including lon/lat geo pair data, summary or title string data, description data, as a minimum
+  - BUG MAJOR REST API ignoring collection parameter when POST ing search (and likely other query string params) - make this a query parameter when using post
+   - Check with 7.0-3 that this has been fixed - may not need to fix this in MLJS
+  - BUG if doing 'text sender:"@something"' it fails. If doing 'text' its fine, if 'sender:"@something"' its fine
+  - BUG failure.png not in app-workplace
+ - Test: Run Node.js tests against this release and fix problems
+  - Fix n-triples test script error
+ - Fix mljsme.sh app
+ - IN PROGRESS Docs: YouTube videos for Workplace App
+  - DONE Workplace App 002 - Installing Workplace against your database (include within the DB at end too) (David Lee)
+  - DONE Workplace App 003 - Adding a facetted search page
+  - DONE Workplace App 004 - Adding a geospatial search page with address lookup, heatmaps, selection
+  - DONE Workplace App 005 - Adding Semantic search and explorer pages
+  - DONE Workplace App 006 - Adding an analytics dashboard page, with multiple search contexts, charts, co-occurence
+  - DONE Workplace App 007 - Using a custom bootstrap CSS theme
+  - Workplace App 008 - Tag clouds
+  - PENDING Workplace App 009 - Adding Linking content search to semantic search with infobox
+   - BUG bugtrack 28905 - finding subjects mentioned in documents gives HTTP 400 on POST /v1/graphs/sparql
+ - Widgets: HighCharts
+  - DEFERRED support for multi axes and value Y axes
+  - DEFERRED extra chart types support
+  - WAIT JM Use latest highcharts code
+  - WAIT JM confirm license for latest highcharts code
+  - TEST JW support co-occurence with aggregates calculated on server - count for now
+  - IN PROGRESS JW Create co-occurrence library for custom aggregation on co-occurence tuples support
+   - IN PROGRESS Rest extension for co-occurrence aggregation using GVs group by library
+   - Update searchcontext to use this as a values endpoint
+ - DEFERRED IN PROGRESS Bower support
+  - DONE Add bower repo support for PH
+  - IN PROGRESS Fix bower repo for new mljs repo foldering layout
+   - DONE foldering fix
+   - IN PROGRESS re-register mljs-bower with bower guys
+ - Workplace Security review
+  - Ensure all documents are created such that all app users can read them
+  - Ensure users can specify sharing constraints for workplace pages
+   - Private (only I can read and edit)
+   - Shared (Only I can edit, others can read/open page)
+   - Public (any valid user can edit or read the workplace page)
+  - Special role/privilige for editing workplace app documents?
+  - Workplace wide defaults for hiding Workplace config documents from all search results (How does REST API do this?)
+  - Share workplace via permissions
+  - Share workplace via URL
+   - Add this to My Workplaces option on non-owned workplace page load
+  - Edit limited to owner of workplace
+ - Widget: Allow disabling camelcase processing on facet names and facet values for search facets widget as config options (PK)
+ - Widgets: Ontology access updates
+  - Sparqlbar shows values from SKOS options or drop downs
+ - Widgets: Time series Bar chart for bucketed time by date, value y series, on its own across bottom of screen
+ - Widgets: Workplace
+  - Support chaining updates from one search context to another
+   - support prevention of circular updates via stack (array) mechanism
+  - BUG selection html control for registering widgets with context allows highlighting of none or all only
+  - BUG HTML generation in new layouts (column there, no drop zone!) - looks like issue with workplaceadmin rendering
+ - IN PROGRESS BL
+  - DEFERRED Widgets: document properties widget - get fixed ontologies (SKOS) working for property (content element) values
+  - DEFERRED Widgets: document properties widget - integrate SKOS in RDF data
+  - DEFERRED Widgets: Saved search for alerts
+  - DEFERRED Widgets: Alerting facebook like messaging popup with links to document view page, configurable
+  - DEFERRED Widgets: Semantic aggregation data source for charts
+   - DEFERRED basic functionality with aggregations
+   - DEFERRED limit results to SPARQL query (contributed)
+ - Docs: Core: document all internal JSON structures using jsdoc
+  - DONE mljs REST API response object
+  - DONE mljs dboptions
+  - URL mljs.get additionalOptions for REST call
+  - URL mljs.saveProperties/save documentProperties
+  - DONE mljs.replaceProperty elementSelectionJson
+  - URL mljs.search/searchCollection/structuredSearch/combined/values searchUrlParametersJson
+  - URL mljs.structuredQuery/combined/valuesCombined structuredQueryJson - link to REST API docs
+  - URL mljs.saveSearchOptions (save)searchOptions(Json)(Check) - link to REST API docs and optionsbuilder object
+  - URL mljs.suggest suggestUrlParametersJson - same as search?
+  - URL mljs.saveTransform transformPropertiesDocumentJson
+  - URL mljs.saveGeoNearSearch constraintSpecificationJson
+  - URL options.setFacetValueStrings facetValueMappingJson
+  - URL options.(all)Constraint additionalConstraintOptions
+  - URL options.(all)Constraint facet_options_opt json - same as constraint options - NO
+  - URL options.pathConstraint/searchableExpression namespacesJson
+  - URL options.addConstraint constraintJson - link to REST API docs
+  - URL options.geoElemPair/Attribute/PathConstraint heatmapJson
+  - URL options.starter additionalGrammarStarterJson
+  - URL options.prefix additionalGrammarPrefixJson
+  - URL options.joiner additionalGrammarJoinerJson
+  - URL options grouping additionalGrammarGroupingJson
+  - URL options.snippet additionalSnipperOptions
+  - URL options.query/and/or/dynamic queryJson link to REST API docs
+  - URL searchcontext.setTransform transformJson
+  - URL searchcontext.setOptions optionsJson or optionsbuilder
+  - URL searchcontext.doSuggest additionalProperties_opt
+  - URL searchcontext.doStructuredQuery structuredQueryJson
+  - URL searchcontext.updateGeoHeatmap heatmapJson
+  - URL searchcontext.updateGeoSelection selectionJson
+  - searchcontext.updateResults searchResultsJson
+  - searchcontext.updateSelection selectionJson
+  - searchcontext.updateHighlight selectionJson ?
+  - searchcontext.updatePage
+  - searchcontext.updateSort sortJson
+  - tripleconfig.addMappings/getEntityProperty/getNameProperty entityJson
+  - tripleconfig.include rdftype json
+  - tripleconfig.getEntityFromIRI/getEntityFromShortIRI/getEntityFromName returns entityJson
+  - tripleconfig.getPredicateFromIRI/getPredicateFromShortIRI/getPredicteFromName returns predicateJson
+  - URL documentcontext.add/get/setAllowableProperty/ies docPropertyJson
+  - documentcontext.set/getPart fieldJson
+  - DEFERRED all.setConfiguration - workplace configuration for all objects' supported config options
+  - DEFERRED all.register - document generic object for this
+ - Add alerts SSE support to Node.js - http://www.w3schools.com/HTML/html5_serversentevents.asp
+  - required for LANS that don't support websockets
+
+
+Targets for 1.8 (Dec 2014) - Theme: Visualisations Sprint 1
  - Track code commented TODOs in this document
  - BUG Widgets: combined query - test against latest MarkLogic 7 build
  - BUG Widgets: Address Lookup: Google geocoder needs to fail gracefully if google libraries not available (offline mode)
@@ -279,6 +361,25 @@ Targets for 1.9 (Nov 2014) - Theme: Visualisations Sprint 2
   - Related content below
   - Related subjects to right
   - Navigating onward redraws, shows parent (previous) Subject above new subject of interest
+ - IN PROGRESS Widgets: Document lifecycle
+  - IN PROGRESS Widgets: Edit document
+   - DONE New document template
+   - DONE Create document
+   - DONE Edit XML/XHTML document string fields
+    - DONE BUG XPath not returning value for known field, so can't set content
+   - TEST Edit JSON document string fields
+   - Permissions
+   - Properties editing fixed
+   - DONE Small string
+   - DONE Large string
+   - DONE HTML string
+   - Numeric string - int / float (JavaScript limits?)
+   - Drop down for string enum
+   - Drop down for int/float/date
+   - date and time editing, with time zone
+   - DEFERRED Multiple instance elements
+   - Collection and other non-visual doc settings moved in to doccontext (from docbuilder widget)
+   - Rationalise mode settings in docbuilder
 
 Targets for 2.0 (Dec 2014) - Theme: Shared Application Workplace
  - Workplace additions

@@ -74,7 +74,7 @@ com.marklogic.widgets.kratu.prototype.setConfiguration = function(config) {
 /**
  * Specifies what to render within the search results.
  * summary = the search result summary. E.g. URI, score, etc.
- * content = the JSON content (default)
+ * content = the JSON, csv or XML content - determined automatically from REST API results
  *
  * @param {string} render - What to render from the search result information. "content|properties"
  */
@@ -85,7 +85,7 @@ com.marklogic.widgets.kratu.prototype.render = function(render) {
 /**
  * Event target. Can be used with addResultsListener
  *
- * @param {JSON} results - The REST API JSON results object to display. See GET /v1/search
+ * @param {JSON} results - The REST API JSON results object to display. See GET /v1/search. Could include CSV, XML or JSON content (even mixed results too!).
  */
 com.marklogic.widgets.kratu.prototype.updateResults = function(results) {
   mljs.defaultconnection.logger.debug("kratu.updateResults called");
@@ -100,12 +100,28 @@ com.marklogic.widgets.kratu.prototype.updateResults = function(results) {
         r = this.results.results[i];
         mljs.defaultconnection.logger.debug("kratu.updateResults: Parsing result " + i + "=" + r.content);
         if (typeof(r.content) == "string") {
-          // TODO support plain text, xml text
-          content.push(JSON.parse(this.results.results[i].content)); // TODO support XML and other types too
+          // support csv text, json, xml text
+          try {
+            var res = JSON.parse(this.results.results[i].content);
+            content.push(res);
+          } catch (ex) {
+            // must be text. Try CSV parsing
+            var csvProvider = new KratuCSVProvider();
+            var self = this;
+            csvProvider.parse(this.results.results[i].content, function (csvdata) {
+              mljs.defaultconnection.logger.debug("kratu.updateResults: parsed CSV data: " + csvdata);
+              res = csvdata;
+              content.push(csvdata);
+              self.kratu.setEntities(content);
+              self._refresh();
+            });
+          }
         } else if (typeof(r.content) == "object") {
           // xml or JSON
           if (undefined != r.content.nodeType) {
-            // TODO support XML object
+            // support XML object
+            var json = xmlToJson(r.content); // MLJS Core utility library - Kratu has no XML provider!!!
+            content.push(json);
           } else {
             content.push(r.content);
           }
@@ -118,6 +134,42 @@ com.marklogic.widgets.kratu.prototype.updateResults = function(results) {
     }
     this._refresh();
   }
+};
+
+
+/**
+ * Updates this widget based on Data Context data
+ * @param {mljs.prototype.datacontext} datacontext - The data context with data
+ */
+com.marklogic.widgets.kratu.prototype.updateData = function(datacontext) {
+
+  var kratuData = new Array();
+
+  var sn = datacontext.getSeriesNames();
+  for (var s = 0,maxs = sn.length,seriesName;s < maxs;s++) {
+    seriesName = sn[s];
+
+    // make each series a layer
+    var data = datacontext.getData(seriesName);
+    // for each series, loop over data rows
+    for (var r = 0,maxr = data.length,row,kratuRow;r < maxr;r++) {
+      row = data[r];
+      kratuRow = {};
+      kratuRow.series = seriesName;
+      kratuRow.identity = row.identity;
+      for (var f in row.fields) {
+        kratuRow[f] = row.fields[f];
+      }
+
+      kratuData.push(kratuRow);
+    } // end data row for
+
+
+  } // end series for
+
+  this.kratu.setEntities(kratuData);
+  this._refresh();
+
 };
 
 /**

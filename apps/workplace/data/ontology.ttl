@@ -1,0 +1,156 @@
+@prefix p0: <http://marklogic.com/semantics/ontology/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix p5: <http://www.marklogic.com/ontology/mobiledata#> .
+@prefix p3: <http://marklogic.com/semantics/ontology/Document#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+p0:Document     a               rdfs:Class ;
+                rdfs:label      "MarkLogic Document" .
+
+p3:uri          a               owl:DatatypeProperty ;
+                rdfs:domain     p0:Document ;
+                rdfs:label      "URI" ;
+                owl:equivalentProperty
+                                rdfs:label .
+
+p0:mentioned_in a               owl:DatatypeProperty ;
+                rdfs:label      "Mentioned In" ;
+                rdfs:range      p0:Document .
+
+p0:mentions     a               owl:DatatypeProperty ;
+                rdfs:domain     p0:Document ;
+                rdfs:label      "Mentions" .
+
+p5:             a               owl:Ontology .
+
+p5:Contact      a               rdfs:Class ;
+                rdfs:label      "Contact" .
+
+p5:InvestigatedPerson
+                a               rdfs:Class ;
+                rdfs:label      "InvestigatedPerson" .
+
+p5:InvestigatedPhone
+                a               rdfs:Class ;
+                rdfs:label      "InvestigatedPhone" ;
+                rdfs:subClassOf p5:Phone .
+
+p5:Phone        a               rdfs:Class ;
+                rdfs:label      "Phone" .
+
+p5:TwitterAccount
+                a               rdfs:Class ;
+                rdfs:label      "TwitterAccount" .
+
+p5:calledByContact
+                a               owl:ObjectProperty ;
+                rdfs:domain     foaf:Person ;
+                rdfs:label      "calledByContact" ;
+                rdfs:range      p5:Contact .
+
+p5:calledByContactPhone
+                a               owl:ObjectProperty ;
+                rdfs:domain     p5:Phone ;
+                rdfs:label      "calledByContactPhone" ;
+                rdfs:range      p5:Phone .
+
+p5:calledContact
+                a               owl:ObjectProperty ;
+                rdfs:domain     foaf:Person ;
+                rdfs:label      "calledContact" ;
+                rdfs:range      p5:Contact .
+
+p5:calledContactPhone
+                a               owl:ObjectProperty ;
+                rdfs:domain     p5:Phone ;
+                rdfs:label      "calledContactPhone" ;
+                rdfs:range      p5:Phone .
+
+p5:contactName  a               owl:DatatypeProperty ;
+                rdfs:domain     p5:InvestigatedPerson ,
+                                p5:Person ;
+                rdfs:label      "contactName" ;
+                rdfs:subPropertyOf
+                                foaf:name ;
+                owl:equivalentProperty
+                                rdfs:label .
+
+p5:hasDocument  a               owl:ObjectProperty ;
+                rdfs:domain     p5:Phone ;
+                rdfs:label      "hasDocument" ;
+                rdfs:range      p0:Document .
+
+p5:hasNumber    a               owl:DatatypeProperty ;
+                rdfs:domain     p5:InvestigatedPhone ,
+                                p5:Phone ;
+                rdfs:label      "hasNumber" ;
+                owl:equivalentProperty
+                                rdfs:label .
+
+p5:hasTelephone a               owl:ObjectProperty ;
+                rdfs:domain     foaf:Person ;
+                rdfs:label      "hasTelephone" ;
+                rdfs:range      p5:Phone .
+
+p5:hasTwitterAccount
+                a               owl:ObjectProperty ;
+                rdfs:domain     p5:Phone ;
+                rdfs:label      "hasTwitterAccount" ;
+                rdfs:range      p5:TwitterAccount .
+
+p5:hasTwitterName
+                a               owl:DatatypeProperty ;
+                rdfs:domain     p5:TwitterAccount ;
+                rdfs:label      "hasTwitterName" ;
+                owl:equivalentProperty
+                                rdfs:label .
+
+p5:imFromContact
+                a               owl:ObjectProperty ;
+                rdfs:domain     foaf:Person ;
+                rdfs:label      "imFromContact" ;
+                rdfs:range      p5:Contact .
+
+p5:imToContact  a               owl:ObjectProperty ;
+                rdfs:domain     foaf:Person ;
+                rdfs:label      "imToContact" ;
+                rdfs:range      p5:Contact .
+
+p5:sentTweetTo  a               owl:ObjectProperty ;
+                rdfs:domain     p5:TwitterAccount ;
+                rdfs:label      "sentTweetTo" ;
+                rdfs:range      p5:TwitterAccount .
+
+p5:smsFromContact
+                a               owl:ObjectProperty ;
+                rdfs:domain     foaf:Person ;
+                rdfs:label      "smsFromContact" ;
+                rdfs:range      p5:Contact .
+
+p5:smsFromContactPhone
+                a               owl:ObjectProperty ;
+                rdfs:domain     p5:Phone ;
+                rdfs:label      "smsFromContactPhone" ;
+                rdfs:range      p5:Phone .
+
+p5:smsToContact a               owl:ObjectProperty ;
+                rdfs:domain     foaf:Person ;
+                rdfs:label      "smsToContact" ;
+                rdfs:range      p5:Contact .
+
+p5:smsToContactPhone
+                a               owl:ObjectProperty ;
+                rdfs:domain     p5:Phone ;
+                rdfs:label      "smsToContactPhone" ;
+                rdfs:range      p5:Phone .
+
+foaf:Person     a               rdfs:Class ;
+                rdfs:label      "Person" .
+
+foaf:name       a               owl:ObjectProperty ;
+                rdfs:domain     foaf:Person ;
+                rdfs:label      "Name" ;
+                owl:equivalentProperty
+                                rdfs:label .

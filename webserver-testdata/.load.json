@@ -1,0 +1,3 @@
+{
+  "prefix": "/root/", "collections": ["initialcontent"], "ignore": ["mljs-workplace.xml","rest-api.json"]
+}

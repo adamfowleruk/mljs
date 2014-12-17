@@ -11,13 +11,13 @@
     <title>MarkLogic Workplace</title>
 
     <!-- Bootstrap core CSS -->
-    <link href="css/bootstrap.min.css" rel="stylesheet">
-    <link href="css/bootstrap-theme.min.css" rel="stylesheet">
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/bootstrap-theme.min.css" rel="stylesheet">
 
     <!-- Custom styles for this template -->
-    <link href="css/navbar.css" rel="stylesheet">
+    <link href="/css/navbar.css" rel="stylesheet">
 
-    <link href="css/mljs/widgets.css" rel="stylesheet">
+    <link href="/css/mljs/widgets.css" rel="stylesheet">
 
     <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
@@ -29,9 +29,9 @@
 
   <body>
 
+      <div id="navholder"></div> <!-- workplace navbar widget -->
     <div class="container">
 
-      <div id="navholder"></div> <!-- workplace navbar widget -->
 
 
       <div id="errors"></div>
@@ -41,6 +41,7 @@
       </div>
 
 
+    </div> <!-- /container -->
 
 <div class="navbar navbar-default" role="navigation">
   <div class="container-fluid">
@@ -66,7 +67,6 @@ and its
 </div>
 
 
-    </div> <!-- /container -->
 
 
     <!-- Bootstrap core JavaScript
@@ -82,6 +82,8 @@ and its
 
     <script type="text/javascript" src="/js/highcharts.js"></script>
 
+    <script type="text/javascript" src="/js/mljs/widget-security.js"></script>
+    
     <script type="text/javascript" src="/js/mljs/widget-search.js"></script>
     <script type="text/javascript" src="/js/mljs/widget-address.js"></script>
     <script type="text/javascript" src="/js/mljs/widget-collections.js"></script>

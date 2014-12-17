@@ -520,7 +520,11 @@ com.marklogic.widgets.graphexplorer.prototype._drawSubjectDetail = function(subj
   mljs.defaultconnection.logger.debug("***PREDENTITY: " + JSON.stringify(predEntity));
   if (undefined != predEntity && undefined != predEntity.name) {
     type = predEntity.title;
-    var namepredicate = scfg.getNameProperty(predEntity.name).iri;
+    var nameprop = scfg.getNameProperty(predEntity.name);
+    var namepredicate = null;
+    if (undefined != nameprop) {
+      namepredicate = nameprop.iri;
+    }
     //mljs.defaultconnection.logger.debug("Got name predicate: " + namepredicate);
     if (undefined != namepredicate) {
 
@@ -813,7 +817,11 @@ com.marklogic.widgets.graphexplorer.prototype._getSubjectName = function(subject
     mljs.defaultconnection.logger.debug("getSubjectName: predEntity null, returning shortened subject iri");
     return this._shortenSubjectIri(subjectIri);
   }
-  var namepredicate = scfg.getNameProperty(predEntity.name).iri;
+  var nameprop = scfg.getNameProperty(predEntity.name);
+  var namepredicate = null;
+  if (undefined != nameprop) {
+    namepredicate = nameprop.iri;
+  }
   if (undefined == namepredicate) {
     mljs.defaultconnection.logger.debug("getSubjectName: namepredicate null, returning shortened subject iri");
     return this._shortenSubjectIri(subjectIri);
