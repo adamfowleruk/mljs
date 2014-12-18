@@ -4,11 +4,11 @@
     <user>admin</user>
     <group>Default</group>
     <host>localhost.localdomain</host>
-    <timestamp>2014-12-05T18:34:46.458875-08:00</timestamp>
+    <timestamp>2014-12-18T09:26:55.11972-08:00</timestamp>
     <platform>linux</platform>
   </metadata>
   <config>
-    <name>obisie-content</name>
+    <name>workplacetest-content</name>
     <package-database-properties>
       <enabled>true</enabled>
       <retired-forest-count>0</retired-forest-count>
@@ -162,25 +162,105 @@
 	  <range-value-positions>false</range-value-positions>
 	  <invalid-values>reject</invalid-values>
 	</range-element-index>
+	<range-element-index>
+	  <scalar-type>date</scalar-type>
+	  <namespace-uri>http://marklogic.com/ns/dt</namespace-uri>
+	  <localname>datereceived</localname>
+	  <collation/>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-element-index>
+	<range-element-index>
+	  <scalar-type>string</scalar-type>
+	  <namespace-uri>http://marklogic.com/xdmp/json/basic</namespace-uri>
+	  <localname>animal</localname>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-element-index>
+	<range-element-index>
+	  <scalar-type>string</scalar-type>
+	  <namespace-uri>http://marklogic.com/xdmp/json/basic</namespace-uri>
+	  <localname>family</localname>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-element-index>
+	<range-element-index>
+	  <scalar-type>string</scalar-type>
+	  <namespace-uri>http://marklogic.com/xdmp/json/basic</namespace-uri>
+	  <localname>city</localname>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-element-index>
+	<range-element-index>
+	  <scalar-type>string</scalar-type>
+	  <namespace-uri>http://marklogic.com/xdmp/json/basic</namespace-uri>
+	  <localname>month</localname>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-element-index>
+	<range-element-index>
+	  <scalar-type>string</scalar-type>
+	  <namespace-uri>http://www.w3.org/1999/xhtml</namespace-uri>
+	  <localname>h1</localname>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-element-index>
+	<range-element-index>
+	  <scalar-type>string</scalar-type>
+	  <namespace-uri>http://marklogic.com/xdmp/json/basic</namespace-uri>
+	  <localname>actor</localname>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-element-index>
+	<range-element-index>
+	  <scalar-type>string</scalar-type>
+	  <namespace-uri>http://marklogic.com/xdmp/json/basic</namespace-uri>
+	  <localname>year</localname>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-element-index>
+	<range-element-index>
+	  <scalar-type>int</scalar-type>
+	  <collation/>
+	  <namespace-uri>http://marklogic.com/xdmp/json/basic</namespace-uri>
+	  <localname>stars</localname>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-element-index>
+	<range-element-index>
+	  <scalar-type>string</scalar-type>
+	  <collation>http://marklogic.com/collation/</collation>
+	  <namespace-uri>http://marklogic.com/xdmp/json/basic</namespace-uri>
+	  <localname>genre</localname>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</range-element-index>
       </range-element-indexes>
       <range-element-attribute-indexes>
 	<range-element-attribute-index>
 	  <scalar-type>string</scalar-type>
-	  <collation>http://marklogic.com/collation/</collation>
 	  <parent-namespace-uri/>
 	  <parent-localname>call</parent-localname>
 	  <namespace-uri/>
 	  <localname>from</localname>
+	  <collation>http://marklogic.com/collation/</collation>
 	  <range-value-positions>false</range-value-positions>
 	  <invalid-values>reject</invalid-values>
 	</range-element-attribute-index>
 	<range-element-attribute-index>
 	  <scalar-type>string</scalar-type>
-	  <collation>http://marklogic.com/collation/</collation>
 	  <parent-namespace-uri/>
 	  <parent-localname>call</parent-localname>
 	  <namespace-uri/>
 	  <localname>number</localname>
+	  <collation>http://marklogic.com/collation/</collation>
 	  <range-value-positions>false</range-value-positions>
 	  <invalid-values>reject</invalid-values>
 	</range-element-attribute-index>
@@ -589,6 +669,17 @@
 	  <range-value-positions>true</range-value-positions>
 	  <invalid-values>reject</invalid-values>
 	</geospatial-element-pair-index>
+	<geospatial-element-pair-index>
+	  <parent-namespace-uri>http://marklogic.com/xdmp/json/basic</parent-namespace-uri>
+	  <parent-localname>location</parent-localname>
+	  <latitude-namespace-uri>http://marklogic.com/xdmp/json/basic</latitude-namespace-uri>
+	  <latitude-localname>lat</latitude-localname>
+	  <longitude-namespace-uri>http://marklogic.com/xdmp/json/basic</longitude-namespace-uri>
+	  <longitude-localname>lon</longitude-localname>
+	  <coordinate-system>wgs84</coordinate-system>
+	  <range-value-positions>false</range-value-positions>
+	  <invalid-values>reject</invalid-values>
+	</geospatial-element-pair-index>
       </geospatial-element-pair-indexes>
       <geospatial-element-attribute-pair-indexes/>
       <geospatial-path-indexes/>
@@ -601,7 +692,7 @@
     </package-database-properties>
     <links>
       <forests-list>
-	<forest-name>obisie-content-001-1</forest-name>
+	<forest-name>workplacetest-content-1</forest-name>
       </forests-list>
       <security-database>Security</security-database>
       <schema-database>Schemas</schema-database>

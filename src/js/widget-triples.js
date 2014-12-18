@@ -2069,6 +2069,9 @@ com.marklogic.widgets.keylines.prototype._init = function() {
 
 com.marklogic.widgets.keylines.prototype._refresh = function() {
   var self = this;
+  if (undefined == window.KeyLines) {
+    document.getElementById(this.container + "-kl").innerHTML = "<p>KeyLines JavaScript not installed. Please download from the KeyLines website.</p>";
+  } else {
   KeyLines.create(this.container + '-kl', function(err, chart) {
     self._chart = chart;
           chart.load({
@@ -2076,6 +2079,7 @@ com.marklogic.widgets.keylines.prototype._refresh = function() {
             items: self._kldata
           });
         });
+  }
 };
 
 
@@ -2270,18 +2274,20 @@ com.marklogic.widgets.keylines.prototype._drawSubjectDetail = function(subjectIr
   }
 
   mljs.defaultconnection.logger.debug("keylines._drawSubjectDetail: Calling load on keylines chart for data: " + JSON.stringify(this._kldata));
-  this._updateChartData(); // TODO force partial redraw only (coule be called due to user action)
+  this._updateChartData(); // TODO force partial redraw only (could be called due to user action)
 
 };
 
 com.marklogic.widgets.keylines.prototype._updateChartData = function() {
   var self = this;
-  this._chart.load({
-    type: 'LinkChart',
-    items: self._kldata
-  }, function() {
-    self._chart.layout('standard', {fit: true, animate: true, tidy: true});
-  });
+  if (undefined != this._chart) {
+    this._chart.load({
+      type: 'LinkChart',
+      items: self._kldata
+    }, function() {
+      self._chart.layout('standard', {fit: true, animate: true, tidy: true});
+    });
+  }
 };
 
 

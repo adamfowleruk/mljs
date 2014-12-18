@@ -251,8 +251,8 @@ function textToXML(text){
     //var parser = require("libxml");
     var parser = new (require('flat-xmldom').DOMParser)();
     doc = parser.parseFromString(text, "text/xml");
-    console.log("TEXT: " + text);
-    console.log("DOC: " + doc)
+    //console.log("TEXT: " + text);
+    //console.log("DOC: " + doc)
   } else {
 	  if (window.ActiveXObject){
       doc=new ActiveXObject('Microsoft.XMLDOM');
