@@ -1935,6 +1935,9 @@ com.marklogic.widgets.workplacecontext.prototype.addContextAction = function(con
  * @private
  */
 com.marklogic.widgets.workplacecontext.prototype._processConfig = function() {
+  if (undefined == this._json) {
+    this._json = {};
+  }
   if (undefined == this._json.widgets) {
     this._json.widgets = [];
   }
