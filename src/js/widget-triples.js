@@ -2020,7 +2020,7 @@ com.marklogic.widgets.keylines = function(container) {
   this.container = container;
 
   this._config = {
-
+    maxLevels: 5;
   };
 
   this.sc = null;
@@ -2037,6 +2037,7 @@ com.marklogic.widgets.keylines = function(container) {
  */
 com.marklogic.widgets.keylines.getConfigurationDefinition = function() {
   return {
+    maxLevels: {type: "integer", default: 5, minimum: 1, title: "Maximum Levels", description: "Maximum levels deep from subject to show facts for."},
   };
 };
 
@@ -2093,9 +2094,11 @@ com.marklogic.widgets.keylines.prototype.updateSubjectFacts = function(result) {
   // get parentiri, subjectiri, rdftype and group facts to these three
   // find relevant parent-subject iri nodes on the display
   // update this particular data node
-  var facts = this.sc.getCachedFacts(subjects[0]).facts
+  var cached = this.sc.getCachedFacts(subjects[0]);
+  var facts = cached.facts;
+  var level = result._level;
   //this.propertyCache[subjects[0]] = facts;
-  this._drawSubjectDetail(subjects[0],facts);
+  this._drawSubjectDetail(subjects[0],facts,level);
 };
 
 com.marklogic.widgets.keylines.prototype._getSubject = function(iri) {
@@ -2119,10 +2122,13 @@ com.marklogic.widgets.keylines.prototype.updateOntology = function(tc) {
   }
 };
 
-com.marklogic.widgets.keylines.prototype._drawSubjectDetail = function(subjectIri,facts) {
+com.marklogic.widgets.keylines.prototype._drawSubjectDetail = function(subjectIri,facts,level) {
   if (undefined == this._lastSubject) {
     this._lastSubject = subjectIri;
     this._lastFacts = facts;
+    if (undefined == level) { // probably true if we are in here
+      level = 1;
+    }
 
 //    this.sc.subjectFacts(subjectIri);
   }
@@ -2173,7 +2179,17 @@ com.marklogic.widgets.keylines.prototype._drawSubjectDetail = function(subjectIr
     if (null != cache) {
       fs = cache.facts;
     } else {
-      self.sc.subjectFacts(iri); // TODO limit this to a particular depth
+      if (undefined != level && level < (self._config.maxLevels - 1)) {
+        self.sc.subjectFacts(iri);
+      } else {
+        var slevel = self.sc.getSubjectLevel(iri,level + 1);
+        if (slevel < self._config.maxLevels) {
+          self.sc.subjectFacts(iri,level + 1);
+        } else {
+          // fetching all facts for level EQUAL to the one we are at with this subject - means we fetch the subject's
+          //   summary information, but not information on those related
+        }
+      }
     }
 
     var getPredicateObject = function(prediri) {

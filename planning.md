@@ -24,16 +24,42 @@ Interim demo targets
   - TEST Support for Data Context
   - TEST Support for XML document content in search results
 
-Tidying up
+December break work
+ - Widgets: Hive chart based on bostocks example for semantic data
+  - TEST Core: May require reworking of semantic context to tunnel down to n degrees of separation
+  - TEST Widgets: KeyLines: test max depth less than 5 with sample content in NP demo
+  - TEST (updateFactsToLevel) Core: Add fetch depth method to follow down links to n depth from base, with own completion handler callback
+   - DEFERRED Core: semantic content fetch depth: optionally taking list of predicates
+  - Widgets: KeyLines altered to use depth method to prevent refreshing screen 5 times
+ - Workplace UX
+  - images for widgets
+  - make popup help on config elements more obvious
+  - DEFERRED link widgets to youtube videos? And timestamps within?
+ - Widgets: Search options configuration in application editing screen
+  - Track code commented TODOs in this document
+  - BUG Widgets: combined query - test against latest MarkLogic 7 build
+  - BUG Widgets: Address Lookup: Google geocoder needs to fail gracefully if google libraries not available (offline mode)
+  - BUG Widgets: Openlayers - source comment text position AGAIN
+  - Core: Search Context: Search context chaining
+  - Add one or more child contexts, with a name for the contributed query term setting (E.g. parent contributes "collection:EmploymentStats AND year GT 2008 and year LT 2013")
+  - Ensure each context may have a hidden query term in it (E.g. one child has extra of Year=2010, one child has extra of Year=2011, and so on)
+  - Test this working with search page affecting master search context (and query), highcharts depending upon child search context
+  - DEFERRED detect circular relationships (infinite JavaScript loops)
+ - Documentation of customisations
+  - More custom search results examples
+  - Update search results examples in Workplace app by default
+  - How to add your own widget guide
+  - How to add your own search result handler guide
  - DONE Widgets: Search results
   - DONE actions and custom actions from javascript, not hardcoded. Grouped by providing module in order. Defaults first.
  - Widgets: Workplace support better navigation
   - navigation drop downs
   - parent property for page configuration
   - navigation widget parent aware (search with extract of parent field, 100 results) - submit options with search
-  - Digital Forensics / Case Work / Situational Awareness
   - Test with multiple directories, but just 1 layer down
   - More stringent URL entries on page configuration box
+
+Tidying up
  - BUG Widgets: searchfacets - deselection of facet values not working as expected
  - BUG db.configure affects ALL instances
 
@@ -223,27 +249,12 @@ Targets of opportunity (not scheduled)
 
 
 Targets for 1.8 (Jan 2015) - Theme: Visualisations Sprint 1
- - Widgets: Hive chart based on bostocks example for semantic data
-  - Core: May require reworking of semantic context to tunnel down to n degrees of separation
  - Docs: JSdoc better use
   - returned objects
   - IN PROGRESS JSON structures
  - links to other docs
   - ML REST API JSON and XML structures
   - tutorials where function mentioned
- - Workplace UX
-  - images for widgets
-  - make popup help on config elements more obvious
-  - link widgets to youtube videos? And timestamps within?
-- Widgets: Search options configuration in application editing screen
- - Track code commented TODOs in this document
- - BUG Widgets: combined query - test against latest MarkLogic 7 build
- - BUG Widgets: Address Lookup: Google geocoder needs to fail gracefully if google libraries not available (offline mode)
- - Core: Search Context: Search context chaining
-  - Add one or more child contexts, with a name for the contributed query term setting (E.g. parent contributes "collection:EmploymentStats AND year GT 2008 and year LT 2013")
-  - Ensure each context may have a hidden query term in it (E.g. one child has extra of Year=2010, one child has extra of Year=2011, and so on)
-  - Test this working with search page affecting master search context (and query), highcharts depending upon child search context
-  - DEFERRED detect circular relationships (infinite JavaScript loops)
  - IN PROGRESS Widgets: Search Results
   - IN PROGRESS Improve support for pluggable rendering for areas of result pane:-
    - IN PROGRESS title

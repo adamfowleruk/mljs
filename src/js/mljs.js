@@ -8845,6 +8845,9 @@ mljs.prototype.semanticcontext = function() {
   this._selectedSubject = ""; // IRI of selected subject
   //this._subjectFacts = new Array(); // IRI -> JSON SPARQL facts results object
 
+  this._relatedSubjects = []; // Number level -> Array of subjectIRIs at this level - helps tunnel down
+  this._subjectLevel = {}; // Subject iri -> integer level (1 is root, 2 is next, 0 is none, not even root)
+
   this._restrictSearchContext = null; // the searchcontext instance to update with a cts:triples-range-query when our subjectQuery is updated
   this._contentSearchContext = null; // The search context to replace the query for when finding related content to this SPARQL query (where a result IRI is a document URI)
 
@@ -8856,6 +8859,7 @@ mljs.prototype.semanticcontext = function() {
   this._subjectFactsPublisher = new com.marklogic.events.Publisher();
   this._suggestionsPublisher = new com.marklogic.events.Publisher();
   this._factsPublisher = new com.marklogic.events.Publisher(); // publish facts that can be associated to many subjects - normally for pulling back a result per subject, with many facts per 'row'
+  this._levelPublisher = new com.marklogic.events.Publisher(); // publishes facts down to a particular level
   this._errorPublisher = new com.marklogic.events.Publisher();
   this._ontologyPublisher = new com.marklogic.events.Publisher(); // sends tripleconfig object
 };
@@ -9090,6 +9094,9 @@ mljs.prototype.semanticcontext.prototype.register = function(obj) {
   if (undefined != obj.updateFacts) {
     this._factsPublisher.subscribe(function(facts) {obj.updateFacts(facts)});
   }
+  if (undefined != obj.updateFactsToLevel) {
+    this._levelPublisher.subscribe(function(summary) {obj.updateFactsToLevel(summary)});
+  }
   if (undefined != obj.updateSuggestions) {
     this._suggestionsPublisher.subscribe(function(suggestions) {obj.updateSuggestions(suggestions)});
   }
@@ -9157,15 +9164,84 @@ mljs.prototype.semanticcontext.prototype._doSubjectQuery = function() {
 };
 
 /**
- * Fetches facts that have the subjectIri specified as the 'subject' (but NOT the 'object - thus different to GET /v1/graphs/things)
- *
- * @param {string} subjectIri - The Subject iri to fetch facts for
- */
-mljs.prototype.semanticcontext.prototype.subjectFacts = function(subjectIri) {
+* Fetches facts that have the subjectIri specified as the 'subject' (but NOT the 'object - thus different to GET /v1/graphs/things)
+*
+* @param {string} subjectIri - The Subject iri to fetch facts for
+*/
+mljs.prototype.semanticcontext.prototype.subjectFacts = function(subjectIri,relatedLevel_opt) {
   this._selectedSubject = subjectIri;
 
   // subject SPARQL
-  this.getFacts(subjectIri,true);
+  this.getFacts(subjectIri,true,relatedLevel_opt);
+};
+
+/**
+* Fetches facts that have the subjectIri specified as the 'subject' (but NOT the 'object - thus different to GET /v1/graphs/things).
+* Also fetches related children, and their children, to maxDepth depth (depth of 1 is subjectIri)
+* Fires updateFactsDepth method.
+*
+* @param {string} subjectIri - The Subject iri to fetch facts for
+* @param {integer} maxDepth - The depth (number of relationship hops) to follow in addition to this subject
+*/
+mljs.prototype.semanticcontext.prototype.subjectFactsDepth = function(subjectIri,maxDepth) {
+  this._selectedSubject = subjectIri;
+  var self = this;
+
+  var subjectsToDo = {};
+  var fired = false;
+  var subjectDepths = [];
+
+  var checkDone = function() {
+    for (var siri in subjectsToDo) {
+      // TODO add typeof function check if required
+      if (true === subjectsToDo[siri]) { // yes, subject still a todo
+        return false; // not done
+      }
+    }
+    if (!fired) {
+      self._levelPublisher.publish({subject: subjectIri,depth: maxDepth,subjectDepths: subjectDepths});
+      // must pass list of subjects processed in case the cache is bigger than just these subjects
+    }
+    fired = true;
+    return true; // all done
+  };
+
+  var lis = {
+    updateFacts: function(results) {
+      var lvl = subjectDepths[results._level];
+      if (undefined == lvl) {
+        lvl = [];
+        subjectDepths[results._level] = lvl;
+      }
+      // check results._level
+      // if greater than maxDepth, AND subjectsToDo is empty, then done and fire event
+      // else add related objectIris and go fetch their information too
+      for (var b = 0,bindings = results.results.bindings, max = bindings.length, binding;b < max;b++) {
+        binding = bindings[b];
+        var sub = bindings.subject.value;
+        lvl.push(sub);
+        subjectsToDo[sub] = false;
+        if (binding.object.type == "uri") {
+          if (binding.predicate.value != "http://www.w3.org/1999/02/22-rdf-syntax-ns#type") {
+            if (results._level < maxDepth) {
+              // draw targets subject -> object of type uri
+              subjectsToDo[bindings.object.value] = true;
+              self.getFacts(binding.object.value,true,results._level + 1);
+            } else {
+              // check if we're done yet
+              checkDone();
+            } // max depth if
+          }
+        } else {
+          // intrinsic properties - ignore
+        } // uri if
+      } // bindings for
+    }
+  };
+  this.register(lis);
+
+  // subject SPARQL
+  this.getFacts(subjectIri,true,1);
 };
 
 // NB subjectIri can be null if sparql contains multiple subjectIris
@@ -9296,7 +9372,7 @@ mljs.prototype.semanticcontext.prototype.getFact = function(subjectIri,predicate
  * @param {string} subjectIri - The IRI of the subject whose fact we are looking for
  * @param {string} reload_opt - Whether to reload the fact, or use the cached value (if it exists) - defaults to false (use cache)
  */
-mljs.prototype.semanticcontext.prototype.getFacts = function(subjectIri,reload_opt) {
+mljs.prototype.semanticcontext.prototype.getFacts = function(subjectIri,reload_opt,relatedLevel_opt) {
   //var facts = this._subjectFacts[subjectIri];
   var facts = this.getCachedFacts(subjectIri); //.facts;
   if ((true==reload_opt) || undefined == facts) {
@@ -9312,7 +9388,7 @@ mljs.prototype.semanticcontext.prototype.getFacts = function(subjectIri,reload_o
     }*/
     sparql += " ?subject ?predicate ?object . FILTER (?subject = <" + subjectIri + "> ) .}";
 
-    this._getFacts(sparql);
+    this._getFacts(sparql,null,relatedLevel_opt);
   } else {
     this._subjectFactsPublisher.publish(
       {results: {bindings: facts.facts}}
@@ -9320,7 +9396,7 @@ mljs.prototype.semanticcontext.prototype.getFacts = function(subjectIri,reload_o
   }
 };
 
-mljs.prototype.semanticcontext.prototype._getFacts = function(sparql,subjectIriOpt) {
+mljs.prototype.semanticcontext.prototype._getFacts = function(sparql,subjectIriOpt,relatedLevel_opt) {
   var self = this;
   // fetch info and refresh again
   self.db.sparql(sparql,function(result) {
@@ -9335,9 +9411,35 @@ mljs.prototype.semanticcontext.prototype._getFacts = function(sparql,subjectIriO
         res.subject = subjectIriOpt;
       }*/
       self._cache(result.doc,true);
+
+      // save subjectIRIs in related level
+      if (undefined != relatedLevel_opt) {
+        var level = self._relatedSubjects[relatedLevel_opt];
+        if (undefined == level) {
+          level = [];
+          self._relatedSubjects[relatedLevel_opt] = level;
+        }
+        // add IRIs to level, if not already there
+
+        var bindings = result.doc.results.bindings;
+        for (var b = 0,maxb = bindings.length,bin,subject;b < maxb;b++) {
+          bin = bindings[b];
+          subject = bin.subject.value;
+          self._subjectLevel[subject] = relatedLevel_opt;
+          level.push(subject);
+        } // end bindings for
+        // rewrite result to include level
+        result.doc._level = relatedLevel_opt;
+      }
+
+
       self._subjectFactsPublisher.publish(result.doc);
     }
   });
+};
+
+mljs.prototype.semanticcontext.prototype.getSubjectLevel = function(iri) {
+  return this._subjectLevel[iri]; // could be undefined
 };
 
 /**
