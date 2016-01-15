@@ -931,7 +931,9 @@ mljs.prototype.__doreq_node = function(reqname,options,content,callback_opt) {
     (callback_opt || noop)({inError: true,error: e}); // SHOULD THIS BE DETAIL INSTEAD OF ERROR?
   });
   if (undefined != content && null != content) {
-    if ("string" == typeof (content)) {
+    //console.log("request content is of type: " + typeof(content));
+    //console.log("is Buffer?: " + Buffer.isBuffer(content));
+    if ("string" == typeof (content) || Buffer.isBuffer(content)) { // Node.js fix for buffers accidentally being converted to JSON
       httpreq.write(content);
     } else if ("object" == typeof(content)) {
       if (undefined != content.nodeType) {
@@ -1330,6 +1332,16 @@ mljs.prototype.save = function(jsonXmlBinary,docuri_opt,props_opt,callback_opt) 
   if (undefined == docuri_opt) {
     // generate docuri and set on response object
     docuri_opt = this.__genid();
+  } else {
+    /*
+    if (undefined == window || undefined == window.encodeURI) {
+      // not in browser, in node.js?
+      if (undefined != encode) {
+        docuri_opt = escape(docuri_opt);
+      }
+    } else {
+      docuri_opt = encodeURI(docuri_opt);
+    }*/
   }
 
   var format = "json";
@@ -4325,15 +4337,15 @@ mljs.prototype.options.prototype.extractJsonMetadata = function(strings) {
     strings = [strings];
   }
   var news = [];
-  if (undefined != this.options["extract-metadata"]["json-property"]) {
-    for (var i = 0;i < this.options["extract-metadata"]["json-property"].length;i++) {
-      news.push(this.options["extract-metadata"]["json-property"][i]);
+  if (undefined != this.options["extract-metadata"]["json-key"]) {
+    for (var i = 0;i < this.options["extract-metadata"]["json-key"].length;i++) {
+      news.push(this.options["extract-metadata"]["json-key"][i]);
     }
   }
   for (var i = 0;i < strings.length;i++) {
     news.push(strings[i]);
   }
-  this.options["extract-metadata"]["json-property"] = news;
+  this.options["extract-metadata"]["json-key"] = news;
   return this;
 };
 
@@ -4430,7 +4442,7 @@ mljs.prototype.options.prototype.jsonContainerConstraint = function(constraint_n
   var con = {
         "name": constraint_name,
         "container": {
-          "json-property": jsonkey
+          "json-key": jsonkey
         }
       };
   if (undefined != annotation_opt) {
@@ -5553,7 +5565,7 @@ mljs.prototype.options.prototype.sortOrder = function(direction_opt,type_opt,key
   // TODO check for unspecified type, direction, collation (and element + ns instead of key)
   var so = {direction: direction_opt || this.defaults.sortDirection,type:type_opt || this.defaults.datatype/*, score: "score-logtfidf"*/};
   if ("string" === typeof(keyOrJSON)) {
-    so["json-property"] = keyOrJSON;
+    so["json-key"] = keyOrJSON;
   } else {
     if (undefined != keyOrJSON.element) {
       so["element"] = {name: keyOrJSON.element};
@@ -5576,7 +5588,7 @@ mljs.prototype.options.prototype.sortOrder = function(direction_opt,type_opt,key
       so["field"] = {name: keyOrJSON.field, collation: keyOrJSON.collation}; // might not be the default value, could be null (optional)
     }
     if (undefined != keyOrJSON.key) {
-      so["json-property"] = keyOrJSON.key;
+      so["json-key"] = keyOrJSON.key;
     }
     if (undefined != keyOrJSON.annotation) {
       if ("string" == typeof(keyOrJSON.annotation)) {
@@ -6652,18 +6664,20 @@ mljs.prototype.searchcontext.prototype.getOptions = function() {
   // bit of clever mixin work as we no longer have an options builder reference here
   var opts = this._options;
   opts._findConstraint = function(cname) {
+    
+    var con = null;
 
-  var con = null;
+    if (undefined != opts.options.constraint) {
+      for (var i = 0, max = opts.options.constraint.length, c;i < max;i++) {
+        c = opts.options.constraint[i];
 
-  for (var i = 0, max = opts.options.constraint.length, c;i < max;i++) {
-    c = opts.options.constraint[i];
-
-    if (c.name == cname) {
-      return c;
+        if (c.name == cname) {
+          return c;
+        }
+      }
     }
-  }
 
-  return null;
+    return null;
   };
   return opts;
 };
@@ -7636,14 +7650,14 @@ mljs.prototype.searchcontext.prototype.updatePage = function(json) {
 /**
  * Event Target. Useful for linking to a search sorter. Updates the sort word and executes a search.
  *
- * @param {JSON} sortSelection - The sort-order JSON object - E.g. {"json-property": year, direction: "ascending"}
+ * @param {JSON} sortSelection - The sort-order JSON object - E.g. {"json-key": year, direction: "ascending"}
  */
 mljs.prototype.searchcontext.prototype.updateSort = function(sortSelection) {
   // remove any existing sort
   //this.simplequery += " " + this.sortWord + ":\"" + sortSelection + "\""; // move sort to query url param, not in grammar
 
   // alter options such that no update event is fired, but will be persisted
-  if (undefined != sortSelection["json-property"] && "" == sortSelection["json-property"]) {
+  if (undefined != sortSelection["json-key"] && "" == sortSelection["json-key"]) {
     //this._options.options["sort-order"] = [];
     this._options.options["sort-order"] = this.defaultSort;
   } else {
@@ -9303,7 +9317,9 @@ mljs.prototype.semanticcontext.prototype.getFact = function(subjectIri,predicate
 mljs.prototype.semanticcontext.prototype.getFacts = function(subjectIri,reload_opt) {
   //var facts = this._subjectFacts[subjectIri];
   var facts = this.getCachedFacts(subjectIri); //.facts;
-  if ((true==reload_opt) || undefined == facts) {
+  if ((true==reload_opt) || undefined == facts ||
+    (undefined == facts.namePredicate || undefined == facts.typeNameString || undefined == facts.nameString)
+  ) {
     var sparql = "SELECT * WHERE {";
 
     // check for bnodes

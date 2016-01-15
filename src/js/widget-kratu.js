@@ -36,6 +36,8 @@ com.marklogic.widgets.kratu = function(container) {
 
   this._config = {
     render: "content" // summary = top level ML search info, content = raw document info
+    ,
+    report: null
   };
 
   this._refresh();
@@ -52,8 +54,12 @@ com.marklogic.widgets.kratu.getConfigurationDefinition = function() {
     render: {type:"enum", default: "content", title: "Render", description: "Whether to render the document content or the search result summary.",
       options: [
         {value: "content", title: "Content", description: "Content of the result document."},
-        {value: "summary", title: "Summary", description: "Summary of the search result metadata."}
+        {value: "summary", title: "Summary", description: "Summary of the search result metadata."},
+        {value: "extract", title: "Extract", description: "Extracted data elements from the document."}
       ]
+    },
+    report: {
+      type: "string", default: null, title: "Report", description: "The name of the custom (code) configuration to use for the report."
     }
   };
 };
@@ -105,6 +111,8 @@ com.marklogic.widgets.kratu.prototype.updateResults = function(results) {
             var res = JSON.parse(this.results.results[i].content);
             content.push(res);
           } catch (ex) {
+            mljs.defaultconnection.logger.debug(ex);
+
             // must be text. Try CSV parsing
             var csvProvider = new KratuCSVProvider();
             var self = this;
@@ -128,6 +136,24 @@ com.marklogic.widgets.kratu.prototype.updateResults = function(results) {
         }
       }
       this.kratu.setEntities(content);
+    } else if ("extract" == this._config.render) {
+      mljs.defaultconnection.logger.debug("kratu.updateResults: Rendering extracted data");
+      var data = new Array();
+      for (var i = 0,maxi = this.results.results.length, r, row;i < maxi;i++) {
+        r = this.results.results[i].metadata;
+        row = {};
+        row._uri = this.results.results[i].uri; // TODO consider putting entire result in row._result instead
+        for (var m = 0, maxm = r.length, meta;m < maxm;m++) {
+          meta = r[m];
+          for (prop in meta) {
+            if ("metadata-type" != prop) {
+              row[com.marklogic.widgets.searchhelper.processValueAll(prop)] = meta[prop];
+            }
+          }
+        }
+        data.push(row);
+      }
+      this.kratu.setEntities(data);
     } else {
       mljs.defaultconnection.logger.debug("kratu.updateResults: Rendering search result statistics");
       this.kratu.setEntities(this.results.results);
@@ -141,7 +167,7 @@ com.marklogic.widgets.kratu.prototype.updateResults = function(results) {
  * Updates this widget based on Data Context data
  * @param {mljs.prototype.datacontext} datacontext - The data context with data
  */
-com.marklogic.widgets.kratu.prototype.updateData = function(datacontext) {
+com.marklogic.widgets.cooccurence.prototype.updateData = function(datacontext) {
 
   var kratuData = new Array();
 
@@ -220,5 +246,24 @@ com.marklogic.widgets.kratu.prototype._refresh = function() {
   if ( (null == this.results || undefined == this.results || "boolean" == typeof this.results) && (null == this.facts || undefined == this.facts || "boolean" == typeof this.facts)) {
     return; // draw nothing
   }
+
+  // check for custom report definition (defaults to none)
+  if (null != this._config.report && "" != this._config.report) {
+    // load custom code config
+
+    var custom = com.marklogic.widgets.kratuext;
+    var plugin = custom[this._config.report];
+    if (undefined != plugin) {
+      console.log("Found plugin for: " + this._config.report);
+      var report = plugin.reportdefinition;
+      if (undefined != report) {
+        console.log("Found report for: " + this._config.report + " ... loading");
+        // sanity check
+        this.kratu.setReportDefinition(report);
+        console.log("Found report for: " + this._config.report + " ... loading complete");
+      }
+    }
+  }
+
   this.kratu.renderReport();
 };

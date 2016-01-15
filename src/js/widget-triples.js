@@ -1830,34 +1830,42 @@ com.marklogic.widgets.entityfacts.prototype._generateSubjectHTML = function(sub,
   var entityInfo = scfg.getEntityFromIRI(type);
   mljs.defaultconnection.logger.debug("Got entity info: " + JSON.stringify(entityInfo));
 
-  var entityName = entityInfo.name;
-  mljs.defaultconnection.logger.debug("Got entity name: " + entityName);
+  var namevalue = type;
+  var title = type;
 
-  // get common name from config
-  var nameprop = scfg.getNameProperty(entityName);
-  var namevalue = null;
-  if (undefined != nameprop) {
-    var namepredicate = nameprop.iri;
-    mljs.defaultconnection.logger.debug("Got name predicate: " + namepredicate);
-    for (var b = 0,bindings = this.facts.results.bindings, max = bindings.length, predicate, object, binding;(null == namevalue) && (b < max);b++) {
-      binding = bindings[b];
-      if (undefined != binding.subject) {
-        if (binding.subject.value == sub) {
-          predicate = binding.predicate;
-          if (undefined == predicate) {
-            predicate = {value: this.facts.predicate};
-          }
-          object = binding.object;
+  if (null != entityInfo) {
 
-          if (predicate.value == namepredicate) {
-            namevalue = object.value;
+    var entityName = entityInfo.name;
+    mljs.defaultconnection.logger.debug("Got entity name: " + entityName);
+
+    // get common name from config
+    var nameprop = scfg.getNameProperty(entityName);
+    if (undefined != nameprop) {
+      var namepredicate = nameprop.iri;
+      mljs.defaultconnection.logger.debug("Got name predicate: " + namepredicate);
+      for (var b = 0,bindings = this.facts.results.bindings, max = bindings.length, predicate, object, binding;(null == namevalue) && (b < max);b++) {
+        binding = bindings[b];
+        if (undefined != binding.subject) {
+          if (binding.subject.value == sub) {
+            predicate = binding.predicate;
+            if (undefined == predicate) {
+              predicate = {value: this.facts.predicate};
+            }
+            object = binding.object;
+
+            if (predicate.value == namepredicate) {
+              namevalue = object.value;
+            }
           }
         }
       }
+    } else { // nameprop else
+      mljs.defaultconnection.logger.debug("WARNING: Class with no name predicate: " + entityName);
     }
-  } else { // nameprop else
-    mljs.defaultconnection.logger.debug("WARNING: Class with no name predicate: " + entityName);
-  }
+
+    title = entityInfo.title;
+
+  } // end null entityInfo check
   mljs.defaultconnection.logger.debug("Got name value: " + namevalue);
 
   s += "<div class='mljsResultDefaultResult'>";
