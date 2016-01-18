@@ -24,108 +24,113 @@ Interim demo targets
   - TEST Support for Data Context
   - TEST Support for XML document content in search results
 
-DH Demo - 2 days
- - NA default theme on website is really bad. Using cerulean. Full screen bootstrap theme (OBI Doesn't have one - custom)
- - DONE Widgets: document properties widget - get folksonomies working
- - TEST Core: datacontext
-  - DONE basic context creation
-  - TEST identity information joining
-  - TEST support multiple configurable sources in Workplace
- - TEST Widgets: HighCharts rework
-  - TEST Support for Data Context
-  - TEST specification of which fields used for series name (In DC), category X (In DC), value Y axis (from valueSource)
-  - TEST via DC only - Support multiple series
- - DONE Widgets: OpenLayers rework
-  - DONE Support for Data Context
-  - DONE Specification of field values linked to pins
-  - DONE field linked to summary content
-  - DONE highlighted document uri field
-  - DONE marker drawing working via configuration
-  - DONE Widgets: OpenLayers shows image thumbnail as marker
-   - DONE Marker width and height configuration
-   - NA use offset pixels instead - Indicator location setting - center, topleft, bottom left, bottom etc.
-   - DONE offset x and y for fine tuning
- - DONE Widgets: Document properties
-  - DONE get add properties working
-  - DONE update document context for allowable properties
-  - DONE BUG The second time you edit (add) a property, the Add button does not work - undefined html element (deleted?)
- - DONE Widgets: Document view
-  - DONE Alter widget to support viewing generic XML, XHTML, JPG, etc.
-  - DONE XHTML with links
- - DEFERRED GML support
-  - DEFERRED indexing
-  - DEFERRED search options
-  - DEFERRED open layers points
- - DONE Built app
-  - DONE App roxy project
-  - NA Get edrms indexes copied over
-  - NA EDRMS demo package exported
-  - DONE Workplace pages configuration exported
-  - DONE Install instructions
-
-The demo
- - DONE Complete as per its progress document
-
-Tidying up
+December break work
+ - Widgets: Hive chart based on bostocks example for semantic data
+  - TEST Core: May require reworking of semantic context to tunnel down to n degrees of separation
+  - TEST Widgets: KeyLines: test max depth less than 5 with sample content in NP demo
+  - TEST (updateFactsToLevel) Core: Add fetch depth method to follow down links to n depth from base, with own completion handler callback
+   - DEFERRED Core: semantic content fetch depth: optionally taking list of predicates
+  - Widgets: KeyLines altered to use depth method to prevent refreshing screen 5 times
+ - Workplace UX
+  - images for widgets
+  - make popup help on config elements more obvious
+  - DEFERRED link widgets to youtube videos? And timestamps within?
+ - Widgets: Search options configuration in application editing screen
+  - Track code commented TODOs in this document
+  - BUG Widgets: combined query - test against latest MarkLogic 7 build
+  - BUG Widgets: Address Lookup: Google geocoder needs to fail gracefully if google libraries not available (offline mode)
+  - BUG Widgets: Openlayers - source comment text position AGAIN
+  - Core: Search Context: Search context chaining
+  - Add one or more child contexts, with a name for the contributed query term setting (E.g. parent contributes "collection:EmploymentStats AND year GT 2008 and year LT 2013")
+  - Ensure each context may have a hidden query term in it (E.g. one child has extra of Year=2010, one child has extra of Year=2011, and so on)
+  - Test this working with search page affecting master search context (and query), highcharts depending upon child search context
+  - DEFERRED detect circular relationships (infinite JavaScript loops)
+ - Documentation of customisations
+  - More custom search results examples
+  - Update search results examples in Workplace app by default
+  - How to add your own widget guide
+  - How to add your own search result handler guide
  - DONE Widgets: Search results
   - DONE actions and custom actions from javascript, not hardcoded. Grouped by providing module in order. Defaults first.
  - Widgets: Workplace support better navigation
   - navigation drop downs
   - parent property for page configuration
   - navigation widget parent aware (search with extract of parent field, 100 results) - submit options with search
-  - Digital Forensics / Case Work / Situational Awareness
   - Test with multiple directories, but just 1 layer down
   - More stringent URL entries on page configuration box
+
+Tidying up
  - BUG Widgets: searchfacets - deselection of facet values not working as expected
  - BUG db.configure affects ALL instances
 
-Targets for 1.7 (Nov 2014) - Theme: External WebServer and Alerting
+Targets for 1.7 (Dec 2014) - Theme: External WebServer
  - Docs: videos for release
   - Introduction to the MLJS WebServer, and distribution build script
-  - Situational awareness app video
- - Packaging using puppet
-  - Install all MLJS pre-requisites, including Node.js, MarkLogic
-  - Overrides for existing Node.js, MarkLogic
- - Tests: Alert context and alert subscription tests
-  - Subscribe and save search
-  - Unsubscribe
-  - Unsubscribe and delete
-  - Subscribe to existing saved search
-  - List saved searches and alert enabled status
-  - Receive alert status test
-  - Receive alert test
-   - JSON doc send
-   - XML doc send
-   - Binary image thumbnail map tile send
+ - DONE Node.js scripts
+  - DONE mljsadmin
+  - DONE mljsserve
+  - DONE Yeoman mljsworkplace generator
+ - DONE Packaging using yeoman
+  - DONE Install all MLJS pre-requisites, including Node.js, MarkLogic
+  - DONE Overrides for existing Node.js, MarkLogic
  - TEST Docs: Workplace app enhancements
-  - TEST One context of each type by default
+  - DONE One context of each type by default
   - TEST Support globally registered context extensions in workplace widget and sub widgets
   - DONE two column layout
   - DONE three column layout
   - DONE thinthickthin layout
- - Docs: JSdoc better use
-  - returned objects
-  - JSON structures
-  - links to other docs
-   - ML REST API JSON and XML structures
-   - tutorials where function mentioned
  - Bugs
   - DONE XML parsing bug with hack fix BUG Widgets: title on tweets isn't working, showing XML error on Mac Safari
   - DONE BUG generic widget image doesn't show in Node.js mljs webserver
   - BUG open layers map layer comments appearing too high again - copy old css fix over
  - Workplace app fixes
-  - Windows batch files for mljs webserver app and settings (David Lee)
-  - TEST custom renderers in searchresults - com.marklogic.widgets.searchresultsext.NAME.customrenderers = {};
-  - TEST Widget extra configuration parameters
+  - DONE Windows batch files for mljs webserver app and settings (David Lee)
+  - DONE custom renderers in searchresults - com.marklogic.widgets.searchresultsext.NAME.customrenderers = {};
+  - DONE Widget extra configuration parameters
   - TEST addressbar.radius
   - TEST searchselection.setMode
   - TEST searchselection.addQuery - use title and JSON as string initially until query builder ready?
    - Use openlayers attractions distance/rating example
- - Workplace UX
-  - images for widgets
-  - make popup help on config elements more obvious
-  - link widgets to youtube videos? And timestamps within?
-  - Widgets: Search options configuration in application editing screen
+ - DH Demo
+   - NA default theme on website is really bad. Using cerulean. Full screen bootstrap theme (OBI Doesn't have one - custom)
+   - DONE Widgets: document properties widget - get folksonomies working
+   - TEST Core: datacontext
+   - DONE basic context creation
+   - TEST identity information joining
+   - TEST support multiple configurable sources in Workplace
+   - TEST Widgets: HighCharts rework
+   - TEST Support for Data Context
+   - TEST specification of which fields used for series name (In DC), category X (In DC), value Y axis (from valueSource)
+   - TEST via DC only - Support multiple series
+   - DONE Widgets: OpenLayers rework
+   - DONE Support for Data Context
+   - DONE Specification of field values linked to pins
+   - DONE field linked to summary content
+   - DONE highlighted document uri field
+   - DONE marker drawing working via configuration
+   - DONE Widgets: OpenLayers shows image thumbnail as marker
+   - DONE Marker width and height configuration
+   - NA use offset pixels instead - Indicator location setting - center, topleft, bottom left, bottom etc.
+   - DONE offset x and y for fine tuning
+   - DONE Widgets: Document properties
+   - DONE get add properties working
+   - DONE update document context for allowable properties
+   - DONE BUG The second time you edit (add) a property, the Add button does not work - undefined html element (deleted?)
+   - DONE Widgets: Document view
+   - DONE Alter widget to support viewing generic XML, XHTML, JPG, etc.
+   - DONE XHTML with links
+   - DEFERRED GML support
+   - DEFERRED indexing
+   - DEFERRED search options
+   - DEFERRED open layers points
+   - DONE Built app
+   - DONE App roxy project
+   - NA Get edrms indexes copied over
+   - NA EDRMS demo package exported
+   - DONE Workplace pages configuration exported
+   - DONE Install instructions
+
+
 
 Targets of opportunity (not scheduled)
  - Bugs
@@ -243,15 +248,13 @@ Targets of opportunity (not scheduled)
   - required for LANS that don't support websockets
 
 
-Targets for 1.8 (Dec 2014) - Theme: Visualisations Sprint 1
- - Track code commented TODOs in this document
- - BUG Widgets: combined query - test against latest MarkLogic 7 build
- - BUG Widgets: Address Lookup: Google geocoder needs to fail gracefully if google libraries not available (offline mode)
- - Core: Search Context: Search context chaining
-  - Add one or more child contexts, with a name for the contributed query term setting (E.g. parent contributes "collection:EmploymentStats AND year GT 2008 and year LT 2013")
-  - Ensure each context may have a hidden query term in it (E.g. one child has extra of Year=2010, one child has extra of Year=2011, and so on)
-  - Test this working with search page affecting master search context (and query), highcharts depending upon child search context
-  - DEFERRED detect circular relationships (infinite JavaScript loops)
+Targets for 1.8 (Jan 2015) - Theme: Visualisations Sprint 1
+ - Docs: JSdoc better use
+  - returned objects
+  - IN PROGRESS JSON structures
+ - links to other docs
+  - ML REST API JSON and XML structures
+  - tutorials where function mentioned
  - IN PROGRESS Widgets: Search Results
   - IN PROGRESS Improve support for pluggable rendering for areas of result pane:-
    - IN PROGRESS title
@@ -299,7 +302,25 @@ Targets for 1.8 (Dec 2014) - Theme: Visualisations Sprint 1
   - IN PROGRESS triple support (with summary?)
  - Docs: Update sample apps to make best use of search presentation features
 
-Targets for 1.9 (Nov 2014) - Theme: Visualisations Sprint 2
+Targets for 1.9 (Feb 2015) - Theme: Real time
+ - Widgets: OpenLayers alerting
+ - Widgets: Alerting text box popup
+ - Widgets: Saved search support
+ - Widgets: View/edit/delete saved searches
+ - Core: mljsserve alerting fully tested and working
+ - Tests: Alert context and alert subscription tests
+ - Subscribe and save search
+ - Unsubscribe
+  - Unsubscribe and delete
+ - Subscribe to existing saved search
+  - List saved searches and alert enabled status
+ - Receive alert status test
+ - Receive alert test
+  - JSON doc send
+  - XML doc send
+  - Binary image thumbnail map tile send
+
+ Targets for 2.0 (Mar 2015) - Theme: Visualisations Sprint 2
   - IN PROGRESS Core: data series context
    - Handles series calculation and parsing external to any particular widget
    - reliant upon multiple source contexts - e.g. searchcontext (and options builder) object
@@ -381,7 +402,7 @@ Targets for 1.9 (Nov 2014) - Theme: Visualisations Sprint 2
    - Collection and other non-visual doc settings moved in to doccontext (from docbuilder widget)
    - Rationalise mode settings in docbuilder
 
-Targets for 2.0 (Dec 2014) - Theme: Shared Application Workplace
+Targets for 2.1 (Apr 2015) - Theme: Shared Application Workplace
  - Workplace additions
   - Advanced workplace functionality
    - application wide settings

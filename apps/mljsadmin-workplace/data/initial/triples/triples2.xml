@@ -1,0 +1,95 @@
+<sem:triples xmlns:sem="http://marklogic.com/semantics">
+
+
+<sem:triple>
+  <sem:subject>http://marklogic.com/semantic/targets/people/adam</sem:subject>
+<sem:predicate>http://xmlns.com/foaf/0.1/knows</sem:predicate>
+<sem:object>http://marklogic.com/semantic/targets/people/wendy</sem:object>
+</sem:triple>
+<sem:triple>
+  <sem:subject>http://marklogic.com/semantic/targets/people/wendy</sem:subject>
+<sem:predicate>http://xmlns.com/foaf/0.1/knows</sem:predicate>
+<sem:object>http://marklogic.com/semantic/targets/people/adam</sem:object>
+</sem:triple>
+<sem:triple>
+  <sem:subject>http://marklogic.com/semantic/targets/people/adam</sem:subject>
+<sem:predicate>http://www.w3.org/1999/02/22-rdf-syntax-ns#type</sem:predicate>
+<sem:object>http://xmlns.com/foaf/0.1/Person</sem:object>
+</sem:triple>
+<sem:triple>
+  <sem:subject>http://marklogic.com/semantic/targets/people/wendy</sem:subject>
+<sem:predicate>http://www.w3.org/1999/02/22-rdf-syntax-ns#type</sem:predicate>
+<sem:object>http://xmlns.com/foaf/0.1/Person</sem:object>
+</sem:triple>
+<sem:triple>
+  <sem:subject>http://marklogic.com/semantic/targets/people/wendy</sem:subject>
+<sem:predicate>http://xmlns.com/foaf/0.1/name</sem:predicate>
+<sem:object datatype="http://www.w3.org/2001/XMLSchema#string">Wendy Fowler</sem:object>
+</sem:triple>
+<sem:triple>
+  <sem:subject>http://marklogic.com/semantic/targets/people/wendy</sem:subject>
+<sem:predicate>likes</sem:predicate>
+<sem:object>http://marklogic.com/semantic/targets/foodstuffs/cheese</sem:object>
+</sem:triple>
+<sem:triple>
+  <sem:subject>http://marklogic.com/semantic/targets/people/wendy</sem:subject>
+<sem:predicate>http://marklogic.com/semantics/ontology/mentioned_in</sem:predicate>
+<sem:object>/mixed/4</sem:object>
+</sem:triple>
+<sem:triple>
+  <sem:subject>/mixed/4</sem:subject>
+<sem:predicate>http://marklogic.com/semantics/ontology/mentions</sem:predicate>
+<sem:object>http://marklogic.com/semantic/targets/people/wendy</sem:object>
+</sem:triple>
+<sem:triple>
+  <sem:subject>/mixed/4</sem:subject>
+<sem:predicate>http://marklogic.com/semantics/ontology/mentions</sem:predicate>
+<sem:object>http://marklogic.com/semantic/targets/people/adam</sem:object>
+</sem:triple>
+<sem:triple>
+  <sem:subject>mixed/4</sem:subject>
+<sem:predicate>http://marklogic.com/semantics/ontology/mentions</sem:predicate>
+<sem:object>http://marklogic.com/semantic/targets/foodstuffs/cheese</sem:object>
+</sem:triple>
+<sem:triple>
+  <sem:subject>http://marklogic.com/semantic/targets/animals/penguin</sem:subject>
+<sem:predicate>http://www.w3.org/1999/02/22-rdf-syntax-ns#type</sem:predicate>
+<sem:object>http://marklogic.com/semantic.rdfTypes/animal</sem:object>
+</sem:triple>
+<sem:triple>
+  <sem:subject>http://marklogic.com/semantic/targets/animals/penguin</sem:subject>
+<sem:predicate>called</sem:predicate>
+<sem:object datatype="http://www.w3.org/2001/XMLSchema#string">Polly</sem:object>
+</sem:triple>
+<sem:triple>
+  <sem:subject>http://marklogic.com/semantic/targets/people/adam</sem:subject>
+<sem:predicate>likes</sem:predicate>
+<sem:object>http://marklogic.com/semantic/targets/animals/penguin</sem:object>
+</sem:triple>
+<sem:triple>
+  <sem:subject>http://marklogic.com/semantic/targets/people/wendy</sem:subject>
+<sem:predicate>http://marklogic.com/semantics/ontology/mentioned_in</sem:predicate>
+<sem:object>/mixed/4</sem:object>
+</sem:triple>
+<sem:triple>
+  <sem:subject>http://marklogic.com/semantic/targets/people/adam</sem:subject>
+<sem:predicate>http://marklogic.com/semantics/ontology/mentioned_in</sem:predicate>
+<sem:object>/mixed/4</sem:object>
+</sem:triple>
+<sem:triple>
+  <sem:subject>http://marklogic.com/semantic/targets/foodstuffs/cheese</sem:subject>
+<sem:predicate>http://marklogic.com/semantics/ontology/mentioned_in</sem:predicate>
+<sem:object>/mixed/4</sem:object>
+</sem:triple>
+<sem:triple>
+  <sem:subject>http://marklogic.com/semantic/targets/foodstuffs/cheese</sem:subject>
+<sem:predicate>http://www.w3.org/1999/02/22-rdf-syntax-ns#type</sem:predicate>
+<sem:object>http://marklogic.com/semantic/rdfTypes/foodstuff</sem:object>
+</sem:triple>
+<sem:triple>
+  <sem:subject>http://marklogic.com/semantic/targets/foodstuffs/cheese</sem:subject>
+<sem:predicate>foodname</sem:predicate>
+<sem:object datatype="http://www.w3.org/2001/XMLSchema#string">Cheese</sem:object>
+</sem:triple>
+
+</sem:triples>

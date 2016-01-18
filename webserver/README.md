@@ -28,6 +28,7 @@ Note: You don't have to do this step if you have installed via a Yeoman generato
 
 1. Install the app using mljsadmin. Type: ./mljsadmin install
 2. There is a bug in this version of mljsadmin, so you need to run an extra command. Issue ./mljsadmin update
+3. Also load the initial content. Type: ./mljsadmin load
 
 ## Install ISYS triggers and filters
 

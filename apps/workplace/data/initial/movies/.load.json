@@ -1,0 +1,3 @@
+{
+  "prefix": "/movies", "collections": ["testdata","movies"]
+}

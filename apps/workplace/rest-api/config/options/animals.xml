@@ -1,0 +1,67 @@
+<search:options xmlns:search="http://marklogic.com/appservices/search">
+  <search:search-option>unfiltered</search:search-option>
+  <search:page-length>50</search:page-length>
+  <search:term apply="term">
+    <search:empty apply="all-results"/>
+    <search:term-option>punctuation-insensitive</search:term-option>
+    <search:term-option>stemmed</search:term-option>
+  </search:term>
+  <search:grammar>
+    <search:quotation>"</search:quotation>
+    <search:implicit>
+      <cts:and-query strength="20" xmlns:cts="http://marklogic.com/cts"/>
+    </search:implicit>
+    <search:starter strength="30" apply="grouping" delimiter=")">(</search:starter>
+    <search:starter strength="40" apply="prefix" element="cts:not-query">-</search:starter>
+    <search:joiner strength="10" apply="infix" element="cts:or-query" tokenize="word">OR</search:joiner>
+    <search:joiner strength="20" apply="infix" element="cts:and-query" tokenize="word">AND</search:joiner>
+    <search:joiner strength="30" apply="infix" element="cts:near-query" tokenize="word">NEAR</search:joiner>
+    <search:joiner strength="30" apply="near2" consume="2" element="cts:near-query">NEAR/</search:joiner>
+    <search:joiner strength="50" apply="constraint">:</search:joiner>
+    <search:joiner strength="50" apply="constraint" compare="LT" tokenize="word">LT</search:joiner>
+    <search:joiner strength="50" apply="constraint" compare="LE" tokenize="word">LE</search:joiner>
+    <search:joiner strength="50" apply="constraint" compare="GT" tokenize="word">GT</search:joiner>
+    <search:joiner strength="50" apply="constraint" compare="GE" tokenize="word">GE</search:joiner>
+    <search:joiner strength="50" apply="constraint" compare="NE" tokenize="word">NE</search:joiner>
+  </search:grammar>
+  <search:additional-query>
+    <cts:not-query xmlns:cts="http://marklogic.com/cts">
+      <cts:or-query>
+        <cts:collection-query>
+          <cts:uri>mljsInternalData</cts:uri>
+          <cts:uri>ontology</cts:uri>
+        </cts:collection-query>
+        <cts:element-query>
+          <cts:element xmlns:sem="http://marklogic.com/semantics">sem:triples</cts:element>
+          <cts:or-query/>
+        </cts:element-query>
+      </cts:or-query>
+    </cts:not-query>
+  </search:additional-query>
+  <search:debug>false</search:debug>
+  <search:transform-results apply="raw"/>
+  <search:constraint name="collection">
+    <search:collection prefix="" facet="true"/>
+  </search:constraint>
+
+  <search:constraint name="animal">
+    <search:range type="xs:string" collation="http://marklogic.com/collation/">
+      <search:element name="animal" ns="http://marklogic.com/xdmp/json/basic"/>
+    </search:range>
+  </search:constraint>
+  <search:constraint name="family">
+    <search:range type="xs:string" collation="http://marklogic.com/collation/">
+      <search:element name="family" ns="http://marklogic.com/xdmp/json/basic"/>
+    </search:range>
+  </search:constraint>
+
+  <search:return-metrics>true</search:return-metrics>
+  <search:return-qtext>true</search:return-qtext>
+  <search:return-query>false</search:return-query>
+  <search:return-results>true</search:return-results>
+  <search:return-similar>false</search:return-similar>
+  <search:sort-order direction="descending">
+    <search:score/>
+    <search:annotation>Relevancy (Desc)</search:annotation>
+  </search:sort-order>
+</search:options>

@@ -1,0 +1,50 @@
+<search:options xmlns:search="http://marklogic.com/appservices/search">
+  <search:debug>false</search:debug>
+  <search:tuples name="author-topic">
+      <search:range type="xs:string" facet="true">
+        <search:path-index xmlns:i="http://www.marklogic.com/intel/intercept">/i:intercept/i:sender/i:identity-ref/i:service-id</search:path-index>
+
+        <search:facet-option>fragment-frequency</search:facet-option>
+      </search:range>
+        <search:range type="xs:string" collation="http://marklogic.com/collation/">
+          <search:element name="topic" ns="http://www.marklogic.com/intel/intercept"/>
+        </search:range>
+      <search:values-option>limit=20</search:values-option>
+
+
+  </search:tuples>
+  <search:tuples name="author-author">
+      <search:range type="xs:string" facet="true">
+        <search:path-index xmlns:i="http://www.marklogic.com/intel/intercept">/i:intercept/i:participants/i:identity-ref/i:service-id</search:path-index>
+
+        <search:facet-option>fragment-frequency</search:facet-option>
+      </search:range>
+            <search:range type="xs:string" facet="true">
+              <search:path-index xmlns:i="http://www.marklogic.com/intel/intercept">/i:intercept/i:participants/i:identity-ref/i:service-id</search:path-index>
+
+              <search:facet-option>fragment-frequency</search:facet-option>
+            </search:range>
+      <search:values-option>limit=20</search:values-option>
+
+
+  </search:tuples>
+
+  <search:transform-results apply="raw"/>
+
+  <search:page-length>10</search:page-length>
+  <search:return-metrics>true</search:return-metrics>
+  <search:return-qtext>true</search:return-qtext>
+
+  <search:return-query>false</search:return-query>
+  <search:return-results>false</search:return-results>
+  <search:return-similar>false</search:return-similar>
+  <search:sort-order direction="descending">
+    <search:score/>
+    <search:annotation>Relevancy (Desc)</search:annotation>
+  </search:sort-order>
+
+
+
+  <search:return-values>true</search:return-values>
+  <search:return-facets>false</search:return-facets>
+</search:options>

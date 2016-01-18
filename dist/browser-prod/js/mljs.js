@@ -15,7 +15,7 @@ name=nn.trim();}
 return name;};stringhelper.camelcase=function(value,mode){var name=value;if("all"==mode||"camelcase"==mode){var parts=name.split(" ");var nn="";for(var i=0;i<parts.length;i++){nn+=parts[i].substring(0,1).toUpperCase()+parts[i].substring(1)+" ";}
 name=nn.trim();}
 return name;};function textToXML(text){var doc=null;if(undefined==text){text="";}
-if(typeof window==="undefined"){var parser=new(require('flat-xmldom').DOMParser)();doc=parser.parseFromString(text,"text/xml");console.log("TEXT: "+text);console.log("DOC: "+doc)}else{if(window.ActiveXObject){doc=new ActiveXObject('Microsoft.XMLDOM');doc.async='false';doc.loadXML(text);}else{var parser=new DOMParser();doc=parser.parseFromString(text,'text/xml');}}
+if(typeof window==="undefined"){var parser=new(require('flat-xmldom').DOMParser)();doc=parser.parseFromString(text,"text/xml");}else{if(window.ActiveXObject){doc=new ActiveXObject('Microsoft.XMLDOM');doc.async='false';doc.loadXML(text);}else{var parser=new DOMParser();doc=parser.parseFromString(text,'text/xml');}}
 return doc;};function xmlToText(xml){return(new XMLSerializer()).serializeToString(xml);};function xmlToJson(xml){if(typeof xml=="string"){throw new TypeError("XML parameter should be an XML Document. It is currently a string.");}
 if(null==xml||undefined==xml){return{};}
 var obj={};if(xml.nodeType==1){if(xml.attributes.length>0){for(var j=0;j<xml.attributes.length;j++){var attribute=xml.attributes.item(j);var nodeName=attribute.nodeName;var pos=nodeName.indexOf(":");if(-1!=pos){nodeName=nodeName.substring(pos+1);}

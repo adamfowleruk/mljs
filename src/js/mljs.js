@@ -249,10 +249,10 @@ function textToXML(text){
     //doc = jsdom.jsdom(text, null, { FetchExternalResources: false, ProcessExternalResources: false });
     //var parser = new (require('xmlshim').DOMParser)(); // xmlshim >
     //var parser = require("libxml");
-    var parser = new (require('flat-xmldom').DOMParser)();
+    var parser = new (require('xmldom').DOMParser)();
     doc = parser.parseFromString(text, "text/xml");
-    console.log("TEXT: " + text);
-    console.log("DOC: " + doc)
+    //console.log("TEXT: " + text);
+    //console.log("DOC: " + doc)
   } else {
 	  if (window.ActiveXObject){
       doc=new ActiveXObject('Microsoft.XMLDOM');
@@ -931,7 +931,9 @@ mljs.prototype.__doreq_node = function(reqname,options,content,callback_opt) {
     (callback_opt || noop)({inError: true,error: e}); // SHOULD THIS BE DETAIL INSTEAD OF ERROR?
   });
   if (undefined != content && null != content) {
-    if ("string" == typeof (content)) {
+    //console.log("request content is of type: " + typeof(content));
+    //console.log("is Buffer?: " + Buffer.isBuffer(content));
+    if ("string" == typeof (content) || Buffer.isBuffer(content)) { // Node.js fix for buffers accidentally being converted to JSON
       httpreq.write(content);
     } else if ("object" == typeof(content)) {
       if (undefined != content.nodeType) {
@@ -1330,6 +1332,16 @@ mljs.prototype.save = function(jsonXmlBinary,docuri_opt,props_opt,callback_opt) 
   if (undefined == docuri_opt) {
     // generate docuri and set on response object
     docuri_opt = this.__genid();
+  } else {
+    /*
+    if (undefined == window || undefined == window.encodeURI) {
+      // not in browser, in node.js?
+      if (undefined != encode) {
+        docuri_opt = escape(docuri_opt);
+      }
+    } else {
+      docuri_opt = encodeURI(docuri_opt);
+    }*/
   }
 
   var format = "json";
@@ -1878,6 +1890,9 @@ mljs.prototype.search = function(query_opt,options_opt,start_opt,sprops_opt,call
         options: optionsdoc.options,
         qtext: query_opt
       }};
+      if (null == query.search.qtext) {
+        query.search.qtext = "";
+      }
 
       var options = {
         path: url,
@@ -2122,7 +2137,7 @@ mljs.prototype.combined = function(structuredQuery_opt,textQuery_opt,optionsdoc,
   // V7, and we have local options
   var query = {"search":{
     "query": q.query,
-    "qtext": textQuery_opt,
+    "qtext": textQuery_opt || "",
     "options": optionsdoc.options}
   };
   var url = "/v1/search";
@@ -2153,6 +2168,7 @@ mljs.prototype.v7check = function(v6func,v7func) {
   // check version number first
   var self = this;
   var doit = function() {
+    console.log("v7check: VERSION: " + self._version);
     if (null == self._version || false === self._version || self._version.substring(0,self._version.indexOf(".")) < 7) {
       v6func();
     } else {
@@ -6649,17 +6665,19 @@ mljs.prototype.searchcontext.prototype.getOptions = function() {
   var opts = this._options;
   opts._findConstraint = function(cname) {
 
-  var con = null;
+    var con = null;
 
-  for (var i = 0, max = opts.options.constraint.length, c;i < max;i++) {
-    c = opts.options.constraint[i];
+    if (undefined != opts.options.constraint) {
+      for (var i = 0, max = opts.options.constraint.length, c;i < max;i++) {
+        c = opts.options.constraint[i];
 
-    if (c.name == cname) {
-      return c;
+        if (c.name == cname) {
+          return c;
+        }
+      }
     }
-  }
 
-  return null;
+    return null;
   };
   return opts;
 };
@@ -9299,7 +9317,9 @@ mljs.prototype.semanticcontext.prototype.getFact = function(subjectIri,predicate
 mljs.prototype.semanticcontext.prototype.getFacts = function(subjectIri,reload_opt) {
   //var facts = this._subjectFacts[subjectIri];
   var facts = this.getCachedFacts(subjectIri); //.facts;
-  if ((true==reload_opt) || undefined == facts) {
+  if ((true==reload_opt) || undefined == facts ||
+    (undefined == facts.namePredicate || undefined == facts.typeNameString || undefined == facts.nameString)
+  ) {
     var sparql = "SELECT * WHERE {";
 
     // check for bnodes

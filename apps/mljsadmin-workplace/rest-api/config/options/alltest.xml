@@ -1,0 +1,175 @@
+<search:options xmlns:search="http://marklogic.com/appservices/search">
+  <search:debug>false</search:debug>
+  <search:transform-results apply="raw"/>
+  <search:additional-query>
+    <cts:not-query xmlns:cts="http://marklogic.com/cts">
+      <cts:collection-query>
+        <cts:uri>mljsInternalData</cts:uri>
+      </cts:collection-query>
+    </cts:not-query>
+  </search:additional-query>
+  <search:constraint name="collection">
+    <search:collection prefix=""/>
+  </search:constraint>
+  <search:constraint name="animal">
+    <search:range type="xs:string" collation="http://marklogic.com/collation/en" facet="true">
+      <search:element name="animal" ns="http://marklogic.com/xdmp/json/basic"/>
+
+      <search:facet-option>item-order</search:facet-option>
+    </search:range>
+  </search:constraint>
+  <search:constraint name="family">
+    <search:range type="xs:string" collation="http://marklogic.com/collation/en" facet="true">
+      <search:element name="family" ns="http://marklogic.com/xdmp/json/basic"/>
+      <search:facet-option>item-frequency</search:facet-option>
+    </search:range>
+
+  </search:constraint>
+  <search:constraint name="actor">
+    <search:range type="xs:string" collation="http://marklogic.com/collation/" facet="true">
+      <search:element name="actor" ns="http://marklogic.com/xdmp/json/basic"/>
+      <search:facet-option>item-frequency</search:facet-option>
+    </search:range>
+  </search:constraint>
+  <search:constraint name="year">
+
+    <search:range type="xs:string" collation="http://marklogic.com/collation/" facet="true">
+      <search:element name="year" ns="http://marklogic.com/xdmp/json/basic"/>
+      <search:facet-option>item-order</search:facet-option>
+    </search:range>
+  </search:constraint>
+  <search:constraint name="city">
+    <search:range type="xs:string" collation="http://marklogic.com/collation/" facet="true">
+      <search:element name="city" ns="http://marklogic.com/xdmp/json/basic"/>
+
+      <search:facet-option>item-order</search:facet-option>
+    </search:range>
+  </search:constraint>
+  <search:constraint name="month">
+    <search:range type="xs:string" collation="http://marklogic.com/collation/" facet="true">
+      <search:element name="month" ns="http://marklogic.com/xdmp/json/basic"/>
+      <search:facet-option>item-order</search:facet-option>
+    </search:range>
+
+  </search:constraint>
+  <search:constraint name="Title">
+    <search:range type="xs:string" collation="http://marklogic.com/collation/" facet="true">
+      <search:element name="title" ns="http://www.w3.org/1999/xhtml"/>
+    </search:range>
+  </search:constraint>
+  <search:constraint name="Heading">
+    <search:range type="xs:string" collation="http://marklogic.com/collation/" facet="true">
+      <search:element name="h1" ns="http://www.w3.org/1999/xhtml"/>
+
+    </search:range>
+  </search:constraint>
+  <search:constraint name="stars">
+    <search:range type="xs:int" facet="true">
+      <search:element name="stars" ns="http://marklogic.com/xdmp/json/basic"/>
+    </search:range>
+  </search:constraint>
+  <search:constraint name="DateReceived">
+    <search:range type="xs:date" facet="true">
+
+      <search:element name="datereceived" ns="http://marklogic.com/ns/dt"/>
+    </search:range>
+    <search:annotation>Received On</search:annotation>
+  </search:constraint>
+  <search:constraint name="location">
+    <search:geo-elem-pair>
+      <search:parent name="location" ns="http://marklogic.com/xdmp/json/basic"/>
+      <search:lat name="lat" ns="http://marklogic.com/xdmp/json/basic"/>
+
+      <search:lon name="lon" ns="http://marklogic.com/xdmp/json/basic"/>
+    </search:geo-elem-pair>
+  </search:constraint>
+  <search:page-length>10</search:page-length>
+  <search:return-metrics>true</search:return-metrics>
+  <search:return-qtext>true</search:return-qtext>
+  <search:return-query>false</search:return-query>
+
+  <search:return-results>true</search:return-results>
+  <search:return-similar>false</search:return-similar>
+  <search:sort-order direction="descending">
+    <search:score/>
+    <search:annotation>Relevancy (Desc)</search:annotation>
+  </search:sort-order>
+  <search:sort-order direction="ascending" type="xs:string" collation="http://marklogic.com/collation/en">
+
+    <search:element name="animal" ns="http://marklogic.com/xdmp/json/basic"/>
+  </search:sort-order>
+  <search:sort-order direction="descending" type="xs:string" collation="http://marklogic.com/collation/en">
+    <search:element name="animal" ns="http://marklogic.com/xdmp/json/basic"/>
+  </search:sort-order>
+  <search:sort-order direction="ascending" type="xs:string" collation="http://marklogic.com/collation/en">
+    <search:element name="family" ns="http://marklogic.com/xdmp/json/basic"/>
+  </search:sort-order>
+  <search:sort-order direction="descending" type="xs:string" collation="http://marklogic.com/collation/en">
+
+    <search:element name="family" ns="http://marklogic.com/xdmp/json/basic"/>
+  </search:sort-order>
+  <search:sort-order direction="ascending" type="xs:string" collation="http://marklogic.com/collation/">
+    <search:element name="actor" ns="http://marklogic.com/xdmp/json/basic"/>
+  </search:sort-order>
+  <search:sort-order direction="descending" type="xs:string" collation="http://marklogic.com/collation/">
+    <search:element name="actor" ns="http://marklogic.com/xdmp/json/basic"/>
+  </search:sort-order>
+  <search:sort-order direction="ascending" type="xs:string" collation="http://marklogic.com/collation/">
+
+    <search:element name="year" ns="http://marklogic.com/xdmp/json/basic"/>
+  </search:sort-order>
+  <search:sort-order direction="descending" type="xs:string" collation="http://marklogic.com/collation/">
+    <search:element name="year" ns="http://marklogic.com/xdmp/json/basic"/>
+  </search:sort-order>
+  <search:sort-order direction="ascending" type="xs:string" collation="http://marklogic.com/collation/">
+    <search:element name="city" ns="http://marklogic.com/xdmp/json/basic"/>
+  </search:sort-order>
+  <search:sort-order direction="descending" type="xs:string" collation="http://marklogic.com/collation/">
+
+    <search:element name="city" ns="http://marklogic.com/xdmp/json/basic"/>
+  </search:sort-order>
+  <search:sort-order direction="ascending" type="xs:string" collation="http://marklogic.com/collation/">
+    <search:element name="month" ns="http://marklogic.com/xdmp/json/basic"/>
+  </search:sort-order>
+  <search:sort-order direction="descending" type="xs:string" collation="http://marklogic.com/collation/">
+    <search:element name="month" ns="http://marklogic.com/xdmp/json/basic"/>
+  </search:sort-order>
+  <search:sort-order direction="ascending" type="xs:string" collation="http://marklogic.com/collation/">
+
+    <search:element name="title" ns="http://www.w3.org/1999/xhtml"/>
+  </search:sort-order>
+  <search:sort-order direction="descending" type="xs:string" collation="http://marklogic.com/collation/">
+    <search:element name="title" ns="http://www.w3.org/1999/xhtml"/>
+  </search:sort-order>
+  <search:sort-order direction="ascending" type="xs:string" collation="http://marklogic.com/collation/">
+    <search:element name="h1" ns="http://www.w3.org/1999/xhtml"/>
+  </search:sort-order>
+  <search:sort-order direction="descending" type="xs:string" collation="http://marklogic.com/collation/">
+
+    <search:element name="h1" ns="http://www.w3.org/1999/xhtml"/>
+  </search:sort-order>
+  <search:sort-order direction="ascending" type="xs:int">
+    <search:element name="stars" ns="http://marklogic.com/xdmp/json/basic"/>
+  </search:sort-order>
+  <search:sort-order direction="descending" type="xs:int">
+    <search:element name="stars" ns="http://marklogic.com/xdmp/json/basic"/>
+  </search:sort-order>
+  <search:sort-order direction="ascending" type="xs:date">
+
+    <search:element name="datereceived" ns="http://marklogic.com/ns/dt"/>
+  </search:sort-order>
+  <search:sort-order direction="descending" type="xs:date">
+    <search:element name="datereceived" ns="http://marklogic.com/ns/dt"/>
+  </search:sort-order>
+  <search:suggestion-source ref="animal"/>
+  <search:suggestion-source ref="family"/>
+  <search:suggestion-source ref="actor"/>
+  <search:suggestion-source ref="year"/>
+
+  <search:suggestion-source ref="city"/>
+  <search:suggestion-source ref="month"/>
+  <search:suggestion-source ref="Title"/>
+  <search:suggestion-source ref="Heading"/>
+  <search:suggestion-source ref="stars"/>
+  <search:suggestion-source ref="DateReceived"/>
+</search:options>

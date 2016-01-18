@@ -19,6 +19,9 @@ RA=./apps/mljsrest/src
 RJ=./apps/mljsrest/src/js
 WA=./apps/workplace/src
 WJ=$WA/js
+WAA=./apps/mljsadmin-workplace/src
+WMA=./apps/mljsadmin-workplace/modules
+WJA=$WAA/js
 
 mkdir -p $WA/js/mljs
 mkdir -p $WA/js/lib
@@ -29,6 +32,15 @@ mkdir -p $WA/app/models
 mkdir -p $WA/app/config
 mkdir -p $WA/roxy/config
 
+mkdir -p $WAA/js/mljs
+mkdir -p $WAA/js/lib
+mkdir -p $WAA/css/mljs
+mkdir -p $WAA/images/mljs
+mkdir -p ./apps/mljsadmin-workplace/rest-api/ext
+mkdir -p $WMA/app/models
+mkdir -p $WMA/app/config
+mkdir -p $WMA/roxy/config
+
 cp $S/*.js $SJ/mljs/
 cp $SRC/images/* $SA/public/images/mljs/
 cp $SRC/css/* $SA/public/css/mljs/
@@ -38,6 +50,9 @@ cp $SRC/css/* $RA/css/mljs/
 cp $S/*.js $WJ/mljs/
 cp $SRC/images/* $WA/images/mljs/
 cp $SRC/css/* $WA/css/mljs/
+cp $S/*.js $WJA/mljs/
+cp $SRC/images/* $WAA/images/mljs/
+cp $SRC/css/* $WAA/css/mljs/
 
 # Copy over page JS files - MLJSTEST IS PRIMARY
 cp $RJ/mljstest/*.js $SJ/mljstest/
@@ -65,6 +80,7 @@ cp -R $RA/css/960 $SA/public/css/
 cp src/rest-api/ext/* apps/mldbwebtest/rest-api/ext/
 cp src/rest-api/ext/* apps/mljsrest/rest-api/ext/
 cp src/rest-api/ext/* apps/workplace/rest-api/ext/
+cp src/rest-api/ext/* apps/mljsadmin-workplace/rest-api/ext/
 
 cp $RA/app/models/rdb2rdf-lib.xqy $SA/app/models/
 cp $RA/app/models/lib-thesaurus.xqy $SA/app/models/
@@ -82,6 +98,14 @@ cp $RA/js/kratu.js $WA/js/
 cp $RA/js/kratuSignalAdjustments.js $WA/js/
 cp $RA/js/lib/jquery-1.7.1.min.js $WA/js/lib/
 
+cp -R $RA/js/OpenLayers-2.13.1 $WAA/js
+cp -R $RA/js/dataproviders $WAA/js
+cp -R $RA/js/heatmap $WAA/js
+cp $RA/js/highcharts.js $WAA/js/
+cp $RA/js/kratu.js $WAA/js/
+cp $RA/js/kratuSignalAdjustments.js $WAA/js/
+cp $RA/js/lib/jquery-1.7.1.min.js $WAA/js/lib/
+
 #copy once, never again
 #cp mldbwebtest/src/public/css/one-column.less mljsrest/src/css/one-column.css
 #cp mldbwebtest/src/public/css/vars.less mljsrest/src/css/vars.css
@@ -89,15 +113,24 @@ cp $RA/js/lib/jquery-1.7.1.min.js $WA/js/lib/
 cp $RA/css/kratu.css $WA/css/kratu.css
 cp $RA/css/bootstrap* $WA/css/
 cp $RA/js/bootstrap* $WA/js/
+cp $RA/css/kratu.css $WAA/css/kratu.css
+cp $RA/css/bootstrap* $AWA/css/
+cp $RA/js/bootstrap* $WAA/js/
 #cp mldbwebtest/src/public/css/reset.css mljsrest/src/css/reset.css
 #cp -R $RA/css/960 $SA/css/
 #cp apps/mljsrest/rest-api/ext/* apps/workplace/rest-api/ext/
 cp $RA/app/models/rdb2rdf-lib.xqy $WA/app/models/
 cp $RA/app/models/lib-thesaurus.xqy $WA/app/models/
+cp $RA/app/models/rdb2rdf-lib.xqy $WMA/app/models/
+cp $RA/app/models/lib-thesaurus.xqy $WMA/app/models/
 #cp $RA/app/config/config.xqy $WA/app/config/
 #cp $RA/roxy/config/defaults.xqy $WA/roxy/config/
 cp $RA/app/models/sql.xqy $WA/app/models/
 cp -R $RA/fonts $WA
+
+
+cp $RA/app/models/sql.xqy $WMA/app/models/
+cp -R $RA/fonts $WAA
 
 
 #cd ..

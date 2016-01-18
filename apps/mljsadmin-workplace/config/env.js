@@ -1,0 +1,1 @@
+module.exports = {"host":"192.168.123.225","port":"7001","database":"workplace-content","username":"admin","password":"admin","auth":"digest","defaultuser":"nobody","webport":5001,"alertport":5002,"apppath":"./app","defaultpath":"/workplace.html5","modulesport":7000,"modulesdatabase":"workplace-modules","ssl":false,"adminport":8002}

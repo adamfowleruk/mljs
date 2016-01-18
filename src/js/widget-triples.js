@@ -1830,34 +1830,42 @@ com.marklogic.widgets.entityfacts.prototype._generateSubjectHTML = function(sub,
   var entityInfo = scfg.getEntityFromIRI(type);
   mljs.defaultconnection.logger.debug("Got entity info: " + JSON.stringify(entityInfo));
 
-  var entityName = entityInfo.name;
-  mljs.defaultconnection.logger.debug("Got entity name: " + entityName);
+  var namevalue = type;
+  var title = type;
 
-  // get common name from config
-  var nameprop = scfg.getNameProperty(entityName);
-  var namevalue = null;
-  if (undefined != nameprop) {
-    var namepredicate = nameprop.iri;
-    mljs.defaultconnection.logger.debug("Got name predicate: " + namepredicate);
-    for (var b = 0,bindings = this.facts.results.bindings, max = bindings.length, predicate, object, binding;(null == namevalue) && (b < max);b++) {
-      binding = bindings[b];
-      if (undefined != binding.subject) {
-        if (binding.subject.value == sub) {
-          predicate = binding.predicate;
-          if (undefined == predicate) {
-            predicate = {value: this.facts.predicate};
-          }
-          object = binding.object;
+  if (null != entityInfo) {
 
-          if (predicate.value == namepredicate) {
-            namevalue = object.value;
+    var entityName = entityInfo.name;
+    mljs.defaultconnection.logger.debug("Got entity name: " + entityName);
+
+    // get common name from config
+    var nameprop = scfg.getNameProperty(entityName);
+    if (undefined != nameprop) {
+      var namepredicate = nameprop.iri;
+      mljs.defaultconnection.logger.debug("Got name predicate: " + namepredicate);
+      for (var b = 0,bindings = this.facts.results.bindings, max = bindings.length, predicate, object, binding;(null == namevalue) && (b < max);b++) {
+        binding = bindings[b];
+        if (undefined != binding.subject) {
+          if (binding.subject.value == sub) {
+            predicate = binding.predicate;
+            if (undefined == predicate) {
+              predicate = {value: this.facts.predicate};
+            }
+            object = binding.object;
+
+            if (predicate.value == namepredicate) {
+              namevalue = object.value;
+            }
           }
         }
       }
+    } else { // nameprop else
+      mljs.defaultconnection.logger.debug("WARNING: Class with no name predicate: " + entityName);
     }
-  } else { // nameprop else
-    mljs.defaultconnection.logger.debug("WARNING: Class with no name predicate: " + entityName);
-  }
+
+    title = entityInfo.title;
+
+  } // end null entityInfo check
   mljs.defaultconnection.logger.debug("Got name value: " + namevalue);
 
   s += "<div class='mljsResultDefaultResult'>";
@@ -2020,7 +2028,7 @@ com.marklogic.widgets.keylines = function(container) {
   this.container = container;
 
   this._config = {
-
+    maxLevels: 5;
   };
 
   this.sc = null;
@@ -2037,6 +2045,7 @@ com.marklogic.widgets.keylines = function(container) {
  */
 com.marklogic.widgets.keylines.getConfigurationDefinition = function() {
   return {
+    maxLevels: {type: "integer", default: 5, minimum: 1, title: "Maximum Levels", description: "Maximum levels deep from subject to show facts for."},
   };
 };
 
@@ -2069,6 +2078,9 @@ com.marklogic.widgets.keylines.prototype._init = function() {
 
 com.marklogic.widgets.keylines.prototype._refresh = function() {
   var self = this;
+  if (undefined == window.KeyLines) {
+    document.getElementById(this.container + "-kl").innerHTML = "<p>KeyLines JavaScript not installed. Please download from the KeyLines website.</p>";
+  } else {
   KeyLines.create(this.container + '-kl', function(err, chart) {
     self._chart = chart;
           chart.load({
@@ -2076,6 +2088,7 @@ com.marklogic.widgets.keylines.prototype._refresh = function() {
             items: self._kldata
           });
         });
+  }
 };
 
 
@@ -2089,9 +2102,11 @@ com.marklogic.widgets.keylines.prototype.updateSubjectFacts = function(result) {
   // get parentiri, subjectiri, rdftype and group facts to these three
   // find relevant parent-subject iri nodes on the display
   // update this particular data node
-  var facts = this.sc.getCachedFacts(subjects[0]).facts
+  var cached = this.sc.getCachedFacts(subjects[0]);
+  var facts = cached.facts;
+  var level = result._level;
   //this.propertyCache[subjects[0]] = facts;
-  this._drawSubjectDetail(subjects[0],facts);
+  this._drawSubjectDetail(subjects[0],facts,level);
 };
 
 com.marklogic.widgets.keylines.prototype._getSubject = function(iri) {
@@ -2115,10 +2130,13 @@ com.marklogic.widgets.keylines.prototype.updateOntology = function(tc) {
   }
 };
 
-com.marklogic.widgets.keylines.prototype._drawSubjectDetail = function(subjectIri,facts) {
+com.marklogic.widgets.keylines.prototype._drawSubjectDetail = function(subjectIri,facts,level) {
   if (undefined == this._lastSubject) {
     this._lastSubject = subjectIri;
     this._lastFacts = facts;
+    if (undefined == level) { // probably true if we are in here
+      level = 1;
+    }
 
 //    this.sc.subjectFacts(subjectIri);
   }
@@ -2169,7 +2187,17 @@ com.marklogic.widgets.keylines.prototype._drawSubjectDetail = function(subjectIr
     if (null != cache) {
       fs = cache.facts;
     } else {
-      self.sc.subjectFacts(iri); // TODO limit this to a particular depth
+      if (undefined != level && level < (self._config.maxLevels - 1)) {
+        self.sc.subjectFacts(iri);
+      } else {
+        var slevel = self.sc.getSubjectLevel(iri,level + 1);
+        if (slevel < self._config.maxLevels) {
+          self.sc.subjectFacts(iri,level + 1);
+        } else {
+          // fetching all facts for level EQUAL to the one we are at with this subject - means we fetch the subject's
+          //   summary information, but not information on those related
+        }
+      }
     }
 
     var getPredicateObject = function(prediri) {
@@ -2270,18 +2298,20 @@ com.marklogic.widgets.keylines.prototype._drawSubjectDetail = function(subjectIr
   }
 
   mljs.defaultconnection.logger.debug("keylines._drawSubjectDetail: Calling load on keylines chart for data: " + JSON.stringify(this._kldata));
-  this._updateChartData(); // TODO force partial redraw only (coule be called due to user action)
+  this._updateChartData(); // TODO force partial redraw only (could be called due to user action)
 
 };
 
 com.marklogic.widgets.keylines.prototype._updateChartData = function() {
   var self = this;
-  this._chart.load({
-    type: 'LinkChart',
-    items: self._kldata
-  }, function() {
-    self._chart.layout('standard', {fit: true, animate: true, tidy: true});
-  });
+  if (undefined != this._chart) {
+    this._chart.load({
+      type: 'LinkChart',
+      items: self._kldata
+    }, function() {
+      self._chart.layout('standard', {fit: true, animate: true, tidy: true});
+    });
+  }
 };
 
 
