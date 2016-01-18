@@ -6244,7 +6244,7 @@ if (typeof(window) === 'undefined') {
   com.marklogic.events = {};
   com.marklogic.semantic = {};
 
-  var XMLSerializer = require('flat-xmldom').XMLSerializer;
+  var XMLSerializer = require('xmldom').XMLSerializer;
 } else {
   com = window.com || {};
   com.marklogic = window.com.marklogic || {};

@@ -1057,14 +1057,15 @@ com.marklogic.widgets.openlayers.prototype.updateData = function(datacontext) {
             /*
              * Green style
              */
-            var lineStyle = {
-                strokeColor: "#00FF00",
-                strokeWidth: 3,
-                strokeDashstyle: "dashdot",
-                pointRadius: 6,
-                pointerEvents: "visiblePainted",
-                title: "this is a green line"
-            };
+             var lineStyle = {
+               strokeColor: "#DD33DD",
+               strokeWidth: 3
+               ,
+               strokeDashstyle: "solid",
+               pointRadius: 6,
+               pointerEvents: "visiblePainted",
+               title: "LINE"
+             };
 
   var PartProcessor = function(pattern) {
     var self = this;
@@ -1163,10 +1164,72 @@ com.marklogic.widgets.openlayers.prototype.updateData = function(datacontext) {
     this._allLayers.push(seriesLayer);
     this.map.addLayer(seriesLayer);
 
+
+
+
+
+
+
+    var addEvents = function(m,therow,thelonlat,thetitle,thesummary,thelink) {
+      mljs.defaultconnection.logger.debug("openlayers.updateData: addEvents called");
+      var uriFields = datacontext.getUriFieldData(therow);
+      var uri = null;
+      for (var f in uriFields) {
+        if (null == uri) {
+          uri = uriFields[f];
+        }
+      }
+      mljs.defaultconnection.logger.debug("openlayers.updateData: addEvents uri: " + uri);
+
+
+      // TODO use an appopriate title
+      // TODO set up click action and summary popup
+      // TODO provide further details link in summary popup
+      // support hover for highlight, click for select events
+
+
+      // add hover handlers
+      m.events.register('mouseover', m, function(evt) {
+        mljs.defaultconnection.logger.debug("openlayers.updateData: mouseover event fired for " + uri);
+        self._highlightedUri = uri;
+        self._resultHighlightPublisher.publish({mode: "replace", uri: uri});
+      });
+      //here add mouseout event
+      m.events.register('mouseout', m, function(evt) {
+        mljs.defaultconnection.logger.debug("openlayers.updateData: mouseout event fired for " + uri);
+        self._highlightedUri = null;
+        self._resultHighlightPublisher.publish({mode: "replace", uri: null});
+      });
+      m.events.register('click', m, function(evt) {
+        mljs.defaultconnection.logger.debug("openlayers.updateData: click event fired for " + uri);
+        // TODO change marker icon when selected/unselected (Red?)
+        if (uri == self._selectedUri) {
+          // deselect
+          self._selectedUri = null;
+          self._resultSelectionPublisher.publish({mode: "replace", uri: null});
+          self._hidePopup();
+        } else {
+          self._selectedUri = uri;
+          self._resultSelectionPublisher.publish({mode: "replace", uri: uri});
+          self._showPopup(uri,thelonlat,thetitle,thesummary,thelink);
+        }
+      });
+    };
+
+
+
+
+
+
+
     var data = datacontext.getData(seriesName);
     // for each series, loop over data rows
     for (var r = 0,maxr = data.length,row;r < maxr;r++) {
       row = data[r];
+
+      var title = titleProcessor.toString(row.fields);
+      var link = viewProcessor.toString(row.fields);
+      var summary = summaryProcessor.toString(row.fields);
 
       // for any fields that are geospatial points, plot a marker that is clickable
       // use an appropriate icon based on field data
@@ -1178,9 +1241,6 @@ com.marklogic.widgets.openlayers.prototype.updateData = function(datacontext) {
         var iconurl = iconUrlProcessor.toString(row.fields);
         mljs.defaultconnection.logger.debug("openlayers.updateData: row icon url: " + iconurl);
         var rowicon = new OpenLayers.Icon(iconurl, size, offset);
-        var title = titleProcessor.toString(row.fields);
-        var link = viewProcessor.toString(row.fields);
-        var summary = summaryProcessor.toString(row.fields);
 
         //var linktitle = "<a href='" + viewlink + "'>" + title + "</a>";
 
@@ -1193,51 +1253,6 @@ com.marklogic.widgets.openlayers.prototype.updateData = function(datacontext) {
         seriesLayer.addMarker(m);
 
 
-        var addEvents = function(m,therow,thelonlat,thetitle,thesummary,thelink) {
-          mljs.defaultconnection.logger.debug("openlayers.updateData: addEvents called");
-          var uriFields = datacontext.getUriFieldData(therow);
-          var uri = null;
-          for (var f in uriFields) {
-            if (null == uri) {
-              uri = uriFields[f];
-            }
-          }
-          mljs.defaultconnection.logger.debug("openlayers.updateData: addEvents uri: " + uri);
-
-
-  // TODO use an appopriate title
-  // TODO set up click action and summary popup
-  // TODO provide further details link in summary popup
-          // support hover for highlight, click for select events
-
-
-          // add hover handlers
-          m.events.register('mouseover', m, function(evt) {
-            mljs.defaultconnection.logger.debug("openlayers.updateData: mouseover event fired for " + uri);
-            self._highlightedUri = uri;
-            self._resultHighlightPublisher.publish({mode: "replace", uri: uri});
-          });
-          //here add mouseout event
-          m.events.register('mouseout', m, function(evt) {
-            mljs.defaultconnection.logger.debug("openlayers.updateData: mouseout event fired for " + uri);
-            self._highlightedUri = null;
-            self._resultHighlightPublisher.publish({mode: "replace", uri: null});
-          });
-          m.events.register('click', m, function(evt) {
-            mljs.defaultconnection.logger.debug("openlayers.updateData: click event fired for " + uri);
-            // TODO change marker icon when selected/unselected (Red?)
-            if (uri == self._selectedUri) {
-              // deselect
-              self._selectedUri = null;
-              self._resultSelectionPublisher.publish({mode: "replace", uri: null});
-              self._hidePopup();
-            } else {
-              self._selectedUri = uri;
-              self._resultSelectionPublisher.publish({mode: "replace", uri: uri});
-              self._showPopup(uri,thelonlat,thetitle,thesummary,thelink);
-            }
-          });
-        };
 
         addEvents(m,row,lonlat,title,summary,link);
       }
@@ -1247,19 +1262,38 @@ com.marklogic.widgets.openlayers.prototype.updateData = function(datacontext) {
       // TODO override line style title, colours, etc. before drawing any vector for this series
       for (var lf in lineFields) {
         var linefield = lineFields[lf];
-        var orderedPoints = datacontext.getLineStringOrderedPoints(linefield);
+        mljs.defaultconnection.logger.debug("openlayers.updateData: linestring field: " + lf + " data: " + JSON.stringify(linefield));
+        //var orderedPoints = datacontext.getLineStringOrderedPoints(linefield);
         var pointList = [];
-        for (var op = 0,maxop = orderedPoints.length,opoint,newPoint;op < maxop;op++) {
-          opoint = orderedPoints[op];
-          // TODO display line vector for this line string
-          // TODO consider co-ordinate conversion where necessary (likely EPSG900913 to WGS84/EPSG4326 if any)
-          newPoint = new OpenLayers.Geometry.Point(opoint.lon,opoint.lat);
+        for (var op = 0,maxop = linefield.length,opoint,newPoint;op < maxop;op++) {
+          opoint = linefield[op];
+          // display line vector for this line string
+          // consider co-ordinate conversion where necessary (likely EPSG900913 from WGS84/EPSG4326 if any)
+          mljs.defaultconnection.logger.debug("openlayers.updateData: linestring field: " + lf + " has point: " + JSON.stringify(opoint));
+          var ll = new OpenLayers.LonLat(opoint.lon,opoint.lat);
+          ll = ll.transform(self.transformWgs84,self.map.displayProjection);
+          newPoint = (new OpenLayers.Geometry.Point(ll.lon,ll.lat));
+          //newPoint = new OpenLayers.Geometry.Point(opoint.lon,opoint.lat);
           pointList.push(newPoint);
         }
+        lineStyle.title = title;
         var lineFeature = new OpenLayers.Feature.Vector(
           new OpenLayers.Geometry.LineString(pointList),null,lineStyle);
         seriesLineLayer.addFeatures([lineFeature]);
+
+        //addEvents(lineFeature,row,pointList[0],title,summary,link);
+
+        mljs.defaultconnection.logger.debug("openlayers.updateData: linestring added to map: " + lf);
       }
+
+
+
+      // OSM data check
+      if (undefined != row.fields.osmversion) {
+        // fetch XML file
+        this._drawOsmRow(seriesLineLayer,row,datacontext,lineStyle);
+      }
+
     }
 
     // check for heatmap row data (if exists) - only exists in a single row in all likelihood
@@ -1334,6 +1368,85 @@ com.marklogic.widgets.openlayers.prototype.updateData = function(datacontext) {
 */
   mljs.defaultconnection.logger.debug("openlayers.updateData: exiting function");
 };
+
+
+
+com.marklogic.widgets.openlayers.prototype._drawOsmRow = function(layer,row,datacontext,lineStyle) {
+  var self = this;
+
+  datacontext.db.get(row.fields._uri,function(result) {
+    // TODO don't just assume ok
+    // convert to JSON
+    //var j = xmlToJson(result.doc);
+    //console.log(JSON.stringify(j));
+    // capture all node information in to keyed object
+    var nodes = {};
+    var docnodes = result.doc.firstChild.childNodes;
+    for (var n = 0,maxn = docnodes.length,node;n < maxn;n++) {
+      node = docnodes[n];
+      if (node.localName == "node") {
+        nodes[node.getAttribute("id")] = {lat: node.getAttribute("lat"),lon:node.getAttribute("lon")};
+      }
+    }
+    // loop through all 'way' elements, looking up node points as you go
+    var ways = result.doc.firstChild.childNodes;
+    for (var w = 0,maxw = ways.length,way;w < maxw;w++) {
+      way = ways[w];
+      if (way.localName == "way") {
+
+        var pointList = [];
+        var nds = way.childNodes;
+        for (var op = 0,maxop = nds.length,opoint,newPoint;op < maxop;op++) {
+          opoint = nds[op];
+          if (opoint.localName == "nd") {
+            // TODO display line vector for this line string
+            // TODO consider co-ordinate conversion where necessary (likely EPSG900913 to WGS84/EPSG4326 if any)
+            var nd = nodes[opoint.getAttribute("ref")];
+            if (undefined != nd) {
+              var ll = new OpenLayers.LonLat(nd.lon,nd.lat);
+              ll = ll.transform(self.transformWgs84,self.map.displayProjection);
+              newPoint = (new OpenLayers.Geometry.Point(ll.lon,ll.lat));
+              //newPoint = newPoint.transform(self.transformWeb,self.map.displayProjection);
+              //console.log("Point: " + JSON.stringify(newPoint));
+              //newPoint = new OpenLayers.LonLat(nd.lon,nd.lat).transform(self.transformWeb,self.map.displayProjection);
+              pointList.push(newPoint);
+            } else {
+              console.log("No node data for reference: " + opoint.getAttribute("ref"));
+            }
+          }
+        }
+        // draw way on map with details
+        console.log("Adding feature with points: " + JSON.stringify(pointList));
+        var lineFeature = new OpenLayers.Feature.Vector(
+          new OpenLayers.Geometry.LineString(pointList),null,lineStyle);
+          layer.addFeatures([lineFeature]);
+
+        }
+      }
+    });
+
+    /*
+    var pointList = [
+    new OpenLayers.Geometry.Point(106.8306291,-6.1808209).transform(self.transformWeb,self.map.displayProjection),
+    new OpenLayers.Geometry.Point(106.84,-6.1808209).transform(self.transformWeb,self.map.displayProjection),
+    new OpenLayers.Geometry.Point(106.84,-8).transform(self.transformWeb,self.map.displayProjection),
+    new OpenLayers.Geometry.Point(106.8306291,-8).transform(self.transformWeb,self.map.displayProjection),
+    new OpenLayers.Geometry.Point(106.8306291,-6.1808209).transform(self.transformWeb,self.map.displayProjection)
+    ];
+    //var lineFeature = new OpenLayers.Feature.Vector(
+    //new OpenLayers.Geometry.LineString(pointList),null,lineStyle);
+    //layer.addFeatures([lineFeature]);
+    var linearRing = new OpenLayers.Geometry.LinearRing(pointList);
+    var polygonFeature = new OpenLayers.Feature.Vector(
+    new OpenLayers.Geometry.Polygon([linearRing]));
+
+    layer.addFeatures([polygonFeature]);
+    */
+
+    var cen = self.map.getCenter(); // lat: -689421.99295632 lon: 11891505.674406
+    console.log("CENTER lat: " + cen.lat + " lon: " + cen.lon);
+  };
+
 
 com.marklogic.widgets.openlayers.prototype._hidePopup = function() {
   if (undefined != this._selectedPopup) {
