@@ -109,7 +109,8 @@ com.marklogic.widgets.highcharts.getConfigurationDefinition = function() {
           options: [
             {value: "element", title: "Element or JSON key", description: "XML Element value or JSON key value"},
             {value: "fixed", title: "Fixed value", description: "Fixed (Hardcoded) value"},
-            {value: "facet", title: "Facet", description: "Facet value"}
+            {value: "facet", title: "Facet", description: "Facet value"},
+            {value: "metadata", title: "Metadata", description: "Metadata extract"}
           ]
         },
         nameSource: {type: "string", default: "title", title: "Name Source", description: "The element, JSON key, facet or hardcoded value to use to find the series name (dot delimited)."},
@@ -117,14 +118,16 @@ com.marklogic.widgets.highcharts.getConfigurationDefinition = function() {
         categorySourceType: {type: "enum", default: "element", title: "Category Source Type", description: "Where to get the Category from",
           options: [
             {value: "element", title: "Element or JSON key", description: "XML Element value or JSON key value"},
-            {value: "facet", title: "Facet", description: "Facet value"}
+            {value: "facet", title: "Facet", description: "Facet value"},
+            {value: "metadata", title: "Metadata", description: "Metadata extract"}
           ]
         },
         categorySource: {type: "string", default: "category", title: "Category Source", description: "The element, JSON key or facet to group the results by (dot delimited)."},
         valueSourceType: {type: "enum", default: "element", title: "Value Source Type", description: "Where to get the Value from",
           options: [
             {value: "element", title: "Element or JSON key", description: "XML Element value or JSON key value"},
-            {value: "facet", title: "Facet", description: "Facet value"}
+            {value: "facet", title: "Facet", description: "Facet value"},
+            {value: "metadata", title: "Metadata", description: "Metadata extract"}
           ]
         },
         valueSource: {type: "string", default: "value", title: "Value Source", description: "The element, JSON key or facet value to use for a data value (dot delimited)."},
@@ -178,6 +181,9 @@ com.marklogic.widgets.highcharts.prototype.setConfiguration = function(config) {
       case "facet":
         name = "!";
         break;
+      case "metadata":
+        name = "^";
+        break;
       default:
         break;
     }
@@ -188,6 +194,9 @@ com.marklogic.widgets.highcharts.prototype.setConfiguration = function(config) {
       case "facet":
         category = "!";
         break;
+      case "metadata":
+        category = "^";
+        break;
       default:
         break;
     }
@@ -197,6 +206,9 @@ com.marklogic.widgets.highcharts.prototype.setConfiguration = function(config) {
         break;
       case "facet":
         values = "!";
+        break;
+      case "metadata":
+        values = "^";
         break;
       default:
         break;
@@ -370,7 +382,7 @@ com.marklogic.widgets.highcharts.prototype.updateData = function(datacontext) {
   }
   var seriesNames = new Array();
   var seriesCounts = {};
-  var seriesVaues = {};
+  var seriesValues = {};
   var allCategories = new Array();
 
   var sn = datacontext.getSeriesNames();
@@ -421,7 +433,7 @@ com.marklogic.widgets.highcharts.prototype.updateValues = function(values) {
   }
   var seriesNames = new Array();
   var seriesCounts = {};
-  var seriesVaues = {};
+  var seriesValues = {};
   var defName = "Co-occurrence";
   seriesNames.push(defName); // TODO extract from data or specification
   seriesValues[defName] = new Array();
@@ -562,6 +574,8 @@ com.marklogic.widgets.highcharts.prototype.updateResults = function(results) {
   //  results = { results: results};
   //}
 
+  mljs.defaultconnection.logger.debug("Category source: " + this.categorySource);
+
   if (this.categorySource.startsWith("!")) {
     mljs.defaultconnection.logger.debug("Loading series data from facet");
     this.aggregateFunction = "none";
@@ -586,7 +600,82 @@ com.marklogic.widgets.highcharts.prototype.updateResults = function(results) {
       seriesCounts[facetName][facetValues[i].name] = 1;
     }
 
+  } else if (this.categorySource.startsWith("^")) {
+    // extracted metadata
+
+    var extractMeta = function(r,field) {
+      var f = field.substring(1);
+      mljs.defaultconnection.logger.debug("extractMeta: searching for field named " + f);
+      for (var i = 0,maxi = r.metadata.length,meta;i < maxi;i++) {
+        meta = r.metadata[i];
+        if (undefined != meta[f]) {
+          mljs.defaultconnection.logger.debug("Found field " + f + " with value " + meta[f]);
+          return meta[f];
+        }
+      }
+      return null;
+    };
+
+
+      mljs.defaultconnection.logger.debug(" - looping over results[metadata]");
+      for (var r = 0;r < results.results.length;r++) {
+        var result = results.results[r];
+
+        // FOR EACH CONFIGURED SERIES NAME...
+
+        //mljs.defaultconnection.logger.debug(" - - result " + r + ": " + result);
+        // get name value
+        var name = "";
+        //var resdoc = jsonOrXml(result);
+        //mljs.defaultconnection.logger.debug(" -  -  - resdoc: " + resdoc);
+        //mljs.defaultconnection.logger.debug(" -  -  - this.nameSource: " + this.nameSource);
+        //mljs.defaultconnection.logger.debug(" -  -  - startsWith defined?: " + (undefined != this.nameSource.startsWith));
+        if (this.nameSource.startsWith("#")) {
+          // hardcoded value
+          name = this.nameSource.substring(1);
+        } else {
+          name = extractMeta(result,this.nameSource);
+        }
+        //mljs.defaultconnection.logger.debug(" -  -  - name: " + name);
+        // get data value
+        var value = extractMeta(result,this.valueSource);
+        //mljs.defaultconnection.logger.debug(" -  -  - value: " + value);
+
+        // series name (highcharts) to facet name (categorySource) mapping
+        if (this.categorySource.startsWith("!")) {
+          this._seriesNameToFacetName[name] = this.categorySource.substring(1); // assume facet
+        } else {
+          // assume from a value, and facet name is same as property name (json)
+          this._seriesNameToFacetName[name] = this.categorySource;
+        }
+
+        var category = extractMeta(result,this.categorySource);
+        //mljs.defaultconnection.logger.debug(" -  -  - category: " + category);
+        if (!allCategories.contains(category)) {
+          allCategories.push(category);
+        }
+
+        // see if name is already known
+        if (!seriesNames.contains(name)) {
+          seriesNames.push(name);
+          seriesValues[name] = new Array();
+          seriesCounts[name] = new Array();
+        }
+        // append to values array
+        var categoryValueArray = seriesValues[name][category];
+        if (undefined == categoryValueArray) {
+          seriesValues[name][category] = new Array();
+          seriesCounts[name][category] = 0;
+        }
+        seriesValues[name][category].push(value);
+        seriesCounts[name][category] += 1;
+        //mljs.defaultconnection.logger.debug(" -  - next...");
+      }
+      mljs.defaultconnection.logger.debug(" - finished looping over results[metadata]");
+
+
   } else {
+    // value
 
 
   mljs.defaultconnection.logger.debug(" - looping over results");
