@@ -249,7 +249,7 @@ function textToXML(text){
     //doc = jsdom.jsdom(text, null, { FetchExternalResources: false, ProcessExternalResources: false });
     //var parser = new (require('xmlshim').DOMParser)(); // xmlshim >
     //var parser = require("libxml");
-    var parser = new (require('flat-xmldom').DOMParser)();
+    var parser = new (require('xmldom').DOMParser)();
     doc = parser.parseFromString(text, "text/xml");
     //console.log("TEXT: " + text);
     //console.log("DOC: " + doc)
@@ -6664,7 +6664,7 @@ mljs.prototype.searchcontext.prototype.getOptions = function() {
   // bit of clever mixin work as we no longer have an options builder reference here
   var opts = this._options;
   opts._findConstraint = function(cname) {
-    
+
     var con = null;
 
     if (undefined != opts.options.constraint) {
