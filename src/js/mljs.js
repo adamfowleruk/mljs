@@ -871,7 +871,7 @@ mljs.prototype.__doreq_node = function(reqname,options,content,callback_opt) {
         completeRan = true; // idiot check - complete can be called from many places and events
         self.logger.debug(reqname + " complete()");
         var codeSub = res.statusCode.toString().substring(0,1);
-        self.logger.debug("statuscode: " + res.statusCode + ", codesub: " + codeSub);
+        //self.logger.debug("statuscode: " + res.statusCode + ", codesub: " + codeSub);
 /*
         for (var p in res) {
           var pv = res[p];
@@ -881,7 +881,7 @@ mljs.prototype.__doreq_node = function(reqname,options,content,callback_opt) {
         }*/
         self.logger.debug("RESPONSE BODY: " + body);
         if (codeSub == ("4") || codeSub == ("5")) {
-          self.logger.debug(reqname + " error: " + body);
+          //self.logger.debug(reqname + " error: " + body);
           var details = body;
           if ("string" == typeof body) {
             if (body.substring(0,1) == "{") {
@@ -3598,6 +3598,11 @@ mljs.prototype.workplace = function(callback) {
 
 
 
+/**
+ * Uses the triggers.xqy REST extension to install a trigger
+ * @param {object} triggerJson - The trigger description JSON (as expected by the REST API)
+ * @param {function} callback - The callback function
+ */
 mljs.prototype.installTrigger = function(triggerJson,callback) {
   var options = {
     path: "/v1/resources/triggers",
@@ -3607,6 +3612,26 @@ mljs.prototype.installTrigger = function(triggerJson,callback) {
   this.__doreq("INSTALLTRIGGER",options,triggerJson,callback);
 };
 
+/**
+ * Uses the triggers.xqy REST extension to list all triggers for this content database's triggers database that also
+ *   use code installed in the current database's modules database (double sanity check)
+ * @param {function} callback - The callback function
+ */
+mljs.prototype.triggers = function(callback) {
+  var options = {
+    path: "/v1/resources/triggers",
+    method: "GET"/*,
+    accept: "application/json"*/
+  };
+  this.__doreq("TRIGGERS",options,null,callback);
+};
+
+/**
+ * Uses the triggers.xqy REST extension to remove a named trigger configuration from the specified triggers database
+ * @param {string} triggerName - The name of the trigger
+ * @param {string} triggerDatabase - The name of the trigger database to remove the trigger from
+ * @param {function} callback - The callback function
+ */
 mljs.prototype.removeTrigger = function(triggerName,triggerDatabase,callback) {
   /*var doc = {
     triggername: triggerName, triggersdatabase: triggerDatabase
@@ -3621,7 +3646,7 @@ mljs.prototype.removeTrigger = function(triggerName,triggerDatabase,callback) {
   this.__doreq("REMOVETRIGGER",options,null,callback);
 };
 
-
+// TODO support JavaScript extensions too
 mljs.prototype.installExtension = function(name,methodArray,moduleContent,callback) {
   var options = {
     path: "/v1/config/resources/" + name,

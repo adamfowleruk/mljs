@@ -15,7 +15,8 @@ Note: You don't have to do this step if you have installed via a Yeoman generato
 
 1. You need mljsadmin and mljsserve to run this demo. To install this, install mlnodetools GLOBALLY like this:
   - npm install -g mlnodetools
-2. Test by typing just 'mljsadmin' with no parameters from the command line (this MUST be issued in the root folder of your app)
+2. If you receive permission warnings, follow this advice, and then try the above command again: https://docs.npmjs.com/getting-started/fixing-npm-permissions
+3. Test by typing just 'mljsadmin' with no parameters from the command line (this MUST be issued in the root folder of your app)
 
 ## Customise the app
 
