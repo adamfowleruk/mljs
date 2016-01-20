@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>MLJS tutorialdev1-003-first-page</title>
+
+	<!--[if lt IE 9]>
+	<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+	<link type="text/css" rel="stylesheet" href="styles/sunlight.default.css">
+
+	
+	<link type="text/css" rel="stylesheet" href="styles/site.cerulean.css">
+	
+</head>
+
+<body>
+<div class="container-fluid">
+	<div class="navbar navbar-fixed-top ">
+		<div class="navbar-inner">
+			<a class="brand" href="index.html">MLJS</a>
+			<ul class="nav">
+				
+				<li class="dropdown">
+					<a href="classes.list.html" class="dropdown-toggle" data-toggle="dropdown">Classes<b
+						class="caret"></b></a>
+
+					<ul class="dropdown-menu ">
+						
+						<li>
+							<a href="BasicWrapper.html">BasicWrapper</a>
+						</li>
+						
+						<li>
+							<a href="com.marklogic.events.Publisher.html">Publisher</a>
+						</li>
+						
+						<li>
+							<a href="com.marklogic.semantic.tripleconfig.html">tripleconfig</a>
+						</li>
+						
+						<li>
+							<a href="DigestWrapper.html">DigestWrapper</a>
+						</li>
+						
+						<li>
+							<a href="mljs.html">mljs</a>
+						</li>
+						
+						<li>
+							<a href="mljs_documentcontext.html">documentcontext</a>
+						</li>
+						
+						<li>
+							<a href="mljs_geocontext.html">geocontext</a>
+						</li>
+						
+						<li>
+							<a href="mljs_options.html">options</a>
+						</li>
+						
+						<li>
+							<a href="mljs_query.html">query</a>
+						</li>
+						
+						<li>
+							<a href="mljs_searchcontext.html">searchcontext</a>
+						</li>
+						
+						<li>
+							<a href="mljs_searchcontext.defaultparser.html">defaultparser</a>
+						</li>
+						
+						<li>
+							<a href="mljs_semanticcontext.html">semanticcontext</a>
+						</li>
+						
+						<li>
+							<a href="mljs_sparqlbuilder.html">sparqlbuilder</a>
+						</li>
+						
+						<li>
+							<a href="PassThroughWrapper.html">PassThroughWrapper</a>
+						</li>
+						
+
+					</ul>
+				</li>
+				
+				<li class="dropdown">
+					<a href="tutorials.list.html" class="dropdown-toggle" data-toggle="dropdown">Tutorials<b
+						class="caret"></b></a>
+
+					<ul class="dropdown-menu ">
+						
+						<li>
+							<a href="tutorial-001-intro.html">001-intro</a>
+						</li>
+						
+						<li>
+							<a href="tutorial-001-widgets-list.html">001-widgets-list</a>
+						</li>
+						
+						<li>
+							<a href="tutorial-002-intro-firstpage.html">002-intro-firstpage</a>
+						</li>
+						
+						<li>
+							<a href="tutorial-002-widgets-search.html">002-widgets-search</a>
+						</li>
+						
+						<li>
+							<a href="tutorial-003-widgets-search-render.html">003-widgets-search-render</a>
+						</li>
+						
+						<li>
+							<a href="tutorial-004-widgets-highcharts.html">004-widgets-highcharts</a>
+						</li>
+						
+						<li>
+							<a href="tutorial-011-browser-create-app.html">011-browser-create-app</a>
+						</li>
+						
+						<li>
+							<a href="tutorial-012-browser-install-app.html">012-browser-install-app</a>
+						</li>
+						
+						<li>
+							<a href="tutorial-013-browser-samples-app.html">013-browser-samples-app</a>
+						</li>
+						
+						<li>
+							<a href="tutorial-014-browser-workplace.html">014-browser-workplace</a>
+						</li>
+						
+						<li>
+							<a href="tutorial-020-angular.html">020-angular</a>
+						</li>
+						
+						<li>
+							<a href="tutorial-050-core-contexts.html">050-core-contexts</a>
+						</li>
+						
+						<li>
+							<a href="tutorial-051-core-custom-searchcontext-endpoint.html">051-core-custom-searchcontext-endpoint</a>
+						</li>
+						
+						<li>
+							<a href="tutorial-052-core-data-series-context.html">052-core-data-series-context</a>
+						</li>
+						
+						<li>
+							<a href="tutorial-060-rest-ext.html">060-rest-ext</a>
+						</li>
+						
+						<li>
+							<a href="tutorial-901-ontology.html">901-ontology</a>
+						</li>
+						
+						<li>
+							<a href="tutorial-999-samples.html">999-samples</a>
+						</li>
+						
+						<li>
+							<a href="tutorial-all.html">all</a>
+						</li>
+						
+						<li>
+							<a href="tutorial-dev1-001-overview.html">dev1-001-overview</a>
+						</li>
+						
+						<li>
+							<a href="tutorial-dev1-002-intro.html">dev1-002-intro</a>
+						</li>
+						
+						<li>
+							<a href="tutorial-dev1-003-first-page.html">dev1-003-first-page</a>
+						</li>
+						
+						<li>
+							<a href="tutorial-dev1-004-first-widget.html">dev1-004-first-widget</a>
+						</li>
+						
+						<li>
+							<a href="tutorial-dev1-005-search-options.html">dev1-005-search-options</a>
+						</li>
+						
+						<li>
+							<a href="tutorial-dev1-006-structured-query.html">dev1-006-structured-query</a>
+						</li>
+						
+						<li>
+							<a href="tutorial-dev1-007-semantics.html">dev1-007-semantics</a>
+						</li>
+						
+						<li>
+							<a href="tutorial-dev1-008-lunch.html">dev1-008-lunch</a>
+						</li>
+						
+						<li>
+							<a href="tutorial-dev1-009-blending-mljs.html">dev1-009-blending-mljs</a>
+						</li>
+						
+						<li>
+							<a href="tutorial-dev1-010-building-demo.html">dev1-010-building-demo</a>
+						</li>
+						
+						<li>
+							<a href="tutorial-dev1-011-demo-jam.html">dev1-011-demo-jam</a>
+						</li>
+						
+						<li>
+							<a href="tutorial-dev1-012-home-time.html">dev1-012-home-time</a>
+						</li>
+						
+
+					</ul>
+				</li>
+				
+				<li class="dropdown">
+					<a href="global.html" class="dropdown-toggle" data-toggle="dropdown">Global<b
+						class="caret"></b></a>
+
+					<ul class="dropdown-menu ">
+						
+						<li>
+							<a href="global.html#padNC">padNC</a>
+						</li>
+						
+						<li>
+							<a href="global.html#parseDigest">parseDigest</a>
+						</li>
+						
+						<li>
+							<a href="global.html#textToXML">textToXML</a>
+						</li>
+						
+						<li>
+							<a href="global.html#xmlToJson">xmlToJson</a>
+						</li>
+						
+						<li>
+							<a href="global.html#xmlToJsonSearchResults">xmlToJsonSearchResults</a>
+						</li>
+						
+						<li>
+							<a href="global.html#xmlToJsonStrict">xmlToJsonStrict</a>
+						</li>
+						
+
+					</ul>
+				</li>
+				
+			</ul>
+		</div>
+	</div>
+
+	<div class="row-fluid">
+
+		
+			<div class="span12">
+				
+				<div id="main">
+					<section>
+    
+<header>
+    
+
+    <h2>dev1-003-first-page</h2>
+</header>  
+
+<article>
+    <h1>Your first MLJS powered page</h1>
+<p>Let's get started quick! We need a few things to get started in an application:-</p>
+<ul>
+<li>A content database</li>
+<li>A Web Server</li>
+<li>A REST API Server</li>
+<li>An application deployed to this server</li>
+<li>A HTML page shell</li>
+<li>A JavaScript page initialisation script</li>
+<li>Data for the application</li>
+<li>Extension exercise</li>
+</ul>
+<p>Let's go create these things in turn</p>
+<h2>A Web Server, REST Server, and database</h2>
+<p>It's possible to use MLJS within a MarkLogic HTTP REST App Server. The easiest way to get started is
+to use a MarkLogic sponsored tool called the Roxy Deployer. This enables you to issue a few commands
+and end up with a working application.</p>
+<p>We'll create a pure REST Server and test database for our content. To do this, follow the instructions
+below:-</p>
+<p>Issue the following command to create a new Roxy REST project:-</p>
+<pre><code>  ml new tutorialapp --app-type=rest --server-version=7</code></pre>
+<p>Now copy the mljsme.sh file from the MLJS github repo into your project folder. Then do:-</p>
+<pre><code>  cd tutorialapp
+  chmod u+x mljsme.sh
+  ./mljsme.sh -m rest</code></pre>
+<p>This will tell Roxy to create a Roxy deployer app called 'tutorialapp' which is a MarkLogic pure REST app.</p>
+<p>The mljsme.sh file is a helper file that installs the latest stable MLJS code in to your application.</p>
+<p>Now you need to bootstrap the app to configure it in MarkLogic:-</p>
+<pre><code>  ml local bootstrap -v</code></pre>
+<p>This sets up the necessary forests, content and modules DBs, and app servers (REST Server) required.</p>
+<h2>An application</h2>
+<p>You can start writing your application by adding an index.html page inside the 'src' folder of your
+new roxy project. You are free to use whatever layout you want. A starter page is available in
+./mljsrest/src/search.html in the MLJS GitHub repository.</p>
+<p>Deploy this app using Roxy by issuing the command ./ml local deploy modules -v</p>
+<p>Now visit http://localhost:8040/index.html to see your first webpage</p>
+<p>Note: An alternative method is to create your database and rest server visually using Information Studio
+on http://localhost:8000/ . Once you have created a database, create a REST server instance using the
+wizard. You can then deploy your REST HTML application on a separate Node.js server tier. See the
+run-webserver.sh file to see how to use this lightweight, Node.js based, WebSockets alerting capable
+application server.</p>
+<h2>A HTML shell page</h2>
+<p>Let's customise this page as it doesn't do much yet. Find this line:-</p>
+<pre><code>  <div class=&quot;header&quot; arcsize=&quot;5 5 0 0&quot;></div></code></pre>
+<p>Remove all the content within it. Replace with this:-</p>
+<pre><code>  <a href='index.html'>Home</a></code></pre>
+<p>Now find:-</p>
+<pre><code>  <script type=&quot;text/javascript&quot; src=&quot;/js/mljstest/page-mljstest-search.js&quot;></script></code></pre>
+<p>And alter the URL to be /js/page-index.js . This is a common pattern I use. Every HTML
+page has a corresponding JavaScript page with the same base name (index) at the end.
+This JavaScript initialises the dynamic MLJS widgets on a page.</p>
+<p>Now replace this element:-</p>
+<p>```no-highlight
+  <div id="search-page" class="search-page">Search page content goes here</div></p>
+<pre><code>
+With this:-
+
+```no-highlight
+   <div class='container_12' id='errors'></div>
+
+   <div class='container_12 searchpage-inner'>
+    <div id='search-facets' class='grid_4 searchpage-facets'> </div> 
+    <div id='search-main' class='grid_8 searchpage-main'>
+      <div id='search-bar' class='searchpage-bar'></div>
+      <div id=&quot;speed&quot; class=&quot;&quot;>speed</div>
+      <div class='grid_8 searchpage-controls'>
+        <div class='searchpage-controls-inner'>
+          <div id='search-pager' class='grid_5 alpha searchpage-pager'></div>
+          <div id='search-sort' class='grid_3 omega searchpage-sort'></div>
+        </div>
+      </div>
+      <div id='search-results' class='grid_8 searchpage-results'></div>
+      <div id='search-results-actions' class='grid_8 searchpage-results-actions'></div>
+    </div>
+   </div></code></pre>
+<p>Save the file.</p>
+<h2>A JavaScript page initialisation script</h2>
+<p>Create a folder called 'js' under the 'src' folder. In here copy the entire ./mljsrest/src/js/mljs folder 
+from the GitHub repo.</p>
+<p>Go find ./samples/007-blank-page.js from the MLJS GitHub repo. Copy this code in to a new ./src/js/page-index.js file.</p>
+<p>Edit this file. You can see all the stages with example code. If in your projects you need a totally blank page, copy
+the samples/007-blank-page.js file.</p>
+<p>This file shows the steps you need to take to have a full MLJS page working.</p>
+<p>Now save and deploy all files and test the application. Visit http://localhost:8040/index.html  and observe that
+no error messages or JavaScript errors are shown.</p>
+<p>You're now going to alter the page to use widgets. For each of the named div's above you need a line like the below:-</p>
+<pre><code class="lang-javascript">  var searchbar = new com.marklogic.widgets.searchbar(&quot;search-bar&quot;);</code></pre>
+<p>Do this under 1. in the page file for each of the widgets and areas named below:-</p>
+<table>
+<thead>
+<tr>
+<th>Widget class name</th>
+<th>div id</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>searchbar</td>
+<td>search-bar</td>
+</tr>
+<tr>
+<td>searchfacets</td>
+<td>search-facets</td>
+</tr>
+<tr>
+<td>searchmetrics</td>
+<td>speed</td>
+</tr>
+<tr>
+<td>searchpager</td>
+<td>search-pager</td>
+</tr>
+<tr>
+<td>searchsort</td>
+<td>search-sort</td>
+</tr>
+<tr>
+<td>searchresults</td>
+<td>search-results</td>
+</tr>
+</tbody>
+</table>
+<p>All widgets in MLJS are wholly independent. They've don't detect each others' existence on the page. This is to allow
+many different searches and search results to occur on the same page - E.g. to power a dashboard view.</p>
+<p>To link these widgets together we register them with the same MLJS context. In our case a (content) search context. First create
+a search context under 2.:-</p>
+<pre><code class="lang-javascript">var ctx = db.createSearchContext();</code></pre>
+<p>Then add a line like the below for each widget, also under 2.:-</p>
+<pre><code class="lang-javascript">  ctx.register(searchbar);</code></pre>
+<p>This then links all the widgets together. We're almost done. We need to configure search options to power the facets, then run a
+default search. (You can test the page again now if you wish, to find code errors).</p>
+<p>To configure search options use code like the following, and place it under 3. in the file:-</p>
+<pre><code class="lang-javascript">  var ob = db.createOptions();
+  ob.defaultCollation(&quot;http://marklogic.com/collation/en&quot;)
+      .collectionConstraint() // default constraint name of 'collection' 
+      .rangeConstraint(&quot;Title&quot;,&quot;title&quot;,&quot;http://www.w3.org/1999/xhtml&quot;,&quot;xs:string&quot;,&quot;http://marklogic.com/collation/&quot;,true)
+      .rangeConstraint(&quot;Heading&quot;,&quot;h1&quot;,&quot;http://www.w3.org/1999/xhtml&quot;,&quot;xs:string&quot;,&quot;http://marklogic.com/collation/&quot;,true)
+      .jsonRangeConstraint(&quot;stars&quot;,&quot;xs:int&quot;)
+      .rangeConstraint(&quot;DateReceived&quot;,&quot;datereceived&quot;,&quot;http://marklogic.com/ns/dt&quot;,&quot;xs:date&quot;,null,true)
+      .annotate(&quot;DateReceived&quot;,&quot;Received On&quot;)
+      .geoElementPairConstraint(&quot;location&quot;,&quot;location&quot;,&quot;http://marklogic.com/xdmp/json/basic&quot;,
+        &quot;lat&quot;,&quot;http://marklogic.com/xdmp/json/basic&quot;,&quot;lon&quot;,&quot;http://marklogic.com/xdmp/json/basic&quot;);
+  ctx.setOptions(&quot;mysearchoptions&quot;,ob); // note we're passing the options builder object, not the JSON output of ob.toJson()</code></pre>
+<p>When the page initially loads we'd like to show the total results that exist. I.e. do a query on an empty string. 
+We do this by executing the search as below. Place this code under 4. in the file:-</p>
+<pre><code class="lang-javascript">  ctx.doSimpleQuery(&quot;&quot;,1);</code></pre>
+<p>Now save, deploy and test this page. You'll notice nothing happens, other then a fast search result time! This is a good thing.
+We now need to add data...</p>
+<h2>Application Data</h2>
+<p>You can add data using MLCP or Information Studio, but you can also do this in MLJS. Create a new page based on the blank page
+called 'load.html' and a JS controller file called 'page-load.js' and copy and paste the code from samples/008-load-data.js in
+this file. Make sure the HTML page has a div tag with id='log'.</p>
+<p>This code shows how to load many files in to MarkLogic, in series, using MLJS. Works with JSON, text and XML files. Type detection
+is done by MLJS automatically, and passed to MarkLogic.</p>
+<p>Deploy the code. Now visit the page load.html. Note the data loading messages appearing in the log div tag.</p>
+<p>Once completed, go visit your index.html page again.</p>
+<p>You now have a working MLJS search page!</p>
+<h2>Extension exercise</h2>
+<p>Find yourself ahead of the slow coaches in the class? Good! Now get some of your own data from recent MarkLogic work and add it
+to the data loading script. </p>
+<p>Also reconfigure the search options for the page as required to show a facet for that data too.</p>
+<p>If you're feeling adventurous, investigate the bucket() and calculateBucket() methods of option builder and use them too.</p>
+<hr>
+<p><a href="tutorial-dev1-001-overview.html">Course Home Page</a> | 
+<a href="tutorial-dev1-004-first-widget.html">Next - 4. First Widget</a></p>
+</article>
+
+</section>  
+
+				</div>
+
+				<div class="clearfix"></div>
+				<footer>
+					
+					MLJS - A JavaScript wrapper for the MarkLogic REST API
+					<br />
+					
+					
+		<span class="copyright">
+		MarkLogic 2012-2014
+		</span>
+					<br />
+					
+		<span class="jsdoc-message">
+		Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.3-dev</a>
+		on Wed Jan 20 2016 06:13:29 GMT-0000 (GMT) using the <a href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
+		</span>
+				</footer>
+			</div>
+
+			
+			<br clear="both">
+		</div>
+
+	</div>
+	<script src="scripts/sunlight.js"></script>
+	<script src="scripts/sunlight.javascript.js"></script>
+	<script src="scripts/sunlight-plugin.doclinks.js"></script>
+	<script src="scripts/sunlight-plugin.linenumbers.js"></script>
+	<script src="scripts/sunlight-plugin.menu.js"></script>
+	<script src="scripts/jquery.min.js"></script>
+	<script src="scripts/jquery.scrollTo.js"></script>
+	<script src="scripts/jquery.localScroll.js"></script>
+	<script src="scripts/bootstrap-dropdown.js"></script>
+	<script src="scripts/toc.js"></script>
+
+
+	<script>  Sunlight.highlightAll({lineNumbers:true,  showMenu: true, enableDoclinks :true}); </script>
+
+	<script>
+		$( function () {
+			$( "#toc" ).toc( {
+			    anchorName  : function(i, heading, prefix) {
+					return $(heading).attr("id") || ( prefix + i );
+				},
+				selectors   : "h1,h2,h3,h4",
+				showAndHide : false,
+				scrollTo    : 60
+			} );
+			$( "#toc>ul" ).addClass( "nav nav-pills nav-stacked" );
+			$( "#main span[id^='toc']" ).addClass( "toc-shim" );
+
+		} );
+	</script>
+
+	
+
+</body>
+</html>
