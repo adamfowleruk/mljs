@@ -11,13 +11,11 @@ Note: You don't have to do this step if you have installed via a Yeoman generato
 2. Edit config/database-settings.sh to reflect your environment
 3. Save both and quit the editor
 
-## Install Node.js requirements
+## Install Node.js MarkLogic admin tools
 
-Note: You don't have to do this step if you have installed via a Yeoman generator.
-
-1. You need to install Node.js to run all the deploy tools and code
-2. Now install dependencies by issuing: npm install
-3. Now wait until all dependencies are installed
+1. You need mljsadmin and mljsserve to run this demo. To install this, install mlnodetools GLOBALLY like this:
+  - npm install -g mlnodetools
+2. Test by typing just 'mljsadmin' with no parameters from the command line (this MUST be issued in the root folder of your app)
 
 ## Customise the app
 
@@ -26,9 +24,9 @@ Note: You don't have to do this step if you have installed via a Yeoman generato
 
 ## Install the app itself
 
-1. Install the app using mljsadmin. Type: ./mljsadmin install
-2. There is a bug in this version of mljsadmin, so you need to run an extra command. Issue ./mljsadmin update
-3. Also load the initial content. Type: ./mljsadmin load
+1. Install the app using mljsadmin. Type: mljsadmin install
+2. There is a bug in this version of mljsadmin, so you need to run an extra command. Issue mljsadmin update
+3. Also load the initial content. Type: mljsadmin load
 
 ## Install ISYS triggers and filters
 
@@ -36,7 +34,7 @@ This is done for you automatically by mljsadmin if they are described within dat
 
 ## Run the webserver
 
-1. In a terminal type: ./mljsserve
+1. In a terminal type: mljsserve
 
 ## View the application
 
