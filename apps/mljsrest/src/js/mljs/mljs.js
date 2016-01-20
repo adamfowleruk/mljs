@@ -867,7 +867,8 @@ mljs.prototype.__doreq_node = function(reqname,options,content,callback_opt) {
       if (!completeRan) {
         completeRan = true; // idiot check - complete can be called from many places and events
         //self.logger.debug(reqname + " complete()");
-        if (res.statusCode.toString().substring(0,1) == ("4")) {
+        var codeSub = res.statusCode.toString().substring(0,1)
+        if (codeSub == ("4") || codeSub == "5") {
           self.logger.error(reqname + " error: " + body);
           var details = body;
           if ("string" == typeof body) {

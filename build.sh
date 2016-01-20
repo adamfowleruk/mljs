@@ -131,22 +131,22 @@ cp -R ./dist/browser-prod/* ../mljs-bower/
 ./build-webserver.sh mljsrest
 
 # copy over mljs node scripts to dist
-mkdir ../mlnodetools/src
-mkdir ../mlnodetools/src/util
-mkdir ../mlnodetools/src/config
-mkdir ../mlnodetools/src/packages
-mkdir ../mlnodetools/src/packages/databases
-mkdir ../mlnodetools/src/data
-mkdir ../mlnodetools/src/modules
-mkdir ../mlnodetools/src/app
-mkdir ../mlnodetools/dist
-cp webserver/mljsadmin ../mlnodetools/src/
-cp webserver/mljsserve ../mlnodetools/src/
-cp webserver/mljsadmin.bat ../mlnodetools/src/
-cp webserver/mljsserve.bat ../mlnodetools/src/
-cp webserver/package.json ../mlnodetools/src/
-cp webserver/util/* ../mlnodetools/src/util/
-cp webserver/config/* ../mlnodetools/src/config/
+#mkdir ../mlnodetools/src
+#mkdir ../mlnodetools/src/util
+#mkdir ../mlnodetools/src/config
+#mkdir ../mlnodetools/src/packages
+#mkdir ../mlnodetools/src/packages/databases
+#mkdir ../mlnodetools/src/data
+#mkdir ../mlnodetools/src/modules
+#mkdir ../mlnodetools/src/app
+#mkdir ../mlnodetools/dist
+#cp webserver/mljsadmin ../mlnodetools/src/
+#cp webserver/mljsserve ../mlnodetools/src/
+#cp webserver/mljsadmin.bat ../mlnodetools/src/
+#cp webserver/mljsserve.bat ../mlnodetools/src/
+#cp webserver/package.json ../mlnodetools/src/
+#cp webserver/util/* ../mlnodetools/src/util/
+#cp webserver/config/* ../mlnodetools/src/config/
 
 # cleanup
 #rm -rf dist/mljs

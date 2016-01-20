@@ -728,6 +728,7 @@ mljs.prototype.configure = function(dboptions) {
     // configure appropriate browser wrapper
     this.__doreq_impl = this.__doreq_wrap;
   } else {
+    this.logger.debug("We need the Node.js wrapper");
     // in NodeJS
 
     // TODO support curl like 'anyauth' option to determine auth mechanism automatically (via HTTP 401 Authenticate)
@@ -807,6 +808,7 @@ m.__dogenid = function() {
  * @private
  */
 mljs.prototype.__doreq_wrap = function(reqname,options,content,callback_opt) {
+  //this.logger.debug("__doreq_wrap");
   this.dboptions.wrapper.request(reqname,options,content,function(result) {
     (callback_opt || noop)(result);
   });
@@ -817,6 +819,7 @@ mljs.prototype.__doreq_wrap = function(reqname,options,content,callback_opt) {
  * @private
  */
 mljs.prototype.__doreq_node = function(reqname,options,content,callback_opt) {
+  //this.logger.debug("__doreq_node");
   var self = this;
 
   var wrapper = this.dboptions.wrapper;
@@ -866,14 +869,28 @@ mljs.prototype.__doreq_node = function(reqname,options,content,callback_opt) {
     var complete = function() {
       if (!completeRan) {
         completeRan = true; // idiot check - complete can be called from many places and events
-        //self.logger.debug(reqname + " complete()");
-        if (res.statusCode.toString().substring(0,1) == ("4")) {
-          self.logger.error(reqname + " error: " + body);
+        self.logger.debug(reqname + " complete()");
+        var codeSub = res.statusCode.toString().substring(0,1);
+        self.logger.debug("statuscode: " + res.statusCode + ", codesub: " + codeSub);
+/*
+        for (var p in res) {
+          var pv = res[p];
+          if (typeof(pv) != "object" && typeof(pv) != "function" && !Array.isArray(pv)) {
+            self.logger.debug(p + " = " + pv);
+          }
+        }*/
+        self.logger.debug("RESPONSE BODY: " + body);
+        if (codeSub == ("4") || codeSub == ("5")) {
+          self.logger.debug(reqname + " error: " + body);
           var details = body;
           if ("string" == typeof body) {
-            details = textToXML(body);
+            if (body.substring(0,1) == "{") {
+              details = JSON.parse(body);
+            } else {
+              details = textToXML(body);
+            }
           }
-          if (undefined != details.nodeType) {
+          if (undefined != details && undefined != details.nodeType) {
             details = xmlToJson(details);
           }
           (callback_opt || noop)({statusCode: res.statusCode,error: body,inError: true, details: details});
@@ -904,22 +921,22 @@ mljs.prototype.__doreq_node = function(reqname,options,content,callback_opt) {
       }
     };
     res.on('end', function() {
-      //self.logger.debug(reqname + " End. Body: " + body);
+      self.logger.debug(reqname + " End. Body: " + body);
       complete();
     });
     res.on('close',function() {
-      //self.logger.debug(reqname + " Close");
+      self.logger.debug(reqname + " Close");
       complete();
     });
     res.on("error", function() {
-      //self.logger.debug(reqname + " ERROR: " + res.statusCode);
-      completeRan = true;
-      (callback_opt || noop)({statusCode: res.statusCode,error: body,inError: true});
+      self.logger.debug(reqname + " ERROR: " + res.statusCode);
+      //completeRan = true;
+      //(callback_opt || noop)({statusCode: res.statusCode,error: body,inError: true});
     });
 
     //self.logger.debug("Method: " + options.method);
     if (options.method == "PUT" || options.method == "DELETE") {
-      complete();
+      //complete();
     }
     //self.logger.debug(reqname + " End Response (sync)");
     //self.logger.debug("---- END " + reqname);
