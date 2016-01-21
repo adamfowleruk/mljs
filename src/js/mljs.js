@@ -1116,6 +1116,22 @@ mljs.prototype.create = function(options_opt,callback_opt) {
 };
 
 /**
+ * Lists all available databases on the server. NOTE: Uses admin port rather than content port
+ * @param {function} callback - The callback to invoke after the method completes
+ */
+mljs.prototype.databases = function(callback) {
+  var self = this;
+  var options = {
+    host: self.dboptions.host,
+    port: self.dboptions.adminport,
+    path: "/manage/v2/databases",
+    method: "GET"
+  };
+
+  this.__doreq("DATABASES", options, null, callback);
+};
+
+/**
  * Destroys the database and rest api instance
  *
  * @param {function} callback_opt - The optional callback to invoke after the method completes
@@ -3032,6 +3048,80 @@ mljs.prototype.saveAll = function(doc_array,uri_array_opt,callback_opt) {
   } else {
     (callback_opt||noop)(error);
   }
+};
+
+/**
+ * Saves all documents in as parallel a fashion as possible - using multiple threads and several documents per call.
+ */
+mljs.prototype.saveAllParallel = function(doc_array,uri_array,transaction_size,thread_count,callback,progress_callback) {
+  // split in to buckets (done virtually so as not to use too much memory)
+  // track which thread has been assigned which bucket
+  var dosave = function(startidx,endidx,save_callback) {
+    // actually does a POST /v1/documents
+    // TODO complete dosave method
+  };
+  var nextBucket = 0;
+  var bucketsCompleted = 0;
+  var maxBucket = doc_array.length / transaction_size;
+  if ((maxBucket * transaction_size) < doc_array.length) {
+    maxBucket++; // partial bucket at end
+  }
+
+  var returned = false;
+  var fail = function(failedResult) {
+    returned = true;
+    callback(failedResult);
+  };
+  var complete = function() {
+    if (!returned) {
+      callback({inError: false, docuris: uri_array_opt});
+    }
+  };
+
+  // NB bucketid is zero based
+  var dobucket = function(bucketid,bucket_callback) {
+    var startidx = bucketid * transaction_size;
+    var endidx = ((bucketid + 1) * transaction_size) - 1;
+    if (endidx >= doc_array.length) {
+      endidx = doc_array.length - 1;
+    }
+    dosave(startidx,endidx,bucket_callback);
+  };
+  var assignToThread = function(theThread,initial_opt) {
+    if (true !== initial_opt) {
+      bucketsCompleted++;
+    }
+    // find next unassigned bucket and call theThread.process()
+    if (!returned) {
+      progress_callback(bucketsCompleted / maxBucket);
+      if (bucketsCompleted == maxBucket) {
+        complete();
+      } else {
+        theThread.process(nextBucket++);
+      }
+    }
+  };
+  var thread = function(id) {
+    this.id = id;
+    this.progress = progress_callback;
+    this.done = done_callback;
+    var self = this;
+    this.process = function(bucketid) {
+      dobucket(bucketid,function(result) {
+        if (result.inError) {
+          fail(result);
+        } else {
+          assignToThread(self);
+        }
+      });
+    };
+  };
+  // create and assign threads
+  for (var tc = 0;tc < thread_count;tc++) {
+    var theThread = new thread(tc);
+    assignToThread(tc,true);
+  }
+
 };
 
 var rv = function(totalruns,maxrunning,start_func,finish_func,complete_func) {

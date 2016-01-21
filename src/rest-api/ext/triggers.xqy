@@ -66,12 +66,13 @@ declare function ext:get(
   let $trfunc := ext:trigger-names($trdbname,$mdb)
   (: Fetch each triggers configuration :)
   let $out :=
+  <summary> {
     for $triggername in $trfunc
     let $triggerconf := ext:trigger-info($trdbname,$triggername)
     (: Fetch each trigger module from the speified module DB :)
     (: let $trfile := xs:string($triggerconf/trgr:module/trgr:root) || "/" || xs:string($triggerconf/trgr:module/trgr:path) :)
     let $summary :=
-      (<summary>
+      (<triggers>
         <name>{$triggername}</name><comment>{xs:string($triggerconf/trgr:description)}</comment>
         <event>{xs:string($triggerconf/trgr:data-event/trgr:document-content/trgr:update-kind)}</event>
         {if (fn:exists($triggerconf/trgr:data-event/trgr:directory-scope)) then
@@ -93,8 +94,10 @@ declare function ext:get(
         </module>
         <precommit>{if ("post-commit" = $triggerconf/trgr:data-event/trgr:when) then "false" else "true"}</precommit>
         <triggersdatabase>{$trdbname}</triggersdatabase>
-      </summary>
+      </triggers>
       )
+      return $summary
+    }</summary>
     (:
     {
       "name":"isys","comment":"ISys trigger","event": ["create"],
@@ -104,18 +107,20 @@ declare function ext:get(
     },
     :)
     return
-
+(xdmp:set-response-code(200,"OK"),
           if ("application/xml" = $preftype) then
-            document {$summary}
+            document {<triggers>{for $trig in $out/triggers return <trigger>{$trig/*}</trigger>}</triggers>}
           else
-            let $config := json:config("custom")
+            let $config := json6:config("custom")
             let $cx := map:put($config, "text-value", "label" )
+            let $cx := map:put($config,"array-element-names",("triggers"))
+            let $cx := map:put($config,"json-children","triggers")
             let $cx := map:put($config , "camel-case", fn:true() )
             return
-              json:transform-to-json($summary, $config)
+              json6:transform-to-json($out, $config)
 
 
-  return (xdmp:set-response-code(200,"OK"),$out)
+  )
 };
 
 
