@@ -951,12 +951,26 @@ mljs.prototype.__doreq_node = function(reqname,options,content,callback_opt) {
     //console.log("request content is of type: " + typeof(content));
     //console.log("is Buffer?: " + Buffer.isBuffer(content));
     if ("string" == typeof (content) || Buffer.isBuffer(content)) { // Node.js fix for buffers accidentally being converted to JSON
+      self.logger.debug("__doreq_node: Sending String or Buffer content to server");
+      self.logger.debug("__doreq_node: isBuffer?: " + Buffer.isBuffer(content));
       httpreq.write(content);
+    } else if (Array.isArray(content)) {
+      self.logger.debug("__doreq_node: Sending multipart/mime (multiple files) content to server");
+      // TODO add sanity check for multipart/mime content type
+      var formData = new FormData();
+      for (var i = 0, maxi = content.length,uri,blob;i < maxi;i+=2) {
+        uri = content[i];
+        blob = content[i + 1];
+        formData.append(uri,blob); // each blob has its own mime type
+      }
+      httpreq.write(formData); // TODO verify this is not send() instead (xhr2.send)
     } else if ("object" == typeof(content)) {
       if (undefined != content.nodeType) {
+        self.logger.debug("__doreq_node: Sending XML content to server");
         // XML
         httpreq.write((new XMLSerializer()).serializeToString(content));
       } else {
+        self.logger.debug("__doreq_node: Sending JSON content to server");
         // JSON
         try {
           httpreq.write(JSON.stringify(content));
@@ -3056,9 +3070,21 @@ mljs.prototype.saveAll = function(doc_array,uri_array_opt,callback_opt) {
 mljs.prototype.saveAllParallel = function(doc_array,uri_array,transaction_size,thread_count,callback,progress_callback) {
   // split in to buckets (done virtually so as not to use too much memory)
   // track which thread has been assigned which bucket
+  var self = this;
   var dosave = function(startidx,endidx,save_callback) {
     // actually does a POST /v1/documents
     // TODO complete dosave method
+    var myArr = new Array();
+    for (var i = startidx;i <= endidx;i++) {
+      myArr.push(uri_array[i]);
+      myArr.push(doc_array[i]);
+    }
+    var options = {
+      path: "/v1/documents",
+      method: 'POST',
+      contentType: "multipart/mime"
+    };
+    self.__doreq("SAVEALLPARALLEL",options,myArr,save_callback); // TODO validate slice' second parameter
   };
   var nextBucket = 0;
   var bucketsCompleted = 0;
