@@ -216,7 +216,8 @@ var RequestWrapper = function(logger) {
 };
 
 RequestWrapper.prototype.write = function(data,encoding) {
-  this.writeData += data;
+  //this.writeData += data;
+  this.writeData = data;
 };
 
 RequestWrapper.prototype.on = function(evt,func) {
@@ -241,7 +242,7 @@ RequestWrapper.prototype.error = function(e) {
 RequestWrapper.prototype.finaliseRequest = function() {
   //this.logger.debug("DigestWrapper.finaliseRequest called");
   if (this.ended && this.finalReq != undefined){
-    if (this.writeData != undefined && this.writeData.length > 0) {
+    if (this.writeData != undefined /*&& this.writeData.length > 0*/) {
       //this.logger.debug("DigestWrapper: Sending POST data: " + this.writeData);
       var data = this.writeData;
       this.writeData = undefined; // clear out for next request

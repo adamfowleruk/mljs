@@ -7,9 +7,12 @@ declare namespace my="http://marklogic.com/triggers";
 
 import module namespace json6 = "http://marklogic.com/xdmp/json" at "/MarkLogic/json/json.xqy";
 import module namespace trgr="http://marklogic.com/xdmp/triggers" at "/MarkLogic/triggers.xqy";
+import module namespace pkg = "http://marklogic.com/manage/package" at "/MarkLogic/manage/package/package.xqy";
 import module namespace admin = "http://marklogic.com/xdmp/admin" at "/MarkLogic/admin.xqy" ;
 
 declare namespace rapi = "http://marklogic.com/rest-api";
+declare namespace p = "http://marklogic.com/manage/package/databases";
+declare namespace l = "local";
 
 (:
 
@@ -20,6 +23,105 @@ declare namespace rapi = "http://marklogic.com/rest-api";
    admin:save-configuration-without-restart(admin:database-set-triggers-database($config,
                            xdmp:database("obisie-content") , xdmp:database("Triggers")))
 :)
+
+
+declare private function ext:invoke($function as function() as item()*,$dbname as xs:string) {
+  xdmp:invoke-function($function,
+    <options xmlns="xdmp:eval">
+      <database>{xdmp:database($dbname)}</database>
+      <transaction-mode>query</transaction-mode>
+      <isolation>different-transaction</isolation>
+    </options>
+  )
+};
+
+declare private function ext:trigger-names($dbname as xs:string,$mdb as xs:string) {
+  ext:invoke(function() {
+    let $mdbid := xdmp:database($mdb)
+    return xs:string((fn:collection("http://marklogic.com/xdmp/triggers")/trgr:trigger[./trgr:module/trgr:database = $mdbid]/trgr:trigger-name))
+  },$dbname)
+};
+
+declare private function ext:trigger-info($dbname as xs:string,$triggername as xs:string) {
+  ext:invoke(function() {
+    trgr:get-trigger($triggername)
+  },$dbname)
+};
+
+declare function ext:get(
+    $context as map:map,
+    $params  as map:map
+) as document-node()* {
+  let $l := xdmp:log("GET /v1/resources/triggers CALLED")
+  let $l := xdmp:log($params)
+
+  let $preftype := if ("application/xml" = map:get($context,"accept-types")) then "application/xml" else "application/json"
+
+  (: Get database configuration :)
+  let $mdb := xdmp:database-name(xdmp:modules-database())
+  let $config := pkg:database-configuration(xdmp:database-name(xdmp:database()))
+  (: Get name of triggers DB :)
+  let $trdbname := xs:string($config/p:config/p:links/p:triggers-database)
+  (: Query this DB for all trigger names :)
+  let $trfunc := ext:trigger-names($trdbname,$mdb)
+  (: Fetch each triggers configuration :)
+  let $out :=
+  <summary> {
+    for $triggername in $trfunc
+    let $triggerconf := ext:trigger-info($trdbname,$triggername)
+    (: Fetch each trigger module from the speified module DB :)
+    (: let $trfile := xs:string($triggerconf/trgr:module/trgr:root) || "/" || xs:string($triggerconf/trgr:module/trgr:path) :)
+    let $summary :=
+      (<triggers>
+        <name>{$triggername}</name><comment>{xs:string($triggerconf/trgr:description)}</comment>
+        <event>{xs:string($triggerconf/trgr:data-event/trgr:document-content/trgr:update-kind)}</event>
+        {if (fn:exists($triggerconf/trgr:data-event/trgr:directory-scope)) then
+          <scope>
+            <type>directory</type>
+            <uri>{xs:string($triggerconf/trgr:data-event/trgr:directory-scope/trgr:uri)}</uri>
+            <depth>{xs:string($triggerconf/trgr:data-event/trgr:directory-scope/trgr:depth)}</depth>
+          </scope>
+        else
+          <scope>
+            <type>collection</type>
+            <uri>{xs:string($triggerconf/trgr:data-event/trgr:collection-scope/trgr:uri)}</uri>
+          </scope>
+        }
+        <module>
+          <database>{$mdb}</database>
+          <folder>{xs:string($triggerconf/trgr:module/trgr:root)}</folder>
+          <file>{xs:string($triggerconf/trgr:module/trgr:path)}</file>
+        </module>
+        <precommit>{if ("post-commit" = $triggerconf/trgr:data-event/trgr:when) then "false" else "true"}</precommit>
+        <triggersdatabase>{$trdbname}</triggersdatabase>
+      </triggers>
+      )
+      return $summary
+    }</summary>
+    (:
+    {
+      "name":"isys","comment":"ISys trigger","event": ["create"],
+      "scope": {"type":"directory","uri":"/originals/","depth": "infinity"},
+      "module": {"database": "meddevices-modules", "folder": "/app/models", "file": "trigger-isys-preserve.xqy"},
+      "precommit": false, "triggersdatabase": "TriggersMedDevices"
+    },
+    :)
+    return
+(xdmp:set-response-code(200,"OK"),
+          if ("application/xml" = $preftype) then
+            document {<triggers>{for $trig in $out/triggers return <trigger>{$trig/*}</trigger>}</triggers>}
+          else
+            let $config := json6:config("custom")
+            let $cx := map:put($config, "text-value", "label" )
+            let $cx := map:put($config,"array-element-names",("triggers"))
+            let $cx := map:put($config,"json-children","triggers")
+            let $cx := map:put($config , "camel-case", fn:true() )
+            return
+              json6:transform-to-json($out, $config)
+
+
+  )
+};
 
 
 (:
@@ -33,7 +135,6 @@ Creates a new trigger instance with the specific JSON parameters
   precommit: true|false
 }
 :)
-
 declare function ext:put(
     $context as map:map,
     $params  as map:map,
