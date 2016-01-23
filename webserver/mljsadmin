@@ -1,5 +1,0 @@
-#!/bin/sh
-
-node util/mljsadmin.js $@
-
-exit 0
