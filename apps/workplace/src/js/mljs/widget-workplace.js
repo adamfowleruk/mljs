@@ -1631,13 +1631,23 @@ com.marklogic.widgets.workplacecontext.prototype.findWorkplace = function(pageur
   // TODO ensure we ask for RAW results, limit 1
   // TODO support multiple users (ASSUME: security handling visibility for same url, different config)
   var ob = this.db.createOptions();
-  ob.valueConstraint("item","item",ob.JSON)
+  ob
+    // V7: .valueConstraint("item","item",ob.JSON)
+    // V8:-
     .jsonContainerConstraint("urls","urls")
     .returnFacets(false)
     .returnResults(true)
     .raw();
   var qb = this.db.createQuery();
-  qb.query(qb.container("urls",qb.value("item",pageurl)));
+  // V7: qb.query(qb.container("urls",qb.value("item",pageurl)));
+  // V8:-
+  qb.query(
+    qb.and([
+      qb.collection("mljsWorkplacePages")
+      ,
+      qb.value("urls",pageurl)
+    ])
+  );
   var sc = this.db.createSearchContext();
   sc.setOptions("mljsFindWorkplace",ob); // will fail on multi user system - need to use combined query dynamically
   sc.addResultsListener(function(results) {
@@ -1645,7 +1655,14 @@ com.marklogic.widgets.workplacecontext.prototype.findWorkplace = function(pageur
       return;
     }
     // pass single document as result to callback
-    callback({inError: false,doc: results.results[0]});
+    var found = false;
+    for (var i = 0;!found && i < results.results.length;i++) {
+      for (var j = 0;j < results.results[i].content.urls.length;j++) {
+        if (results.results[i].content.urls[0] == pageurl) { // sanity check for range index snafu (no range index for urls configured)
+          callback({inError: false,doc: results.results[i]});
+        }
+      }
+    }
   });
   sc.doStructuredQuery(qb.toJson());
 };
@@ -1982,6 +1999,7 @@ com.marklogic.widgets.workplacecontext.prototype.loadPage = function(jsonOrStrin
     // doc uri
     var self = this;
     this.findWorkplace(jsonOrString,function(result) {
+      mljs.defaultconnection.logger.debug("workplacecontext.loadPage: findWorkplace result: " + result);
       if (result.inError && undefined != json_opt) {
         mljs.defaultconnection.logger.debug("workplacecontext.loadPage: findWorkplace call resulted in error: " + result.detail);
         // fall back to default
@@ -4532,6 +4550,8 @@ com.marklogic.widgets.workplacepagelist = function(container) {
   this._workplaceContext = null;
 
   this._pages = new Array();
+
+  this.updateWorkplace();
 };
 
 /**

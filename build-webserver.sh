@@ -11,7 +11,7 @@ mkdir $D
 mkdir $D/src
 mkdir $D/rest-api
 mkdir $D/config
-mkdir $D/util
+#mkdir $D/util
 mkdir $D/data
 mkdir $D/packages
 mkdir $D/modules
@@ -31,16 +31,16 @@ echo "Copying workplaces"
 cp -R ./apps/$1/example-workplaces/* $D/example-workplaces/
 echo "Copying configuration"
 cp -R ./webserver/config/* $D/config/
-echo "Copying util apps"
-cp -R ./webserver/util/* $D/util/
+#echo "Copying util apps"
+#cp -R ./webserver/util/* $D/util/
 #echo "Copying package.json" #Superseded by mljswebserver's npm package.json
 #cp ./apps/$1/package.json $D/
 echo "Installing rest extension description file"
 cp -R ./apps/$1/data/* $D/data/
 echo "Installing packages"
 cp -R ./apps/$1/packages/* $D/packages/
-echo "Copying bower.json"
-cp ./apps/$1/bower.json $D/
+#echo "Copying bower.json"
+#cp ./apps/$1/bower.json $D/
 
 # Now copy final files in to Yeoman generator
 BASE=../generator-mljs$1
@@ -53,6 +53,7 @@ rm $BASE/app/templates/files/config/webserver-settings.sh
 
 cd dist
 tar czf ./app-$1.tar.gz app-$1
+zip -r ./app-$1.zip app-$1
 cd ..
 
 rm -rf $D

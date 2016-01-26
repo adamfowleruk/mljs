@@ -1351,3 +1351,39 @@ div.log {
 .mljsResultActionSpacer {
   width: 12px;
 }
+
+
+
+
+
+
+
+/* D3 styles for MLJS */
+
+
+.mljswidget .d3hive .axis {
+  stroke: #000;
+  stroke-width: 1.5px;
+}
+
+.mljswidget .d3hive  .node circle {
+  stroke: #000;
+}
+
+.mljswidget .d3hive  .link {
+  fill: none;
+  stroke: #999;
+  stroke-width: 1.5px;
+  stroke-opacity: .3;
+}
+
+.mljswidget .d3hive  .link.active {
+  stroke: red;
+  stroke-width: 2px;
+  stroke-opacity: 1;
+}
+
+.mljswidget .d3hive  .node circle.active {
+  stroke: red;
+  stroke-width: 3px;
+}

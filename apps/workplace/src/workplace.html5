@@ -14,10 +14,17 @@
     <link href="/css/bootstrap.min.css" rel="stylesheet">
     <link href="/css/bootstrap-theme.min.css" rel="stylesheet">
 
+
+    <link rel="stylesheet" type="text/css" href="/js/lib/c3-0.4.10/c3.min.css">
+    <script type="text/javascript" src="/js/d3.min.js"></script> <!-- pivot table -->
+    <script type="text/javascript" src="/js/lib/c3-0.4.10/c3.min.js"></script>
+
     <link rel='stylesheet' type='text/css' href='/keylines/css/keylines.css'/>
 
     <!-- Custom styles for this template -->
     <link href="/css/navbar.css" rel="stylesheet">
+
+    <link href="/js/pivottable/pivot.min.css" rel="stylesheet">
 
     <link href="/css/mljs/widgets.css" rel="stylesheet">
 
@@ -76,7 +83,16 @@ and its
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
     <script src="/js/lib/jquery-1.7.1.min.js"></script>
+    <script src="/js/lib/jquery-ui-1.11.4/jquery-ui.min.js"></script>
     <script src="/js/bootstrap.min.js"></script>
+
+
+    <script src="/js/pivottable/pivot.js"></script>
+
+    <script src="/js/pivottable/c3_renderers.min.js"></script>
+    <script src="/js/pivottable/d3_renderers.min.js"></script>
+    <script src="/js/pivottable/export_renderers.min.js"></script>
+
     <script src="/js/mljs/mljs.js"></script>
     <script src="/js/mljs/mljs-xhr2.js"></script>
     <script src="/js/mljs/widgets.js"></script>
@@ -92,8 +108,9 @@ and its
     <!--<script>OpenLayers.Console = window.console || OpenLayers.Console;</script>--> <!-- debug deployment only -->
 
     <script type="text/javascript" src="/js/mljs/widget-security.js"></script>
-    
+
     <script type="text/javascript" src="/js/mljs/widget-search.js"></script>
+    <script type="text/javascript" src="/js/mljs/widget-pivottable.js"></script>
     <script type="text/javascript" src="/js/mljs/widget-address.js"></script>
     <script type="text/javascript" src="/js/mljs/widget-collections.js"></script>
     <script type="text/javascript" src="/js/mljs/widget-cooccurence.js"></script>

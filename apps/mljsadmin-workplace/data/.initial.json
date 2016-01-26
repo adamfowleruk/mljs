@@ -1,0 +1,4 @@
+{
+  "prefix": "/initial", "collections": ["initialcontent"], "folder": "initial",
+  "ignore":["mljs-workplace.xml","ontology.ttl","restapi.json",".load.json",".initial.json"]
+}

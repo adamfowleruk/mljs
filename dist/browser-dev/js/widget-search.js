@@ -2506,25 +2506,39 @@ com.marklogic.widgets.searchresults.prototype._navigateTo = function(uri) {
  * MANAGER FUNCTION FOR CUSTOM SEARCH RESULT RENDERER USE
  * @param {MLJS.SearchResult} result - Single search result JSON from REST API JSON results object
  * @param {string} extractname - The name (from constraint or element name) of the extracted metadata. Normally a constraint name, something like 'sender'. Note though for XML elements rather than constraints this is {http://namespace}elementlocalname
+ * @param {string} ns_opt - Namespace of the element (if XML only)
  */
-com.marklogic.widgets.searchresults.prototype.getResultExtract = function(result,extractname) {
+com.marklogic.widgets.searchresults.prototype.getResultExtract = function(result,extractname,ns_opt) {
   if (undefined != result && undefined != result.metadata) {
-            for (var metai = 0, maxi = result.metadata.length, meta;metai < maxi;metai++) {
-              meta = result.metadata[metai];
-              //console.log("  meta instance: " + metai);
-              for (var p in meta) {
-                //console.log("    found param: " + param);
-                // find our one
-                // NB may be multiple of them - TODO support more than just last found
-                if (p == extractname) {
-                  //console.log("      found latsrc constraint param");
-                  return meta[p];
+    for (var metai = 0, maxi = result.metadata.length, meta;metai < maxi;metai++) {
+      meta = result.metadata[metai];
+      //console.log("  meta instance: " + metai);
+      for (var p in meta) {
+        console.log("    searchresults.getResultExtract: found param: " + p);
+        // find our one
+        // NB may be multiple of them - TODO support more than just last found
+        if (p.substring(0,1) == "{") {
+          console.log(" getResultExtract: Got XML element");
+          // XML namespaced element
+          var t = "{" + ns_opt + "}" + extractname;
+          if (p == t) {
+            console.log(" getResultExtract: MATCHES!: " + t);
+            return meta[p];
+          }
+        } else {
+          if (p == extractname) {
+            //console.log("      found latsrc constraint param");
+            return meta[p];
+          }
 
-                }
-              }
-            }
+        }
+      }
+    }
   }
-            return null;
+
+  // TODO check the raw result too, not just metadata
+
+  return null;
 };
 
 // END MANAGER PUBLIC FUNCTIONS

@@ -249,7 +249,7 @@ function textToXML(text){
     //doc = jsdom.jsdom(text, null, { FetchExternalResources: false, ProcessExternalResources: false });
     //var parser = new (require('xmlshim').DOMParser)(); // xmlshim >
     //var parser = require("libxml");
-    var parser = new (require('flat-xmldom').DOMParser)();
+    var parser = new (require('xmldom').DOMParser)();
     doc = parser.parseFromString(text, "text/xml");
     //console.log("TEXT: " + text);
     //console.log("DOC: " + doc)
@@ -728,6 +728,7 @@ mljs.prototype.configure = function(dboptions) {
     // configure appropriate browser wrapper
     this.__doreq_impl = this.__doreq_wrap;
   } else {
+    this.logger.debug("We need the Node.js wrapper");
     // in NodeJS
 
     // TODO support curl like 'anyauth' option to determine auth mechanism automatically (via HTTP 401 Authenticate)
@@ -807,6 +808,7 @@ m.__dogenid = function() {
  * @private
  */
 mljs.prototype.__doreq_wrap = function(reqname,options,content,callback_opt) {
+  //this.logger.debug("__doreq_wrap");
   this.dboptions.wrapper.request(reqname,options,content,function(result) {
     (callback_opt || noop)(result);
   });
@@ -817,6 +819,7 @@ mljs.prototype.__doreq_wrap = function(reqname,options,content,callback_opt) {
  * @private
  */
 mljs.prototype.__doreq_node = function(reqname,options,content,callback_opt) {
+  //this.logger.debug("__doreq_node");
   var self = this;
 
   var wrapper = this.dboptions.wrapper;
@@ -866,14 +869,28 @@ mljs.prototype.__doreq_node = function(reqname,options,content,callback_opt) {
     var complete = function() {
       if (!completeRan) {
         completeRan = true; // idiot check - complete can be called from many places and events
-        //self.logger.debug(reqname + " complete()");
-        if (res.statusCode.toString().substring(0,1) == ("4")) {
-          self.logger.error(reqname + " error: " + body);
+        self.logger.debug(reqname + " complete()");
+        var codeSub = res.statusCode.toString().substring(0,1);
+        //self.logger.debug("statuscode: " + res.statusCode + ", codesub: " + codeSub);
+/*
+        for (var p in res) {
+          var pv = res[p];
+          if (typeof(pv) != "object" && typeof(pv) != "function" && !Array.isArray(pv)) {
+            self.logger.debug(p + " = " + pv);
+          }
+        }*/
+        self.logger.debug("RESPONSE BODY: " + body);
+        if (codeSub == ("4") || codeSub == ("5")) {
+          //self.logger.debug(reqname + " error: " + body);
           var details = body;
           if ("string" == typeof body) {
-            details = textToXML(body);
+            if (body.substring(0,1) == "{") {
+              details = JSON.parse(body);
+            } else {
+              details = textToXML(body);
+            }
           }
-          if (undefined != details.nodeType) {
+          if (undefined != details && undefined != details.nodeType) {
             details = xmlToJson(details);
           }
           (callback_opt || noop)({statusCode: res.statusCode,error: body,inError: true, details: details});
@@ -904,22 +921,22 @@ mljs.prototype.__doreq_node = function(reqname,options,content,callback_opt) {
       }
     };
     res.on('end', function() {
-      //self.logger.debug(reqname + " End. Body: " + body);
+      self.logger.debug(reqname + " End. Body: " + body);
       complete();
     });
     res.on('close',function() {
-      //self.logger.debug(reqname + " Close");
+      self.logger.debug(reqname + " Close");
       complete();
     });
     res.on("error", function() {
-      //self.logger.debug(reqname + " ERROR: " + res.statusCode);
-      completeRan = true;
-      (callback_opt || noop)({statusCode: res.statusCode,error: body,inError: true});
+      self.logger.debug(reqname + " ERROR: " + res.statusCode);
+      //completeRan = true;
+      //(callback_opt || noop)({statusCode: res.statusCode,error: body,inError: true});
     });
 
     //self.logger.debug("Method: " + options.method);
     if (options.method == "PUT" || options.method == "DELETE") {
-      complete();
+      //complete();
     }
     //self.logger.debug(reqname + " End Response (sync)");
     //self.logger.debug("---- END " + reqname);
@@ -931,13 +948,41 @@ mljs.prototype.__doreq_node = function(reqname,options,content,callback_opt) {
     (callback_opt || noop)({inError: true,error: e}); // SHOULD THIS BE DETAIL INSTEAD OF ERROR?
   });
   if (undefined != content && null != content) {
-    if ("string" == typeof (content)) {
+    //console.log("request content is of type: " + typeof(content));
+    //console.log("is Buffer?: " + Buffer.isBuffer(content));
+    if ("string" == typeof (content) || Buffer.isBuffer(content)) { // Node.js fix for buffers accidentally being converted to JSON
+      self.logger.debug("__doreq_node: Sending String or Buffer content to server");
+      self.logger.debug("__doreq_node: isBuffer?: " + Buffer.isBuffer(content));
       httpreq.write(content);
+    } else if (Array.isArray(content)) {
+      self.logger.debug("__doreq_node: Sending multipart/mime (multiple files) content to server");
+      // TODO add sanity check for multipart/mime content type
+      var fd;
+      if (typeof(window) === 'undefined') {
+        // node-js
+        fd = require("form-data");
+      } else {
+        // browser
+        fd = FormData;
+      }
+      self.logger.debug("__doreq_node: Creating FormData instance");
+      var formData = new fd();
+      for (var i = 0, maxi = content.length,uri,blob;i < maxi;i+=2) {
+        uri = content[i];
+        blob = content[i + 1];
+        self.logger.debug("__doreq_node: Appending form file URI: " + uri);
+        formData.append(uri,blob); // each blob has its own mime type
+      }
+      self.logger.debug("__doreq_node: Calling request.write(formData)");
+      httpreq.write(formData); // TODO verify this is not send() instead (xhr2.send)
+      self.logger.debug("__doreq_node: request.write(formData) has completed");
     } else if ("object" == typeof(content)) {
       if (undefined != content.nodeType) {
+        self.logger.debug("__doreq_node: Sending XML content to server");
         // XML
         httpreq.write((new XMLSerializer()).serializeToString(content));
       } else {
+        self.logger.debug("__doreq_node: Sending JSON content to server");
         // JSON
         try {
           httpreq.write(JSON.stringify(content));
@@ -948,6 +993,7 @@ mljs.prototype.__doreq_node = function(reqname,options,content,callback_opt) {
       }
     }
   }
+  self.logger.debug("__doreq_node: Calling request.end()");
   httpreq.end();
 };
 
@@ -1094,6 +1140,22 @@ mljs.prototype.create = function(options_opt,callback_opt) {
   };
 
   this.__doreq("CREATE",options,json,callback_opt);
+};
+
+/**
+ * Lists all available databases on the server. NOTE: Uses admin port rather than content port
+ * @param {function} callback - The callback to invoke after the method completes
+ */
+mljs.prototype.databases = function(callback) {
+  var self = this;
+  var options = {
+    host: self.dboptions.host,
+    port: self.dboptions.adminport,
+    path: "/manage/v2/databases",
+    method: "GET"
+  };
+
+  this.__doreq("DATABASES", options, null, callback);
 };
 
 /**
@@ -1330,6 +1392,16 @@ mljs.prototype.save = function(jsonXmlBinary,docuri_opt,props_opt,callback_opt) 
   if (undefined == docuri_opt) {
     // generate docuri and set on response object
     docuri_opt = this.__genid();
+  } else {
+    /*
+    if (undefined == window || undefined == window.encodeURI) {
+      // not in browser, in node.js?
+      if (undefined != encode) {
+        docuri_opt = escape(docuri_opt);
+      }
+    } else {
+      docuri_opt = encodeURI(docuri_opt);
+    }*/
   }
 
   var format = "json";
@@ -1878,6 +1950,9 @@ mljs.prototype.search = function(query_opt,options_opt,start_opt,sprops_opt,call
         options: optionsdoc.options,
         qtext: query_opt
       }};
+      if (null == query.search.qtext) {
+        query.search.qtext = "";
+      }
 
       var options = {
         path: url,
@@ -2122,7 +2197,7 @@ mljs.prototype.combined = function(structuredQuery_opt,textQuery_opt,optionsdoc,
   // V7, and we have local options
   var query = {"search":{
     "query": q.query,
-    "qtext": textQuery_opt,
+    "qtext": textQuery_opt || "",
     "options": optionsdoc.options}
   };
   var url = "/v1/search";
@@ -2153,6 +2228,7 @@ mljs.prototype.v7check = function(v6func,v7func) {
   // check version number first
   var self = this;
   var doit = function() {
+    console.log("v7check: VERSION: " + self._version);
     if (null == self._version || false === self._version || self._version.substring(0,self._version.indexOf(".")) < 7) {
       v6func();
     } else {
@@ -3001,6 +3077,145 @@ mljs.prototype.saveAll = function(doc_array,uri_array_opt,callback_opt) {
   }
 };
 
+/**
+ * Saves all documents in as parallel a fashion as possible - using multiple threads and several documents per call.
+ */
+mljs.prototype.saveAllParallel = function(doc_array,uri_array,transaction_size,thread_count,props,callback,progress_callback) {
+  // split in to buckets (done virtually so as not to use too much memory)
+  this.logger.debug("saveAllParallel(): doc_array.length: " + doc_array.length + ", txsize: " + transaction_size + ", threads: " + thread_count);
+  // track which thread has been assigned which bucket
+  var self = this;
+  var dosave = function(startidx,endidx,save_callback) {
+    self.logger.debug("dosave(): startidx: " + startidx + ", endidx: " + endidx);
+    // actually does a POST /v1/documents
+    var myArr = new Array();
+    for (var i = startidx;i <= endidx;i++) {
+      myArr.push(uri_array[i]);
+      myArr.push(doc_array[i]);
+    }
+    var options = {
+      path: "/v1/documents",
+      method: 'POST',
+      contentType: "multipart/mixed"
+    };
+    var gotQn = false;
+    // TODO handle collection and other propertiesif (undefined != props_opt.collection)
+    if (undefined != props.collection) {
+      var cols = props.collection.split(",");
+      for (var c = 0;c < cols.length;c++) {
+        if (gotQn) {
+          options.path += "&";
+        } else {
+          gotQn = true;
+          options.path += "?";
+        }
+        options.path += "collection=" + encodeURIComponent(cols[c]);
+      }
+    }
+    //if (undefined != props.contentType)
+      // TODO set this on UNDERLYING document from type_array
+//      contentType = props_opt.contentType;
+    //
+    if (undefined != props.permissions) {
+      // array of {role: name, permission: read|update|execute} objects
+      for (var p = 0;p < props.permissions.length;p++) {
+        if (gotQn) {
+          options.path += "&";
+        } else {
+          gotQn = true;
+          options.path += "?";
+        }
+        options.path += "perm:" + props.permissions[p].role + "=" + props.permissions[p].permission;
+      }
+    }
+    self.__doreq("SAVEALLPARALLEL",options,myArr,save_callback);
+  };
+  var nextBucket = 0;
+  var bucketsCompleted = 0;
+  var maxBucket = Math.ceil(doc_array.length / transaction_size);
+  /*
+  if ((maxBucket * transaction_size) < doc_array.length) {
+    maxBucket++; // partial bucket at end
+  }*/
+
+  var returned = false;
+  var fail = function(failedResult) {
+    self.logger.debug("fail()");
+    returned = true;
+    callback(failedResult);
+  };
+  var complete = function() {
+    self.logger.debug("complete()");
+    if (!returned) {
+      callback({inError: false, docuris: uri_array});
+    }
+  };
+
+  // NB bucketid is zero based
+  var dobucket = function(bucketid,bucket_callback) {
+    self.logger.debug("dobucket(): bucketid: " + bucketid);
+    // note possible that startidx will be greater than doc_array length - if we have more threads than we do buckets
+    var startidx = bucketid * transaction_size;
+    if (startidx >= doc_array.length) {
+      self.logger.debug("docbucket(): startidx is out of range - thread can now complete. Returning failure result.");
+      bucket_callback({inError: true, details: "OUTOFRANGE"});
+    } else {
+      var endidx = startidx + transaction_size - 1;
+      if (endidx >= doc_array.length) {
+        endidx = doc_array.length - 1;
+      }
+      dosave(startidx,endidx,bucket_callback);
+    }
+  };
+  var assignToThread = function(theThread,initial_opt) {
+    self.logger.debug("assignToThread(): threadid: " + theThread.id);
+    if (true !== initial_opt) {
+      bucketsCompleted++;
+    }
+    // find next unassigned bucket and call theThread.process()
+    if (!returned) {
+      self.logger.debug("calling progress function callback");
+      (progress_callback||noop)(100 * (bucketsCompleted / maxBucket));
+      if (bucketsCompleted >= maxBucket) {
+        self.logger.debug("calling complete()");
+        complete();
+      } else {
+        self.logger.debug("calling process for next bucket(): " + nextBucket);
+        theThread.process(nextBucket++);
+      }
+    }
+  };
+  var thread = function(id) {
+    self.logger.debug("thread() constructor: threadid: " + id);
+    this.id = id;
+    var me = this;
+    this.process = function(bucketid) {
+      self.logger.debug("process(): bucketid: " + bucketid);
+      dobucket(bucketid,function(result) {
+        if (result.inError) {
+          if (result.details == "OUTOFRANGE") {
+            // silently complete, with no callback, and await the group's primary thread to complete
+          } else {
+            self.logger.debug("dobucket is in error");
+            fail(result);
+          }
+        } else {
+          self.logger.debug("dobucket succeeded");
+          assignToThread(me);
+        }
+      });
+    };
+  };
+  // create and assign threads
+  for (var tc = 0;tc < thread_count;tc++) {
+    self.logger.debug("creating thread with id: " + tc);
+    var theThread = new thread(tc);
+    assignToThread(theThread,true);
+  }
+  self.logger.debug("All threads created");
+
+};
+
 var rv = function(totalruns,maxrunning,start_func,finish_func,complete_func) {
   this.running = 0;
   this.runnercount = 0;
@@ -3565,6 +3780,11 @@ mljs.prototype.workplace = function(callback) {
 
 
 
+/**
+ * Uses the triggers.xqy REST extension to install a trigger
+ * @param {object} triggerJson - The trigger description JSON (as expected by the REST API)
+ * @param {function} callback - The callback function
+ */
 mljs.prototype.installTrigger = function(triggerJson,callback) {
   var options = {
     path: "/v1/resources/triggers",
@@ -3574,6 +3794,26 @@ mljs.prototype.installTrigger = function(triggerJson,callback) {
   this.__doreq("INSTALLTRIGGER",options,triggerJson,callback);
 };
 
+/**
+ * Uses the triggers.xqy REST extension to list all triggers for this content database's triggers database that also
+ *   use code installed in the current database's modules database (double sanity check)
+ * @param {function} callback - The callback function
+ */
+mljs.prototype.triggers = function(callback) {
+  var options = {
+    path: "/v1/resources/triggers",
+    method: "GET"/*,
+    accept: "application/json"*/
+  };
+  this.__doreq("TRIGGERS",options,null,callback);
+};
+
+/**
+ * Uses the triggers.xqy REST extension to remove a named trigger configuration from the specified triggers database
+ * @param {string} triggerName - The name of the trigger
+ * @param {string} triggerDatabase - The name of the trigger database to remove the trigger from
+ * @param {function} callback - The callback function
+ */
 mljs.prototype.removeTrigger = function(triggerName,triggerDatabase,callback) {
   /*var doc = {
     triggername: triggerName, triggersdatabase: triggerDatabase
@@ -3588,7 +3828,7 @@ mljs.prototype.removeTrigger = function(triggerName,triggerDatabase,callback) {
   this.__doreq("REMOVETRIGGER",options,null,callback);
 };
 
-
+// TODO support JavaScript extensions too
 mljs.prototype.installExtension = function(name,methodArray,moduleContent,callback) {
   var options = {
     path: "/v1/config/resources/" + name,
@@ -6228,7 +6468,7 @@ if (typeof(window) === 'undefined') {
   com.marklogic.events = {};
   com.marklogic.semantic = {};
 
-  var XMLSerializer = require('flat-xmldom').XMLSerializer;
+  var XMLSerializer = require('xmldom').XMLSerializer;
 } else {
   com = window.com || {};
   com.marklogic = window.com.marklogic || {};
@@ -6649,17 +6889,19 @@ mljs.prototype.searchcontext.prototype.getOptions = function() {
   var opts = this._options;
   opts._findConstraint = function(cname) {
 
-  var con = null;
+    var con = null;
 
-  for (var i = 0, max = opts.options.constraint.length, c;i < max;i++) {
-    c = opts.options.constraint[i];
+    if (undefined != opts.options.constraint) {
+      for (var i = 0, max = opts.options.constraint.length, c;i < max;i++) {
+        c = opts.options.constraint[i];
 
-    if (c.name == cname) {
-      return c;
+        if (c.name == cname) {
+          return c;
+        }
+      }
     }
-  }
 
-  return null;
+    return null;
   };
   return opts;
 };
@@ -9299,7 +9541,9 @@ mljs.prototype.semanticcontext.prototype.getFact = function(subjectIri,predicate
 mljs.prototype.semanticcontext.prototype.getFacts = function(subjectIri,reload_opt) {
   //var facts = this._subjectFacts[subjectIri];
   var facts = this.getCachedFacts(subjectIri); //.facts;
-  if ((true==reload_opt) || undefined == facts) {
+  if ((true==reload_opt) || undefined == facts ||
+    (undefined == facts.namePredicate || undefined == facts.typeNameString || undefined == facts.nameString)
+  ) {
     var sparql = "SELECT * WHERE {";
 
     // check for bnodes

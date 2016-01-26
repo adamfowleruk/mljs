@@ -1,0 +1,97 @@
+<search:options xmlns:search="http://marklogic.com/appservices/search">
+  <search:debug>false</search:debug>
+  <search:tuples name="actor-genre">
+    <search:range type="xs:string">
+      <search:element ns="http://marklogic.com/xdmp/json/basic" name="actor"/>
+    </search:range>
+    <search:range type="xs:string">
+      <search:element ns="http://marklogic.com/xdmp/json/basic" name="genre"/>
+    </search:range>
+
+  </search:tuples>
+  <search:tuples name="actor-year">
+    <search:range type="xs:string" collation="http://marklogic.com/collation/" facet="true">
+      <search:element name="actor" ns="http://marklogic.com/xdmp/json/basic"/>
+      <search:facet-option>item-frequency</search:facet-option>
+    </search:range>
+    <search:range type="xs:string" collation="http://marklogic.com/collation/" facet="true">
+      <search:element name="year" ns="http://marklogic.com/xdmp/json/basic"/>
+
+      <search:facet-option>item-order</search:facet-option>
+    </search:range>
+  </search:tuples>
+  <search:tuples name="actor-genre-year">
+    <search:range type="xs:string" collation="http://marklogic.com/collation/" facet="true">
+      <search:element name="actor" ns="http://marklogic.com/xdmp/json/basic"/>
+      <search:facet-option>item-frequency</search:facet-option>
+    </search:range>
+
+    <search:range type="xs:string" collation="http://marklogic.com/collation/" facet="true">
+      <search:element name="genre" ns="http://marklogic.com/xdmp/json/basic"/>
+      <search:facet-option>item-order</search:facet-option>
+    </search:range>
+    <search:range type="xs:string" collation="http://marklogic.com/collation/" facet="true">
+      <search:element name="year" ns="http://marklogic.com/xdmp/json/basic"/>
+      <search:facet-option>item-order</search:facet-option>
+    </search:range>
+
+  </search:tuples>
+  <search:transform-results apply="raw"/>
+  <search:constraint name="actor">
+    <search:range type="xs:string" collation="http://marklogic.com/collation/" facet="true">
+      <search:element name="actor" ns="http://marklogic.com/xdmp/json/basic"/>
+      <search:facet-option>item-frequency</search:facet-option>
+    </search:range>
+  </search:constraint>
+
+  <search:constraint name="year">
+    <search:range type="xs:string" collation="http://marklogic.com/collation/" facet="true">
+      <search:element name="year" ns="http://marklogic.com/xdmp/json/basic"/>
+      <search:facet-option>item-order</search:facet-option>
+    </search:range>
+  </search:constraint>
+  <search:constraint name="genre">
+    <search:range type="xs:string" collation="http://marklogic.com/collation/" facet="true">
+
+      <search:element name="genre" ns="http://marklogic.com/xdmp/json/basic"/>
+      <search:facet-option>item-order</search:facet-option>
+    </search:range>
+  </search:constraint>
+  <search:page-length>10</search:page-length>
+  <search:return-metrics>true</search:return-metrics>
+  <search:return-qtext>true</search:return-qtext>
+
+  <search:return-query>false</search:return-query>
+  <search:return-results>false</search:return-results>
+  <search:return-similar>false</search:return-similar>
+  <search:sort-order direction="descending">
+    <search:score/>
+    <search:annotation>Relevancy (Desc)</search:annotation>
+  </search:sort-order>
+
+  <search:sort-order direction="ascending" type="xs:string" collation="http://marklogic.com/collation/">
+    <search:element name="actor" ns="http://marklogic.com/xdmp/json/basic"/>
+  </search:sort-order>
+  <search:sort-order direction="descending" type="xs:string" collation="http://marklogic.com/collation/">
+    <search:element name="actor" ns="http://marklogic.com/xdmp/json/basic"/>
+  </search:sort-order>
+  <search:sort-order direction="ascending" type="xs:string" collation="http://marklogic.com/collation/">
+    <search:element name="year" ns="http://marklogic.com/xdmp/json/basic"/>
+  </search:sort-order>
+
+  <search:sort-order direction="descending" type="xs:string" collation="http://marklogic.com/collation/">
+    <search:element name="year" ns="http://marklogic.com/xdmp/json/basic"/>
+  </search:sort-order>
+  <search:sort-order direction="ascending" type="xs:string" collation="http://marklogic.com/collation/">
+    <search:element name="genre" ns="http://marklogic.com/xdmp/json/basic"/>
+  </search:sort-order>
+  <search:sort-order direction="descending" type="xs:string" collation="http://marklogic.com/collation/">
+    <search:element name="genre" ns="http://marklogic.com/xdmp/json/basic"/>
+  </search:sort-order>
+
+  <search:suggestion-source ref="actor"/>
+  <search:suggestion-source ref="year"/>
+  <search:suggestion-source ref="genre"/>
+  <search:return-values>true</search:return-values>
+  <search:return-facets>false</search:return-facets>
+</search:options>
