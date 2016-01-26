@@ -1,13 +1,13 @@
 { "name": "mljs"
 , "description": "MarkLogic V8+ REST API Driver for Node.js. "
 , "homepage": "https://github.com/adamfowleruk/mljs"
-, "version": "8.0.6"
+, "version": "8.0.7"
 , "repository": "https://github.com/adamfowleruk/mljs.git"
 , "bugs": {"url": "https://github.com/adamfowleruk/mljs/issues", "email": "adam.fowler@marklogic.com"}
 , "author": "Adam Fowler <adamfowleruk@gmail.com> (http://www.adamfowler.org/)"
 , "license": "Apache-2.0"
 , "keywords": ["MarkLogic", "mldb", "search", "data", "xml", "json", "nosql", "nodejs", "mljs"]
-, "dependencies": { "request": "~2.1.1", "underscore": "~1.1.7", "winston": "~0.6.2", "xmldom": "~0.1.21"}
+, "dependencies": { "request": "~2.1.1", "underscore": "~1.1.7", "winston": "~0.6.2", "xmldom": "~0.1.21", "form-data": "^1.0.0-rc3"}
 , "devDependencies": { "async": "~0.1.9", "ensure": "0.3.0", "sleep": "1.1.0", "chai": "~1.8.1" ,
     "grunt": "~0.4.2",
     "grunt-contrib-jshint": "~0.6.3"
