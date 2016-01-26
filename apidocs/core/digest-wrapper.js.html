@@ -288,6 +288,7 @@ var http = require('http'),
     crypto = require('crypto'),
     _und = require('underscore'),
     noop = require("./noop"),
+    FormData = require("form-data"),
     winston = require('winston');
 
 var EventEmitter = require('events').EventEmitter;
@@ -321,6 +322,7 @@ DigestWrapper.prototype.configure = function(username,password,logger) {
  * Performs a http request to the server
  */
 DigestWrapper.prototype.request = function(options, callback_opt) {
+  this.logger.debug("DigestWrapper.request()");
   //var cnonce = Math.floor(Math.random()*100000000);
   //this.logger.debug("DigestWrapper: in request() for " + options.host + ":" + options.port);
 
@@ -328,6 +330,7 @@ DigestWrapper.prototype.request = function(options, callback_opt) {
   var reqWrapper = new RequestWrapper(this.logger);
 
   var doRequest = function() {
+    digestWrapper.logger.debug("in doRequest()");
     var ncUse = padNC(digestWrapper.nc);
     digestWrapper.nc++;
     var realPath = options.path;
@@ -394,8 +397,11 @@ DigestWrapper.prototype.request = function(options, callback_opt) {
       reqWrapper.error(e);
     });
 
+    digestWrapper.logger.debug("in doRequest(): setting finalReq on wrapper");
     reqWrapper.finalReq = finalReq;
+    digestWrapper.logger.debug("in doRequest(): calling finaliseRequest on wrapper");
     reqWrapper.finaliseRequest();
+    digestWrapper.logger.debug("in doRequest(): finaliseRequest complete");
 
     //digestWrapper.logger.debug("DigestWrapper: completed doRequest()");
 
@@ -412,10 +418,10 @@ DigestWrapper.prototype.request = function(options, callback_opt) {
 
   // see if we have a realm and nonce
   if (undefined != this.realm) {
-    //this.logger.debug("DigestWrapper: Got a Realm");
+    this.logger.debug("DigestWrapper: Got a Realm");
     doRequest();
   } else {
-    //this.logger.debug("DigestWrapper: Not got a Realm, wrapping request");
+    this.logger.debug("DigestWrapper: Not got a Realm, wrapping request");
 
     // do authorization request then call doRequest
     var myopts = {
@@ -424,37 +430,50 @@ DigestWrapper.prototype.request = function(options, callback_opt) {
     }
 
     var self = this;
+    this.logger.debug("DigestWrapper: calling http.get for auth");
     var get = http.get(myopts,function(res) {
+      self.logger.debug("DigestWrapper: http.get has completed in order to carry out authentication");
       //self.logger.debug("Check: " + res.statusCode);
       res.on('end', function() {
+        self.logger.debug("DigestWrapper: auth http.get response end event raised");
         // check if http 401
         //self.logger.debug("DigestWrapper: Got HTTP response: " + res.statusCode);
         // if so, extract WWW-Authenticate header information for later requests
         //self.logger.debug("DigestWrapper: Header: www-authenticate: " + res.headers["www-authenticate"]);
         // E.g. from ML REST API:  Digest realm="public", qop="auth", nonce="5ffb75b7b92c8d30fe2bfce28f024a0f", opaque="b847f531f584350a"
 
-        digestWrapper.nc = 1;
+                digestWrapper.nc = 1;
 
-        // response may have failed - check response code prior to calling doRequest
-        if (403 == res.statusCode) {
-          // server does not exist - failed
-          var response = new ErrorResponse({statusCode: 403});
-          reqWrapper.__response = response;
-          reqWrapper.__callback = callback_opt;
-          reqWrapper.doEnd(response); // TODO check this works as expected for all requests
-          reqWrapper.finaliseRequest();
-        } else {
+                // response may have failed - check response code prior to calling doRequest
+                if (403 == res.statusCode) {
+                      self.logger.debug("DigestWrapper: 403 response");
+                  // server does not exist - failed
+                  var response = new ErrorResponse({statusCode: 403});
+                  reqWrapper.__response = response;
+                  reqWrapper.__callback = callback_opt;
+                  reqWrapper.doEnd(response); // TODO check this works as expected for all requests
+                  reqWrapper.finaliseRequest();
+                } else {
 
-          var auth = res.headers["www-authenticate"];
-          var params = parseDigest(auth);
-          digestWrapper.nonce = params.nonce;
-          digestWrapper.realm = params.realm;
-          digestWrapper.qop = params.qop;
-          digestWrapper.opaque = params.opaque;
+                  self.logger.debug("DigestWrapper: other response: " + res.statusCode);
+                  var auth = res.headers["www-authenticate"];
+                  var params = parseDigest(auth);
+                  digestWrapper.nonce = params.nonce;
+                  digestWrapper.realm = params.realm;
+                  digestWrapper.qop = params.qop;
+                  digestWrapper.opaque = params.opaque;
 
-          doRequest();
-        }
+                  self.logger.debug("DigestWrapper: calling doRequest()");
+                  doRequest();
+
+                }
+
+        self.logger.debug("DigestWrapper: After response handling code");
+
       });
+
+      self.logger.debug("DigestWrapper: Got response for auth request");
+
       res.on('readable', function() {
         //self.logger.debug("response read");
         // do nothing with the response
@@ -465,6 +484,7 @@ DigestWrapper.prototype.request = function(options, callback_opt) {
     });
 
     get.on("error",function(e) {
+      self.logger.debug("DigestWrapper: Auth request in error: " + e);
       reqWrapper.error(e);
     });
   }
@@ -496,13 +516,13 @@ RequestWrapper.prototype.on = function(evt,func) {
 };
 
 RequestWrapper.prototype.end = function() {
-  //this.logger.debug("DigestWrapper.end called");
+  this.logger.debug("DigestWrapper.end called");
   this.ended = true;
   this.finaliseRequest();
 };
 
 RequestWrapper.prototype.error = function(e) {
-  //this.logger.debug("DigestWrapper.error called: " + e);
+  this.logger.debug("DigestWrapper.error called: " + e);
   this.ended = true;
   this.emitter.emit("error",e);
   /*this.finalReq = undefined;
@@ -511,16 +531,38 @@ RequestWrapper.prototype.error = function(e) {
 };
 
 RequestWrapper.prototype.finaliseRequest = function() {
-  //this.logger.debug("DigestWrapper.finaliseRequest called");
-  if (this.ended && this.finalReq != undefined){
+  this.logger.debug("DigestWrapper.RequestWrapper.finaliseRequest called");
+  var self = this;
+  if (this.ended && this.finalReq != undefined) {
+    this.logger.debug("DigestWrapper.RequestWrapper.finaliseRequest: Finalising request");
+
     if (this.writeData != undefined /*&& this.writeData.length > 0*/) {
+      this.logger.debug("DigestWrapper.RequestWrapper.finaliseRequest: we have data - sending it now");
       //this.logger.debug("DigestWrapper: Sending POST data: " + this.writeData);
       var data = this.writeData;
       this.writeData = undefined; // clear out for next request
-      this.finalReq.write(data);
+      if (data instanceof FormData) {
+        self.logger.debug("DigestWrapper.RequestWrapper.finaliseRequest: Got a FormData instance");
+        data.getLength(function(err, length){
+          if (err) {
+            self.logger.debug("DigestWrapper.RequestWrapper.finaliseRequest: error reading formdata.length: " + err);
+            throw new Error(err);
+          }
+
+          //var r = request.post("http://posttestserver.com/post.php", requestCallback);
+          self.finalReq._form = data;
+          //self.finalReq.setHeader('content-length', length); // doesn't appear to be required on MarkLogic Server (Good too - because otherwise we get a headers already sent http error!)
+          self.logger.debug("DigestWrapper.RequestWrapper.finaliseRequest: Finished processing form data");
+        });
+      } else {
+        this.logger.debug("DigestWrapper.RequestWrapper.finaliseRequest: Writing non-form-data");
+        this.finalReq.write(data);
+      }
     }
     //this.logger.debug("DigestWrapper.calling finalReq.end ");
     this.finalReq.end();
+  } else {
+    this.logger.debug("DigestWrapper.RequestWrapper.finaliseRequest: Not ended yet. Skipping for now.");
   }
   if (this.ended && this.__response != undefined) {
     //this.logger.debug("DigestWrapper.calling callback with response: " + JSON.stringify(this.__response));
@@ -534,7 +576,7 @@ RequestWrapper.prototype.finaliseRequest = function() {
 };
 
 RequestWrapper.prototype.doEnd = function(res) {
-  //this.logger.debug("DigestWrapper.doEnd: end Called.");
+  this.logger.debug("DigestWrapper.doEnd: end Called.");
   this.emitter.emit("end",res);
 };
 
@@ -604,7 +646,7 @@ function parseDigest(header) {
 					
 		<span class="jsdoc-message">
 		Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.3-dev</a>
-		on Sat Jan 23 2016 02:29:36 GMT-0000 (GMT) using the <a href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
+		on Tue Jan 26 2016 10:36:36 GMT-0000 (GMT) using the <a href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
 		</span>
 				</footer>
 			</div>

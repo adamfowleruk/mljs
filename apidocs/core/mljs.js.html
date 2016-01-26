@@ -1228,13 +1228,25 @@ mljs.prototype.__doreq_node = function(reqname,options,content,callback_opt) {
     } else if (Array.isArray(content)) {
       self.logger.debug("__doreq_node: Sending multipart/mime (multiple files) content to server");
       // TODO add sanity check for multipart/mime content type
-      var formData = new FormData();
+      var fd;
+      if (typeof(window) === 'undefined') {
+        // node-js
+        fd = require("form-data");
+      } else {
+        // browser
+        fd = FormData;
+      }
+      self.logger.debug("__doreq_node: Creating FormData instance");
+      var formData = new fd();
       for (var i = 0, maxi = content.length,uri,blob;i &lt; maxi;i+=2) {
         uri = content[i];
         blob = content[i + 1];
+        self.logger.debug("__doreq_node: Appending form file URI: " + uri);
         formData.append(uri,blob); // each blob has its own mime type
       }
+      self.logger.debug("__doreq_node: Calling request.write(formData)");
       httpreq.write(formData); // TODO verify this is not send() instead (xhr2.send)
+      self.logger.debug("__doreq_node: request.write(formData) has completed");
     } else if ("object" == typeof(content)) {
       if (undefined != content.nodeType) {
         self.logger.debug("__doreq_node: Sending XML content to server");
@@ -1252,6 +1264,7 @@ mljs.prototype.__doreq_node = function(reqname,options,content,callback_opt) {
       }
     }
   }
+  self.logger.debug("__doreq_node: Calling request.end()");
   httpreq.end();
 };
 
@@ -3338,13 +3351,14 @@ mljs.prototype.saveAll = function(doc_array,uri_array_opt,callback_opt) {
 /**
  * Saves all documents in as parallel a fashion as possible - using multiple threads and several documents per call.
  */
-mljs.prototype.saveAllParallel = function(doc_array,uri_array,transaction_size,thread_count,callback,progress_callback) {
+mljs.prototype.saveAllParallel = function(doc_array,uri_array,transaction_size,thread_count,props,callback,progress_callback) {
   // split in to buckets (done virtually so as not to use too much memory)
+  this.logger.debug("saveAllParallel(): doc_array.length: " + doc_array.length + ", txsize: " + transaction_size + ", threads: " + thread_count);
   // track which thread has been assigned which bucket
   var self = this;
   var dosave = function(startidx,endidx,save_callback) {
+    self.logger.debug("dosave(): startidx: " + startidx + ", endidx: " + endidx);
     // actually does a POST /v1/documents
-    // TODO complete dosave method
     var myArr = new Array();
     for (var i = startidx;i &lt;= endidx;i++) {
       myArr.push(uri_array[i]);
@@ -3353,71 +3367,123 @@ mljs.prototype.saveAllParallel = function(doc_array,uri_array,transaction_size,t
     var options = {
       path: "/v1/documents",
       method: 'POST',
-      contentType: "multipart/mime"
+      contentType: "multipart/mixed"
     };
-    self.__doreq("SAVEALLPARALLEL",options,myArr,save_callback); // TODO validate slice' second parameter
+    var gotQn = false;
+    // TODO handle collection and other propertiesif (undefined != props_opt.collection)
+    if (undefined != props.collection) {
+      var cols = props.collection.split(",");
+      for (var c = 0;c &lt; cols.length;c++) {
+        if (gotQn) {
+          options.path += "&";
+        } else {
+          gotQn = true;
+          options.path += "?";
+        }
+        options.path += "collection=" + encodeURIComponent(cols[c]);
+      }
+    }
+    //if (undefined != props.contentType)
+      // TODO set this on UNDERLYING document from type_array
+//      contentType = props_opt.contentType;
+    //
+    if (undefined != props.permissions) {
+      // array of {role: name, permission: read|update|execute} objects
+      for (var p = 0;p &lt; props.permissions.length;p++) {
+        if (gotQn) {
+          options.path += "&";
+        } else {
+          gotQn = true;
+          options.path += "?";
+        }
+        options.path += "perm:" + props.permissions[p].role + "=" + props.permissions[p].permission;
+      }
+    }
+    self.__doreq("SAVEALLPARALLEL",options,myArr,save_callback);
   };
   var nextBucket = 0;
   var bucketsCompleted = 0;
-  var maxBucket = doc_array.length / transaction_size;
+  var maxBucket = Math.ceil(doc_array.length / transaction_size);
+  /*
   if ((maxBucket * transaction_size) &lt; doc_array.length) {
     maxBucket++; // partial bucket at end
-  }
+  }*/
 
   var returned = false;
   var fail = function(failedResult) {
+    self.logger.debug("fail()");
     returned = true;
     callback(failedResult);
   };
   var complete = function() {
+    self.logger.debug("complete()");
     if (!returned) {
-      callback({inError: false, docuris: uri_array_opt});
+      callback({inError: false, docuris: uri_array});
     }
   };
 
   // NB bucketid is zero based
   var dobucket = function(bucketid,bucket_callback) {
+    self.logger.debug("dobucket(): bucketid: " + bucketid);
+    // note possible that startidx will be greater than doc_array length - if we have more threads than we do buckets
     var startidx = bucketid * transaction_size;
-    var endidx = ((bucketid + 1) * transaction_size) - 1;
-    if (endidx >= doc_array.length) {
-      endidx = doc_array.length - 1;
+    if (startidx >= doc_array.length) {
+      self.logger.debug("docbucket(): startidx is out of range - thread can now complete. Returning failure result.");
+      bucket_callback({inError: true, details: "OUTOFRANGE"});
+    } else {
+      var endidx = startidx + transaction_size - 1;
+      if (endidx >= doc_array.length) {
+        endidx = doc_array.length - 1;
+      }
+      dosave(startidx,endidx,bucket_callback);
     }
-    dosave(startidx,endidx,bucket_callback);
   };
   var assignToThread = function(theThread,initial_opt) {
+    self.logger.debug("assignToThread(): threadid: " + theThread.id);
     if (true !== initial_opt) {
       bucketsCompleted++;
     }
     // find next unassigned bucket and call theThread.process()
     if (!returned) {
-      progress_callback(bucketsCompleted / maxBucket);
-      if (bucketsCompleted == maxBucket) {
+      self.logger.debug("calling progress function callback");
+      (progress_callback||noop)(100 * (bucketsCompleted / maxBucket));
+      if (bucketsCompleted >= maxBucket) {
+        self.logger.debug("calling complete()");
         complete();
       } else {
+        self.logger.debug("calling process for next bucket(): " + nextBucket);
         theThread.process(nextBucket++);
       }
     }
   };
   var thread = function(id) {
+    self.logger.debug("thread() constructor: threadid: " + id);
     this.id = id;
-    this.progress = progress_callback;
-    this.done = done_callback;
-    var self = this;
+    var me = this;
     this.process = function(bucketid) {
+      self.logger.debug("process(): bucketid: " + bucketid);
       dobucket(bucketid,function(result) {
         if (result.inError) {
-          fail(result);
+          if (result.details == "OUTOFRANGE") {
+            // silently complete, with no callback, and await the group's primary thread to complete
+          } else {
+            self.logger.debug("dobucket is in error");
+            fail(result);
+          }
         } else {
-          assignToThread(self);
+          self.logger.debug("dobucket succeeded");
+          assignToThread(me);
         }
       });
     };
   };
   // create and assign threads
   for (var tc = 0;tc &lt; thread_count;tc++) {
+    self.logger.debug("creating thread with id: " + tc);
     var theThread = new thread(tc);
-    assignToThread(tc,true);
+    assignToThread(theThread,true);
   }
+  self.logger.debug("All threads created");
 
 };
 
@@ -11800,7 +11866,7 @@ mljs.prototype.stringhelper = stringhelper;
 					
 		<span class="jsdoc-message">
 		Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.3-dev</a>
-		on Sat Jan 23 2016 02:29:36 GMT-0000 (GMT) using the <a href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
+		on Tue Jan 26 2016 10:36:36 GMT-0000 (GMT) using the <a href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
 		</span>
 				</footer>
 			</div>
