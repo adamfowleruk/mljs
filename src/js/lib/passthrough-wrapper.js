@@ -34,8 +34,8 @@ PassThroughWrapper.prototype.configure = function(username,password,logger) {
 /**
  * Performs a http request to the server
  */
-PassThroughWrapper.prototype.request = function(options,callback_opt) {
-    
+PassThroughWrapper.prototype.request = function(options,content,callback_opt) {
+
     // contentType header usage
     if (undefined != options.contentType) {
       options.headers["Content-type"] = options.contentType;
@@ -47,12 +47,12 @@ PassThroughWrapper.prototype.request = function(options,callback_opt) {
  * Performs a http get to the server
  */
 PassThroughWrapper.prototype.get = function(options,callback_opt) {
-    
+
     // contentType header usage
     if (undefined != options.contentType) {
       options.headers["Content-type"] = options.contentType;
     }
   return http.get(options,(callback_opt || noop));
 };
-  
+
 module.exports = function() {return new PassThroughWrapper()};

@@ -1,12 +1,13 @@
-#!/bin/node
+#!/usr/bin/env node
+
 var mljs = require("mljs");
 var Q = require("q");
 var fs = require("fs");
 
 
 var db = new mljs();
-db.configure({"host":"192.168.123.4","port": "7011"});
-//db.configure({"host":"localhost","port": "5001"}); // proxied through mljsserve
+db.configure({"host":"192.168.123.4","port": "7011" /*, "proxyhost": "127.0.0.1", "proxyport": "8888"*/});
+//db.configure({"host":"127.0.0.1","port": "5001"}); // proxied through mljsserve
 
 var files = [
   "../medicaldeviceperformance/data/initial/journal-articles/Yuasa.pdf",
@@ -50,6 +51,7 @@ var loadFile = function(file) {
 //var promises = new Array();
 var doc_array = new Array();
 var uri_array = new Array();
+var mime_array = new Array();
 
 for (var f = 0,fl;f < files.length;f++) {
   fl = files[f];
@@ -57,11 +59,12 @@ for (var f = 0,fl;f < files.length;f++) {
   console.log("URI: " + uri);
   uri_array.push(uri);
   doc_array.push(fs.createReadStream(fl));
+  mime_array.push("application/pdf"); // hardcoded for our test
 //  promises.push(loadFile(fl));
 }
 
 //Q.all(promises).then(function(params) {
-  db.saveAllParallel(doc_array,uri_array,3,3,{collections: "originals"},function callback(result) {
+  db.saveAllParallel(doc_array,uri_array,mime_array,3,3,{collections: "originals"},function callback(result) {
     if (result.inError) {
       console.log("ERROR");
       console.log(result.details);

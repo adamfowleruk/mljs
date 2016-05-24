@@ -13,7 +13,7 @@ var logger = new (winston.Logger)({
   ]
 });
 
-describe("003-search-query",function() {
+describe.skip("003-search-query",function() {
   it("Should complete entirely",function(done){
   var db = new mljs(); // default options
   configurator.configure(db);

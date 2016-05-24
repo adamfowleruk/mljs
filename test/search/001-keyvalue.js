@@ -13,7 +13,7 @@ var logger = new (winston.Logger)({
   ]
 });
 
-describe("001-keyvalue",function() {
+describe.skip("001-keyvalue",function() {
   it("Should complete entirely",function(done){
   var db = new mljs(); // default options
   configurator.configure(db);

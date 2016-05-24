@@ -4,7 +4,7 @@
 
 
 # Hostname or IP address
-RESTHOST=192.168.123.225
+RESTHOST=192.168.123.4
 # You specify the content database by choosing the REST server instance pointint to that database
 RESTPORT=9090
 

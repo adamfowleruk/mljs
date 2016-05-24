@@ -36,3 +36,4 @@ src/js/mljs-*.js
 webserver
 KEYLINES.md
 webserver-testdata
+testup.js

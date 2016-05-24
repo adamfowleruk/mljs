@@ -112,7 +112,8 @@ if (typeof(window) === 'undefined') {
  */
 
 var defaultdboptions = {
-  host: "localhost", port: 9090, adminport: 8002, ssl: false, auth: "digest", username: "admin",password: "admin", database: "mldbtest", searchoptions: {}, fastthreads: 10, fastparts: 100
+  host: "localhost", port: 9090, adminport: 8002, ssl: false, auth: "digest", username: "admin",
+  password: "admin", database: "mldbtest", searchoptions: {}, fastthreads: 10, fastparts: 100, proxyhost: null, proxyport: null
 }; // TODO make Documents the default db, automatically figure out port when creating new rest server
 
 
@@ -668,7 +669,10 @@ mljs.prototype.configure = function(dboptions) {
   // TODO abandon transaction if one exists
   // TODO kill in process http requests
 
-  this.dboptions = defaultdboptions;
+  this.dboptions = {};
+  for (var a in defaultdboptions) {
+    this.dboptions[a] = defaultdboptions[a];
+  }
   if (undefined != dboptions) {
     for (var a in dboptions) {
       this.dboptions[a] = dboptions[a];
@@ -840,6 +844,17 @@ mljs.prototype.__doreq_node = function(reqname,options,content,callback_opt) {
     }
   }
 
+  // proxy check
+  if (null != this.dboptions.proxyhost && null != this.dboptions.proxyport) {
+    options.path = "http://" + this.dboptions.host + ":" + this.dboptions.port + options.path;
+    options.host = this.dboptions.proxyhost;
+    options.port = this.dboptions.proxyport;
+    if (undefined == options.headers) {
+      options.headers = {};
+    }
+    options.headers["Host"] = this.dboptions.host;
+  }
+
   var completeRan = false; // declared here incase of request error
 
   // add Connection: keep-alive
@@ -854,7 +869,31 @@ mljs.prototype.__doreq_node = function(reqname,options,content,callback_opt) {
     options.headers["Content-Type", ct];
   }
 
-  var httpreq = wrapper.request(options, function(res) {
+  //var fd = require("form-data");
+  var mh = require("./lib/multipart");
+
+  if (Array.isArray(content)) {
+    self.logger.debug("__doreq_node: Sending multipart/mime (multiple files) content to server");
+    // TODO add sanity check for multipart/mime content type
+
+    self.logger.debug("__doreq_node: Creating FormData instance");
+    //var formData = new fd();
+    var multi = new mh();
+    for (var i = 0, maxi = content.length,uri,blob,mime;i < maxi;i+=3) {
+      uri = content[i];
+      blob = content[i + 1];
+      mime = content[i + 2];
+      self.logger.debug("__doreq_node: Appending form file URI: " + uri);
+      multi.append(uri,blob,mime); // each blob has its own mime type
+    }
+    content = multi;
+    //self.logger.debug("__doreq_node: Calling request.write(formData)");
+    //httpreq.write(formData); // TODO verify this is not send() instead (xhr2.send)
+    //self.logger.debug("__doreq_node: request.write(formData) has completed");
+  }
+
+
+  var httpreq = wrapper.request(options, content, function(res) {
     var body = "";
     //self.logger.debug("---- START " + reqname);
     //self.logger.debug(reqname + " In Response");
@@ -954,28 +993,9 @@ mljs.prototype.__doreq_node = function(reqname,options,content,callback_opt) {
       self.logger.debug("__doreq_node: Sending String or Buffer content to server");
       self.logger.debug("__doreq_node: isBuffer?: " + Buffer.isBuffer(content));
       httpreq.write(content);
-    } else if (Array.isArray(content)) {
-      self.logger.debug("__doreq_node: Sending multipart/mime (multiple files) content to server");
-      // TODO add sanity check for multipart/mime content type
-      var fd;
-      if (typeof(window) === 'undefined') {
-        // node-js
-        fd = require("form-data");
-      } else {
-        // browser
-        fd = FormData;
-      }
-      self.logger.debug("__doreq_node: Creating FormData instance");
-      var formData = new fd();
-      for (var i = 0, maxi = content.length,uri,blob;i < maxi;i+=2) {
-        uri = content[i];
-        blob = content[i + 1];
-        self.logger.debug("__doreq_node: Appending form file URI: " + uri);
-        formData.append(uri,blob); // each blob has its own mime type
-      }
-      self.logger.debug("__doreq_node: Calling request.write(formData)");
-      httpreq.write(formData); // TODO verify this is not send() instead (xhr2.send)
-      self.logger.debug("__doreq_node: request.write(formData) has completed");
+    } else if (content instanceof mh) {
+      httpreq.write(content);
+
     } else if ("object" == typeof(content)) {
       if (undefined != content.nodeType) {
         self.logger.debug("__doreq_node: Sending XML content to server");
@@ -3080,7 +3100,7 @@ mljs.prototype.saveAll = function(doc_array,uri_array_opt,callback_opt) {
 /**
  * Saves all documents in as parallel a fashion as possible - using multiple threads and several documents per call.
  */
-mljs.prototype.saveAllParallel = function(doc_array,uri_array,transaction_size,thread_count,props,callback,progress_callback) {
+mljs.prototype.saveAllParallel = function(doc_array,uri_array,mime_array,transaction_size,thread_count,props,callback,progress_callback) {
   // split in to buckets (done virtually so as not to use too much memory)
   this.logger.debug("saveAllParallel(): doc_array.length: " + doc_array.length + ", txsize: " + transaction_size + ", threads: " + thread_count);
   // track which thread has been assigned which bucket
@@ -3092,11 +3112,13 @@ mljs.prototype.saveAllParallel = function(doc_array,uri_array,transaction_size,t
     for (var i = startidx;i <= endidx;i++) {
       myArr.push(uri_array[i]);
       myArr.push(doc_array[i]);
+      myArr.push(mime_array[i]);
     }
     var options = {
       path: "/v1/documents",
       method: 'POST',
-      contentType: "multipart/mixed"
+      contentType: "multipart/mixed",
+      headers: {"Accept": "application/json"}
     };
     var gotQn = false;
     // TODO handle collection and other propertiesif (undefined != props_opt.collection)

@@ -36,8 +36,8 @@ BasicWrapper.prototype.configure = function(username,password,logger) {
 /**
  * Handles a http request to the server
  */
-BasicWrapper.prototype.request = function(options,callback_opt) {
-    
+BasicWrapper.prototype.request = function(options,content,callback_opt) {
+
     // contentType header usage
     if (undefined != options.contentType) {
       options.headers["Content-type"] = options.contentType;
@@ -51,7 +51,7 @@ BasicWrapper.prototype.request = function(options,callback_opt) {
  * Performs a http get to the server
  */
 BasicWrapper.prototype.get = function(options,callback_opt) {
-    
+
     // contentType header usage
     if (undefined != options.contentType) {
       options.headers["Content-type"] = options.contentType;
@@ -60,5 +60,5 @@ BasicWrapper.prototype.get = function(options,callback_opt) {
   options.headers["Authorization"] = "Basic " + new Buffer(this.username + ':' + this.password).toString('base64');
   return http.get(options,(callback_opt || noop));
 };
-  
+
 module.exports = function() {return new BasicWrapper()};
