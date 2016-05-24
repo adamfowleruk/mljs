@@ -288,7 +288,8 @@ var http = require('http'),
     crypto = require('crypto'),
     _und = require('underscore'),
     noop = require("./noop"),
-    FormData = require("form-data"),
+    //FormData = require("form-data"),
+    mp = require("./multipart");
     winston = require('winston');
 
 var EventEmitter = require('events').EventEmitter;
@@ -321,7 +322,7 @@ DigestWrapper.prototype.configure = function(username,password,logger) {
 /**
  * Performs a http request to the server
  */
-DigestWrapper.prototype.request = function(options, callback_opt) {
+DigestWrapper.prototype.request = function(options, content, callback_opt) {
   this.logger.debug("DigestWrapper.request()");
   //var cnonce = Math.floor(Math.random()*100000000);
   //this.logger.debug("DigestWrapper: in request() for " + options.host + ":" + options.port);
@@ -357,6 +358,13 @@ DigestWrapper.prototype.request = function(options, callback_opt) {
     if (undefined != options.contentType) {
       options.headers["Content-type"] = options.contentType;
     }
+    if (content instanceof mp) {
+      digestWrapper.logger.debug("in doRequest(): Got formdata");
+      options.headers = content.getHeaders();
+      // workaround for mime type
+      //options.headers["content-type"] = options.headers["content-type"].replace(/form-data/g,"mixed");
+    }
+    digestWrapper.logger.debug("in doRequest(): Content type header now: " + options.headers["Content-type"]);
 
     // See Client Request at http://en.wikipedia.org/wiki/Digest_access_authentication
     var md5ha1 = crypto.createHash('md5');
@@ -454,14 +462,18 @@ DigestWrapper.prototype.request = function(options, callback_opt) {
                   reqWrapper.doEnd(response); // TODO check this works as expected for all requests
                   reqWrapper.finaliseRequest();
                 } else {
+                  // TODO via a proxy a request could succeed UNTIL AFTER a normal request has happened - need to account for that scenario too
 
                   self.logger.debug("DigestWrapper: other response: " + res.statusCode);
                   var auth = res.headers["www-authenticate"];
-                  var params = parseDigest(auth);
-                  digestWrapper.nonce = params.nonce;
-                  digestWrapper.realm = params.realm;
-                  digestWrapper.qop = params.qop;
-                  digestWrapper.opaque = params.opaque;
+                  self.logger.debug("HEADERS: " + JSON.stringify(res.headers));
+                  if (undefined != auth) {
+                    var params = parseDigest(auth);
+                    digestWrapper.nonce = params.nonce;
+                    digestWrapper.realm = params.realm;
+                    digestWrapper.qop = params.qop;
+                    digestWrapper.opaque = params.opaque;
+                  }
 
                   self.logger.debug("DigestWrapper: calling doRequest()");
                   doRequest();
@@ -541,19 +553,25 @@ RequestWrapper.prototype.finaliseRequest = function() {
       //this.logger.debug("DigestWrapper: Sending POST data: " + this.writeData);
       var data = this.writeData;
       this.writeData = undefined; // clear out for next request
-      if (data instanceof FormData) {
+      if (data instanceof mp) {
         self.logger.debug("DigestWrapper.RequestWrapper.finaliseRequest: Got a FormData instance");
-        data.getLength(function(err, length){
+        /*data.getLength(function(err, length) {
           if (err) {
             self.logger.debug("DigestWrapper.RequestWrapper.finaliseRequest: error reading formdata.length: " + err);
             throw new Error(err);
-          }
+          }*/
 
           //var r = request.post("http://posttestserver.com/post.php", requestCallback);
-          self.finalReq._form = data;
+          // hard code content type too
+          //self.finalReq.setHeader("Content-type","multipart/mixed");
+          self.logger.debug("DigestWrapper.RequestWrapper.finaliseRequest: Content header sent was: " + self.finalReq.getHeader("Content-type"));
+          //self.finalReq._form = data;
+
+          data.pipe(self.finalReq);
+
           //self.finalReq.setHeader('content-length', length); // doesn't appear to be required on MarkLogic Server (Good too - because otherwise we get a headers already sent http error!)
           self.logger.debug("DigestWrapper.RequestWrapper.finaliseRequest: Finished processing form data");
-        });
+        //});
       } else {
         this.logger.debug("DigestWrapper.RequestWrapper.finaliseRequest: Writing non-form-data");
         this.finalReq.write(data);
@@ -603,6 +621,7 @@ ErrorResponse.prototype.on = function(evt,callback) {
  * @param {string} header - the raw http auth header to parse
  */
 function parseDigest(header) {
+  console.log("HEADER: " + header);
   return _und(header.substring(7).split(/,\s+/)).reduce(function(obj, s) {
     var parts = s.split('=')
     obj[parts[0]] = parts[1].replace(/"/g, '')
@@ -646,7 +665,7 @@ function parseDigest(header) {
 					
 		<span class="jsdoc-message">
 		Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.3-dev</a>
-		on Tue Jan 26 2016 10:36:36 GMT-0000 (GMT) using the <a href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
+		on Tue May 24 2016 11:33:15 GMT+0100 (BST) using the <a href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
 		</span>
 				</footer>
 			</div>
