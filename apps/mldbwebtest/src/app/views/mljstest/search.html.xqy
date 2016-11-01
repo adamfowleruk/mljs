@@ -30,5 +30,16 @@ declare option xdmp:mapping "false";
 
 <script type="text/javascript" src="/js/mljstest/page-mljstest-search.js"></script>
   
-  <div id="search-page" class="search-page">Search page content goes here</div>
+    <div class="container_12">  
+        <div id="searchbar" class="grid_12"></div>
+        <div id="results" class="grid_12"></div>
+        <div id="facets" class="grid_12"></div>
+        <div id="sorter" class="grid_12"></div>
+        <div id="pager" class="grid_12"></div>
+        <div id="metrics" class="grid_12"></div>
+        
+    </div>
+<div class="container_12">  
+        
+    </div>
 </div>

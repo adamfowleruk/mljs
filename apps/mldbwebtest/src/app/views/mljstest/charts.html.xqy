@@ -31,19 +31,30 @@ declare option xdmp:mapping "false";
 <script type="text/javascript" src="/js/mljs/widget-search.js"></script>
 <script type="text/javascript" src="/js/mljs/widget-highcharts.js"></script>
 
+<script type="text/javascript" src="/js/mljstest/angular.js"></script>
+<script type="text/javascript" src="/js/mljs/mljs-angular.js"></script>
+
 <script type="text/javascript" src="/js/mljstest/page-mljstest-charts.js"></script>
- <div class="container_12">  
-  <div id="errors" class="grid_12"></div>
- </div>
+
+<div id='appwrapper' ng-app="myApp" ng-controller="SampleCtrl">  
+   
+     <div class="container_12">  
+      <div id="errors"  mljs-error = "" class="grid_12"></div>
+     </div>
   
- <div class="container_12">  
-  <div id="tempchart" class="grid_6">1</div>
-  <div id="tempsplineline" class="grid_6">2</div>
-  <div id="tempbar" class="grid_6">3</div>
-  <div id="tempstackedbar" class="grid_6">4</div>
-  <div id="temparea" class="grid_6">5</div>
-  <div id="tempstackedarea" class="grid_6">6</div>
-  <div id="tempcolumn" class="grid_6">7</div>
-  <div id="tempstackedcolumn" class="grid_6">8</div>
- </div>
+     <div class="container_12">  
+      <span id="searchContext" mljs-search-context="" optionsName="page-charts-tempchart" mljs="mljs" options="ob"></span>
+      
+      <div id="tempchart" mljs-high-charts="" class="grid_6" errorListener = "errors" contextIds="searchContext"
+      mljsProps='{{"title":"Line: City temperature means", "subtitle" :"Degrees C", "yTitle" :"C"}}'>1</div>
+      <div id="tempsplineline" mljs-high-charts="" class="grid_6" contextIds="searchContext">2</div>
+      <div id="tempbar" mljs-high-charts="" class="grid_6" contextIds="searchContext">3</div>
+      <div id="tempstackedbar" mljs-high-charts="" class="grid_6" contextIds="searchContext">4</div>
+      <div id="temparea" mljs-high-charts="" class="grid_6" contextIds="searchContext">5</div>
+      <div id="tempstackedarea" mljs-high-charts="" class="grid_6" contextIds="searchContext">6</div>
+      <div id="tempcolumn" mljs-high-charts="" class="grid_6" contextIds="searchContext">7</div>
+      <div id="tempstackedcolumn" mljs-high-charts="" class="grid_6" contextIds="searchContext" init-func="initSearch(widget)">8</div>
+     </div>
+
+</div>
 </div>

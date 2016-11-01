@@ -21,29 +21,27 @@ declare option xdmp:mapping "false";
 
 <div xmlns="http://www.w3.org/1999/xhtml" class="mljstest angular">
 <link rel="stylesheet" type="text/css" href="/css/mljs/widgets.css" />
+<link rel="stylesheet" type="text/css" href="/css/mljs/widget-search.css" />
 <script type="text/javascript" src="/js/mljs/mljs.js"></script>
 <script type="text/javascript" src="/js/mljs/mljs-xhr2.js"></script>
-
+<script type="text/javascript" src="/js/mljstest/angular.js"></script>
+<script type="text/javascript" src="/js/mljs/mljs-angular.js"></script>
 <script type="text/javascript" src="/js/mljs/widgets.js"></script>
 <script type="text/javascript" src="/js/mljs/widget-search.js"></script>
-
-<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.9/angular.min.js"></script>
 
 <script type="text/javascript" src="/js/mljstest/page-mljstest-angular.js"></script>
   
   
-<div id='appwrapper' ng-app="myApp" ng-controller="SampleCtrl">  
- <div class="container_12">  
-  <div id="errors" class="grid_12"></div>
- </div>
- <div class="container_12">  
-  <div id="searchbar" class="grid_12">search bar</div>
- </div>
+    <div id='appwrapper' ng-app="myApp" ng-controller="SampleCtrl">  
+         <div class="container_12">  
+                <span id="searchContext" mljs-search-context="" optionsName="mljstest-page-search-options" mljs="mljs" options="ob"></span>
+                <div id="searchBar" mljs-search-bar="" class="grid_12"  contextIds="searchContext"></div>
+                <div id="searchFacets" mljs-search-facets="" class="grid_4" contextIds="searchContext"></div>
+                <div id="searchResults" mljs-search-results="" class="grid_8" contextIds="searchContext"></div>
+                <div id="sorter" mljs-search-sort ="" contextIds="searchContext" class="grid_12"></div>
+                <div id="pager" mljs-search-pager = "" contextIds="searchContext" class="grid_12"></div>
+                <div id="metrics" mljs-search-metrics = "" contextIds="searchContext" class="grid_12" init-func="initSearch(widget)"></div>
+         </div>       
+    </div>
  
- <metrics id="metrics" ng-model="results"></metrics>
- 
- <div class="container_12">  
-  <div id="searchresults" class="grid_6">results</div>
- </div>
-</div>
 </div>
