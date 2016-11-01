@@ -2,72 +2,126 @@
 /**
  * Holds Angular.js directives for re-using MLJS widgets.
  */
+	var setWidgetConfiguration=function(widget,scope,attrs){
+		var contextEval = scope["mljsProps"]
+		if(!contextEval){
+			var mljsProps=attrs["mljsprops"]
+			if(mljsProps)contextEval=scope.$eval(mljsProps)
+		}
+		contextEval && widget.setConfiguration && widget.setConfiguration(contextEval)
+	};	
 
-angular.module('mljs', [])
-    .directive('searchbar', function() {
-      console.log("MA: searchbar directive called");
+	
+	function MLJSWidgetFactory (widgetName) {
+			var reg= function(context,widget){
+				if(!widget.context){
+				widget.context=[]
+				}
+				context.register(widget)
+				widget.context.push(context)
+			};
+			var initErrorListener=function(widget,scope,attrs){
+				var errorDivId=attrs["errorlistener"]
+				if(errorDivId && widget.addErrorListener){
+					var error = document.getElementById(errorDivId).widget;			  
+					widget.addErrorListener(error.updateError);
+				}
+			};	
+			var registerFunc = function(attrVal, widget, scope) {
+				var context = scope.context
+				if (!context) {
+					var contextEval = scope.$eval(attrVal)
+					if (contextEval && contextEval.length > 0) {
+						angular.forEach(contextEval, function(val) {
+							var contextDiv = document.getElementById(val)
+							contextDiv && contextDiv.widget
+									&& reg(contextDiv.widget,widget);
 
-      var searchContext = null;
+						})
+					} else {
+						var contextDiv = document.getElementById(attrVal)
+						contextDiv && contextDiv.widget
+								&& reg(contextDiv.widget,widget);
 
-      function link(scope, element, attrs,model) {
+					}
+				} else {
+					if (context.length) {
+						angular.forEach(context, function(val) {
+							reg(val,widget);
+						})
+					} else
+						reg(context,widget)
+				}
+			};
+			var createWidgetFunc = function(element) {
 
-        console.log("MA: searchbar directive link function called");
-        var wgt = new com.marklogic.widgets.searchbar(element[0]);
+				if (element.length >= 0)
+					element = element[0]
+				var widget = new com.marklogic.widgets[widgetName](element.id);
+				element.widget = widget;
+				return widget;
+			};
+			return function() {
+					
+				return {
+					restrict : 'A',
+					scope : {
+						context : "=",
+						mljsProps  : "=",
+						initFunc: "&",
+						registerFunc: "&"
+					},
+					link : function(scope, element_jqlite, attrs) {
+						var widget = createWidgetFunc(element_jqlite)
+						setWidgetConfiguration(widget,scope,attrs)
+						initErrorListener(widget,scope,attrs)
+						registerFunc(attrs["contextids"], widget, scope);
+						scope.initFunc && scope.initFunc({widget:widget})
+					
+					}
+				}
+				
+			};
+			
+		};
+		function MLJSContextFactory (createFunctionName) {
+			return function() {
+					
+				return {
+					scope : {
+						options : '=',
+						mljs : "="
+					},
+					restrict : 'A',
+					link : function(scope, element_jqlite, attrs) {
+						var element = element_jqlite[0]
+						element.widget = scope.mljs ? scope.mljs[createFunctionName]() : new mljs[createFunctionName]();
+						var optionsName = attrs["optionsname"] ? attrs["optionsname"]
+								: element.id
+						optionsName	&& scope.options && element.widget.setOptions(optionsName,scope.options)
+						
+						setWidgetConfiguration(element.widget,scope,attrs)
+						
+					}
+				}
+				
+			};
+		}
 
-        var register = function() {
-          searchContext = model.$modelValue.searchContext;
-          searchContext.register(wgt);
-        };
-        scope.$watch(attrs['ngModel'], register);
 
-        // TODO other widget configuration
-
-        // register widget
-        //$searchContext.register(wgt); // equivalent of searchContext.register(wgt);
-      };
-
-      return {
-          restrict: 'E',
-          require: 'ngModel',
-        link: link
-      };
-    })
-
-
-    .directive('searchresults', function() {
-      console.log("MA: searchresults directive called");
-
-      var searchContext = null;
-
-      function link(scope, element, attrs, model) {
-        console.log("MA: searchresults directive link function called");
-
-        var wgt = new com.marklogic.widgets.searchresults(element[0]);
-
-        var register = function() {
-          searchContext = model.$modelValue.searchContext;
-          searchContext.register(wgt);
-        };
-        scope.$watch(attrs['ngModel'], register);
-
-        // TODO other widget configuration
-        // register widget
-        //$searchContext.register(wgt); // equivalent of searchContext.register(wgt);
-      }
-
-      return {
-          restrict: 'E',
-          require: 'ngModel',
-        link: link
-      };
-    })
-/*
-      .factory('searchContext', function() {
-        console.log("MA: searchcontext factory function called");
-        var db = new mljs();
-        var ctx = db.createSearchContext();
-        return ctx;
-      })*/
-
-  ;
+angular.module('mljs-angular', [])
+.directive('mljsSearchBar',  new MLJSWidgetFactory("searchbar",false))
+.directive('mljsSearchResults',   new MLJSWidgetFactory("searchresults",false))
+.directive('mljsSearchFacets',   new MLJSWidgetFactory("searchfacets",false)) 
+.directive('mljsSearchMetrics',  new MLJSWidgetFactory("searchmetrics",false)) 
+.directive('mljsSearchPager',   new MLJSWidgetFactory("searchpager",false)) 
+.directive('mljsSearchSort',   new MLJSWidgetFactory("searchsort",false))
+.directive('mljsError',  new MLJSWidgetFactory("error",false))
+.directive('mljsOpenLayers',   new MLJSWidgetFactory("openlayers",false))
+.directive('mljsSearchSelection',   new MLJSWidgetFactory("searchselection",false))
+.directive('mljsAddressBar',   new MLJSWidgetFactory("addressbar",false))
+.directive('mljsHighCharts',   new MLJSWidgetFactory("highcharts",false))
+.directive('mljsCoOccurence',   new MLJSWidgetFactory("cooccurence",false))
+.directive('mljsSearchContext',  new MLJSContextFactory("createSearchContext",true))
+.directive('mljsGeoContext',  new MLJSContextFactory("createGeoContext",true));
 })();
