@@ -121,7 +121,8 @@ angular.module('mljs-angular', [])
 .directive('mljsSearchSelection',   new MLJSWidgetFactory("searchselection",false))
 .directive('mljsAddressBar',   new MLJSWidgetFactory("addressbar",false))
 .directive('mljsHighCharts',   new MLJSWidgetFactory("highcharts",false))
-.directive('mljsCoOccurence',   new MLJSWidgetFactory("cooccurence",false))
+.directive('mljsCooccurence',   new MLJSWidgetFactory("cooccurence",false))
+.directive('mljsGraphExplorer',   new MLJSWidgetFactory("graphexplorer",false))
 .directive('mljsSearchContext',  new MLJSContextFactory("createSearchContext",true))
 .directive('mljsGeoContext',  new MLJSContextFactory("createGeoContext",true));
 })();
