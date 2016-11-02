@@ -24,9 +24,11 @@ declare option xdmp:mapping "false";
 <script type="text/javascript" src="/js/mljs/mljs.js"></script>
 <script type="text/javascript" src="/js/mljs/mljs-xhr2.js"></script>
 <script type="text/javascript" src="/js/OpenLayers-2.13.1/OpenLayers.debug.js"></script> <!-- debug deployment only - remove '.debug' for production use -->
+<script type="text/javascript" src="/js/mljstest/angular.js"></script>
 
 <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?sensor=false"></script> 
 <!-- need to be online for this -->
+<script type="text/javascript" src="/js/mljs/mljs-angular.js"></script>
 
 <script type="text/javascript" src="/js/mljs/widgets.js"></script>
 <script type="text/javascript" src="/js/mljs/widget-search.js"></script>
@@ -37,24 +39,31 @@ declare option xdmp:mapping "false";
     <script>OpenLayers.Console = window.console || OpenLayers.Console;</script> <!-- debug deployment only -->
 
 <script type="text/javascript" src="/js/mljstest/page-mljstest-openlayers.js"></script>
+  <div id='appwrapper' ng-app="myApp" ng-controller="SampleCtrl">  
+
+<span id="searchContext" mljs-search-context="" optionsName="attractions" mljs="mljs" options="ob"></span>
+               
+<span id="geoContext" mljs-geo-context="" mljs="mljs"></span>
+
 
  <div class="container_12"> 
    <div id="hint" class="grid_12"><i>Hint: Type in 'Westminster, London, UK' to recenter map</i></div>
  </div>
  <div class="container_12"> 
-   <div id="errors" class="grid_12"></div>
+   <div id="errors" mljs-error ="" class="grid_12"></div>
  </div>
  <div class="container_12"> 
-   <div id="addressbar" class="grid_12">address</div>
+   <div id="addressbar" mljs-address-bar = "" mljs-props="addressbarProps"  contextIds="['searchContext','geoContext']" class="grid_12">address</div>
  </div>
  <div class="container_12"> 
-   <div id="map" class="grid_12" style="height: 300px;">Map</div>
+   <div id="map" mljs-open-layers="" contextIds="['searchContext','geoContext']" init-func="initOpenLayers(widget)" class="grid_12" style="height: 300px;">Map</div>
  </div>
  <div class="container_12"> 
-   <div id="selection" class="grid_12">Selection</div>
+   <div id="selection" mljs-search-selection="" contextIds="['searchContext','geoContext']" init-func="initSelection(widget)" class="grid_12">Selection</div>
  </div>
  <div class="container_12"> 
-   <div id="results" class="grid_12">Results</div>
+   <div id="results" mljs-search-results="" class="grid_8" contextIds="searchContext"></div>
  </div>
- 
+</div> 
 </div>
+
